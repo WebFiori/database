@@ -9,10 +9,6 @@ os:
 services:
     - mysql
 addons:
-    sonarcloud:
-        organization: "webfiori"
-        token:
-            secure: "Z1l+FcpRoid2gJRO3ZRyNF7PxUDnMwxYGwUTNMEcuAqY5KzUfHvAYu+13DLyH+KfWAraKRs5qqdBgDCTxgScsLk5rxtO7RWqy185LjEUPfYTPTPlzqRZDLI8fF9noyY2k4YdwrC97KH+F0xAEFV/z0s5ShYQhs4B/JM4KGDrA4deauWJiHJjRaFUkP/e6vGREbowKc6b9OGJUit5UW5uWHM76oJMDdyGNq4do0dlX2vyI8XO1lwq/QY/OanX0HuPNmCYz4o4L3iE6dmG4hORTszYfZlnr5+ogad9X2Zxqy/Bde9utJvfeAbP8UtHbdGsm4eQoD+7+JcwPZxmwQzvEp+szT1qUIl7tGG3/bgtY19X97AB5eY0J4E4o1s6lwUYbbc2CL9fOI0tQK7bH+PMKsBYUd9OaqLTD8etHKiRLXITciRMAFsE+l934U9WG2t3qQ0lVlZtoo1GZc9ZbMFMCxqDF4ccWe7WT4QdH82NxWhfBxUxZ+dAsZnLBj6R+Jwy6r67EKU5NPI8lsEabvbHsxnhJQ1hF0Xc/N3KnykhjiR9wEKWUCNuGEQKdZ21yL0W+bVk24ktLqffOoLxsEpUwZsUIUD7xlI0O+s+6QL6/GcrkqhEWIWfwfBSMh6usvOC1Hz15BHS9BGHm0ubCS855IC5MPcyfe9OTQwW50OotVs="
     apt:
         sources:
         - mysql-5.7-trusty
@@ -20,6 +16,11 @@ addons:
         - dpkg
         - mysql-server
         - mysql-client
+    sonarcloud:
+        organization: "webfiori"
+        token:
+            secure: Z1l+FcpRoid2gJRO3ZRyNF7PxUDnMwxYGwUTNMEcuAqY5KzUfHvAYu+13DLyH+KfWAraKRs5qqdBgDCTxgScsLk5rxtO7RWqy185LjEUPfYTPTPlzqRZDLI8fF9noyY2k4YdwrC97KH+F0xAEFV/z0s5ShYQhs4B/JM4KGDrA4deauWJiHJjRaFUkP/e6vGREbowKc6b9OGJUit5UW5uWHM76oJMDdyGNq4do0dlX2vyI8XO1lwq/QY/OanX0HuPNmCYz4o4L3iE6dmG4hORTszYfZlnr5+ogad9X2Zxqy/Bde9utJvfeAbP8UtHbdGsm4eQoD+7+JcwPZxmwQzvEp+szT1qUIl7tGG3/bgtY19X97AB5eY0J4E4o1s6lwUYbbc2CL9fOI0tQK7bH+PMKsBYUd9OaqLTD8etHKiRLXITciRMAFsE+l934U9WG2t3qQ0lVlZtoo1GZc9ZbMFMCxqDF4ccWe7WT4QdH82NxWhfBxUxZ+dAsZnLBj6R+Jwy6r67EKU5NPI8lsEabvbHsxnhJQ1hF0Xc/N3KnykhjiR9wEKWUCNuGEQKdZ21yL0W+bVk24ktLqffOoLxsEpUwZsUIUD7xlI0O+s+6QL6/GcrkqhEWIWfwfBSMh6usvOC1Hz15BHS9BGHm0ubCS855IC5MPcyfe9OTQwW50OotVs=
+    
 install:
     - sudo apt-get -y -q -m --no-install-suggests --no-install-recommends --allow-unauthenticated
       $(travis_apt_get_options) install dpkg mysql-server mysql-client
