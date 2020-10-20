@@ -177,10 +177,8 @@ class MySQLConnection extends Connection {
     public function runQuery(AbstractQuery $query) {
         $this->setLastQuery($query);
 
-        if ($query instanceof MySQLQuery) {
-            if (!$query->isBlobInsertOrUpdate()) {
-                mysqli_query($this->link, 'set collation_connection =\''.$query->getTable()->getCollation().'\'');
-            }
+        if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
+            mysqli_query($this->link, 'set collation_connection =\''.$query->getTable()->getCollation().'\'');
         }
         $qType = $query->getLastQueryType();
 

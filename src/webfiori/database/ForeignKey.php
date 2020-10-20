@@ -443,7 +443,6 @@ class ForeignKey {
             throw new DatabaseExceptiont('Owner table of the foreign key is not set.');
         }
 
-        return false;
     }
     /**
      * A method that is used to validate the names of the key attributes (such as source column 

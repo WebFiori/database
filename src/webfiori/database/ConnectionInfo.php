@@ -279,12 +279,10 @@ class ConnectionInfo {
     public function setDatabaseType($type) {
         $trimmed = trim($type);
 
-        if (strlen($trimmed) > 0) {
-            if (in_array($trimmed, self::SUPPORTED_DATABASES)) {
-                $this->dbType = $trimmed;
+        if (strlen($trimmed) > 0 && in_array($trimmed, self::SUPPORTED_DATABASES)) {
+            $this->dbType = $trimmed;
 
-                return true;
-            }
+            return true;
         }
 
         return false;

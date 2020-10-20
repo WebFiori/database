@@ -402,7 +402,6 @@ class MySQLQuery extends AbstractQuery {
         foreach ($this->getTable()->getColsKeys() as $key) {
             if (!in_array($key, $colsWithVals)) {
                 $colObj = $this->getTable()->getColByKey($key);
-                $colObj instanceof MySQLColumn;
 
                 if (($colObj->getDatatype() == 'datetime' || $colObj->getDatatype() == 'timestamp') && $colObj->isAutoUpdate()) {
                     $updateArr[] = "set ".$this->backtick($colObj->getName())." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
@@ -514,12 +513,8 @@ class MySQLQuery extends AbstractQuery {
                         } else {
                             $vals .= 'null'.$comma;
                         }
-                    } else {
-                        if ($type == 'boolean') {
-                            $vals .= $cleanedVal.$comma;
-                        } else {
-                            $vals .= $cleanedVal.$comma;
-                        }
+                    } else if ($type == 'boolean' || $type == 'bool') {
+                        $vals .= $cleanedVal.$comma;
                     }
                 } else {
                     $vals .= 'null'.$comma;

@@ -92,9 +92,7 @@ class Condition {
         $right = $this->getRightOperand();
         $left = $this->getLeftOperand();
 
-        $retVal = $left.' '.$this->getCondition().' '.$right;
-
-        return $retVal;
+        return $left.' '.$this->getCondition().' '.$right;
     }
     /**
      * Checks if two conditions represent same condition.

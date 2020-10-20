@@ -72,13 +72,11 @@ abstract class Table {
     public function addColumn($key, Column $colObj) {
         $trimmidKey = trim($key);
 
-        if (!$this->hasColumn($colObj->getName()) && !$this->hasColumnWithKey($trimmidKey)) {
-            if ($this->_isKeyNameValid($trimmidKey)) {
-                $colObj->setOwner($this);
-                $this->colsArr[$trimmidKey] = $colObj;
+        if (!$this->hasColumn($colObj->getName()) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
+            $colObj->setOwner($this);
+            $this->colsArr[$trimmidKey] = $colObj;
 
-                return true;
-            }
+            return true;
         }
 
         return false;
