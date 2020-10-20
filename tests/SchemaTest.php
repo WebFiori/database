@@ -18,7 +18,8 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test00() {
-        $s = new Database('mysql');
+        $connInfo = new ConnectionInfo('mysql','root', '12345', 'testing_db');
+        $s = new Database($connInfo);
         $table = new MySQLTable('hello');
         $table->addColumn('user-id', new MySQLColumn('user_id', 'int', 11));
         $this->assertEquals('int',$table->getColByKey('user-id')->getDatatype());
