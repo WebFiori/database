@@ -537,10 +537,11 @@ class MySQLQuery extends AbstractQuery {
         foreach ($this->getTable()->getColsKeys() as $key) {
             if (!in_array($key, $columnsWithVals)) {
                 $colObj = $this->getTable()->getColByKey($key);
-
-                if ($colObj->getDefault() !== null) {
+                $defaultVal = $colObj->getDefault();
+                
+                if ($defaultVal !== null) {
                     $cols .= $comma.$this->backtick($colObj->getName());
-                    $vals .= $comma.$colObj->cleanValue($colObj->getDefault());
+                    $vals .= $comma.$colObj->cleanValue($defaultVal);
                 }
             }
         }
