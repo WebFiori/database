@@ -1,0 +1,10 @@
+{
+    "name": "webfiori/database",
+    "description": "Database abstraction layer of WebFiori framework.",
+    "type": "library",
+    "keywords": [
+        "Database","PHP","Query Builder","Library","MySQL"
+    ],
+    "license": "MIT",
+    "require": {}
+}
