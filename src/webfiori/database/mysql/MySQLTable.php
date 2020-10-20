@@ -25,6 +25,7 @@
 namespace webfiori\database\mysql;
 
 use webfiori\database\Table;
+use webfiori\database\Column;
 /**
  * A class that represents MySQL table.
  *
@@ -70,7 +71,7 @@ class MySQLTable extends Table {
      * 
      * @since 1.0
      */
-    public function addColumn($key, MySQLColumn $colObj) {
+    public function addColumn($key, Column $colObj) {
         if (parent::addColumn($key, $colObj)) {
             $this->_checkPKs();
 
