@@ -8,6 +8,7 @@ use webfiori\database\mysql\MySQLTable;
 use webfiori\database\mysql\MySQLColumn;
 use webfiori\database\mysql\MySQLQuery;
 use webfiori\database\AbstractQuery;
+use webfiori\database\ConnectionInfo;
 /**
  * Description of SchemaTest
  *
