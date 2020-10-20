@@ -33,13 +33,13 @@ class SchemaTest extends TestCase{
         $this->assertEquals('drop table `'.$table->getName().'`;', $s->getLastQuery());
         $s->createTable();
         $this->assertEquals("create table if not exists `hello` (\n"
-                . "    `user_id` int(11) not null,\n"
+                . "    `user_id` int not null,\n"
                 . "    `username` varchar(15) not null collate utf8mb4_unicode_520_ci,\n"
-                . "    `password` varchar(64) not null collate utf8mb4_unicode_520_ci\n"
+                . "    `password` varchar(64) not null collate utf8mb4_unicode_520_ci\n\n"
                 . ")\n"
-                . "ENGINE = InnoDB\n"
-                . "DEFAULT CHARSET = utf8mb4\n"
-                . "collate = utf8mb4_unicode_ci;", $s->getLastQuery());
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $s->getLastQuery());
         $s->insert([
             'user-id' => 33,
             'username' => 'Ibrahim',
@@ -59,10 +59,10 @@ class SchemaTest extends TestCase{
                         $s->where('user-id', '=', 31)
                         )->where('user-id', '<', 44, 'or')
                 )->where('username', '!=', 'Ibrahim', 'and');
-        $this->assertEquals('select * from `hello` where ((`user_id` = 31) or `user_id` < 44) and `username` != \'Ibrahim\'',$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `user_id` = 31 and `user_id` < 44 and `username` != 'Ibrahim'",$s->getLastQuery());
         $s->page(1, 40);
-        $this->assertEquals('select * from `hello` where ((`user_id` = 31) or `user_id` < 44) and `username` != \'Ibrahim\' limit 40 offset 40',$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `user_id` = 31 and `user_id` < 44 and `username` != 'Ibrahim' limit 40 offset 40",$s->getLastQuery());
         $s->page(5, 40);
-        $this->assertEquals('select * from `hello` where ((`user_id` = 31) or `user_id` < 44) and `username` != \'Ibrahim\' limit 40 offset 200',$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `user_id` = 31 and `user_id` < 44 and `username` != 'Ibrahim' limit 40 offset 200",$s->getLastQuery());
     }
 }
