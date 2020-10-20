@@ -82,7 +82,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    private $table;
+    private $associatedTbl;
     /**
      *
      * @var WhereExpression 
@@ -369,11 +369,11 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function getTable() {
-        if ($this->table === null) {
+        if ($this->associatedTbl === null) {
             throw new DatabaseException('No associated table.');
         }
 
-        return $this->table;
+        return $this->associatedTbl;
     }
     public function getWhereStatement() {
         return $this->whereExp->getValue();
@@ -532,7 +532,7 @@ abstract class AbstractQuery {
         }
         $exp = explode(' ', $query);
 
-        if (count($exp) != 0) {
+        if (!empty($exp)) {
             $this->lastQueryType = $exp[0];
         }
         $this->query = $query;
@@ -557,7 +557,7 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function setTable(Table $table) {
-        $this->table = $table;
+        $this->associatedTbl = $table;
     }
     /**
      * Sets the table at which the generator will generate queries for.
