@@ -229,7 +229,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function insert($colsAndVals) {
+    public function insert(array $colsAndVals) {
         if ($this->_isArrWithSubArrs($colsAndVals)) {
             $query = '';
 
