@@ -463,25 +463,17 @@ class MySQLQuery extends AbstractQuery {
     private function _createInsertStm($colsAndVals) {
         $tblName = $this->backtick($this->getTable()->getName());
 
-        $cols = '';
-        $vals = '';
-        $count = count($colsAndVals);
-        $index = 0;
-        $comma = '';
+        $colsArr = [];
+        $valsArr = [];
         $columnsWithVals = [];
 
         foreach ($colsAndVals as $colIndex => $val) {
-            if ($index + 1 == $count) {
-                $comma = '';
-            } else {
-                $comma = ', ';
-            }
 
             $column = $this->getTable()->getColByKey($colIndex);
 
             if ($column instanceof MySQLColumn) {
                 $columnsWithVals[] = $colIndex;
-                $cols .= $this->backtick($column->getName()).$comma;
+                $colsArr[] = $this->backtick($column->getName());
                 $type = $column->getDatatype();
 
                 if ($val !== 'null') {
@@ -499,34 +491,30 @@ class MySQLQuery extends AbstractQuery {
 
                                 if ($fileContent !== false) {
                                     $data = '\''.addslashes($fileContent).'\'';
-                                    $vals .= $data.$comma;
+                                    $valsArr[] = $data;
                                     $this->setIsBlobInsertOrUpdate(true);
                                 } else {
-                                    $vals .= 'null'.$comma;
+                                    $valsArr[] = 'null';
                                 }
                                 fclose($file);
                             } else {
                                 $data = '\''.addslashes($val).'\'';
-                                $vals .= $data.$comma;
+                                $valsArr[] = $data;
                                 $this->setIsBlobInsertOrUpdate(true);
                             }
                         } else {
-                            $vals .= 'null'.$comma;
+                            $data = '\''.addslashes($fileContent).'\'';
+                            $valsArr[] = $data;
                         }
-                    } else if ($type == 'boolean' || $type == 'bool') {
-                        $vals .= $cleanedVal.$comma;
+                    } else {
+                        $valsArr[] = $cleanedVal;
                     }
                 } else {
-                    $vals .= 'null'.$comma;
+                    $valsArr[] = 'null';
                 }
             } else {
                 throw new DatabaseException("The table '$tblName' has no column with name '$colIndex'.");
             }
-            $index++;
-        }
-
-        if (strlen($cols) != 0) {
-            $comma = ', ';
         }
 
         foreach ($this->getTable()->getColsKeys() as $key) {
@@ -535,13 +523,13 @@ class MySQLQuery extends AbstractQuery {
                 $defaultVal = $colObj->getDefault();
                 
                 if ($defaultVal !== null) {
-                    $cols .= $comma.$this->backtick($colObj->getName());
-                    $vals .= $comma.$colObj->cleanValue($defaultVal);
+                    $colsArr[] = $this->backtick($colObj->getName());
+                    $valsArr[] = $colObj->cleanValue($defaultVal);
                 }
             }
         }
-        $cols = '('.$cols.')';
-        $vals = '('.$vals.')';
+        $cols = '('. implode(', ', $colsArr) .')';
+        $vals = '('. implode(', ', $valsArr) .')';
 
         $stm = "insert into $tblName $cols values $vals;";
 
