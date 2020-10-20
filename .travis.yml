@@ -1,0 +1,41 @@
+language: php
+php:
+    - 5.6
+    - 7.2
+    - 7.3
+    - 7.4
+os:
+    - linux
+    # - osx # Services are not supported on osx
+    # - windows # The language 'php' is currently unsupported on the Windows Build Environment. 
+services:
+    - mysql
+addons:
+  apt:
+    sources:
+      - mysql-5.7-trusty
+    packages:
+      - dpkg
+      - mysql-server
+      - mysql-client
+install: 
+    - sudo apt-get -y -q -m --no-install-suggests --no-install-recommends --allow-unauthenticated $(travis_apt_get_options) install dpkg mysql-server mysql-client 
+before_install:
+    #update packages in quite mode.
+    - sudo apt-get -q update
+    #install postfix mail server
+    - sudo apt-get -y install postfix
+    #create a test database
+    - mysql -e 'create database if not exists testing_db;'
+    - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('123456') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+    - sudo mysql_upgrade -u root -p123456
+    - sudo service mysql restart
+before_script:
+    - composer self-update
+    - composer install --prefer-source --no-interaction
+script:
+    - phpunit --verbose --configuration phpunit.xml
+    - sonar-scanner
+after_success:
+    - mysql -e 'drop database testing_db;'
+    - bash <(curl -s https://codecov.io/bash)

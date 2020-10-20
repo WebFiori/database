@@ -1,0 +1,563 @@
+<?php
+
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019, WebFiori Framework.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+namespace webfiori\database\mysql;
+
+use webfiori\database\AbstractQuery;
+use webfiori\database\Column;
+use webfiori\database\DatabaseException;
+use webfiori\database\Expression;
+/**
+ * A class which is used to build MySQL queries.
+ *
+ * @author Ibrahim
+ * 
+ * @version 1.0
+ */
+class MySQLQuery extends AbstractQuery {
+    /**
+     * An attribute that is set to true if the query is an update or insert of 
+     * blob datatype.
+     * 
+     * @var boolean 
+     * 
+     * @since 1.0
+     */
+    private $isFileInsert;
+    /**
+     * Build a query which can be used to add a column to associated table.
+     * 
+     * @param string $colObjKey The key of the column taken from the table.
+     * 
+     * @param string $location The location at which the column will be added to. 
+     * It can be the word 'first' or the key of the column at which the new column 
+     * will be added after.
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function addCol($colObjKey, $location = null) {
+        $tblName = $this->backtick($this->getTable()->getName());
+        $colToAdd = $this->getTable()->getColByKey($colObjKey);
+
+        if (!($colToAdd instanceof Column)) {
+            throw new DatabaseException("The table '$tblName' has no column with key '$colObjKey'.");
+        } 
+        $colObjAsStr = $colToAdd->asString();
+        $stm = "alter table $tblName add $colObjAsStr";
+
+        if ($location !== null) {
+            $lower = trim(strtolower($location));
+            $colObj = $this->getTable()->getColByKey($location);
+
+            if ($lower == 'first') {
+                $stm .= ' first';
+            } else {
+                if ($colObj instanceof MySQLColumn) {
+                    $colIndex = $colObj->getIndex();
+
+                    if ($colIndex == 0) {
+                        $stm .= " first";
+                    } else {
+                        $colName = $this->backtick($colObj->getName());
+                        $stm .= " after $colName";
+                    }
+                } else {
+                    throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
+                }
+            }
+        }
+        $this->setQuery($stm.';');
+
+        return $this;
+    }
+    /**
+     * Constructs a query that can be used to add a primary key to the active table.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function addPrimaryKey($pkName, array $pkCols) {
+        $trimmedPkName = $this->backtick(trim($pkName));
+        $tableObj = $this->getTable();
+        $keyCols = [];
+
+        foreach ($pkCols as $colKey) {
+            $col = $this->getTable()->getColByKey($colKey);
+
+            if ($col instanceof MySQLColumn) {
+                $keyCols[] = $this->backtick($col->getName());
+            }
+        }
+        $stm = 'alter table '.$this->backtick($tableObj->getName()).' add constraint '.$trimmedPkName.' '
+                .'primary key ('.implode(', ', $keyCols).');';
+        $this->setQuery($stm);
+
+        return $this;
+    }
+    /**
+     * Adds a backtick character around a string.
+     * 
+     * @param string $str This can be the name of a column in a table or the name 
+     * of a table.
+     * 
+     * @return string The method will return a string surounded by backticks.
+     * 
+     * @since 1.0
+     */
+    public function backtick($str) {
+        return '`'.$str.'`';
+    }
+    /**
+     * Constructs a query which can be used to remove a record from the associated 
+     * table.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function delete() {
+        $tblName = $this->backtick($this->getTable()->getName());
+        $this->setQuery("delete from $tblName");
+
+        return $this;
+    }
+    /**
+     * Constructs a query which can be used to drop a column from associated 
+     * table.
+     * 
+     * @param string $colKey The name of column key taken from the table.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @since 1.0
+     */
+    public function dropCol($colKey) {
+        $tblName = $this->backtick($this->getTable()->getName());
+        $colObj = $this->getTable()->getColByKey($colKey);
+
+        if (!($colObj instanceof MySQLColumn)) {
+            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+        }
+        $withTick = $this->backtick($colObj->getName());
+        $stm = "alter table $tblName drop $withTick;";
+        $this->setQuery($stm);
+
+        return $this;
+    }
+    /**
+     * Build a query which is used to drop primary key of linked table.
+     * 
+     * @param null $pkName Not used.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function dropPrimaryKey($pkName = null) {
+        $this->setQuery('alter table '.$this->backtick($this->getTable()->getName()).' drop primary key;');
+
+        return $this;
+    }
+    /**
+     * Returns the generated SQL query.
+     * 
+     * @return string Returns the generated query as string.
+     * 
+     * @since 1.0
+     */
+    public function getQuery() {
+        $query = parent::getQuery();
+
+        if ($this->getLastQueryType() == 'select') {
+            if ($this->getLimit() > 0) {
+                $query .= ' limit '.$this->getLimit();
+
+                if ($this->getOffset() > 0) {
+                    $query .= ' offset '.$this->getOffset();
+                }
+            }
+        }
+
+        return $query;
+    }
+    /**
+     * Constructs a query which can be used to add new record.
+     * 
+     * @param array $colsAndVals An associative array. The indices are columns 
+     * keys and the value of each index is the value of the column. This also
+     * can be one big indexed array of sub associative arrays. This approach can 
+     * be used to build multiple insert queries.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function insert($colsAndVals) {
+        if ($this->_isArrWithSubArrs($colsAndVals)) {
+            $query = '';
+
+            foreach ($colsAndVals as $arrOfVals) {
+                $query .= $this->_createInsertStm($arrOfVals)."\n";
+            }
+            $this->setQuery($query);
+        } else {
+            $this->setQuery($this->_createInsertStm($colsAndVals));
+        }
+
+        return $this;
+    }
+    /**
+     * Checks if the query represents a blob insert or update.
+     * 
+     * The aim of this method is to fix an issue with setting the collation 
+     * of the connection while executing a query.
+     * 
+     * @return boolean The method will return true if the query represents an 
+     * insert or an update of blob datatype. false if not.
+     * 
+     * @since 1.0
+     */
+    public function isBlobInsertOrUpdate() {
+        return $this->isFileInsert;
+    }
+    /**
+     * Build a query which can be used to modify a column in associated table.
+     * 
+     * @param string $colKey The key of the column taken from the table.
+     * 
+     * @param string $location The location at which the column will be moved to (optional). 
+     * It can be the word 'first' or the key of the column at which the column 
+     * will be added after.
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function modifyCol($colKey, $location = null) {
+        $tblName = $this->backtick($this->getTable()->getName());
+        $colObj = $this->getTable()->getColByKey($colKey);
+
+        if (!($colObj instanceof MySQLColumn)) {
+            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+        }
+        $colName = $this->backtick($colObj->getName());
+        $stm = "alter table $tblName change column ".$colObj->asString();
+
+        if ($location !== null) {
+            $lower = trim(strtolower($location));
+            $colObj = $this->getTable()->getColByKey($location);
+
+            if ($lower == 'first') {
+                $stm .= ' first';
+            } else {
+                if ($colObj instanceof MySQLColumn) {
+                    $colIndex = $colObj->getIndex();
+
+                    if ($colIndex == 0) {
+                        $stm .= " first";
+                    } else {
+                        $colName = $this->backtick($colObj->getName());
+                        $stm .= " after $colName";
+                    }
+                } else {
+                    throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
+                }
+            }
+        }
+        $this->setQuery($stm.';');
+
+        return $this;
+    }
+    /**
+     * Constructs a select query based on associated table.
+     * 
+     * @param array $cols An array that contains the keys of the columns that 
+     * will be selected. To give an alias for a column, simply supply the alias 
+     * as a value for the key.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function select($cols = ['*']) {
+        $tableName = $this->backtick($this->getTable()->getName());
+
+        if ($cols == ['*']) {
+            $colsStr = '*';
+        } else {
+            $colsArr = [];
+
+            foreach ($cols as $index => $alias) {
+                if (gettype($index) == 'integer') {
+                    $colObj = $this->getTable()->getColByKey($alias);
+                    $colsArr[] = $this->backtick($colObj->getName());
+                } else {
+                    if ($alias instanceof Expression) {
+                        $colsArr[] = $alias;
+                    } else {
+                        $colObj = $this->getTable()->getColByKey($index);
+
+                        if ($colObj instanceof MySQLColumn) {
+                            $colName = $this->backtick($colObj->getName());
+                            $colsArr[] = "$colName as ".$this->backtick($alias);
+                        }
+                    }
+                }
+            }
+            $colsStr = implode(", ", $colsArr);
+        }
+
+        $this->setQuery("select $colsStr from $tableName");
+
+        return $this;
+    }
+    /**
+     * Sets the property that is used to check if the query represents an insert 
+     * or an update of a blob datatype.
+     * 
+     * The attribute is used to fix an issue with setting the collation 
+     * of the connection while executing a query.
+     * 
+     * @param boolean $boolean true if the query represents an insert or an update 
+     * of a blob datatype. false if not.
+     * 
+     * @since 1.0
+     */
+    public function setIsBlobInsertOrUpdate($boolean) {
+        $this->isFileInsert = $boolean === true ? true : false;
+    }
+    /**
+     * Constructs an update query.
+     * 
+     * @param array $newColsVals An associative array. The indices of the array 
+     * are columns keys and the values are the new values for the columns.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If one of the columns does not exist, the method 
+     * will throw an exception.
+     * 
+     * @since 1.0
+     */
+    public function update(array $newColsVals) {
+        $updateArr = [];
+        $colsWithVals = [];
+        $tblName = $this->getTable()->getName();
+
+        foreach ($newColsVals as $colKey => $newVal) {
+            $colObj = $this->getTable()->getColByKey($colKey);
+
+            if (!$colObj instanceof MySQLColumn) {
+                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+            }
+            $valClean = $colObj->cleanValue($newVal);
+            $colName = $this->backtick($colObj->getName());
+            $updateArr[] = "set $colName = $valClean";
+            $colsWithVals[] = $colKey;
+        }
+
+        foreach ($this->getTable()->getColsKeys() as $key) {
+            if (!in_array($key, $colsWithVals)) {
+                $colObj = $this->getTable()->getColByKey($key);
+                $colObj instanceof MySQLColumn;
+
+                if (($colObj->getDatatype() == 'datetime' || $colObj->getDatatype() == 'timestamp') && $colObj->isAutoUpdate()) {
+                    $updateArr[] = "set ".$this->backtick($colObj->getName())." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                }
+            }
+        }
+        $query = "update $tblName ".implode(', ', $updateArr);
+        $this->setQuery($query);
+
+        return $this;
+    }
+    /**
+     * Adds a 'where' condition to an existing select, update or delete query.
+     * 
+     * @param AbstractQuery|string $col The key of the column. This also can be an 
+     * object of type AbstractQuery. The object is used to build a sub 
+     * where condition.
+     * 
+     * @param string $cond A string such as '=' or '!='.
+     * 
+     * @param mixed $val The value at which column value will be evaluated againest.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If one of the columns does not exist, the method 
+     * will throw an exception.
+     * 
+     * @since 1.0
+     */
+    public function where($col, $cond = null, $val = null, $joinCond = 'and') {
+        if ($col instanceof AbstractQuery) {
+            //Prev where was a sub where
+            $this->addWhere($col, null, null, $joinCond);
+        } else {
+            // A where condition based on last select, delete or update
+            $lastQueryType = $this->getLastQueryType();
+            $table = $this->getTable();
+            $tableName = $table->getName();
+
+            if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
+                $colObj = $table->getColByKey($col);
+
+                if ($colObj === null) {
+                    throw new DatabaseException("The table '$tableName' has no column with key '$col'.");
+                }
+                $colName = $colObj->getName();
+                $cleanVal = $colObj->cleanValue($val);
+                $this->addWhere($this->backtick($colName), $cleanVal, $cond, $joinCond);
+            }
+        }
+
+        return $this;
+    }
+    private function _createInsertStm($colsAndVals) {
+        $tblName = $this->backtick($this->getTable()->getName());
+
+        $cols = '';
+        $vals = '';
+        $count = count($colsAndVals);
+        $index = 0;
+        $comma = '';
+        $columnsWithVals = [];
+
+        foreach ($colsAndVals as $colIndex => $val) {
+            if ($index + 1 == $count) {
+                $comma = '';
+            } else {
+                $comma = ', ';
+            }
+
+            $column = $this->getTable()->getColByKey($colIndex);
+
+            if ($column instanceof MySQLColumn) {
+                $columnsWithVals[] = $colIndex;
+                $cols .= $this->backtick($column->getName()).$comma;
+                $type = $column->getDatatype();
+
+                if ($val !== 'null') {
+                    $cleanedVal = $column->cleanValue($val);
+
+                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
+                        $fixedPath = str_replace('\\', '/', $val);
+
+                        if (file_exists($fixedPath)) {
+                            $file = fopen($fixedPath, 'r');
+                            $data = '';
+
+                            if ($file !== false) {
+                                $fileContent = fread($file, filesize($fixedPath));
+
+                                if ($fileContent !== false) {
+                                    $data = '\''.addslashes($fileContent).'\'';
+                                    $vals .= $data.$comma;
+                                    $this->setIsBlobInsertOrUpdate(true);
+                                } else {
+                                    $vals .= 'null'.$comma;
+                                }
+                                fclose($file);
+                            } else {
+                                $data = '\''.addslashes($val).'\'';
+                                $vals .= $data.$comma;
+                                $this->setIsBlobInsertOrUpdate(true);
+                            }
+                        } else {
+                            $vals .= 'null'.$comma;
+                        }
+                    } else {
+                        if ($type == 'boolean') {
+                            $vals .= $cleanedVal.$comma;
+                        } else {
+                            $vals .= $cleanedVal.$comma;
+                        }
+                    }
+                } else {
+                    $vals .= 'null'.$comma;
+                }
+            } else {
+                throw new DatabaseException("The table '$tblName' has no column with name '$colIndex'.");
+            }
+            $index++;
+        }
+
+        if (strlen($cols) != 0) {
+            $comma = ', ';
+        }
+
+        foreach ($this->getTable()->getColsKeys() as $key) {
+            if (!in_array($key, $columnsWithVals)) {
+                $colObj = $this->getTable()->getColByKey($key);
+
+                if ($colObj->getDefault() !== null) {
+                    $cols .= $comma.$this->backtick($colObj->getName());
+                    $vals .= $comma.$colObj->cleanValue($colObj->getDefault());
+                }
+            }
+        }
+        $cols = '('.$cols.')';
+        $vals = '('.$vals.')';
+
+        $stm = "insert into $tblName $cols values $vals;";
+
+        return $stm;
+    }
+    private function _isArrWithSubArrs(array $arr) {
+        $retVal = true;
+
+        foreach ($arr as $key => $val) {
+            $retVal = $retVal && gettype($key) == 'integer' && gettype($val) == 'array';
+        }
+
+        return $retVal;
+    }
+}
