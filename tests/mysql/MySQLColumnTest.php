@@ -234,6 +234,39 @@ class MySQLColumnTest extends TestCase {
     /**
      * @test
      */
+    public function testCleanValue08() {
+        $col = new MySQLColumn('col');
+        $cleanedArr = $col->cleanValue([1, false, null, 'string', '1.8', 7.9]);
+        $this->assertEquals([
+            "'1'",
+            "''",
+            null,
+            "'string'",
+            "'1.8'",
+            "'7.9'"
+        ],$cleanedArr);
+        
+    }
+    /**
+     * @test
+     */
+    public function testCleanValue09() {
+        $col = new MySQLColumn('col', 'bool');
+        $cleanedArr = $col->cleanValue([1, false, null, 'string', '1.8', 7.9, true]);
+        $this->assertEquals([
+            "b'0'",
+            "b'0'",
+            null,
+            "b'0'",
+            "b'0'",
+            "b'0'",
+            "b'1'"
+        ],$cleanedArr);
+        
+    }
+    /**
+     * @test
+     */
     public function testConstructor00() {
         $col = new MySQLColumn();
         $this->assertEquals('varchar',$col->getDatatype());
