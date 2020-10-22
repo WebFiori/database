@@ -223,8 +223,6 @@ class MySQLColumn extends Column {
 
             return $col;
         }
-
-        return null;
     }
     /**
      * Returns the value of column collation.
@@ -272,11 +270,12 @@ class MySQLColumn extends Column {
                 if ($dt == 'decimal' || $dt == 'float' || $dt == 'double') {
                     $retVal = floatval($retVal);
                 }
-            } else if (($defaultVal == 'now()' || $defaultVal == 'current_timestamp') &&
-            ($dt == 'datetime' || $dt == 'timestamp')) {
-                $retVal = date('Y-m-d H:i:s');
             } else if ($dt == 'timestamp' || $dt == 'datetime') {
-                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
+                if (!($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                    $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
+                } else {
+                    $retVal = $defaultVal;
+                }
             } else if ($dt == 'int') {
                 $retVal = intval($defaultVal);
             } else if ($dt == 'boolean' || $dt == 'bool') {
@@ -316,14 +315,18 @@ class MySQLColumn extends Column {
      * @since 1.0
      */
     public function getPHPType() {
-        $isNullStr = $this->isNull() ? '|null' : '';
+        
         $colType = $this->getDatatype();
-
+        if ($colType == 'bool' || $colType == 'boolean') {
+            $isNullStr = '';
+        } else {
+            $isNullStr = $this->isNull() ? '|null' : '';
+        }
         if ($colType == 'int') {
             return 'int'.$isNullStr;
         } else if ($colType == 'decimal' || $colType == 'double' || $colType == 'float') {
             return 'double'.$isNullStr;
-        } else if ($colType == 'boolean') {
+        } else if ($colType == 'boolean' || $colType == 'bool') {
             return 'boolean'.$isNullStr;
         } else {
             return 'string'.$isNullStr;
@@ -598,7 +601,7 @@ class MySQLColumn extends Column {
         } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
             $cleanedVal = '\''.floatval($val).'\'';
         } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
-            $cleanedVal = '\''.str_replace("'", "\'", $val).'\'';
+            $cleanedVal = str_replace("'", "\'", $val);
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
@@ -609,8 +612,14 @@ class MySQLColumn extends Column {
             //blob mostly
             $cleanedVal = $val;
         }
-
-        return call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
+        $retVal = call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
+        
+        if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext')) {
+            
+            return "'".$retVal."'";
+        }
+        
+        return $retVal;
     }
     private function _commentPart() {
         $colComment = $this->getComment();

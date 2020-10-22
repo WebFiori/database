@@ -524,7 +524,13 @@ class MySQLQuery extends AbstractQuery {
                 
                 if ($defaultVal !== null) {
                     $colsArr[] = $this->backtick($colObj->getName());
-                    $valsArr[] = $colObj->cleanValue($defaultVal);
+                    $type = $colObj->getDatatype();
+                    
+                    if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
+                    } else {
+                        $valsArr[] = $colObj->cleanValue($defaultVal);
+                    }
                 }
             }
         }

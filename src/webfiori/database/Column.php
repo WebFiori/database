@@ -357,10 +357,8 @@ abstract class Column {
 
         if (strlen($trimmed) != 0) {
             $this->comment = $trimmed;
-        } else {
-            if ($comment === null) {
-                $this->comment = null;
-            }
+        } else if ($comment === null) {
+            $this->comment = null;
         }
     }
     /**
@@ -403,6 +401,10 @@ abstract class Column {
         if (!in_array($trimmed, $this->getSupportedTypes())) {
             throw new DatabaseException('Column datatype not supported: \''.$trimmed.'\'.');
         }
+        
+        if ($trimmed == 'bool' || $trimmed == 'boolean') {
+            $this->setIsNull(false);
+        }
         $this->datatype = $trimmed;
     }
     /**
@@ -432,9 +434,11 @@ abstract class Column {
      * @since 1.0
      */
     public function setIsNull($bool) {
-        if (gettype($bool) == 'boolean' && !$this->isPrimary()) {
-            $this->isNull = $bool;
-
+        $colDatatype = $this->getDatatype();
+        
+        if (!($colDatatype == 'bool' || $colDatatype == 'boolean') && !$this->isPrimary()) {
+            $this->isNull = $bool === true;
+            
             return true;
         }
 
@@ -495,11 +499,9 @@ abstract class Column {
             $this->owner = $table;
             $colsCount = $table->getColsCount();
             $this->columnIndex = $colsCount == 0 ? 0 : $colsCount;
-        } else {
-            if ($table === null) {
-                $this->owner = null;
-                $this->columnIndex = -1;
-            }
+        } else if ($table === null) {
+            $this->owner = null;
+            $this->columnIndex = -1;
         }
     }
     /**

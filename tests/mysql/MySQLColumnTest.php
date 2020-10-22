@@ -46,7 +46,7 @@ class MySQLColumnTest extends TestCase {
         $col->setCustomFilter(function($originalVal, $basicFilterResult){
             return $originalVal.'?';
         });
-        $this->assertEquals('Hello World.?',$col->cleanValue('Hello World.'));
+        $this->assertEquals("'Hello World.?'",$col->cleanValue('Hello World.'));
     }
     /**
      * @test
@@ -263,6 +263,29 @@ class MySQLColumnTest extends TestCase {
             "b'1'"
         ],$cleanedArr);
         
+    }
+    /**
+     * @test
+     */
+    public function testCreateCol00() {
+        $colObj = MySQLColumn::createColObj([]);
+        $this->assertNull($colObj);
+    }
+    /**
+     * @test
+     */
+    public function testCreateCol01() {
+        $colObj = MySQLColumn::createColObj([
+            'name' => 'my_col',
+            'validator' => function ($orgVal, $cleaned) {
+                return 'Hello '.$cleaned;
+            }
+        ]);
+        $this->assertNotNull($colObj);
+        $this->assertEquals('my_col', $colObj->getName());
+        $this->assertEquals('varchar', $colObj->getDatatype());
+        $this->assertEquals(1, $colObj->getSize());
+        $this->assertEquals("'Hello Ibrahim'", $colObj->cleanValue('Ibrahim'));
     }
     /**
      * @test
@@ -516,12 +539,11 @@ class MySQLColumnTest extends TestCase {
     /**
      * @test
      */
-    public function testSetDefault0() {
+    public function testSetDefault08() {
         $col = new MySQLColumn('date', 'datetime');
         $col->setDefault('now()');
-        $date = date('Y-m-d H:i:s');
-        $this->assertEquals($date,$col->getDefault());
-        $this->assertEquals('`date` datetime not null default \''.$date.'\'',$col.'');
+        $this->assertEquals('now()',$col->getDefault());
+        $this->assertEquals('`date` datetime not null default now()',$col.'');
     }
     /**
      * @test
@@ -673,11 +695,9 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn();
         $col->setDatatype('datetime');
         $col->setDefault('now()');
-        $this->assertTrue(in_array($col->getDefault(), 
-                [date('Y-m-d H:i:s + 1'),date('Y-m-d H:i:s'),date('Y-m-d H:i:s - 1')]));
+        $this->assertEquals('now()', $col->getDefault());
         $col->setDefault('current_timestamp');
-        $this->assertTrue(in_array($col->getDefault(), 
-                [date('Y-m-d H:i:s + 1'),date('Y-m-d H:i:s'),date('Y-m-d H:i:s - 1')]));
+        $this->assertEquals('current_timestamp', $col->getDefault());
     }
     /**
      * @test
@@ -686,10 +706,62 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn();
         $col->setDatatype('timestamp');
         $col->setDefault('now()');
-        $this->assertTrue(in_array($col->getDefault(), 
-                [date('Y-m-d H:i:s + 1'),date('Y-m-d H:i:s'),date('Y-m-d H:i:s - 1')]));
+        $this->assertEquals('now()', $col->getDefault());
         $col->setDefault('current_timestamp');
-        $this->assertTrue(in_array($col->getDefault(), 
-                [date('Y-m-d H:i:s + 1'),date('Y-m-d H:i:s'),date('Y-m-d H:i:s - 1')]));
+        $this->assertEquals('current_timestamp', $col->getDefault());
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPType00() {
+        $colObj = new MySQLColumn();
+        $this->assertEquals('string', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('string|null', $colObj->getPHPType());
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPType01() {
+        $colObj = new MySQLColumn('col', 'bool');
+        $this->assertEquals('boolean', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('boolean', $colObj->getPHPType());
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPType02() {
+        $colObj = new MySQLColumn('col', 'boolean');
+        $this->assertEquals('boolean', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('boolean', $colObj->getPHPType());
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPType03() {
+        $colObj = new MySQLColumn('col', 'decimal');
+        $this->assertEquals('double', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('double|null', $colObj->getPHPType());
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPType04() {
+        $colObj = new MySQLColumn('col', 'blob');
+        $this->assertEquals('string', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('string|null', $colObj->getPHPType());
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPType05() {
+        $colObj = new MySQLColumn('col', 'datetime');
+        $this->assertEquals('string', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('string|null', $colObj->getPHPType());
     }
 }

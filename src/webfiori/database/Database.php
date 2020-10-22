@@ -27,6 +27,7 @@ namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\ResultSet;
 
 /**
  * A class which is used to represents the structure of the database.
@@ -225,6 +226,18 @@ class Database {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage());
         }
         $this->getQueryGenerator()->setQuery(null);
+    }
+    /**
+     * Returns the last result set which was generated from executing a query such 
+     * as a 'select' query.
+     * 
+     * @return ResultSet|null The last result set. If no result set is available, 
+     * the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function getLastResultSet() {
+        return $this->getConnection()->getLastResultSet();
     }
     /**
      * Returns an array that holds fetched database records.

@@ -62,7 +62,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals("create table if not exists `users_tasks` (\n"
                 . "    `task_id` int not null unique auto_increment,\n"
                 . "    `user_id` int not null comment 'The ID of the user who must perform the activity.',\n"
-                . "    `created_on` timestamp not null default '$date',\n"
+                . "    `created_on` timestamp not null default now(),\n"
                 . "    `last_updated` datetime null,\n"
                 . "    `is_finished` bit(1) not null default b'0',\n"
                 . "    `details` varchar(1500) not null collate utf8mb4_unicode_520_ci,\n"
@@ -74,6 +74,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
         $schema->execute();
+        return $schema;
     }
     /**
      * @test
@@ -577,8 +578,36 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->expectException(DatabaseException::class);
         $this->expectExceptionMessage("1146 - Table 'testing_db.users_privileges' doesn't exist");
         $schema->table('users_privileges')->select()->execute();
-        $this->assertEquals(0, $schema->getConnection()->getRowsCount());
+        $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
         $schema->table('users_privileges')->drop()->execute();
         $schema->table('users_privileges')->select()->execute();
+    }
+    /**
+     * @test
+     * @param MySQLTestSchema $schema
+     * @depends testCreateTable
+     */
+    public function testInsert03($schema) {
+        $schema->table('users')->insert([
+            'first-name' => 'Ibrahim',
+            'last-name' => 'BinAlshikh',
+            'age' => 28
+        ])->execute();
+        $schema->select()->execute();
+        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
+        return $schema;
+    }
+    /**
+     * @test
+     * @param MySQLTestSchema $schema
+     * @depends testInsert03
+     */
+    public function testDropRecord00($schema) {
+        $row = $schema->getLastResultSet()->getRows()[0];
+        $schema->delete()->where('id', '=', $row['id']);
+        $this->assertEquals('delete from `users` where `id` = '.$row['id'], $schema->getLastQuery());
+        $schema->execute();
+        $schema->select()->execute();
+        $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
     }
 }

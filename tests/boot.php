@@ -53,10 +53,11 @@ require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Expression.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Condition.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'EntityMapper.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
+require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
 
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLQuery.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnection.php';
 
-require_once $rootDir.'tests'.$DS.'MySQLTestSchema.php';
+require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
