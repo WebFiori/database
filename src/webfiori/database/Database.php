@@ -127,6 +127,7 @@ class Database {
      */
     public function addTable(Table $table) {
         if (!$this->hasTable($table->getName())) {
+            $table->setOwner($this);
             $this->tablesArr[$table->getName()] = $table;
 
             return true;
@@ -239,18 +240,6 @@ class Database {
      */
     public function getLastResultSet() {
         return $this->getConnection()->getLastResultSet();
-    }
-    /**
-     * Returns an array that holds fetched database records.
-     * 
-     * Note that the developer must first call the method Database::execute() before 
-     * fetching the result.
-     * 
-     * @return array An array that holds fetched database records.
-     * 
-     */
-    public function get() {
-        return $this->getConnection()->getRows();
     }
     /**
      * Returns the connection at which the instance will use to run SQL queries.

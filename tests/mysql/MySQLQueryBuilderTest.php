@@ -17,6 +17,7 @@ use webfiori\database\tests\MySQLTestSchema;
 use webfiori\database\DatabaseException;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\ConnectionInfo;
+use super\entity\UserEntity;
 
 /**
  * Description of MySQLQueryBuilderTest
@@ -682,6 +683,38 @@ class MySQLQueryBuilderTest extends TestCase {
             }
         }
         return $schema;
+    }
+    /**
+     * 
+     * 
+     * @test
+     * @param MySQLTestSchema $schema
+     * @depends testInsert04
+     */
+    public function testMappedResult00($schema) {
+        $mapper = $schema->getTable('users')->getEntityMapper();
+        $mapper->setEntityName('UserEntity');
+        $mapper->setNamespace('super\entity');
+        $mapper->setPath(__DIR__);
+        $mapper->create();
+        require_once $mapper->getAbsolutePath();
+        $resultSet = $schema->getLastResultSet();
+        $resultSet->setMappingFunction(function($data) {
+            $retVal = [];
+            foreach ($data as $record) {
+                $obj = new UserEntity();
+                $obj->setAge($record['age']);
+                $obj->setFirstName($record['first_name']);
+                $obj->setId($record['id']);
+                $obj->setLastName($record['last_name']);
+                $retVal[] = $obj;
+            }
+            return $retVal;
+        });
+        $data = $resultSet->getMappedRows();
+        foreach ($data as $obj) {
+            $this->assertTrue($obj instanceof UserEntity);
+        }
     }
     /**
      * @test

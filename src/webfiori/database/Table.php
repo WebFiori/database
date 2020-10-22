@@ -184,13 +184,6 @@ abstract class Table {
 
         return false;
     }
-    public function alterCol($colKey, $operation) {
-        $col = $this->getColByKey($colKey);
-
-        if ($col instanceof Column) {
-            $col->getAlterStatement($operation);
-        }
-    }
     /**
      * Returns a column given its index.
      * 
@@ -439,11 +432,31 @@ abstract class Table {
 
         return false;
     }
+    /**
+     * Checks if the table has a column with a given key.
+     * 
+     * @param string $keyName The name of the key.
+     * 
+     * @return boolean If a column with the given key exist, the method will return 
+     * true. Other than that, the method will return false.
+     * 
+     * @since 1.0
+     */
     public function hasColumnWithKey($keyName) {
         $trimmed = trim($keyName);
 
         return isset($this->colsArr[$trimmed]);
     }
+    /**
+     * Removes a column from the table given its key.
+     * 
+     * @param string $colKey Key name of the column.
+     * 
+     * @return Column|null If the column is removed, an object that represent it 
+     * is returned. Other than that, the method will return null.
+     * 
+     * @since 1.0
+     */
     public function removeColByKey($colKey) {
         $colObj = $this->getColByKey($colKey);
 
@@ -490,16 +503,18 @@ abstract class Table {
         return false;
     }
     /**
+     * Sets or removes the database which owns the table.
      * 
-     * @param Database|null $db
+     * @param Database|null $db The owner database. If null is passed, the owner 
+     * will be unset.
+     * 
+     * @since 1.0
      */
     public function setOwner($db) {
         if ($db instanceof Database) {
             $this->ownerSchema = $db;
-        } else {
-            if ($db === null) {
-                $this->ownerSchema = null;
-            }
+        } else if ($db === null) {
+            $this->ownerSchema = null;
         }
     }
     public abstract function toSQL();

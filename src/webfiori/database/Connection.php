@@ -191,32 +191,4 @@ abstract class Connection {
     public function setLastQuery(AbstractQuery $query) {
         $this->lastQuery = $query;
     }
-    /**
-     * Map a record to an entity class.
-     * @param array $row An associative array that contains record's data.
-     * @return object The object at which the record was mapped to.
-     */
-    private function _map($row) {
-        $entityName = $this->getLastQuery()->getMappedEntity();
-        $entity = new $entityName();
-        $table = $this->getLastQuery()->getTable();
-        $mapper = new EntityMapper($table, 'E');
-        $datatypes = $table->types();
-        $colsNames = $table->getColsNames();
-        $index = 0;
-
-        foreach ($mapper->getSettersMap() as $methodName => $colName) {
-            if (isset($row[$colName]) && method_exists($entity, $methodName)) {
-                if ($datatypes[$index] == 'boolean' && $colsNames[$index] == $colName) {
-                    $bool = $row[$colName] == 'Y';
-                    $entity->$methodName($bool);
-                } else {
-                    $entity->$methodName($row[$colName]);
-                }
-            }
-            $index++;
-        }
-
-        return $entity;
-    }
 }

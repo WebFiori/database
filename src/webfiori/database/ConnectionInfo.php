@@ -145,8 +145,8 @@ class ConnectionInfo {
         $this->setHost($host);
         $this->setPort($port);
 
-        if (isset($extras['connection-name']) && !$this->setConnectionName($extras['connection-name'])) {
-            $this->setConnectionName('New_Connection');
+        if (!isset($extras['connection-name']) || (isset($extras['connection-name']) && !$this->setName($extras['connection-name']))) {
+            $this->setName('New_Connection');
         }
 
         if (!in_array($databaseType, self::SUPPORTED_DATABASES)) {
@@ -162,7 +162,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getConnectionName() {
+    public function getName() {
         return $this->connectionName;
     }
     /**
@@ -248,7 +248,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setConnectionName($newName) {
+    public function setName($newName) {
         $trimmed = trim($newName);
 
         if (strlen($trimmed) != 0) {
