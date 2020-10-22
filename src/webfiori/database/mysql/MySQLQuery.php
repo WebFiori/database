@@ -171,7 +171,7 @@ class MySQLQuery extends AbstractQuery {
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if (!($colObj instanceof MySQLColumn)) {
-            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
         }
         $withTick = $this->backtick($colObj->getName());
         $stm = "alter table $tblName drop $withTick;";
@@ -230,13 +230,25 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function insert(array $colsAndVals) {
-        if ($this->_isArrWithSubArrs($colsAndVals)) {
-            $query = '';
-
-            foreach ($colsAndVals as $arrOfVals) {
-                $query .= $this->_createInsertStm($arrOfVals)."\n";
+        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
+            $colsArr = [];
+            $tblName = $this->getTable()->getName();
+            
+            foreach ($colsAndVals['cols'] as $colKey) {
+                $colObj = $this->getTable()->getColByKey($colKey);
+                if (!($colObj instanceof MySQLColumn)) {
+                    throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+                }
+                $colsArr[] = $this->backtick($colObj->getName());
             }
-            $this->setQuery($query);
+            $colsStr = '('.implode(', ', $colsArr).')';
+            $suberValsArr = [];
+            foreach ($colsAndVals['values'] as $valsArr) {
+                $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
+            }
+            $valsStr = implode(",\n", $suberValsArr);
+            $this->setQuery("insert into `$tblName`\n$colsStr\nvalues\n$valsStr;");
+            
         } else {
             $this->setQuery($this->_createInsertStm($colsAndVals));
         }
@@ -460,6 +472,92 @@ class MySQLQuery extends AbstractQuery {
 
         return $this;
     }
+    
+    /**
+     * Build a string that holds the values that will be inserted.
+     * 
+     * @param array $colsKeysArr
+     * @param array $valuesToInsert
+     * @return type
+     * @throws DatabaseException
+     */
+    private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
+
+        $valsArr = [];
+        $columnsWithVals = [];
+        $valIndex = 0;
+        foreach ($colsKeysArr as $colKey) {
+
+            $column = $this->getTable()->getColByKey($colKey);
+
+            if ($column instanceof MySQLColumn) {
+                $columnsWithVals[] = $colKey;
+                $type = $column->getDatatype();
+                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : 'null';
+                
+                if ($val !== 'null') {
+                    $cleanedVal = $column->cleanValue($val);
+
+                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
+                        $fixedPath = str_replace('\\', '/', $val);
+
+                        if (file_exists($fixedPath)) {
+                            $file = fopen($fixedPath, 'r');
+                            $data = '';
+
+                            if ($file !== false) {
+                                $fileContent = fread($file, filesize($fixedPath));
+
+                                if ($fileContent !== false) {
+                                    $data = '\''.addslashes($fileContent).'\'';
+                                    $valsArr[] = $data;
+                                    $this->setIsBlobInsertOrUpdate(true);
+                                } else {
+                                    $valsArr[] = 'null';
+                                }
+                                fclose($file);
+                            } else {
+                                $data = '\''.addslashes($val).'\'';
+                                $valsArr[] = $data;
+                                $this->setIsBlobInsertOrUpdate(true);
+                            }
+                        } else {
+                            $data = '\''.addslashes($fileContent).'\'';
+                            $valsArr[] = $data;
+                        }
+                    } else {
+                        $valsArr[] = $cleanedVal;
+                    }
+                } else {
+                    $valsArr[] = 'null';
+                }
+            } else {
+                $tblName = $this->getTable()->getName();
+                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+            }
+            $valIndex++;
+        }
+
+        foreach ($this->getTable()->getColsKeys() as $key) {
+            if (!in_array($key, $columnsWithVals)) {
+                $colObj = $this->getTable()->getColByKey($key);
+                $defaultVal = $colObj->getDefault();
+                
+                if ($defaultVal !== null) {
+                    $colsArr[] = $this->backtick($colObj->getName());
+                    $type = $colObj->getDatatype();
+                    
+                    if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
+                    } else {
+                        $valsArr[] = $colObj->cleanValue($defaultVal);
+                    }
+                }
+            }
+        }
+
+        return '('. implode(', ', $valsArr) .')';
+    }
     private function _createInsertStm($colsAndVals) {
         $tblName = $this->backtick($this->getTable()->getName());
 
@@ -540,14 +638,5 @@ class MySQLQuery extends AbstractQuery {
         $stm = "insert into $tblName $cols values $vals;";
 
         return $stm;
-    }
-    private function _isArrWithSubArrs(array $arr) {
-        $retVal = true;
-
-        foreach ($arr as $key => $val) {
-            $retVal = $retVal && gettype($key) == 'integer' && gettype($val) == 'array';
-        }
-
-        return $retVal;
     }
 }

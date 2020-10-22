@@ -61,3 +61,21 @@ require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQL
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnection.php';
 
 require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
+
+
+register_shutdown_function(function()
+{
+    echo "Dropping test tables...\n";
+    $mysqlSchema = new \webfiori\database\tests\MySQLTestSchema();
+    
+    try{
+        $mysqlSchema->table('users_privileges')->drop()->execute();
+        $mysqlSchema->table('users_tasks')->drop()->execute();
+        $mysqlSchema->table('profile_pics')->drop()->execute();
+        $mysqlSchema->table('users')->drop()->execute();
+    } catch (Exception $ex) {
+        echo $ex->getMessage()."\n";
+    }
+    
+    echo "Done.\n";
+});

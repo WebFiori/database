@@ -89,5 +89,19 @@ class MySQLTestSchema extends Database {
         $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'cascade', 'restrict');
         $table02->setComment('The tasks at which each user can have.');
         $this->addTable($table02);
+        
+        $table03 = new MySQLTable('profile_pics');
+        $table03->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 5,
+                'primary' => true
+            ],
+            'pic' => [
+                'type' => 'mediumblob'
+            ]
+        ]);
+        $table03->addReference($table00, ['user-id'=>'id'], 'user_profile_pic_fk', 'cascade', 'restrict');
+        $this->addTable($table03);
     }
 }

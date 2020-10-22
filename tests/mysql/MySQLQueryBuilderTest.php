@@ -50,7 +50,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "    `can_change_username` bit(1) not null,\n"
                 . "    `can_do_anything` bit(1) not null,\n"
                 . "    constraint `users_privileges_pk` primary key (`id`),\n"
-                . "    constraint `user_privilege_fk` foreign key (`id`) references `users` (`id`)\n"
+                . "    constraint `user_privilege_fk` foreign key (`id`) references `users` (`id`) on update cascade on delete restrict\n"
                 . ")\n"
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
@@ -58,7 +58,6 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->execute();
         
         $schema->table('users_tasks')->createTable();
-        $date = date('Y-m-d H:i:s');
         $this->assertEquals("create table if not exists `users_tasks` (\n"
                 . "    `task_id` int not null unique auto_increment,\n"
                 . "    `user_id` int not null comment 'The ID of the user who must perform the activity.',\n"
@@ -67,13 +66,26 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "    `is_finished` bit(1) not null default b'0',\n"
                 . "    `details` varchar(1500) not null collate utf8mb4_unicode_520_ci,\n"
                 . "    constraint `users_tasks_pk` primary key (`task_id`),\n"
-                . "    constraint `user_task_fk` foreign key (`user_id`) references `users` (`id`)\n"
+                . "    constraint `user_task_fk` foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict\n"
                 . ")\n"
                 . "comment 'The tasks at which each user can have.'\n"
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
         $schema->execute();
+        
+        $schema->table('profile_pics')->createTable();
+        $this->assertEquals("create table if not exists `profile_pics` (\n"
+                . "    `user_id` int not null unique,\n"
+                . "    `pic` mediumblob not null,\n"
+                . "    constraint `profile_pics_pk` primary key (`user_id`),\n"
+                . "    constraint `user_profile_pic_fk` foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
+        $schema->execute();
+        
         return $schema;
     }
     /**
@@ -404,19 +416,18 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users');
         $q->insert([
-            [
-                'id' => 8,
-                'first-name' => 'Ibrahim',
-                'last-name' => 'BinAlshikh'
+            'cols' => [
+                'id','first-name','last-name'
             ],
-            [
-                'id' => 9,
-                'first-name' => 'Web',
-                'last-name' => 'DB'
+            'values' => [
+                [8,'Ibrahim','BinAlshikh'],
+                [9,'Web','DB']
             ],
+                
         ]);
-        $this->assertEquals("insert into `users` (`id`, `first_name`, `last_name`) values (8, 'Ibrahim', 'BinAlshikh');\n"
-                . "insert into `users` (`id`, `first_name`, `last_name`) values (9, 'Web', 'DB');", $schema->getLastQuery());
+        $this->assertEquals("insert into `users`\n(`id`, `first_name`, `last_name`)\nvalues\n"
+                . "(8, 'Ibrahim', 'BinAlshikh'),\n"
+                . "(9, 'Web', 'DB');", $schema->getLastQuery());
     }
     /**
      * @test
@@ -609,5 +620,104 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->execute();
         $schema->select()->execute();
         $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
+        return $schema;
+    }
+    /**
+     * 
+     * @test
+     * @param MySQLTestSchema $schema
+     * @depends testDropRecord00
+     */
+    public function testInsert04($schema) {
+        $schema->insert([
+            'cols' => [
+                'id','first-name','last-name','age'
+            ],
+            'values' => [
+                [100,'Ali','Hassan',16],
+                [101,'Dabi','Jona',19]
+            ]
+        ]);
+        $this->assertEquals("insert into `users`\n(`id`, `first_name`, `last_name`, `age`)\nvalues\n"
+                . "(100, 'Ali', 'Hassan', 16),\n"
+                . "(101, 'Dabi', 'Jona', 19);", $schema->getLastQuery());
+        $schema->execute();
+        $schema->select()->execute();
+        $resultSet = $schema->getLastResultSet();
+        $this->assertEquals(2, $resultSet->getRowsCount());
+        $this->assertEquals(2, $resultSet->getMappedRowsCount());
+        
+        $this->assertEquals([
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+        ], $resultSet->getRows());
+        
+        $this->assertEquals([
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+        ], $resultSet->getMappedRows());
+        $schema->insert([
+            'cols' => [
+                'id','first-name','last-name','age'
+            ],
+            'values' => [
+                [102,'Jon','Mark',22],
+                [103,'Ibrahim','Ali',27]
+            ]
+        ])->execute();
+        $schema->select()->execute();
+        $resultSet = $schema->getLastResultSet();
+        foreach ($resultSet as $row) {
+            if ($row['id'] == 100) {
+                $this->assertEquals('Ali', $row['first_name']);
+            }
+            if ($row['id'] == 101) {
+                $this->assertEquals('Dabi', $row['first_name']);
+            }
+            if ($row['id'] == 102) {
+                $this->assertEquals('Jon', $row['first_name']);
+            }
+            if ($row['id'] == 103) {
+                $this->assertEquals('Ibrahim', $row['first_name']);
+            }
+        }
+        return $schema;
+    }
+    /**
+     * @test
+     */
+    public function testDropPrimaryKey00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->dropPrimaryKey();
+        $this->assertEquals('alter table `users` drop primary key;', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddPrimaryKey00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->addPrimaryKey('my_key', ['id']);
+        $this->assertEquals('alter table `users` add constraint `my_key` primary key (`id`);', $schema->getLastQuery());
+        $schema->table('users')->addPrimaryKey('my_key', ['first-name', 'last-name']);
+        $this->assertEquals('alter table `users` add constraint `my_key` primary key (`first_name`, `last_name`);', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropCol00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->dropCol('id');
+        $this->assertEquals('alter table `users` drop `id`;', $schema->getLastQuery());
+        $schema->table('users')->dropCol('first-name ');
+        $this->assertEquals('alter table `users` drop `first_name`;', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropCol01() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
+        $schema->table('users')->dropCol('not-exist');
     }
 }

@@ -123,16 +123,14 @@ class MySQLTable extends Table {
         foreach ($colsArr as $key => $arrOrObj) {
             if ($arrOrObj instanceof MySQLColumn) {
                 $arrToAdd[$key] = $arrOrObj;
-            } else {
-                if (gettype($arrOrObj) == 'array') {
-                    if (!isset($arrOrObj['name'])) {
-                        $arrOrObj['name'] = str_replace('-', '_', $key);
-                    }
-                    $colObj = MySQLColumn::createColObj($arrOrObj);
+            } else if (gettype($arrOrObj) == 'array') {
+                if (!isset($arrOrObj['name'])) {
+                    $arrOrObj['name'] = str_replace('-', '_', $key);
+                }
+                $colObj = MySQLColumn::createColObj($arrOrObj);
 
-                    if ($colObj instanceof MySQLColumn) {
-                        $arrToAdd[$key] = $colObj;
-                    }
+                if ($colObj instanceof MySQLColumn) {
+                    $arrToAdd[$key] = $colObj;
                 }
             }
         }
@@ -321,6 +319,14 @@ class MySQLTable extends Table {
             $fkConstraint = ",\n".'    constraint `'.$fkObj->getKeyName().'` '
                     .'foreign key ('.implode(', ', $targetCols).') '
                     .'references `'.$fkObj->getSourceName().'` ('.implode(', ', $sourceCols).')';
+
+            if ($fkObj->getOnUpdate() !== null) {
+                $fkConstraint .= ' on update '.$fkObj->getOnUpdate();
+            }
+            
+            if ($fkObj->getOnDelete() !== null) {
+                $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
+            }
             $queryStr .= $fkConstraint;
         }
 

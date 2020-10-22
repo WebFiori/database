@@ -81,6 +81,14 @@ abstract class Table {
 
         return false;
     }
+    /**
+     * Adds a set of columns as one patch.
+     * 
+     * @param array $cols An array that holds the columns as an associative array. 
+     * The indices should represent columns keys.
+     * 
+     * @since 1.0
+     */
     public function addColumns(array $cols) {
         foreach ($cols as $colKey => $colObj) {
             $this->addColumn($colKey, $colObj);
@@ -205,16 +213,33 @@ abstract class Table {
         return null;
     }
     /**
+     * Returns a column given its key name.
      * 
-     * @param string $key
+     * @param string $key The name of column key.
      * 
-     * @return Column|null
+     * @return Column|null If a column which has the given key exist on the table, 
+     * the method will return it as an object. Other than that, the method will return 
+     * null.
+     * 
+     * @since 1.0
      */
     public function getColByKey($key) {
-        if (isset($this->colsArr[$key])) {
-            return $this->colsArr[$key];
+        $trimmed = trim($key);
+        if (isset($this->colsArr[$trimmed])) {
+            return $this->colsArr[$trimmed];
         }
     }
+    /**
+     * Returns a column given its actual name.
+     * 
+     * @param string $key The name of column as it appears in the database.
+     * 
+     * @return Column|null If a column which has the given name exist on the table, 
+     * the method will return it as an object. Other than that, the method will return 
+     * null.
+     * 
+     * @since 1.0
+     */
     public function getColByName($name) {
         $trimmed = trim($name);
 
@@ -224,6 +249,14 @@ abstract class Table {
             }
         }
     }
+    /**
+     * Returns an associative array that holds all table columns.
+     * 
+     * @return array An associative array. The indices of the array are column 
+     * keys and the values are objects of type 'Column'.
+     * 
+     * @since 1.0
+     */
     public function getCols() {
         return $this->colsArr;
     }
