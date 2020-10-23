@@ -129,6 +129,7 @@ abstract class Column {
      * @since 1.0
      */
     private $size;
+    private $withTablePrefix;
     /**
      * An array which holds all supported datatypes of the column.
      * 
@@ -153,6 +154,7 @@ abstract class Column {
         $this->setIsPrimary(false);
         $this->setIsNull(false);
         $this->setIsUnique(false);
+        $this->setWithTablePrefix(false);
         $this->columnIndex = -1;
         $this->cleanupFunc = function ($val, $cleanedVal)
         {
@@ -232,6 +234,7 @@ abstract class Column {
         return $this->columnIndex;
     }
     /**
+     * 
      * Returns the name of the column.
      * 
      * @return string The name of the column.
@@ -239,7 +242,38 @@ abstract class Column {
      * @since 1.0
      */
     public function getName() {
+        $ownerTable = $this->getOwner();
+        
+        if ($ownerTable !== null && $this->isNameWithTablePrefix()) {
+            return $ownerTable->getName().'.'.$this->name;
+        }
+        
         return $this->name;
+    }
+    /**
+     * Sets the value of the attributes which determine if table name will be 
+     * prefixed with database name or not.
+     * 
+     * Note that table name will be prefixed with database name only if owner 
+     * schema is set.
+     * 
+     * @param boolean $withDbPrefix True to prefix table name with database name. 
+     * false to not prefix table name with database name.
+     * 
+     * @since 1.0
+     */
+    public function setWithTablePrefix($withDbPrefix) {
+        $this->withTablePrefix = $withDbPrefix === true;
+    }
+    /**
+     * Checks if table name will be prefixed with database name or not.
+     * 
+     * @return boolean True if it will be prefixed. False if not.
+     * 
+     * @since 1.0
+     */
+    public function isNameWithTablePrefix() {
+        return $this->withTablePrefix;
     }
     /**
      * Returns the table who owns the column.
