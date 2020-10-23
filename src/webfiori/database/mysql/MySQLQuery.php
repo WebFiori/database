@@ -148,7 +148,15 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function backtick($str) {
-        return '`'.$str.'`';
+        $exp = explode('.', $str);
+        
+        $arr = [];
+        
+        foreach ($exp as $xStr) {
+            $arr[] = '`'.$xStr.'`';
+        }
+        
+        return implode('.', $arr);
     }
     /**
      * Constructs a query which can be used to remove a record from the associated 
