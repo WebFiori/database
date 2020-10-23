@@ -43,6 +43,22 @@ class MySQLTableTest extends TestCase {
     /**
      * @test
      */
+    public function testAddColumn02() {
+        $table = new MySQLTable();
+        $table->addColumns([
+            'id' => new MySQLColumn('col-01'),
+            'name' => new MySQLColumn('col-02', 'int')
+        ]);
+        $this->assertTrue($table->hasColumnWithKey('id'));
+        $this->assertTrue($table->hasColumnWithKey('name'));
+        $this->assertTrue($table->hasColumn('col-01'));
+        $this->assertTrue($table->hasColumn('col-02'));
+
+        return $table;
+    }
+    /**
+     * @test
+     */
     public function testConstructor00() {
         $table = new MySQLTable();
         $this->assertEquals('new_table',$table->getName());

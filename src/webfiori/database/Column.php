@@ -37,13 +37,6 @@ namespace webfiori\database;
 abstract class Column {
     /**
      *
-     * @var type 
-     * 
-     * @since 1.0
-     */
-    private $alias;
-    /**
-     *
      * @var Closure 
      * 
      * @since 1.0

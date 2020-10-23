@@ -250,9 +250,8 @@ class MySQLTable extends Table {
         }
         $queryStr .= 'engine = '.$this->getEngine()."\n";
         $queryStr .= 'default charset = '.$this->getCharSet()."\n";
-        $queryStr .= 'collate = '.$this->getCollation().';';
-
-        return $queryStr;
+        
+        return $queryStr.'collate = '.$this->getCollation().';';
     }
 
     private function _checkPKs() {

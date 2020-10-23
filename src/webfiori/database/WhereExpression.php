@@ -98,8 +98,8 @@ class WhereExpression extends Expression {
      * 
      */
     public function addCondition(Condition $condition, $joinOp) {
-        if ($this->condsChain !== null) {
-            $cond = new Condition($this->condsChain, $condition, $joinOp);
+        if ($this->getCondition() !== null) {
+            $cond = new Condition($this->getCondition(), $condition, $joinOp);
             $this->condsChain = $cond;
         } else {
             $this->condsChain = $condition;
@@ -157,18 +157,18 @@ class WhereExpression extends Expression {
             }
         }
 
-        if ($this->condsChain !== null) {
+        if ($this->getCondition() !== null) {
             if ($this->condsCount == 1) {
                 if (strlen($val) != 0) {
-                    $val .= ' '.$this->getJoinCondition().' '.$this->condsChain.'';
+                    $val .= ' '.$this->getJoinCondition().' '.$this->getCondition().'';
                 } else {
-                    $val .= $this->condsChain.'';
+                    $val .= $this->getCondition().'';
                 }
             } else {
-                if (count($this->children) != 0 && $this->getParent() !== null && $this->condsChain !== null) {
-                    $val .= ' '.$this->getJoinCondition().' ('.$this->condsChain.')';
+                if (count($this->children) != 0 && $this->getParent() !== null && $this->getCondition() !== null) {
+                    $val .= ' '.$this->getJoinCondition().' ('.$this->getCondition().')';
                 } else {
-                    $val .= ' '.$this->getJoinCondition().' '.$this->condsChain.'';
+                    $val .= ' '.$this->getJoinCondition().' '.$this->getCondition().'';
                 }
             }
         }

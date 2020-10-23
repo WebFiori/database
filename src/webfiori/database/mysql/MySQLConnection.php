@@ -41,10 +41,14 @@ use webfiori\database\ResultSet;
  */
 class MySQLConnection extends Connection {
     private $link;
-    public function __construct(ConnectionInfo $connInfo) {
-        parent::__construct($connInfo);
-    }
-
+    /**
+     * Connect to MySQL database.
+     * 
+     * @return boolean If the connection was established, the method will return 
+     * true. If the attempt to connect fails, the method will return false.
+     * 
+     * @since 1.0
+     */
     public function connect() {
         $test = false;
         $connInfo = $this->getConnectionInfo();
@@ -71,7 +75,17 @@ class MySQLConnection extends Connection {
         return $test;
     }
     
-
+    /**
+     * Execute MySQL query.
+     * 
+     * @param AbstractQuery $query A query builder that has the generated MySQL 
+     * query.
+     * 
+     * @return boolean If the query successfully executed, the method will return 
+     * true. Other than that, the method will return true.
+     * 
+     * @since 1.0
+     */
     public function runQuery(AbstractQuery $query) {
         $this->setLastQuery($query);
 
@@ -82,13 +96,10 @@ class MySQLConnection extends Connection {
 
         if ($qType == 'insert' || $qType == 'update') {
             return $this->_insertQuery();
+        } else if ($qType == 'select' || $qType == 'show'|| $qType == 'describe') {
+            return $this->_selectQuery();
         } else {
-            if ($qType == 'select' || $qType == 'show'
-           || $qType == 'describe') {
-                return $this->_selectQuery();
-            } else {
-                return $this->_otherQuery();
-            }
+            return $this->_otherQuery();
         }
     }
 
@@ -153,10 +164,8 @@ class MySQLConnection extends Connection {
             } else {
                 $rows = [];
 
-                if ($execResult !== null) {
-                    while ($row = $r->fetch_assoc()) {
-                        $rows[] = $row;
-                    }
+                while ($row = $r->fetch_assoc()) {
+                    $rows[] = $row;
                 }
                 
             }

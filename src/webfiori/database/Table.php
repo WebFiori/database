@@ -132,7 +132,6 @@ abstract class Table {
      * </ul>
      * Default value is 'set null'.
      * 
-     * @return boolean
      * 
      * @since 1.0
      */
@@ -140,17 +139,18 @@ abstract class Table {
         if (!($refTable instanceof Table)) {
             if ($refTable instanceof AbstractQuery) {
                 $refTable = $refTable->getTable();
-            } else {
-                if (class_exists($refTable)) {
-                    $q = new $refTable();
+            } else if (class_exists($refTable)) {
+                $q = new $refTable();
 
-                    if ($q instanceof AbstractQuery) {
-                        $refTable = $q->getTable();
-                    }
+                if ($q instanceof AbstractQuery) {
+                    $refTable = $q->getTable();
                 }
             }
         }
-
+        
+        $this->_createFk($refTable, $cols, $keyname, $onupdate, $ondelete);
+    }
+    private function _createFk($refTable, $cols, $keyname, $onupdate, $ondelete) {
         if ($refTable instanceof Table) {
             $fk = new ForeignKey();
             $fk->setOwner($this);
@@ -181,8 +181,6 @@ abstract class Table {
         } else {
             throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
         }
-
-        return false;
     }
     /**
      * Returns a column given its index.

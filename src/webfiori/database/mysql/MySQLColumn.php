@@ -713,24 +713,18 @@ class MySQLColumn extends Column {
             } else {
                 $retVal .= $colDataType.'('.$this->getSize().') ';
             }
-        } else {
-            if ($colDataType == 'varchar' || $colDataType == 'text') {
-                $retVal .= $colDataType.'('.$this->getSize().') ';
+        } else if ($colDataType == 'varchar' || $colDataType == 'text') {
+            $retVal .= $colDataType.'('.$this->getSize().') ';
+        } else if ($colDataType == 'boolean' || $colDataType == 'bool') {
+            $retVal .= 'bit(1) ';
+        } else if ($colDataType == 'decimal' || $colDataType == 'float' || $colDataType == 'double') {
+            if ($this->getSize() != 0) {
+                $retVal .= $colDataType.'('.$this->getSize().','.$this->getScale().') ';
             } else {
-                if ($colDataType == 'boolean' || $colDataType == 'bool') {
-                    $retVal .= 'bit(1) ';
-                } else {
-                    if ($colDataType == 'decimal' || $colDataType == 'float' || $colDataType == 'double') {
-                        if ($this->getSize() != 0) {
-                            $retVal .= $colDataType.'('.$this->getSize().','.$this->getScale().') ';
-                        } else {
-                            $retVal .= $colDataType.' ';
-                        }
-                    } else {
-                        $retVal .= $colDataType.' ';
-                    }
-                }
+                $retVal .= $colDataType.' ';
             }
+        } else {
+            $retVal .= $colDataType.' ';
         }
 
         return $retVal;

@@ -70,8 +70,25 @@ class MySQLQuery extends AbstractQuery {
         if (!($colToAdd instanceof Column)) {
             throw new DatabaseException("The table '$tblName' has no column with key '$colObjKey'.");
         } 
+        $this->_alterColStm('add', $colToAdd, $location, $tblName);
+        
+        return $this;
+    }
+    /**
+     * 
+     * @param type $alterOpType
+     * @param type $colToAdd
+     * @param type $location
+     * @param type $tblName
+     * @throws DatabaseException
+     */
+    private function _alterColStm($alterOpType, $colToAdd, $location, $tblName) {
         $colObjAsStr = $colToAdd->asString();
-        $stm = "alter table $tblName add $colObjAsStr";
+        if ($alterOpType == 'modify') {
+            $stm = "alter table $tblName change column $colObjAsStr";
+        } else {
+            $stm = "alter table $tblName add $colObjAsStr";
+        }
 
         if ($location !== null) {
             $lower = trim(strtolower($location));
@@ -79,24 +96,20 @@ class MySQLQuery extends AbstractQuery {
 
             if ($lower == 'first') {
                 $stm .= ' first';
-            } else {
-                if ($colObj instanceof MySQLColumn) {
-                    $colIndex = $colObj->getIndex();
+            } else if ($colObj instanceof MySQLColumn) {
+                $colIndex = $colObj->getIndex();
 
-                    if ($colIndex == 0) {
-                        $stm .= " first";
-                    } else {
-                        $colName = $this->backtick($colObj->getName());
-                        $stm .= " after $colName";
-                    }
+                if ($colIndex == 0) {
+                    $stm .= " first";
                 } else {
-                    throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
+                    $colName = $this->backtick($colObj->getName());
+                    $stm .= " after $colName";
                 }
+            } else {
+                throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
             }
         }
         $this->setQuery($stm.';');
-
-        return $this;
     }
     /**
      * Constructs a query that can be used to add a primary key to the active table.
@@ -204,13 +217,11 @@ class MySQLQuery extends AbstractQuery {
     public function getQuery() {
         $query = parent::getQuery();
 
-        if ($this->getLastQueryType() == 'select') {
-            if ($this->getLimit() > 0) {
-                $query .= ' limit '.$this->getLimit();
+        if ($this->getLastQueryType() == 'select' && $this->getLimit() > 0) {
+            $query .= ' limit '.$this->getLimit();
 
-                if ($this->getOffset() > 0) {
-                    $query .= ' offset '.$this->getOffset();
-                }
+            if ($this->getOffset() > 0) {
+                $query .= ' offset '.$this->getOffset();
             }
         }
 
@@ -293,31 +304,8 @@ class MySQLQuery extends AbstractQuery {
         if (!($colObj instanceof MySQLColumn)) {
             throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
         }
-        $colName = $this->backtick($colObj->getName());
-        $stm = "alter table $tblName change column ".$colObj->asString();
-
-        if ($location !== null) {
-            $lower = trim(strtolower($location));
-            $colObj = $this->getTable()->getColByKey($location);
-
-            if ($lower == 'first') {
-                $stm .= ' first';
-            } else {
-                if ($colObj instanceof MySQLColumn) {
-                    $colIndex = $colObj->getIndex();
-
-                    if ($colIndex == 0) {
-                        $stm .= " first";
-                    } else {
-                        $colName = $this->backtick($colObj->getName());
-                        $stm .= " after $colName";
-                    }
-                } else {
-                    throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
-                }
-            }
-        }
-        $this->setQuery($stm.';');
+        
+        $this->_alterColStm('modify', $colObj, $location, $tblName);
 
         return $this;
     }
@@ -635,8 +623,6 @@ class MySQLQuery extends AbstractQuery {
         $cols = '('. implode(', ', $colsArr) .')';
         $vals = '('. implode(', ', $valsArr) .')';
 
-        $stm = "insert into $tblName $cols values $vals;";
-
-        return $stm;
+        return "insert into $tblName $cols values $vals;";
     }
 }
