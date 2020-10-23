@@ -32,6 +32,7 @@ namespace webfiori\database;
 abstract class Table {
     private $colsArr;
     private $comment;
+    private $withDbPrefix;
     /**
      * An array that contains all table foreign keys.
      * 
@@ -80,6 +81,31 @@ abstract class Table {
         }
 
         return false;
+    }
+    /**
+     * Sets the value of the attributes which determine if table name will be 
+     * prefixed with database name or not.
+     * 
+     * Note that table name will be prefixed with database name only if owner 
+     * schema is set.
+     * 
+     * @param boolean $withDbPrefix True to prefix table name with database name. 
+     * false to not prefix table name with database name.
+     * 
+     * @since 1.0
+     */
+    public function setWithDbPrefix($withDbPrefix) {
+        $this->withDbPrefix = $withDbPrefix === true;
+    }
+    /**
+     * Checks if table name will be prefixed with database name or not.
+     * 
+     * @return boolean True if it will be prefixed. False if not.
+     * 
+     * @since 1.0
+     */
+    public function isNameWithDbPrefix() {
+        return $this->withDbPrefix;
     }
     /**
      * Adds a set of columns as one patch.
@@ -364,7 +390,24 @@ abstract class Table {
      * @since 1.0
      */
     public function getName() {
+        $owner = $this->getOwner();
+        
+        if ($owner !== null && $this->isNameWithDbPrefix()) {
+            return $owner->getName().'.'.$this->name;
+        }
+        
         return $this->name;
+    }
+    /**
+     * Returns the database which owns the table.
+     * 
+     * @return null|Database If the owner is set, the method will return it as an 
+     * object. If not set, the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function getOwner() {
+        return $this->ownerSchema;
     }
     /**
      * Returns the number of columns that will act as one primary key.
