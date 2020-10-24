@@ -457,7 +457,11 @@ abstract class Table {
      * @since 1.0
      */
     public function getPrimaryKeyName() {
-        return $this->getName().'_pk';
+        $val = $this->isNameWithDbPrefix();
+        $this->setWithDbPrefix(false);
+        $name = trim($this->getName(), '`');
+        $this->setWithDbPrefix($val);
+        return $name.'_pk';
     }
     /**
      * 
