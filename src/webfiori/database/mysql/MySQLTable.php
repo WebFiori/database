@@ -54,6 +54,9 @@ class MySQLTable extends Table {
         $this->charset = 'utf8mb4';
         $this->mysqlVnum = '8.0';
     }
+    public function getName() {
+        return MySQLQuery::backtick(parent::getName());
+    }
     /**
      * Adds new column to the table.
      * 
@@ -240,7 +243,7 @@ class MySQLTable extends Table {
     public function toSQL() {
         $queryStr = '';
 
-        $queryStr .= 'create table if not exists `'.$this->getName().'` ('."\n";
+        $queryStr .= 'create table if not exists '.$this->getName().' ('."\n";
         $queryStr .= $this->_createTableColumns();
         $queryStr .= ')'."\n";
         $comment = $this->getComment();
@@ -298,7 +301,7 @@ class MySQLTable extends Table {
             $pkCols = [];
 
             foreach ($this->getPrimaryKeyColsKeys() as $key) {
-                $pkCols[] = '`'.$this->getColByKey($key)->getName().'`';
+                $pkCols[] = ''.$this->getColByKey($key)->getName().'';
             }
             $pkConstraint = ",\n".'    constraint `'.$this->getPrimaryKeyName().'` primary key ('.implode(', ', $pkCols).')';
             $queryStr .= $pkConstraint;
@@ -308,16 +311,16 @@ class MySQLTable extends Table {
             $sourceCols = [];
 
             foreach ($fkObj->getSourceCols() as $colObj) {
-                $sourceCols[] = '`'.$colObj->getName().'`';
+                $sourceCols[] = ''.$colObj->getName().'';
             }
             $targetCols = [];
 
             foreach ($fkObj->getOwnerCols() as $colObj) {
-                $targetCols[] = '`'.$colObj->getName().'`';
+                $targetCols[] = ''.$colObj->getName().'';
             }
             $fkConstraint = ",\n".'    constraint `'.$fkObj->getKeyName().'` '
                     .'foreign key ('.implode(', ', $targetCols).') '
-                    .'references `'.$fkObj->getSourceName().'` ('.implode(', ', $sourceCols).')';
+                    .'references '.$fkObj->getSourceName().' ('.implode(', ', $sourceCols).')';
 
             if ($fkObj->getOnUpdate() !== null) {
                 $fkConstraint .= ' on update '.$fkObj->getOnUpdate();

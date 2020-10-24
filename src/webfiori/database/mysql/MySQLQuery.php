@@ -29,6 +29,8 @@ use webfiori\database\AbstractQuery;
 use webfiori\database\Column;
 use webfiori\database\DatabaseException;
 use webfiori\database\Expression;
+use webfiori\database\JoinTable;
+
 /**
  * A class which is used to build MySQL queries.
  *
@@ -64,7 +66,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function addCol($colObjKey, $location = null) {
-        $tblName = $this->backtick($this->getTable()->getName());
+        $tblName = $this->getTable()->getName();
         $colToAdd = $this->getTable()->getColByKey($colObjKey);
 
         if (!($colToAdd instanceof Column)) {
@@ -102,7 +104,7 @@ class MySQLQuery extends AbstractQuery {
                 if ($colIndex == 0) {
                     $stm .= " first";
                 } else {
-                    $colName = $this->backtick($colObj->getName());
+                    $colName = $colObj->getName();
                     $stm .= " after $colName";
                 }
             } else {
@@ -120,7 +122,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function addPrimaryKey($pkName, array $pkCols) {
-        $trimmedPkName = $this->backtick(trim($pkName));
+        $trimmedPkName = self::backtick(trim($pkName));
         $tableObj = $this->getTable();
         $keyCols = [];
 
@@ -128,10 +130,10 @@ class MySQLQuery extends AbstractQuery {
             $col = $this->getTable()->getColByKey($colKey);
 
             if ($col instanceof MySQLColumn) {
-                $keyCols[] = $this->backtick($col->getName());
+                $keyCols[] = $col->getName();
             }
         }
-        $stm = 'alter table '.$this->backtick($tableObj->getName()).' add constraint '.$trimmedPkName.' '
+        $stm = 'alter table '.$tableObj->getName().' add constraint '.$trimmedPkName.' '
                 .'primary key ('.implode(', ', $keyCols).');';
         $this->setQuery($stm);
 
@@ -147,13 +149,13 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function backtick($str) {
+    public static function backtick($str) {
         $exp = explode('.', $str);
         
         $arr = [];
         
         foreach ($exp as $xStr) {
-            $arr[] = '`'.$xStr.'`';
+            $arr[] = '`'.trim($xStr,'`').'`';
         }
         
         return implode('.', $arr);
@@ -168,7 +170,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function delete() {
-        $tblName = $this->backtick($this->getTable()->getName());
+        $tblName = $this->getTable()->getName();
         $this->setQuery("delete from $tblName");
 
         return $this;
@@ -188,13 +190,13 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function dropCol($colKey) {
-        $tblName = $this->backtick($this->getTable()->getName());
+        $tblName = $this->getTable()->getName();
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if (!($colObj instanceof MySQLColumn)) {
             throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
         }
-        $withTick = $this->backtick($colObj->getName());
+        $withTick = $colObj->getName();
         $stm = "alter table $tblName drop $withTick;";
         $this->setQuery($stm);
 
@@ -211,7 +213,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function dropPrimaryKey($pkName = null) {
-        $this->setQuery('alter table '.$this->backtick($this->getTable()->getName()).' drop primary key;');
+        $this->setQuery('alter table '.$this->getTable()->getName().' drop primary key;');
 
         return $this;
     }
@@ -256,9 +258,9 @@ class MySQLQuery extends AbstractQuery {
             foreach ($colsAndVals['cols'] as $colKey) {
                 $colObj = $this->getTable()->getColByKey($colKey);
                 if (!($colObj instanceof MySQLColumn)) {
-                    throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
                 }
-                $colsArr[] = $this->backtick($colObj->getName());
+                $colsArr[] = $colObj->getName();
             }
             $colsStr = '('.implode(', ', $colsArr).')';
             $suberValsArr = [];
@@ -266,7 +268,7 @@ class MySQLQuery extends AbstractQuery {
                 $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
             }
             $valsStr = implode(",\n", $suberValsArr);
-            $this->setQuery("insert into `$tblName`\n$colsStr\nvalues\n$valsStr;");
+            $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
             
         } else {
             $this->setQuery($this->_createInsertStm($colsAndVals));
@@ -306,7 +308,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function modifyCol($colKey, $location = null) {
-        $tblName = $this->backtick($this->getTable()->getName());
+        $tblName = $this->getTable()->getName();
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if (!($colObj instanceof MySQLColumn)) {
@@ -330,7 +332,8 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function select($cols = ['*']) {
-        $tableName = $this->backtick($this->getTable()->getName());
+        $table = $this->getTable();
+        $tableName = $this->getTable()->getName();
 
         if ($cols == ['*']) {
             $colsStr = '*';
@@ -340,7 +343,7 @@ class MySQLQuery extends AbstractQuery {
             foreach ($cols as $index => $alias) {
                 if (gettype($index) == 'integer') {
                     $colObj = $this->getTable()->getColByKey($alias);
-                    $colsArr[] = $this->backtick($colObj->getName());
+                    $colsArr[] = $colObj->getName();
                 } else {
                     if ($alias instanceof Expression) {
                         $colsArr[] = $alias;
@@ -348,8 +351,8 @@ class MySQLQuery extends AbstractQuery {
                         $colObj = $this->getTable()->getColByKey($index);
 
                         if ($colObj instanceof MySQLColumn) {
-                            $colName = $this->backtick($colObj->getName());
-                            $colsArr[] = "$colName as ".$this->backtick($alias);
+                            $colName = $colObj->getName();
+                            $colsArr[] = "$colName as ".self::backtick($alias);
                         }
                     }
                 }
@@ -357,7 +360,11 @@ class MySQLQuery extends AbstractQuery {
             $colsStr = implode(", ", $colsArr);
         }
 
-        $this->setQuery("select $colsStr from $tableName");
+        if ($table instanceof JoinTable) {
+            $this->setQuery("select $colsStr from ".$table->toSQL());
+        } else {
+            $this->setQuery("select $colsStr from $tableName");
+        }
 
         return $this;
     }
@@ -402,7 +409,7 @@ class MySQLQuery extends AbstractQuery {
                 throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
             }
             $valClean = $colObj->cleanValue($newVal);
-            $colName = $this->backtick($colObj->getName());
+            $colName = $colObj->getName();
             $updateArr[] = "set $colName = $valClean";
             $colsWithVals[] = $colKey;
         }
@@ -412,7 +419,7 @@ class MySQLQuery extends AbstractQuery {
                 $colObj = $this->getTable()->getColByKey($key);
 
                 if (($colObj->getDatatype() == 'datetime' || $colObj->getDatatype() == 'timestamp') && $colObj->isAutoUpdate()) {
-                    $updateArr[] = "set ".$this->backtick($colObj->getName())." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                    $updateArr[] = "set ".$colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
                 }
             }
         }
@@ -462,7 +469,7 @@ class MySQLQuery extends AbstractQuery {
                 }
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
-                $this->addWhere($this->backtick($colName), $cleanVal, $cond, $joinCond);
+                $this->addWhere($colName, $cleanVal, $cond, $joinCond);
             }
         }
 
@@ -540,7 +547,7 @@ class MySQLQuery extends AbstractQuery {
                 $defaultVal = $colObj->getDefault();
                 
                 if ($defaultVal !== null) {
-                    $colsArr[] = $this->backtick($colObj->getName());
+                    $colsArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
                     
                     if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
@@ -555,7 +562,7 @@ class MySQLQuery extends AbstractQuery {
         return '('. implode(', ', $valsArr) .')';
     }
     private function _createInsertStm($colsAndVals) {
-        $tblName = $this->backtick($this->getTable()->getName());
+        $tblName = $this->getTable()->getName();
 
         $colsArr = [];
         $valsArr = [];
@@ -567,7 +574,7 @@ class MySQLQuery extends AbstractQuery {
 
             if ($column instanceof MySQLColumn) {
                 $columnsWithVals[] = $colIndex;
-                $colsArr[] = $this->backtick($column->getName());
+                $colsArr[] = $column->getName();
                 $type = $column->getDatatype();
 
                 if ($val !== 'null') {
@@ -617,7 +624,7 @@ class MySQLQuery extends AbstractQuery {
                 $defaultVal = $colObj->getDefault();
                 
                 if ($defaultVal !== null) {
-                    $colsArr[] = $this->backtick($colObj->getName());
+                    $colsArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
                     
                     if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {

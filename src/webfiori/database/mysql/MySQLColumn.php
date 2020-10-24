@@ -105,6 +105,9 @@ class MySQLColumn extends Column {
         $this->isAutoUpdate = false;
         $this->setMySQLVersion('8.0');
     }
+    public function getName() {
+        return MySQLQuery::backtick(parent::getName());
+    }
     /**
      * Constructs a string that can be used to create the column in a table.
      * 
@@ -701,7 +704,7 @@ class MySQLColumn extends Column {
         }
     }
     private function _firstColPart() {
-        $retVal = '`'.$this->getName().'` ';
+        $retVal = $this->getName().' ';
         $colDataType = $this->getDatatype();
 
         if ($colDataType == 'int') {
