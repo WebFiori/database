@@ -126,9 +126,10 @@ class Database {
      * @since 1.0
      */
     public function addTable(Table $table) {
-        if (!$this->hasTable($table->getName())) {
+        $trimmedName = trim($table->getName(),'`');
+        if (!$this->hasTable($trimmedName)) {
             $table->setOwner($this);
-            $this->tablesArr[$table->getName()] = $table;
+            $this->tablesArr[$trimmedName] = $table;
 
             return true;
         }
