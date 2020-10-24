@@ -25,6 +25,7 @@
 namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mysql\MySQLTable;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -78,11 +79,18 @@ abstract class AbstractQuery {
     private $schema;
     /**
      *
-     * @var Table 
+     * @var Table|null 
      * 
      * @since 1.0
      */
     private $associatedTbl;
+    /**
+     *
+     * @var Table|null 
+     * 
+     * @since 1.0
+     */
+    private $prevAssociatedTable;
     /**
      *
      * @var WhereExpression 
@@ -126,6 +134,47 @@ abstract class AbstractQuery {
             $this->joins[] = $joinCond;
         }
         $this->joins[] = $joinCond;
+    }
+    /**
+     * 
+     * @param AbstractQuery $query
+     * @return AbstractQuery
+     */
+    public function join(AbstractQuery $query, $joinType = 'join') {
+        $joinTable = new JoinTable($this->getPrevTable(), $query->getTable(), $joinType);
+        $this->setTable($joinTable);
+        return $this;
+    }
+    /**
+     * 
+     * @param type $col1
+     * @param type $col2
+     * @param type $cond
+     * @return AbstractQuery
+     */
+    public function on($col1, $col2, $cond = '=', $joinWith = 'and') {
+        $table = $this->getTable();
+        if ($table instanceof JoinTable) {
+            $leftCol = $table->getLeft()->getColByKey($col1);
+            if ($leftCol instanceof Column) {
+                $leftCol->setWithTablePrefix(true);
+                $rightCol = $table->getRight()->getColByKey($col2);
+                if ($rightCol instanceof Column) {
+                    $rightCol->setWithTablePrefix(true);
+                    $cond = new Condition($leftCol->getName(), $rightCol->getName(), $cond);
+                    $table->addJoinCondition($cond, $joinWith);
+                } else {
+                    $tblName = $table->getRight()->getName();
+                    throw new DatabaseException("The table $tblName has no column with key '$col2'.");
+                }
+            } else {
+                $tblName = $table->getLeft()->getName();
+                throw new DatabaseException("The table $tblName has no column with key '$col1'.");
+            }
+        } else {
+            throw new DatabaseException("The 'on' condition can be only used with join tables.");
+        }
+        return $this;
     }
     /**
      * Constructs a query which can be used to add a primary key constrain to a 
@@ -375,6 +424,15 @@ abstract class AbstractQuery {
 
         return $this->associatedTbl;
     }
+    /**
+     * 
+     * @return null|Table
+     * 
+     * @since 1.0
+     */
+    public function getPrevTable() {
+        return $this->prevAssociatedTable;
+    }
     public function getWhereStatement() {
         return $this->whereExp->getValue();
     }
@@ -557,6 +615,7 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function setTable(Table $table) {
+        $this->prevAssociatedTable = $this->associatedTbl;
         $this->associatedTbl = $table;
     }
     /**

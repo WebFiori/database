@@ -464,7 +464,7 @@ class MySQLQueryBuilderTest extends TestCase {
             'details' => 'OKKKKKKKk'
         ]);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update users_tasks set `details` = 'OKKKKKKKk', set `last_updated` = '$date'", $schema->getLastQuery());
+        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', set `last_updated` = '$date'", $schema->getLastQuery());
     }
     /**
      * @test
@@ -477,9 +477,9 @@ class MySQLQueryBuilderTest extends TestCase {
             'details' => 'OKKKKKKKk'
         ])->where('task-id', '=', 77);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update users_tasks set `details` = 'OKKKKKKKk', set `last_updated` = '$date' where `task_id` = 77", $schema->getLastQuery());
+        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', set `last_updated` = '$date' where `task_id` = 77", $schema->getLastQuery());
         $q->andWhere('user-id', '=', 6);
-        $this->assertEquals("update users_tasks set `details` = 'OKKKKKKKk', set `last_updated` = '$date' "
+        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', set `last_updated` = '$date' "
                 . "where `task_id` = 77 and `user_id` = 6", $schema->getLastQuery());
     }
     /**
@@ -752,5 +752,16 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->expectException(DatabaseException::class);
         $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
         $schema->table('users')->dropCol('not-exist');
+    }
+    /**
+     * @test
+     */
+    public function joinTest00() {
+        $schema = new MySQLTestSchema();
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->join($queryBuilder->table('users_privileges'))->select();
+        $this->assertEquals("select * from `users` join `users_privileges`", $schema->getLastQuery());
+        $queryBuilder->on('id', 'id')->select();
+        $this->assertEquals("select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)", $schema->getLastQuery());
     }
 }
