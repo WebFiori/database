@@ -54,6 +54,7 @@ require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Condition.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'EntityMapper.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
+require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'JoinTable.php';
 
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
@@ -74,7 +75,7 @@ register_shutdown_function(function()
         $mysqlSchema->table('profile_pics')->drop()->execute();
         $mysqlSchema->table('users')->drop()->execute();
     } catch (Exception $ex) {
-        echo $ex->getMessage()."\n";
+        fprintf(STDERR, $ex->getMessage()."\n");
     }
     
     echo "Done.\n";
