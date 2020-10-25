@@ -333,11 +333,12 @@ class Database {
      * @since 1.0
      */
     public function getTable($tblName) {
-        if (!isset($this->tablesArr[$tblName])) {
-            throw new DatabaseException('No such table: "'.$tblName.'".');
+        $trimmed = trim($tblName, '`');
+        if (!isset($this->tablesArr[$trimmed])) {
+            throw new DatabaseException('No such table: "'.$trimmed.'".');
         }
  
-        return $this->tablesArr[$tblName];
+        return $this->tablesArr[$trimmed];
     }
     /**
      * Checks if a table exist in the database or not.
