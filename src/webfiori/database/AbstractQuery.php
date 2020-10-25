@@ -289,7 +289,7 @@ abstract class AbstractQuery {
      */
     public function drop() {
         $table = $this->getTable();
-        $this->setQuery('drop table `'.$table->getName().'`;');
+        $this->setQuery('drop table '.$table->getName().';');
 
         return $this;
     }
