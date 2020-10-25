@@ -30,7 +30,7 @@ class SchemaTest extends TestCase{
         $this->assertEquals('varchar',$table->getColByKey('pass')->getDatatype());
         $s->addTable($table);
         $s->table('hello')->drop();
-        $this->assertEquals('drop table `'.$table->getName().'`;', $s->getLastQuery());
+        $this->assertEquals('drop table '.$table->getName().';', $s->getLastQuery());
         $s->createTable();
         $this->assertEquals("create table if not exists `hello` (\n"
                 . "    `user_id` int not null,\n"
