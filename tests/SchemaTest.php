@@ -45,7 +45,7 @@ class SchemaTest extends TestCase{
             'username' => 'Ibrahim',
             'pass' => 'rand_pass'
         ]);
-        $this->assertEquals('insert into `'.$table->getName().'` (`user_id`, `username`, `password`) '
+        $this->assertEquals('insert into '.$table->getName().' (`user_id`, `username`, `password`) '
                 . "values (33, 'Ibrahim', 'rand_pass');", $s->getLastQuery());
         $s->select();
         $this->assertEquals('select * from `hello`',$s->getLastQuery());

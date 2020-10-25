@@ -25,7 +25,7 @@ class MySQLColumnTest extends TestCase {
      */
     public function testConstructor16() {
         $col = new MySQLColumn('hello_col', 'varchar');
-        $this->assertEquals('hello_col', $col->getName());
+        $this->assertEquals('`hello_col`', $col->getName());
         $this->assertEquals('varchar', $col->getDatatype());
         $this->assertNull($col->getDefault());
         $this->assertFalse($col->isNull());
@@ -282,7 +282,7 @@ class MySQLColumnTest extends TestCase {
             }
         ]);
         $this->assertNotNull($colObj);
-        $this->assertEquals('my_col', $colObj->getName());
+        $this->assertEquals('`my_col`', $colObj->getName());
         $this->assertEquals('varchar', $colObj->getDatatype());
         $this->assertEquals(1, $colObj->getSize());
         $this->assertEquals("'Hello Ibrahim'", $colObj->cleanValue('Ibrahim'));
@@ -294,7 +294,7 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn();
         $this->assertEquals('varchar',$col->getDatatype());
         $this->assertEquals(1,$col->getSize());
-        $this->assertEquals('col',$col->getName());
+        $this->assertEquals('`col`',$col->getName());
     }
     /**
      * @test
@@ -303,7 +303,7 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn('user_id ', 'varchar', 15);
         $this->assertEquals('varchar',$col->getDatatype());
         $this->assertEquals(15,$col->getSize());
-        $this->assertEquals('user_id',$col->getName());
+        $this->assertEquals('`user_id`',$col->getName());
     }
     /**
      * @test
@@ -322,7 +322,7 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn('valid_name', 'InT', 15);
         $this->assertEquals('int',$col->getDatatype());
         $this->assertEquals(11,$col->getSize());
-        $this->assertEquals('valid_name',$col->getName());
+        $this->assertEquals('`valid_name`',$col->getName());
     }
     /**
      * @test
@@ -331,7 +331,7 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn('valid_name', 'Varchar ', 15);
         $this->assertEquals('varchar',$col->getDatatype());
         $this->assertEquals(15,$col->getSize());
-        $this->assertEquals('valid_name',$col->getName());
+        $this->assertEquals('`valid_name`',$col->getName());
     }
     /**
      * @test
@@ -340,7 +340,7 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn('valid_name', 'Varchar ', 21846);
         $this->assertEquals('mediumtext',$col->getDatatype());
         $this->assertEquals(21846,$col->getSize());
-        $this->assertEquals('valid_name',$col->getName());
+        $this->assertEquals('`valid_name`',$col->getName());
     }
     /**
      * @test
@@ -349,7 +349,7 @@ class MySQLColumnTest extends TestCase {
         $col = new MySQLColumn('valid_name', 'Varchar ', 0);
         $this->assertEquals('varchar',$col->getDatatype());
         $this->assertEquals(1,$col->getSize());
-        $this->assertEquals('valid_name',$col->getName());
+        $this->assertEquals('`valid_name`',$col->getName());
     }
     /**
      * @test

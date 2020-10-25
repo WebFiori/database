@@ -61,21 +61,21 @@ class MySQLTableTest extends TestCase {
      */
     public function testConstructor00() {
         $table = new MySQLTable();
-        $this->assertEquals('new_table',$table->getName());
+        $this->assertEquals('`new_table`',$table->getName());
     }
     /**
      * @test
      */
     public function testConstructor01() {
         $table = new MySQLTable('valid_name');
-        $this->assertEquals('valid_name',$table->getName());
+        $this->assertEquals('`valid_name`',$table->getName());
     }
     /**
      * @test
      */
     public function testConstructor02() {
         $table = new MySQLTable('    another_Valid_Name    ');
-        $this->assertEquals('another_Valid_Name',$table->getName());
+        $this->assertEquals('`another_Valid_Name`',$table->getName());
     }
     /**
      * 
@@ -103,7 +103,7 @@ class MySQLTableTest extends TestCase {
         ]);
         $this->assertEquals(4, $table->getColsCount());
         $col00 = $table->getColByIndex(0);
-        $this->assertEquals('user_id',$col00->getName());
+        $this->assertEquals('`user_id`',$col00->getName());
         $this->assertEquals('int',$col00->getDatatype());
         $this->assertEquals(11,$col00->getSize());
         $this->assertTrue($col00->isPrimary());

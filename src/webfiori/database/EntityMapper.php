@@ -299,7 +299,7 @@ class EntityMapper {
 
         foreach ($keys as $keyName) {
             $methodName = $this->mapToMethodName($keyName, 's');
-            $mappedCol = $this->getTable()->getColByKey($keyName)->getName();
+            $mappedCol = trim($this->getTable()->getColByKey($keyName)->getName(), '`');
             $retVal[$methodName] = $mappedCol;
         }
 
