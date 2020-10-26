@@ -764,7 +764,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals("select * from `users` join `users_privileges`", $schema->getLastQuery());
         $queryBuilder->on('id', 'id')->select();
         $this->assertEquals("select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)", $schema->getLastQuery());
-        $schema->execute();
+        //$schema->execute();
         
     }
     /**
