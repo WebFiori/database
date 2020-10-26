@@ -599,7 +599,7 @@ abstract class AbstractQuery {
         $selectVal = $select->getValue();
         if ($this->getTable() instanceof JoinTable) {
             $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
-            $this->setQuery($selectVal.$this->getTable()->toSQL());
+            $this->setQuery($selectVal.$this->getTable()->toSQL(true));
         } else {
             $this->setQuery($selectVal);
         }

@@ -97,9 +97,9 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->table('users')->select();
         $this->assertEquals('select * from `users`', $schema->getLastQuery());
         $schema->select(['id','first-name','last-name']);
-        $this->assertEquals('select `id`, `first_name`, `last_name` from `users`', $schema->getLastQuery());
+        $this->assertEquals('select `users`.`id`, `users`.`first_name`, `users`.`last_name` from `users`', $schema->getLastQuery());
         $schema->select(['id','first-name'=>'f_name','last-name'=>'l_name']);
-        $this->assertEquals('select `id`, `first_name` as `f_name`, `last_name` as `l_name` from `users`', $schema->getLastQuery());
+        $this->assertEquals('select `users`.`id`, `users`.`first_name` as `f_name`, `users`.`last_name` as `l_name` from `users`', $schema->getLastQuery());
     }
     /**
      * @test
@@ -365,7 +365,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->table('users')
                 ->select(['id' => 'user_id', 'first-name'])
                 ->union($schema->table('users_privileges')->select());
-        $this->assertEquals("select `id` as `user_id`, `first_name` from `users`"
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users`"
                 . "\nunion\n"
                 . "select * from `users_privileges`", $schema->getLastQuery());
     }
@@ -378,7 +378,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 ->select(['id' => 'user_id', 'first-name'])
                 ->where('id', '!=', 44)
                 ->union($schema->table('users_privileges')->select());
-        $this->assertEquals("select `id` as `user_id`, `first_name` from `users` where `users`.`id` != 44"
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44"
                 . "\nunion\n"
                 . "select * from `users_privileges`", $schema->getLastQuery());
     }
@@ -392,7 +392,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 ->where('id', '!=', 44)
                 ->union($q->table('users_privileges')->select())
                 ->union($q->table('users_tasks')->select(), true);
-        $this->assertEquals("select `id` as `user_id`, `first_name` from `users` where `users`.`id` != 44"
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44"
                 . "\nunion\n"
                 . "select * from `users_privileges`"
                 . "\nunion all\n"
@@ -838,19 +838,19 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-//    public function testJoin06() {
-//        $schema = new MySQLTestSchema();
-//        $queryBuilder = $schema->getQueryGenerator();
-//        $queryBuilder->table('users')->join(
-//            $queryBuilder->table('users_privileges')->select(['can-edit-price','can-change-username'])
-//        )->on('id', 'id')->join(
-//            $queryBuilder->table('users_tasks')
-//        )->on('id', 'user-id')->select();
-//        $this->assertEquals("select * from ("
-//                . "select "
-//                . "`users_privileges`.`can_edit_price`, "
-//                . "`users_privileges`.`can_change_user_name` from `users` join `users_privileges` "
-//                . "on(`users`.`id` = `users_privileges`.`id`)) "
-//                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
-//    }
+    public function testJoin06() {
+        $schema = new MySQLTestSchema();
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->join(
+            $queryBuilder->table('users_privileges')->select(['can-edit-price','can-change-username'])
+        )->on('id', 'id')->join(
+            $queryBuilder->table('users_tasks')
+        )->on('id', 'user-id')->select();
+        $this->assertEquals("select * from ("
+                . "select "
+                . "`users_privileges`.`can_edit_price`, "
+                . "`users_privileges`.`can_change_username` from `users` join `users_privileges` "
+                . "on(`users`.`id` = `users_privileges`.`id`)) "
+                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+    }
 }

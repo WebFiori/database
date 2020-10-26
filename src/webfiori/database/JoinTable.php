@@ -33,6 +33,7 @@ use webfiori\database\Condition;
  * @version 1.0
  */
 class JoinTable extends Table {
+    private $isSubJoin;
     /**
      * Join conditions.
      * 
@@ -82,9 +83,19 @@ class JoinTable extends Table {
      */
     public function __construct(Table $left, Table $right, $joinType = 'join', $alias = 'new_table') {
         parent::__construct($alias);
+        if ($left instanceof JoinTable) {
+            $left->setIsSubJoin(true);
+        }
         $this->joinType = $joinType;
         $this->left = $left;
         $this->right = $right;
+        $this->isSubJoin = false;
+    }
+    public function setIsSubJoin($bool) {
+        $this->isSubJoin = $bool === true;
+    }
+    public function isSubJoin() {
+        return $this->isSubJoin;
     }
     /**
      * Returns the right table of the join.
@@ -242,34 +253,41 @@ class JoinTable extends Table {
     public function getJoinType() {
         return $this->joinType;
     }
-    public function toSQL() {
+    public function toSQL($firstCall = false) {
         $leftTbl = $this->getLeft();
         $rightTbl = $this->getRight();
         $retVal = '';
-        if ($leftTbl instanceof JoinTable) {
-            $rightSelectCols = $rightTbl->getSelect()->getColsStr();
-            if ($rightSelectCols == '*') {
-                $rightSelectCols = '';
-            }
-            $leftSelectCols = $leftTbl->getSelect()->getColsStr();
-            if ($leftSelectCols == '*') {
-                $leftSelectCols = '';
-            }
-            if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
-                $select = "select $leftSelectCols, $rightSelectCols from";
-            } else if (strlen($leftSelectCols) != 0) {
-                $select = "select $leftSelectCols from";
-            } else if (strlen($rightSelectCols) != 0) {
-                $select = "select $rightSelectCols from";
-            } else {
-                $select = "select * from ";
-            }
-            
-            $subQuery = $select.$leftTbl->toSQL();
-            
-            $retVal .= '('.$subQuery.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+        
+        $rightSelectCols = $rightTbl->getSelect()->getColsStr();
+        if ($rightSelectCols == '*') {
+            $rightSelectCols = '';
+        }
+        $leftSelectCols = $leftTbl->getSelect()->getColsStr();
+        if ($leftSelectCols == '*') {
+            $leftSelectCols = '';
+        }
+         
+        if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
+            $colsToSelect = "$leftSelectCols, $rightSelectCols";
+        } else if (strlen($leftSelectCols) != 0) {
+            $colsToSelect = $leftSelectCols;
+        } else if (strlen($rightSelectCols) != 0) {
+            $colsToSelect = $rightSelectCols;
         } else {
+            $colsToSelect = "*";
+        }
+        
+        //select * from (select * from `users_privileges`.`can_edit_price`, 
+        //`users_privileges`.`can_change_username``users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)
+        
+        if ($leftTbl instanceof JoinTable) {
+            $leftAsSQL = $leftTbl->toSQL();
+            $subQuery = $leftAsSQL;
+            $retVal .= '('.$subQuery.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+        } else if ($firstCall) {
             $retVal = $this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
+        } else {
+            $retVal = 'select '.$colsToSelect.' from '.$this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
         }
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';

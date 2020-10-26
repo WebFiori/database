@@ -66,6 +66,7 @@ class SelectExpression extends Expression {
             $selectArr = [];
             foreach ($this->selectCols as $colObjOrExpr) {
                 if ($colObjOrExpr instanceof Column) {
+                    $colObjOrExpr->setWithTablePrefix(true);
                     $alias = $colObjOrExpr->getAlias();
                     if ($alias !== null) {
                         $selectArr[] = $colObjOrExpr->getName().' as '.$alias;
