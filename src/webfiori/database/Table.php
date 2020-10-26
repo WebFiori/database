@@ -33,6 +33,7 @@ abstract class Table {
     private $colsArr;
     private $comment;
     private $withDbPrefix;
+    private $selectExpr;
     /**
      * An array that contains all table foreign keys.
      * 
@@ -63,6 +64,17 @@ abstract class Table {
             $this->name = 'new_table';
         }
         $this->colsArr = [];
+    }
+    /**
+     * 
+     * @return SelectExpression
+     */
+    public function getSelect() {
+        if ($this->selectExpr === null) {
+            $this->selectExpr = new SelectExpression($this);
+        }
+
+        return $this->selectExpr;
     }
     /**
      * 

@@ -162,9 +162,15 @@ abstract class AbstractQuery {
         if ($table instanceof JoinTable) {
             $leftCol = $table->getLeft()->getColByKey($col1);
             if ($leftCol instanceof Column) {
+                if ($table->getLeft() instanceof JoinTable) {
+                    $leftCol->setOwner($this->getTable());
+                }
                 $leftCol->setWithTablePrefix(true);
                 $rightCol = $table->getRight()->getColByKey($col2);
                 if ($rightCol instanceof Column) {
+                    if ($table->getRight() instanceof JoinTable) {
+                        $rightCol->setOwner($this->getTable());
+                    }
                     $rightCol->setWithTablePrefix(true);
                     $cond = new Condition($leftCol->getName(), $rightCol->getName(), $cond);
                     $table->addJoinCondition($cond, $joinWith);
@@ -575,17 +581,30 @@ abstract class AbstractQuery {
         $this->offset = -1;
     }
     /**
-     * Constructs a query that can be used to get records from a table.
+     * Constructs a select query based on associated table.
      * 
-     * @param array $cols An array that holds the keys of the columns that will 
-     * be selected.
+     * @param array $cols An array that contains the keys of the columns that 
+     * will be selected. To give an alias for a column, simply supply the alias 
+     * as a value for the key.
      * 
-     * @return AbstractQuery The method should return the same instance at which 
-     * the method is called on.
+     * @return AbstractQuery The method will return the same instance at which the 
+     * method is called on.
      * 
      * @since 1.0
      */
-    public abstract function select($cols = ['*']);
+    public function select($cols = ['*']) {
+        $select = $this->getTable()->getSelect();
+        $select->clear();
+        $select->select($cols);
+        $selectVal = $select->getValue();
+        if ($this->getTable() instanceof JoinTable) {
+            $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
+            $this->setQuery($selectVal.$this->getTable()->toSQL());
+        } else {
+            $this->setQuery($selectVal);
+        }
+        return $this;
+    }
     /**
      * Sets a raw SQL query.
      * 

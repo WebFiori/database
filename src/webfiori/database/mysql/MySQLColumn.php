@@ -105,6 +105,13 @@ class MySQLColumn extends Column {
         $this->isAutoUpdate = false;
         $this->setMySQLVersion('8.0');
     }
+    public function getAlias() {
+        $alias = parent::getAlias();
+        if ($alias !== null) {
+            $alias = MySQLQuery::backtick($alias);
+        }
+        return $alias;
+    }
     public function getName() {
         return MySQLQuery::backtick(parent::getName());
     }
@@ -510,7 +517,7 @@ class MySQLColumn extends Column {
     public function setOwner($table) {
         parent::setOwner($table);
 
-        if ($this->getOwner() !== null) {
+        if ($this->getOwner() !== null && $this->getOwner() instanceof MySQLTable) {
             $this->setMySQLVersion($this->getOwner()->getMySQLVersion());
         }
     }

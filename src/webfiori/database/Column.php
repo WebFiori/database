@@ -37,6 +37,13 @@ namespace webfiori\database;
 abstract class Column {
     /**
      *
+     * @var string|null
+     * 
+     * @since 1.0 
+     */
+    private $alias;
+    /**
+     *
      * @var Closure 
      * 
      * @since 1.0
@@ -160,6 +167,30 @@ abstract class Column {
         {
             return $cleanedVal;
         };
+    }
+    /**
+     * Sets an alias for the column.
+     * 
+     * @param string $alias Column alias.
+     * 
+     * @since 1.0
+     */
+    public function setAlias($alias) {
+        $trimmed = trim($alias);
+        
+        if (strlen($trimmed) != 0) {
+            $this->alias = $trimmed;
+        }
+    }
+    /**
+     * Returns column alias.
+     * 
+     * @return string|null Name alias.
+     * 
+     * @since 1.0
+     */
+    public function getAlias() {
+        return $this->alias;
     }
     /**
      * Returns a string that represents the column.

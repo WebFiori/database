@@ -320,53 +320,6 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
-     * Constructs a select query based on associated table.
-     * 
-     * @param array $cols An array that contains the keys of the columns that 
-     * will be selected. To give an alias for a column, simply supply the alias 
-     * as a value for the key.
-     * 
-     * @return MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @since 1.0
-     */
-    public function select($cols = ['*']) {
-        $table = $this->getTable();
-        $tableName = $this->getTable()->getName();
-
-        if ($cols == ['*']) {
-            $colsStr = '*';
-        } else {
-            $colsArr = [];
-
-            foreach ($cols as $index => $alias) {
-                if (gettype($index) == 'integer') {
-                    $colObj = $this->getTable()->getColByKey($alias);
-                    $colsArr[] = $colObj->getName();
-                } else if ($alias instanceof Expression) {
-                    $colsArr[] = $alias;
-                } else {
-                    $colObj = $this->getTable()->getColByKey($index);
-
-                    if ($colObj instanceof MySQLColumn) {
-                        $colName = $colObj->getName();
-                        $colsArr[] = "$colName as ".self::backtick($alias);
-                    }
-                }
-            }
-            $colsStr = implode(", ", $colsArr);
-        }
-
-        if ($table instanceof JoinTable) {
-            $this->setQuery("select $colsStr from ".$table->toSQL());
-        } else {
-            $this->setQuery("select $colsStr from $tableName");
-        }
-
-        return $this;
-    }
-    /**
      * Sets the property that is used to check if the query represents an insert 
      * or an update of a blob datatype.
      * 

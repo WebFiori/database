@@ -247,7 +247,27 @@ class JoinTable extends Table {
         $rightTbl = $this->getRight();
         $retVal = '';
         if ($leftTbl instanceof JoinTable) {
-            $retVal .= '('.$leftTbl->toSQL().') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+            $rightSelectCols = $rightTbl->getSelect()->getColsStr();
+            if ($rightSelectCols == '*') {
+                $rightSelectCols = '';
+            }
+            $leftSelectCols = $leftTbl->getSelect()->getColsStr();
+            if ($leftSelectCols == '*') {
+                $leftSelectCols = '';
+            }
+            if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
+                $select = "select $leftSelectCols, $rightSelectCols from";
+            } else if (strlen($leftSelectCols) != 0) {
+                $select = "select $leftSelectCols from";
+            } else if (strlen($rightSelectCols) != 0) {
+                $select = "select $rightSelectCols from";
+            } else {
+                $select = "select * from ";
+            }
+            
+            $subQuery = $select.$leftTbl->toSQL();
+            
+            $retVal .= '('.$subQuery.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
         } else {
             $retVal = $this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
         }

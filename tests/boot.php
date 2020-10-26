@@ -55,6 +55,7 @@ require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'EntityMapper.php'
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'JoinTable.php';
+require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'SelectExpression.php';
 
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
 require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
