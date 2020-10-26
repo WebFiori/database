@@ -592,8 +592,8 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->expectExceptionMessage("1146 - Table 'testing_db.users_privileges' doesn't exist");
         $schema->table('users_privileges')->select()->execute();
         $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
-        //$schema->table('users_privileges')->drop()->execute();
-        //$schema->table('users_privileges')->select()->execute();
+        $schema->table('users_privileges')->drop()->execute();
+        $schema->table('users_privileges')->select()->execute();
     }
     /**
      * @test
@@ -618,7 +618,7 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testDropRecord00($schema) {
         $row = $schema->getLastResultSet()->getRows()[0];
         $schema->delete()->where('id', '=', $row['id']);
-        $this->assertEquals('delete from `users` where `id` = '.$row['id'], $schema->getLastQuery());
+        $this->assertEquals('delete from `users` where `users`.`id` = '.$row['id'], $schema->getLastQuery());
         $schema->execute();
         $schema->select()->execute();
         $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
