@@ -260,6 +260,7 @@ class MySQLQuery extends AbstractQuery {
                 if (!($colObj instanceof MySQLColumn)) {
                     throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
                 }
+                $colObj->setWithTablePrefix(false);
                 $colsArr[] = $colObj->getName();
             }
             $colsStr = '('.implode(', ', $colsArr).')';
