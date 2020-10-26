@@ -36,6 +36,11 @@ use webfiori\database\mysql\MySQLTable;
 abstract class AbstractQuery {
     /**
      *
+     * @var AbstractQuery|null 
+     */
+    private $prevQueryObj;
+    /**
+     *
      * @var type 
      * 
      * @since 1.0
@@ -86,13 +91,6 @@ abstract class AbstractQuery {
     private $associatedTbl;
     /**
      *
-     * @var Table|null 
-     * 
-     * @since 1.0
-     */
-    private $prevAssociatedTable;
-    /**
-     *
      * @var WhereExpression 
      * 
      * @since 1.0
@@ -141,7 +139,14 @@ abstract class AbstractQuery {
      * @return AbstractQuery
      */
     public function join(AbstractQuery $query, $joinType = 'join') {
-        $joinTable = new JoinTable($this->getPrevTable(), $query->getTable(), $joinType);
+        $prevTable = $this->getPrevQuery()->getTable();
+        $alias = $prevTable->getName();
+        if ($prevTable instanceof JoinTable) {
+            $nameAsInt = intval($alias);
+            $alias = 'T'.($nameAsInt++);
+        }
+        
+        $joinTable = new JoinTable($this->getPrevQuery()->getTable(), $query->getTable(), $joinType, $alias);
         $this->setTable($joinTable);
         return $this;
     }
@@ -250,9 +255,10 @@ abstract class AbstractQuery {
             $copy = new MySQLQuery();
             $copy->limit = $this->limit;
             $copy->offset = $this->offset;
-
+            $copy->associatedTbl = $this->associatedTbl;
             $copy->whereExp = $this->whereExp;
-
+            $copy->schema = $this->schema;
+            
             return $copy;
         }
     }
@@ -383,9 +389,10 @@ abstract class AbstractQuery {
      */
     public function getQuery() {
         $retVal = $this->query;
-
-        if ($this->whereExp !== null) {
-            $retVal .= ' where '.$this->getWhereStatement();
+        $whereExp = $this->getWhereStatement();
+        
+        if (strlen($whereExp) != 0) {
+            $retVal .= ' where '.$whereExp;
         }
 
         return $retVal;
@@ -424,17 +431,21 @@ abstract class AbstractQuery {
 
         return $this->associatedTbl;
     }
-    /**
-     * 
-     * @return null|Table
-     * 
-     * @since 1.0
-     */
-    public function getPrevTable() {
-        return $this->prevAssociatedTable;
-    }
     public function getWhereStatement() {
-        return $this->whereExp->getValue();
+        if ($this->getTable() instanceof JoinTable) {
+            $prevWhere = $this->getPrevQuery()->whereExp;
+            if ($prevWhere !== null) {
+                if ($this->whereExp !== null) {
+                    $prevWhere->addCondition($this->whereExp->getCondition(), 'and');
+                }
+                return $prevWhere->getValue();
+            } else if ($this->whereExp !== null) {
+                return $this->whereExp->getValue();
+            }
+        } else if ($this->whereExp !== null) {
+            return $this->whereExp->getValue();
+        }
+        return '';
     }
     /**
      * Constructs a query which can be used to insert a record in a table.
@@ -608,6 +619,13 @@ abstract class AbstractQuery {
         $this->schema = $schema;
     }
     /**
+     * 
+     * @return AbstractQuery|null
+     */
+    public function getPrevQuery() {
+        return $this->prevQueryObj;
+    }
+    /**
      * Associate a table with the query builder.
      * 
      * @param Table $table The table that will be associated.
@@ -615,7 +633,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function setTable(Table $table) {
-        $this->prevAssociatedTable = $this->associatedTbl;
         $this->associatedTbl = $table;
     }
     /**
@@ -629,11 +646,15 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function table($tblName) {
+        $tableObj = $this->getSchema()->getTable($tblName);
+        $this->prevQueryObj = $this->copyQuery();
+        
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
             $this->reset();
         }
-        $this->setTable($this->getSchema()->getTable($tblName));
+        
+        $this->setTable($tableObj);
 
         return $this;
     }

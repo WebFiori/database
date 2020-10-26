@@ -344,16 +344,14 @@ class MySQLQuery extends AbstractQuery {
                 if (gettype($index) == 'integer') {
                     $colObj = $this->getTable()->getColByKey($alias);
                     $colsArr[] = $colObj->getName();
+                } else if ($alias instanceof Expression) {
+                    $colsArr[] = $alias;
                 } else {
-                    if ($alias instanceof Expression) {
-                        $colsArr[] = $alias;
-                    } else {
-                        $colObj = $this->getTable()->getColByKey($index);
+                    $colObj = $this->getTable()->getColByKey($index);
 
-                        if ($colObj instanceof MySQLColumn) {
-                            $colName = $colObj->getName();
-                            $colsArr[] = "$colName as ".self::backtick($alias);
-                        }
+                    if ($colObj instanceof MySQLColumn) {
+                        $colName = $colObj->getName();
+                        $colsArr[] = "$colName as ".self::backtick($alias);
                     }
                 }
             }
@@ -467,9 +465,12 @@ class MySQLQuery extends AbstractQuery {
                 if ($colObj === null) {
                     throw new DatabaseException("The table '$tableName' has no column with key '$col'.");
                 }
+                $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
                 $this->addWhere($colName, $cleanVal, $cond, $joinCond);
+            } else {
+                throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
             }
         }
 

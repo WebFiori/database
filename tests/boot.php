@@ -75,8 +75,8 @@ register_shutdown_function(function()
         $mysqlSchema->table('profile_pics')->drop()->execute();
         $mysqlSchema->table('users')->drop()->execute();
     } catch (Exception $ex) {
-        fprintf(STDERR, $ex->getMessage()."\n");
+        echo $ex->getMessage()."\n";
     }
     
-    echo "Done.\n";
+    echo "Finished .\n";
 });

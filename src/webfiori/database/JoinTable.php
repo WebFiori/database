@@ -169,7 +169,11 @@ class JoinTable extends Table {
     public function getColByName($name) {
         $colObj = $this->getLeft()->getColByName($name);
         if ($colObj === null) {
-            return $this->getRight()->getColByName($name);
+            $colObj = $this->getRight()->getColByName($name);
+        }
+        
+        if ($colObj !== null) {
+            $colObj->setWithTablePrefix(true);
         }
         return $colObj;
     }
@@ -190,8 +194,13 @@ class JoinTable extends Table {
     public function getColByKey($key) {
         $colObj = $this->getLeft()->getColByKey($key);
         if ($colObj === null) {
-            return $this->getRight()->getColByKey($key);
+            $colObj = $this->getRight()->getColByKey($key);
         }
+        
+        if ($colObj !== null) {
+            $colObj->setWithTablePrefix(true);
+        }
+        
         return $colObj;
     }
     /**
@@ -234,7 +243,14 @@ class JoinTable extends Table {
         return $this->joinType;
     }
     public function toSQL() {
-        $retVal = $this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
+        $leftTbl = $this->getLeft();
+        $rightTbl = $this->getRight();
+        $retVal = '';
+        if ($leftTbl instanceof JoinTable) {
+            $retVal .= '('.$leftTbl->toSQL().') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+        } else {
+            $retVal = $this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
+        }
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';
         }
