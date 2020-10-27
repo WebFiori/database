@@ -139,14 +139,18 @@ abstract class AbstractQuery {
      * @return AbstractQuery
      */
     public function join(AbstractQuery $query, $joinType = 'join') {
-        $prevTable = $this->getPrevQuery()->getTable();
-        $alias = $prevTable->getName();
-        if ($prevTable instanceof JoinTable) {
+        $leftTable = $this->getPrevQuery()->getTable();
+        $rightTable = $query->getTable();
+        
+        $alias = $leftTable->getName();
+        
+        if ($leftTable instanceof JoinTable) {
             $nameAsInt = intval($alias);
             $alias = 'T'.($nameAsInt++);
         }
+
         
-        $joinTable = new JoinTable($this->getPrevQuery()->getTable(), $query->getTable(), $joinType, $alias);
+        $joinTable = new JoinTable($leftTable, $rightTable, $joinType, $alias);
         $this->setTable($joinTable);
         return $this;
     }
@@ -597,9 +601,22 @@ abstract class AbstractQuery {
         $select->clear();
         $select->select($cols);
         $selectVal = $select->getValue();
-        if ($this->getTable() instanceof JoinTable) {
-            $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
-            $this->setQuery($selectVal.$this->getTable()->toSQL(true));
+        $thisTable = $this->getTable();
+        if ($thisTable instanceof JoinTable) {
+            $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
+            if ($rightCols == '*') {
+                $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
+                $this->setQuery($selectVal.$this->getTable()->toSQL(true));
+            } else {
+                $thisCols = $select->getColsStr();
+                if ($thisCols == '*') {
+                    $thisCols = '';
+                } else {
+                    $thisCols = $thisCols.', ';
+                }
+                $this->setQuery("select $thisCols$rightCols from ".$this->getTable()->toSQL(true));
+            }
+            
         } else {
             $this->setQuery($selectVal);
         }

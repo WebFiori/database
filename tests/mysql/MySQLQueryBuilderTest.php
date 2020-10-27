@@ -853,4 +853,26 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
                 . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
     }
+    /**
+     * @test
+     */
+    public function testJoin07() {
+        $schema = new MySQLTestSchema();
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->join(
+            $queryBuilder->table('users_privileges')->select(['can-edit-price','can-change-username'])
+        )->on('id', 'id')->join(
+            $queryBuilder->table('users_tasks')->select(['task-id', 'created-on' => 'created'])
+        )->on('id', 'user-id')->select();
+        $this->assertEquals("select "
+                . "`users_tasks`.`task_id`, "
+                . "`users_tasks`.`created_on` as `created` "
+                . "from ("
+                . "select "
+                . "`users_privileges`.`can_edit_price`, "
+                . "`users_privileges`.`can_change_username` "
+                . "from `users` join `users_privileges` "
+                . "on(`users`.`id` = `users_privileges`.`id`)) "
+                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+    }
 }

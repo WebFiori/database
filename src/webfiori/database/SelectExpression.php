@@ -59,6 +59,15 @@ class SelectExpression extends Expression {
         $colsStr = $this->getColsStr();
         return "select $colsStr from ".$this->getTable()->getName();
     }
+    /**
+     * Returns a string that contains the columns at which that will be select.
+     * 
+     * @return string If the table has no columns to select, the method will 
+     * return the value '*'. Other than that, the method will return a string that 
+     * contains columns names.
+     * 
+     * @since 1.0
+     */
     public function getColsStr() {
         if (count($this->selectCols) == 0) {
             $colsStr = '*';
