@@ -40,14 +40,6 @@ abstract class AbstractQuery {
      */
     private $prevQueryObj;
     /**
-     *
-     * @var type 
-     * 
-     * @since 1.0
-     */
-    private $joins;
-    /**
-     *
      * @var string 
      * 
      * @since 1.0
@@ -124,15 +116,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function addCol($colKey, $location = null);
-    public function addJoin($joinCond, $join) {
-        if (count($this->joins) != 0) {
-            if (!in_array($join, ['and', 'or'])) {
-                $join = 'and';
-            }
-            $this->joins[] = $joinCond;
-        }
-        $this->joins[] = $joinCond;
-    }
     /**
      * Perform a join query.
      * 
@@ -398,9 +381,6 @@ abstract class AbstractQuery {
         } catch (DatabaseException $ex) {
             throw new DatabaseException($ex->getMessage());
         }
-    }
-    public function getJoinStatement() {
-        return implode(' ', $this->joins);
     }
     /**
      * Returns the type of last generated SQL query.
