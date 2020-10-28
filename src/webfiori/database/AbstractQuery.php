@@ -604,18 +604,38 @@ abstract class AbstractQuery {
         $thisTable = $this->getTable();
         if ($thisTable instanceof JoinTable) {
             $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
-            $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
-            if ($rightCols == '*') {
-                $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
-                $this->setQuery($selectVal.$this->getTable()->toSQL(true));
+            if (!($thisTable->getLeft() instanceof JoinTable)) {
+                $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
             } else {
-                $thisCols = $select->getColsStr();
-                if ($thisCols == '*') {
-                    $thisCols = '';
+                $leftCols = '*';
+            }
+            $thisCols = $select->getColsStr();
+            $columnsToSelect = '';
+            if ($thisCols != '*') {
+                $columnsToSelect .= $thisCols;
+            }
+            if ($leftCols != '*') {
+                if (strlen($columnsToSelect) != 0) {
+                    $columnsToSelect .= ", $leftCols";
                 } else {
-                    $thisCols = $thisCols.', ';
+                    $columnsToSelect = $leftCols;
                 }
-                $this->setQuery("select $thisCols$rightCols from ".$this->getTable()->toSQL(true));
+            }
+            if ($rightCols != '*') {
+                if (strlen($columnsToSelect) != 0) {
+                    $columnsToSelect .= ", $rightCols";
+                } else {
+                    $columnsToSelect = $rightCols;
+                }
+            }
+            $tableSQL = $this->getTable()->toSQL(true);
+            if (strlen($columnsToSelect) == 0) {
+                $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
+                $this->setQuery($selectVal.$tableSQL);
+            } else if (strlen($columnsToSelect) != 0){
+                $this->setQuery("select $columnsToSelect from ".$tableSQL);
+            } else {
+                $this->setQuery("select $thisCols from ".$tableSQL);
             }
             
         } else {

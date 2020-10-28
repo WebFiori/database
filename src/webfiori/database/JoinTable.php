@@ -281,18 +281,57 @@ class JoinTable extends Table {
         //`users_privileges`.`can_change_username``users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)
         
         if ($leftTbl instanceof JoinTable) {
-            $leftAsSQL = $leftTbl->toSQL();
-            $subQuery = $leftAsSQL;
-            $retVal .= '('.$subQuery.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+            
+            $xleftTbl = $leftTbl->getLeft();
+            $xrightTbl = $leftTbl->getRight();
+            $retVal = '';
+
+            $rightSelectCols = $xrightTbl->getSelect()->getColsStr();
+            if ($rightSelectCols == '*') {
+                $rightSelectCols = '';
+            }
+            $leftSelectCols = $xleftTbl->getSelect()->getColsStr();
+            if ($leftSelectCols == '*') {
+                $leftSelectCols = '';
+            }
+
+            if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
+                $colsToSelect = "$leftSelectCols, $rightSelectCols";
+            } else if (strlen($leftSelectCols) != 0) {
+                $colsToSelect = $leftSelectCols;
+            } else if (strlen($rightSelectCols) != 0) {
+                $colsToSelect = $rightSelectCols;
+            } else {
+                $colsToSelect = "*";
+            }
+            
+            if ($colsToSelect == '*') {
+                $leftAsSQL = $leftTbl->toSQL();
+                $subQuery = $leftAsSQL;
+                $retVal .= '('.$subQuery.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                if ($this->getJoinCondition() !== null) {
+                    $retVal .= ' on('.$this->getJoinCondition().')';
+                }
+            } else {
+                $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin().") as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                if ($this->getJoinCondition() !== null) {
+                    $retVal .= ' on('.$this->getJoinCondition().')';
+                }
+            }
         } else if ($firstCall) {
-            $retVal = $this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
+            $retVal = $this->getJoin();
         } else {
-            $retVal = 'select '.$colsToSelect.' from '.$this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
+            $retVal = 'select '.$colsToSelect.' from '.$this->getJoin();
         }
+        return $retVal;
+    }
+    public function getJoin() {
+        $retVal = $this->getLeft()->getName()
+                .' '.$this->getJoinType()
+                .' '.$this->getRight()->getName();
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';
         }
         return $retVal;
     }
-
 }
