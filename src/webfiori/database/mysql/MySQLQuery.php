@@ -381,57 +381,6 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
-     * Adds a 'where' condition to an existing select, update or delete query.
-     * 
-     * @param AbstractQuery|string $col The key of the column. This also can be an 
-     * object of type AbstractQuery. The object is used to build a sub 
-     * where condition.
-     * 
-     * @param string $cond A string such as '=' or '!='.
-     * 
-     * @param mixed $val The value at which column value will be evaluated againest.
-     * 
-     * @param string $joinCond An optional string which could be used to join 
-     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
-     * default value.
-     * 
-     * @return MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If one of the columns does not exist, the method 
-     * will throw an exception.
-     * 
-     * @since 1.0
-     */
-    public function where($col, $cond = null, $val = null, $joinCond = 'and') {
-        if ($col instanceof AbstractQuery) {
-            //Prev where was a sub where
-            $this->addWhere($col, null, null, $joinCond);
-        } else {
-            // A where condition based on last select, delete or update
-            $lastQueryType = $this->getLastQueryType();
-            $table = $this->getTable();
-            $tableName = $table->getName();
-
-            if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
-                $colObj = $table->getColByKey($col);
-
-                if ($colObj === null) {
-                    throw new DatabaseException("The table '$tableName' has no column with key '$col'.");
-                }
-                $colObj->setWithTablePrefix(true);
-                $colName = $colObj->getName();
-                $cleanVal = $colObj->cleanValue($val);
-                $this->addWhere($colName, $cleanVal, $cond, $joinCond);
-            } else {
-                throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-            }
-        }
-
-        return $this;
-    }
-    
-    /**
      * Build a string that holds the values that will be inserted.
      * 
      * @param array $colsKeysArr

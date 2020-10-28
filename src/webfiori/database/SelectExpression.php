@@ -34,6 +34,27 @@ namespace webfiori\database;
 class SelectExpression extends Expression {
     /**
      *
+     * @var WhereExpression 
+     * 
+     * @since 1.0
+     */
+    private $whereExp;
+    /**
+     *
+     * @var array
+     * 
+     * @since 1.0 
+     */
+    private $groupByCols;
+    /**
+     *
+     * @var array
+     * 
+     * @since 1.0 
+     */
+    private $orderByCols;
+    /**
+     *
      * @var Table
      * 
      * @since 1.0 
@@ -58,6 +79,178 @@ class SelectExpression extends Expression {
         parent::__construct('');
         $this->table = $table;
         $this->selectCols = [];
+        $this->orderByCols = [];
+        $this->groupByCols = [];
+    }
+    public function getWhereExpr() {
+        return $this->whereExp;
+    }
+    /**
+     * Adds a condition to the 'where' part of the select.
+     * 
+     * @param type $leftOpOrExp
+     * 
+     * @param type $rightOp
+     * 
+     * @param type $cond
+     * 
+     * @param string $join
+     * 
+     * @since 1.0
+     */
+    public function addWhere($leftOpOrExp, $rightOp = null, $cond = null, $join = 'and') {
+        if (!in_array($join, ['and', 'or'])) {
+            $join = 'and';
+        }
+
+        if ($leftOpOrExp instanceof AbstractQuery) {
+            $parentWhere = new WhereExpression('');
+            $this->whereExp->setJoinCondition($join);
+            $this->whereExp->setParent($parentWhere);
+
+            $this->whereExp = $parentWhere;
+        } else {
+            if ($this->whereExp === null) {
+                $this->whereExp = new WhereExpression('');
+            }
+            $condition = new Condition($leftOpOrExp, $rightOp, $cond);
+            $this->whereExp->addCondition($condition, $join);
+        }
+    }
+    /**
+     * Returns a string that represents the 'where' part of the select in addition 
+     * to the 'order by' and 'group by'.
+     * 
+     * @return string
+     * 
+     * @since 1.0
+     */
+    public function getWhereWithGroupAndOrder() {
+        $table = $this->getTable();
+        $retVal = '';
+        if ($table instanceof JoinTable) {
+            $leftWhere = $table->getLeft()->getSelect()->getWhereExpr();
+            $rightWhere = $table->getRight()->getSelect()->getWhereExpr();
+            if ($leftWhere !== null) {
+                if ($rightWhere !== null) {
+                    $leftWhere->addCondition($leftWhere->getCondition(), 'and');
+                }
+                if ($this->whereExp !== null) {
+                    $leftWhere->addCondition($this->whereExp->getCondition(), 'and');
+                }
+                $retVal = $leftWhere->getValue();
+            } else if ($rightWhere !== null) {
+                if ($this->whereExp !== null) {
+                    $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
+                }
+                $retVal = $rightWhere->getValue();
+            } else if ($this->whereExp !== null) {
+                $retVal = $this->whereExp->getValue();
+            }
+        } else if ($this->whereExp !== null) {
+            $retVal = $this->whereExp->getValue();
+        }
+        $groupBy = $this->getGroupBy();
+        $orderBy = $this->getOrderBy();
+        if (strlen($retVal) != 0) {
+            return ' where '.$retVal.$groupBy.$orderBy;
+        }
+        return $groupBy.$orderBy;
+    }
+    /**
+     * Adds a column to the set of columns at which the table records will 
+     * be grouped by.
+     * 
+     * @param string $colKey The key of the column as specified when adding the 
+     * column to the table.
+     * 
+     * @throws DatabaseException If column does not exist in the table that the 
+     * select is based on.
+     * 
+     * @since 1.0
+     */
+    public function groupBy($colKey) {
+        $colObj = $this->getTable()->getColByKey($colKey);
+        if ($colObj === null) {
+            $tblName = $this->getTable()->getName();
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+        $this->groupByCols[$colKey] = $colObj;
+    }
+    /**
+     * Adds a column to the set of columns at which the table records will 
+     * be ordered by.
+     * 
+     * @param string $colKey The key of the column as specified when adding the 
+     * column to the table.
+     * 
+     * @param string $orderType Order type of the column. Can be 'a' for 
+     * ascending or 'd' for descending.
+     * @throws DatabaseException
+     */
+    public function orderBy($colKey, $orderType = null) {
+        $colObj = $this->getTable()->getColByKey($colKey);
+        if ($colObj === null) {
+            $tblName = $this->getTable()->getName();
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+        $colArr = [
+            'col' => $colObj
+        ];
+        if ($orderType !== null) {
+            $orderType = strtolower($orderType[0]);
+            if ($orderType == 'd') {
+                $colArr['order'] = 'desc';
+            } else if ($orderType == 'a') {
+                $colArr['order'] = 'asc';
+            }
+        }
+        $this->orderByCols[$colKey] = $colArr;
+    }
+    /**
+     * Returns a string that represents the order by part of the select.
+     * 
+     * @return string A string that represents the order by part of the select. If 
+     * no columns exist in the order by part, the method will return empty 
+     * string.
+     * 
+     * @since 1.0
+     */
+    public function getOrderBy() {
+        $arrOfCols = [];
+        foreach ($this->orderByCols as $subArr) {
+            $subArr['col']->setWithTablePrefix(true);
+            $order = $subArr['col']->getName();
+            $orderType = isset($subArr['order']) ? $subArr['order'] : '';
+            if (strlen($orderType) != 0) {
+                $order .= ' '.$orderType;
+            }
+            $arrOfCols[] = $order;
+        }
+        if (count($arrOfCols) != 0) {
+            return ' order by '.implode(', ', $arrOfCols);
+        }
+        return '';
+    }
+    /**
+     * Returns a string that represents the group by part of the select.
+     * 
+     * @return string A string that represents the group by part of the select. If 
+     * no columns exist in the group by part, the method will return empty 
+     * string.
+     * 
+     * @since 1.0
+     */
+    public function getGroupBy() {
+        $arrOfCols = [];
+        foreach ($this->groupByCols as $colObj) {
+            $colObj->setWithTablePrefix(true);
+            $arrOfCols[] = $colObj->getName();
+        }
+        if (count($arrOfCols) != 0) {
+            return ' group by '.implode(', ', $arrOfCols);
+        }
+        return '';
     }
     /**
      * Checks if a column exist in the select expression or not.
@@ -143,6 +336,8 @@ class SelectExpression extends Expression {
      */
     public function clear() {
         $this->selectCols = [];
+        $this->groupByCols = [];
+        $this->orderByCols = [];
     }
     /**
      * Returns an array that contains all columns keys which are in the select.

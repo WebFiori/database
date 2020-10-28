@@ -94,20 +94,30 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function selectTest000() {
         $schema = new MySQLTestSchema();
-        $schema->table('users')->select();
+        $bulder = $schema->table('users')->select();
         $this->assertEquals('select * from `users`', $schema->getLastQuery());
-        $schema->select(['id','first-name','last-name']);
+        $bulder->select(['id','first-name','last-name']);
         $this->assertEquals('select `users`.`id`, `users`.`first_name`, `users`.`last_name` from `users`', $schema->getLastQuery());
-        $schema->select(['id','first-name'=>'f_name','last-name'=>'l_name']);
+        $bulder->select(['id','first-name'=>'f_name','last-name'=>'l_name']);
         $this->assertEquals('select `users`.`id`, `users`.`first_name` as `f_name`, `users`.`last_name` as `l_name` from `users`', $schema->getLastQuery());
+        $bulder->orderBy(['id']);
+        $this->assertEquals('select `users`.`id`, `users`.`first_name` as `f_name`, `users`.`last_name` as `l_name` from `users` order by `users`.`id`', $schema->getLastQuery());
+        $bulder->orderBy(['id','first-name','last-name'=>'d']);
+        $this->assertEquals('select `users`.`id`, `users`.`first_name` as `f_name`, `users`.`last_name` as `l_name` from `users` order by `users`.`id`, `users`.`first_name`, `users`.`last_name` desc', $schema->getLastQuery());
     }
     /**
      * @test
      */
     public function testSelectWithWhere000() {
         $schema = new MySQLTestSchema();
-        $schema->table('users')->select()->where('id', '=', 66);
+        $bulder = $schema->table('users')->select()->where('id', '=', 66);
         $this->assertEquals('select * from `users` where `users`.`id` = 66', $schema->getLastQuery());
+        $bulder->groupBy('first-name');
+        $this->assertEquals('select * from `users` where `users`.`id` = 66 group by `users`.`first_name`', $schema->getLastQuery());
+        $bulder->groupBy(['first-name','last-name']);
+        $this->assertEquals('select * from `users` where `users`.`id` = 66 group by `users`.`first_name`, `users`.`last_name`', $schema->getLastQuery());
+        $bulder->orderBy(['last-name'=>'a']);
+        $this->assertEquals('select * from `users` where `users`.`id` = 66 group by `users`.`first_name`, `users`.`last_name` order by `users`.`last_name` asc', $schema->getLastQuery());
     }
     /**
      * @test
