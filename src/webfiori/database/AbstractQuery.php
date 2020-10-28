@@ -400,10 +400,15 @@ abstract class AbstractQuery {
      */
     public function getQuery() {
         $retVal = $this->query;
-        $whereExp = $this->getTable()->getSelect()->getWhereWithGroupAndOrder();
         
-        if (strlen($whereExp) != 0) {
-            $retVal .= $whereExp;
+        $lastQueryType = $this->getLastQueryType();
+        
+        if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
+            $whereExp = $this->getTable()->getSelect()->getWhereWithGroupAndOrder();
+        
+            if (strlen($whereExp) != 0) {
+                $retVal .= $whereExp;
+            }
         }
 
         return $retVal;
