@@ -122,6 +122,13 @@ abstract class Column {
      */
     private $owner;
     /**
+     *
+     * @var Table|null 
+     * 
+     * @since 1.0
+     */
+    private $prevOwner;
+    /**
      * The number of numbers that will appear after the decimal point.
      * 
      * @var int 
@@ -554,13 +561,26 @@ abstract class Column {
      */
     public function setOwner($table) {
         if ($table instanceof Table) {
+            $this->prevOwner = $this->owner;
             $this->owner = $table;
             $colsCount = $table->getColsCount();
             $this->columnIndex = $colsCount == 0 ? 0 : $colsCount;
         } else if ($table === null) {
+            $this->prevOwner = $this->owner;
             $this->owner = null;
             $this->columnIndex = -1;
         }
+    }
+    /**
+     * Returns the previous table which was owns the column.
+     * 
+     * @return Table|null If the owner of the table was set then updated, the 
+     * method will return the old owner value.
+     * 
+     * @since 1.0
+     */
+    public function getPrevOwner() {
+        return $this->prevOwner;
     }
     /**
      * Sets the value of Scale.

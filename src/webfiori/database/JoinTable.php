@@ -286,13 +286,13 @@ class JoinTable extends Table {
             $xrightTbl = $leftTbl->getRight();
             $retVal = '';
 
-            $rightSelectCols = $xrightTbl->getSelect()->getColsStr();
-            if ($rightSelectCols == '*') {
-                $rightSelectCols = '';
+            $xrightSelectCols = $xrightTbl->getSelect()->getColsStr();
+            if ($xrightSelectCols != '*') {
+                $rightSelectCols = $xrightSelectCols;
             }
-            $leftSelectCols = $xleftTbl->getSelect()->getColsStr();
-            if ($leftSelectCols == '*') {
-                $leftSelectCols = '';
+            $xleftSelectCols = $xleftTbl->getSelect()->getColsStr();
+            if ($xleftSelectCols != '*') {
+                $leftSelectCols = $xleftSelectCols;
             }
 
             if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {

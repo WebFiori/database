@@ -205,13 +205,19 @@ class SelectExpression extends Expression {
                             }
                         }
                         
+                    } else {
+                        if ($colObjOrExpr->getPrevOwner() !== null) {
+                            $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
+                        }
                     }
                     if ($addCol) {
                         $alias = $colObjOrExpr->getAlias();
+                        $colName = $colObjOrExpr->getName();
+                        
                         if ($alias !== null) {
-                            $selectArr[] = $colObjOrExpr->getName().' as '.$alias;
+                            $selectArr[] = $colName.' as '.$alias;
                         } else {
-                            $selectArr[] = $colObjOrExpr->getName();
+                            $selectArr[] = $colName;
                         }
                     }
                 } else {
