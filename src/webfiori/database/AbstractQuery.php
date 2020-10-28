@@ -604,6 +604,7 @@ abstract class AbstractQuery {
         $thisTable = $this->getTable();
         if ($thisTable instanceof JoinTable) {
             $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
+            $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
             if ($rightCols == '*') {
                 $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
                 $this->setQuery($selectVal.$this->getTable()->toSQL(true));
