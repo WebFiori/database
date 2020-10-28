@@ -41,6 +41,9 @@ use webfiori\database\ResultSet;
  */
 class MySQLConnection extends Connection {
     private $link;
+    public function __destruct() {
+        mysqli_close($this->link);
+    }
     /**
      * Connect to MySQL database.
      * 
@@ -55,23 +58,28 @@ class MySQLConnection extends Connection {
         set_error_handler(function()
         {
         });
-        $this->link = @mysqli_connect($connInfo->getHost(), 
-                $connInfo->getUsername(), 
-                $connInfo->getPassword(), 
-                $connInfo->getDBName(), 
-                $connInfo->getPort());
-        restore_error_handler();
+        $host = $connInfo->getHost();
+        $port = $connInfo->getPort();
+        $user = $connInfo->getUsername();
+        $pass = $connInfo->getPassword();
+        $dbName = $connInfo->getDBName();
+        
+        $this->link = @mysqli_connect($host, $user, $pass, null, $port);
+        
 
         if ($this->link instanceof mysqli) {
-            $test = true;
-            $this->link->set_charset("utf8");
-            mysqli_query($this->link, "set character_set_client='utf8'");
-            mysqli_query($this->link, "set character_set_results='utf8'");
+            $test = mysqli_select_db($this->link, $dbName);
+            
+            if ($test) {
+                $this->link->set_charset("utf8");
+                mysqli_query($this->link, "set character_set_client='utf8'");
+                mysqli_query($this->link, "set character_set_results='utf8'");
+            }
         } else {
             $this->setErrCode(mysqli_connect_errno());
             $this->setErrMessage(mysqli_connect_error());
         }
-
+        restore_error_handler();
         return $test;
     }
     

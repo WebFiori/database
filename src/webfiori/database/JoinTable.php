@@ -33,6 +33,7 @@ use webfiori\database\Condition;
  * @version 1.0
  */
 class JoinTable extends Table {
+    private $isSubJoin;
     /**
      * Join conditions.
      * 
@@ -82,9 +83,19 @@ class JoinTable extends Table {
      */
     public function __construct(Table $left, Table $right, $joinType = 'join', $alias = 'new_table') {
         parent::__construct($alias);
+        if ($left instanceof JoinTable) {
+            $left->setIsSubJoin(true);
+        }
         $this->joinType = $joinType;
         $this->left = $left;
         $this->right = $right;
+        $this->isSubJoin = false;
+    }
+    public function setIsSubJoin($bool) {
+        $this->isSubJoin = $bool === true;
+    }
+    public function isSubJoin() {
+        return $this->isSubJoin;
     }
     /**
      * Returns the right table of the join.
@@ -169,7 +180,11 @@ class JoinTable extends Table {
     public function getColByName($name) {
         $colObj = $this->getLeft()->getColByName($name);
         if ($colObj === null) {
-            return $this->getRight()->getColByName($name);
+            $colObj = $this->getRight()->getColByName($name);
+        }
+        
+        if ($colObj !== null) {
+            $colObj->setWithTablePrefix(true);
         }
         return $colObj;
     }
@@ -190,8 +205,13 @@ class JoinTable extends Table {
     public function getColByKey($key) {
         $colObj = $this->getLeft()->getColByKey($key);
         if ($colObj === null) {
-            return $this->getRight()->getColByKey($key);
+            $colObj = $this->getRight()->getColByKey($key);
         }
+        
+        if ($colObj !== null) {
+            $colObj->setWithTablePrefix(true);
+        }
+        
         return $colObj;
     }
     /**
@@ -233,12 +253,94 @@ class JoinTable extends Table {
     public function getJoinType() {
         return $this->joinType;
     }
-    public function toSQL() {
-        $retVal = $this->getLeft()->getName().' '.$this->getJoinType().' '.$this->getRight()->getName();
+    public function toSQL($firstCall = false) {
+        $leftTbl = $this->getLeft();
+        $rightTbl = $this->getRight();
+        $retVal = '';
+        
+        $rightSelectCols = $rightTbl->getSelect()->getColsStr();
+        if ($rightSelectCols == '*') {
+            $rightSelectCols = '';
+        }
+        $leftSelectCols = $leftTbl->getSelect()->getColsStr();
+        if ($leftSelectCols == '*') {
+            $leftSelectCols = '';
+        }
+         
+        if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
+            $colsToSelect = "$leftSelectCols, $rightSelectCols";
+        } else if (strlen($leftSelectCols) != 0) {
+            $colsToSelect = $leftSelectCols;
+        } else if (strlen($rightSelectCols) != 0) {
+            $colsToSelect = $rightSelectCols;
+        } else {
+            $colsToSelect = "*";
+        }
+        
+        //select * from (select * from `users_privileges`.`can_edit_price`, 
+        //`users_privileges`.`can_change_username``users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)
+        
+        if ($leftTbl instanceof JoinTable) {
+            
+            $xleftTbl = $leftTbl->getLeft();
+            $xrightTbl = $leftTbl->getRight();
+            $retVal = '';
+
+            $xrightSelectCols = $xrightTbl->getSelect()->getColsStr();
+            if ($xrightSelectCols != '*') {
+                $rightSelectCols = $xrightSelectCols;
+            }
+            if (!($xleftTbl instanceof JoinTable)) {
+                $xleftSelectCols = $xleftTbl->getSelect()->getColsStr();
+                if ($xleftSelectCols != '*' && strlen($leftSelectCols) == 0) {
+                    $leftSelectCols = $xleftSelectCols;
+                }
+            } 
+            if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
+                $colsToSelect = "$leftSelectCols, $rightSelectCols";
+            } else if (strlen($leftSelectCols) != 0) {
+                $colsToSelect = $leftSelectCols;
+            } else if (strlen($rightSelectCols) != 0) {
+                $colsToSelect = $rightSelectCols;
+            } else {
+                $colsToSelect = "*";
+            }
+            $leftAsSQL = $leftTbl->toSQL();
+            
+            if ($colsToSelect == '*') {
+                if ($xleftTbl instanceof JoinTable) {
+                     $retVal .= '(select * from '.$leftAsSQL.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                } else {
+                    $retVal .= '('.$leftAsSQL.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                }
+                if ($this->getJoinCondition() !== null) {
+                    $retVal .= ' on('.$this->getJoinCondition().')';
+                }
+            } else if ($xleftTbl instanceof JoinTable) {
+                $retVal .= "(select $colsToSelect from $leftAsSQL) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                if ($this->getJoinCondition() !== null) {
+                    $retVal .= ' on('.$this->getJoinCondition().')';
+                }
+            } else {
+                $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin().") as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                if ($this->getJoinCondition() !== null) {
+                    $retVal .= ' on('.$this->getJoinCondition().')';
+                }
+            }
+        } else if ($firstCall) {
+            $retVal = $this->getJoin();
+        } else {
+            $retVal = 'select '.$colsToSelect.' from '.$this->getJoin();
+        }
+        return $retVal;
+    }
+    public function getJoin() {
+        $retVal = $this->getLeft()->getName()
+                .' '.$this->getJoinType()
+                .' '.$this->getRight()->getName();
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';
         }
         return $retVal;
     }
-
 }

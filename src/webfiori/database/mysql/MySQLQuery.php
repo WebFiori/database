@@ -260,6 +260,7 @@ class MySQLQuery extends AbstractQuery {
                 if (!($colObj instanceof MySQLColumn)) {
                     throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
                 }
+                $colObj->setWithTablePrefix(false);
                 $colsArr[] = $colObj->getName();
             }
             $colsStr = '('.implode(', ', $colsArr).')';
@@ -316,55 +317,6 @@ class MySQLQuery extends AbstractQuery {
         }
         
         $this->_alterColStm('modify', $colObj, $location, $tblName);
-
-        return $this;
-    }
-    /**
-     * Constructs a select query based on associated table.
-     * 
-     * @param array $cols An array that contains the keys of the columns that 
-     * will be selected. To give an alias for a column, simply supply the alias 
-     * as a value for the key.
-     * 
-     * @return MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @since 1.0
-     */
-    public function select($cols = ['*']) {
-        $table = $this->getTable();
-        $tableName = $this->getTable()->getName();
-
-        if ($cols == ['*']) {
-            $colsStr = '*';
-        } else {
-            $colsArr = [];
-
-            foreach ($cols as $index => $alias) {
-                if (gettype($index) == 'integer') {
-                    $colObj = $this->getTable()->getColByKey($alias);
-                    $colsArr[] = $colObj->getName();
-                } else {
-                    if ($alias instanceof Expression) {
-                        $colsArr[] = $alias;
-                    } else {
-                        $colObj = $this->getTable()->getColByKey($index);
-
-                        if ($colObj instanceof MySQLColumn) {
-                            $colName = $colObj->getName();
-                            $colsArr[] = "$colName as ".self::backtick($alias);
-                        }
-                    }
-                }
-            }
-            $colsStr = implode(", ", $colsArr);
-        }
-
-        if ($table instanceof JoinTable) {
-            $this->setQuery("select $colsStr from ".$table->toSQL());
-        } else {
-            $this->setQuery("select $colsStr from $tableName");
-        }
 
         return $this;
     }
@@ -467,9 +419,12 @@ class MySQLQuery extends AbstractQuery {
                 if ($colObj === null) {
                     throw new DatabaseException("The table '$tableName' has no column with key '$col'.");
                 }
+                $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
                 $this->addWhere($colName, $cleanVal, $cond, $joinCond);
+            } else {
+                throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
             }
         }
 

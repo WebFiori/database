@@ -50,19 +50,19 @@ class SchemaTest extends TestCase{
         $s->select();
         $this->assertEquals('select * from `hello`',$s->getLastQuery());
         $s->where('user-id', '=', 66);
-        $this->assertEquals('select * from `hello` where `user_id` = 66',$s->getLastQuery());
+        $this->assertEquals('select * from `hello` where `hello`.`user_id` = 66',$s->getLastQuery());
         $s->where('user-id', '=', 77);
-        $this->assertEquals('select * from `hello` where `user_id` = 66 and `user_id` = 77',$s->getLastQuery());
+        $this->assertEquals('select * from `hello` where `hello`.`user_id` = 66 and `hello`.`user_id` = 77',$s->getLastQuery());
         $s->clear();
         $s->select()->where(
                 $s->where(
                         $s->where('user-id', '=', 31)
                         )->where('user-id', '<', 44, 'or')
                 )->where('username', '!=', 'Ibrahim', 'and');
-        $this->assertEquals("select * from `hello` where `user_id` = 31 and `user_id` < 44 and `username` != 'Ibrahim'",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim'",$s->getLastQuery());
         $s->page(1, 40);
-        $this->assertEquals("select * from `hello` where `user_id` = 31 and `user_id` < 44 and `username` != 'Ibrahim' limit 40 offset 40",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 40",$s->getLastQuery());
         $s->page(5, 40);
-        $this->assertEquals("select * from `hello` where `user_id` = 31 and `user_id` < 44 and `username` != 'Ibrahim' limit 40 offset 200",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 200",$s->getLastQuery());
     }
 }

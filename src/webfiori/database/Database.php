@@ -272,6 +272,27 @@ class Database {
         return $this->connection;
     }
     /**
+     * Returns the last database error info.
+     * 
+     * @return array The method will return an associative array with two indices. 
+     * The first one is 'message' which contains error message and the second one 
+     * is 'code' which contains error code.
+     * 
+     * @since 1.0
+     */
+    public function getLastError() {
+        if ($this->connection !== null) {
+            return [
+                'message' => $this->connection->getLastErrMessage(),
+                'code' => $this->connection->getLastErrCode()
+            ];
+        }
+        return [
+            'message' => '',
+            'code' => 0
+        ];
+    }
+    /**
      * Returns an object that holds connection information.
      * 
      * @return ConnectionInfo An object that holds connection information.
