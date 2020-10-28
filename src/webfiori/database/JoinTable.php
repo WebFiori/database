@@ -290,11 +290,12 @@ class JoinTable extends Table {
             if ($xrightSelectCols != '*') {
                 $rightSelectCols = $xrightSelectCols;
             }
-            $xleftSelectCols = $xleftTbl->getSelect()->getColsStr();
-            if ($xleftSelectCols != '*') {
-                $leftSelectCols = $xleftSelectCols;
-            }
-
+            if (!($xleftTbl instanceof JoinTable)) {
+                $xleftSelectCols = $xleftTbl->getSelect()->getColsStr();
+                if ($xleftSelectCols != '*' && strlen($leftSelectCols) == 0) {
+                    $leftSelectCols = $xleftSelectCols;
+                }
+            } 
             if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
                 $colsToSelect = "$leftSelectCols, $rightSelectCols";
             } else if (strlen($leftSelectCols) != 0) {
@@ -304,11 +305,19 @@ class JoinTable extends Table {
             } else {
                 $colsToSelect = "*";
             }
+            $leftAsSQL = $leftTbl->toSQL();
             
             if ($colsToSelect == '*') {
-                $leftAsSQL = $leftTbl->toSQL();
-                $subQuery = $leftAsSQL;
-                $retVal .= '('.$subQuery.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                if ($xleftTbl instanceof JoinTable) {
+                     $retVal .= '(select * from '.$leftAsSQL.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                } else {
+                    $retVal .= '('.$leftAsSQL.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                }
+                if ($this->getJoinCondition() !== null) {
+                    $retVal .= ' on('.$this->getJoinCondition().')';
+                }
+            } else if ($xleftTbl instanceof JoinTable) {
+                $retVal .= "(select $colsToSelect from $leftAsSQL) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
                 if ($this->getJoinCondition() !== null) {
                     $retVal .= ' on('.$this->getJoinCondition().')';
                 }

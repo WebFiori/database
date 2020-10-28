@@ -145,6 +145,26 @@ class SelectExpression extends Expression {
         $this->selectCols = [];
     }
     /**
+     * Returns an array that contains all columns keys which are in the select.
+     * 
+     * @return array An array that contains all columns keys which are in the select.
+     * 
+     * @since 1.0
+     */
+    public function getColsKeys() {
+        return array_keys($this->getSelectCols());
+    }
+    /**
+     * Removes a column from the set of columns that will be selected.
+     * 
+     * @param string $colKey The key of the column.
+     * 
+     * @since 1.0
+     */
+    public function removeCol($colKey) {
+        unset($this->selectCols[$colKey]);
+    }
+    /**
      * Returns the value of the select expression.
      * 
      * @return string The value of select expression.
@@ -153,6 +173,9 @@ class SelectExpression extends Expression {
      */
     public function getValue() {
         $colsStr = $this->getColsStr();
+        if (strlen($colsStr) == 0) {
+            return "select * from ".$this->getTable()->getName();
+        }
         return "select $colsStr from ".$this->getTable()->getName();
     }
     /**
@@ -189,25 +212,32 @@ class SelectExpression extends Expression {
                 if ($colObjOrExpr instanceof Column) {
                     $colObjOrExpr->setWithTablePrefix(true);
                     $addCol = true;
+                    $resetOwner = false;
                     if ($isJoinTable) {
                         
-                        $existInLeft = $table->getLeft()->getSelect()->hasCol($colKey);
-                        $existInRight = $table->getRight()->getSelect()->hasCol($colKey);
-                        $addCol = !$existInLeft && !$existInRight;
-                        
-                        if (!$existInLeft && !$existInRight) {
-                            $ownerName = $colObjOrExpr->getOwner()->getName();
-                            $leftName = $table->getLeft()->getName();
-                            $rightName = $table->getRight()->getName();
-                            $tableName = $table->getName();
-                            if ($ownerName != $leftName && $ownerName != $rightName && $tableName != $ownerName) {
-                                $colObjOrExpr->setOwner($this->getTable());
+                        if (!$table->getLeft() instanceof JoinTable) {
+                            $existInLeft = $table->getLeft()->getSelect()->hasCol($colKey);
+                            $existInRight = $table->getRight()->getSelect()->hasCol($colKey);
+                            
+                            $addCol = !$existInLeft && !$existInRight;
+
+                            if (!$existInLeft && !$existInRight) {
+                                $ownerName = $colObjOrExpr->getOwner()->getName();
+                                $leftName = $table->getLeft()->getName();
+                                $rightName = $table->getRight()->getName();
+                                $tableName = $table->getName();
+                                if ($ownerName != $leftName && $ownerName != $rightName && $tableName != $ownerName) {
+                                    $colObjOrExpr->setOwner($this->getTable());
+                                }
                             }
+                        } else {
+                            $colObjOrExpr->setOwner($this->getTable());
                         }
                         
                     } else {
                         if ($colObjOrExpr->getPrevOwner() !== null) {
                             $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
+                            $resetOwner = true;
                         }
                     }
                     if ($addCol) {
@@ -219,6 +249,9 @@ class SelectExpression extends Expression {
                         } else {
                             $selectArr[] = $colName;
                         }
+                    }
+                    if ($resetOwner) {
+                        $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
                     }
                 } else {
                     $selectArr[] = $colObjOrExpr->getValue();

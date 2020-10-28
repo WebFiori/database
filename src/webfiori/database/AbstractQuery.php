@@ -145,8 +145,8 @@ abstract class AbstractQuery {
         $alias = $leftTable->getName();
         
         if ($leftTable instanceof JoinTable) {
-            $nameAsInt = intval($alias);
-            $alias = 'T'.($nameAsInt++);
+            $nameAsInt = intval(substr($alias, 1));
+            $alias = 'T'.(++$nameAsInt);
         }
 
         
@@ -166,17 +166,20 @@ abstract class AbstractQuery {
         if ($table instanceof JoinTable) {
             $leftCol = $table->getLeft()->getColByKey($col1);
             if ($leftCol instanceof Column) {
-                if ($table->getLeft() instanceof JoinTable) {
-                    $leftCol->setOwner($this->getTable());
-                }
                 $leftCol->setWithTablePrefix(true);
+                if ($table->getLeft() instanceof JoinTable) {
+                    $leftCol->setOwner($table);
+                    $leftColName = $leftCol->getName();
+                    $leftCol->setOwner($leftCol->getPrevOwner());
+                } else {
+                    $leftColName = $leftCol->getName();
+                }
+                
                 $rightCol = $table->getRight()->getColByKey($col2);
                 if ($rightCol instanceof Column) {
-                    if ($table->getRight() instanceof JoinTable) {
-                        $rightCol->setOwner($this->getTable());
-                    }
                     $rightCol->setWithTablePrefix(true);
-                    $cond = new Condition($leftCol->getName(), $rightCol->getName(), $cond);
+                    $rightColName = $rightCol->getName();
+                    $cond = new Condition($leftColName, $rightColName, $cond);
                     $table->addJoinCondition($cond, $joinWith);
                 } else {
                     $tblName = $table->getRight()->getName();
@@ -603,6 +606,7 @@ abstract class AbstractQuery {
         $selectVal = $select->getValue();
         $thisTable = $this->getTable();
         if ($thisTable instanceof JoinTable) {
+            
             $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
             if (!($thisTable->getLeft() instanceof JoinTable)) {
                 $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
@@ -629,9 +633,12 @@ abstract class AbstractQuery {
                 }
             }
             $tableSQL = $this->getTable()->toSQL(true);
+            
             if (strlen($columnsToSelect) == 0) {
                 $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
                 $this->setQuery($selectVal.$tableSQL);
+            } else if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
+                $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
             } else if (strlen($columnsToSelect) != 0){
                 $this->setQuery("select $columnsToSelect from ".$tableSQL);
             } else {

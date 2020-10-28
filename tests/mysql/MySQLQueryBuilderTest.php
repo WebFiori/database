@@ -833,7 +833,7 @@ class MySQLQueryBuilderTest extends TestCase {
         )->on('id', 'user-id')->select();
         $this->assertEquals("select * from (select * from `users` join `users_privileges` "
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -851,7 +851,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` from `users` join `users_privileges` "
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -861,9 +861,10 @@ class MySQLQueryBuilderTest extends TestCase {
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
             $queryBuilder->table('users_privileges')->select(['can-edit-price','can-change-username'])
-        )->on('id', 'id')->select();
+        )->on('id', 'id')->select(['id']);
         
         $this->assertEquals("select "
+                . "`users`.`id`, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
@@ -871,44 +872,27 @@ class MySQLQueryBuilderTest extends TestCase {
         
         $queryBuilder->join(
             $queryBuilder->table('users_tasks')->select(['task-id', 'created-on' => 'created'])
-        )->on('id', 'user-id')->select();
+        )->on('id', 'user-id')->select(['id']);
         $this->assertEquals("select "
+                . "`T1`.`id`, "
                 . "`users_tasks`.`task_id`, "
                 . "`users_tasks`.`created_on` as `created` "
                 . "from ("
                 . "select "
-                . "`users_privileges`.`can_edit_price`, "
-                . "`users_privileges`.`can_change_username` "
-                . "from `users` join `users_privileges` "
-                . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
-    }
-    /**
-     * @test
-     */
-    public function testJoin08() {
-        $schema = new MySQLTestSchema();
-        $queryBuilder = $schema->getQueryGenerator();
-        $queryBuilder->table('users')->join(
-            $queryBuilder->table('users_privileges')->select(['can-edit-price','can-change-username'])
-        )->on('id', 'id')->select(['id']);
-        
-        $this->assertEquals(
-                "select "
                 . "`users`.`id`, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
-                . "on(`users`.`id` = `users_privileges`.`id`)", $schema->getLastQuery());
+                . "on(`users`.`id` = `users_privileges`.`id`)) "
+                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
         
-        $queryBuilder->join(
-            $queryBuilder->table('users_tasks')->select(['task-id', 'created-on' => 'created', 'is-finished'])
-        )->on('id', 'user-id')->select();
+        $queryBuilder->join($queryBuilder->table('profile_pics'))->on('id', 'user-id')->select();
         
-        $this->assertEquals("select "
+        $this->assertEquals("select * from ("
+                . "select "
+                . "`T1`.`id`, "
                 . "`users_tasks`.`task_id`, "
-                . "`users_tasks`.`created_on` as `created`, "
-                . "`users_tasks`.`is_finished` "
+                . "`users_tasks`.`created_on` as `created` "
                 . "from ("
                 . "select "
                 . "`users`.`id`, "
@@ -916,15 +900,16 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as T2 "
+                . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)", $schema->getLastQuery());
         
-        $queryBuilder->select(['can-edit-price','is-finished']);
+        $queryBuilder->join($queryBuilder->table('users'))->on('id', 'id')->select();
         
-        $this->assertEquals("select "
-                . "`T0`.`can_edit_price`, " 
+        $this->assertEquals("select * from (select * from ("
+                . "select "
+                . "`T1`.`id`, "
                 . "`users_tasks`.`task_id`, "
-                . "`users_tasks`.`created_on` as `created`, "
-                . "`users_tasks`.`is_finished` "
+                . "`users_tasks`.`created_on` as `created` "
                 . "from ("
                 . "select "
                 . "`users`.`id`, "
@@ -932,6 +917,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as T2 "
+                . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)) as T3 join `users` on(`T3`.`id` = `users`.`id`)", $schema->getLastQuery());
     }
 }
