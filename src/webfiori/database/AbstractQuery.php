@@ -134,9 +134,17 @@ abstract class AbstractQuery {
         $this->joins[] = $joinCond;
     }
     /**
+     * Perform a join query.
      * 
-     * @param AbstractQuery $query
-     * @return AbstractQuery
+     * @param AbstractQuery $query The query at which the current query 
+     * result will be joined with.
+     * 
+     * @param string $joinType The type of the join such as 'left join'.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
      */
     public function join(AbstractQuery $query, $joinType = 'join') {
         $leftTable = $this->getPrevQuery()->getTable();
@@ -155,16 +163,52 @@ abstract class AbstractQuery {
         return $this;
     }
     /**
+     * Perform a right join query.
      * 
-     * @param type $col1
-     * @param type $col2
-     * @param type $cond
-     * @return AbstractQuery
+     * @param AbstractQuery $query The query at which the current query 
+     * result will be joined with.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
      */
-    public function on($col1, $col2, $cond = '=', $joinWith = 'and') {
+    public function rightJoin(AbstractQuery $query) {
+        return $this->join($query, 'right join');
+    }
+    /**
+     * Perform a left join query.
+     * 
+     * @param AbstractQuery $query The query at which the current query 
+     * result will be joined with.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function leftJoin(AbstractQuery $query) {
+        return $this->join($query, 'left join');
+    }
+    /**
+     * Adds an 'on' condition to a join query.
+     * 
+     * @param string $leftCol The name of the column key which exist in the left table.
+     * 
+     * @param string $rightCol The name of the column key which exist in the right table.
+     * 
+     * @param string $cond A condition which is used to join a new 'on' condition 
+     * with existing one.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function on($leftCol, $rightCol, $cond = '=', $joinWith = 'and') {
         $table = $this->getTable();
         if ($table instanceof JoinTable) {
-            $leftCol = $table->getLeft()->getColByKey($col1);
+            $leftCol = $table->getLeft()->getColByKey($leftCol);
             if ($leftCol instanceof Column) {
                 $leftCol->setWithTablePrefix(true);
                 if ($table->getLeft() instanceof JoinTable) {
@@ -175,7 +219,7 @@ abstract class AbstractQuery {
                     $leftColName = $leftCol->getName();
                 }
                 
-                $rightCol = $table->getRight()->getColByKey($col2);
+                $rightCol = $table->getRight()->getColByKey($rightCol);
                 if ($rightCol instanceof Column) {
                     $rightCol->setWithTablePrefix(true);
                     $rightColName = $rightCol->getName();
@@ -183,11 +227,11 @@ abstract class AbstractQuery {
                     $table->addJoinCondition($cond, $joinWith);
                 } else {
                     $tblName = $table->getRight()->getName();
-                    throw new DatabaseException("The table $tblName has no column with key '$col2'.");
+                    throw new DatabaseException("The table $tblName has no column with key '$rightCol'.");
                 }
             } else {
                 $tblName = $table->getLeft()->getName();
-                throw new DatabaseException("The table $tblName has no column with key '$col1'.");
+                throw new DatabaseException("The table $tblName has no column with key '$leftCol'.");
             }
         } else {
             throw new DatabaseException("The 'on' condition can be only used with join tables.");
