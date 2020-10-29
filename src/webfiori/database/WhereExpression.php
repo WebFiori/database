@@ -149,7 +149,6 @@ class WhereExpression extends Expression {
         $val = '';
 
         foreach ($this->children as $chWhere) {
-
             if ($chWhere->condsCount <= 1) {
                 $val .= ''.$chWhere.'';
             } else {

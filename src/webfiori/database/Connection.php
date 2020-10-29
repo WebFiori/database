@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 namespace webfiori\database;
-use webfiori\database\ResultSet;
+
 /**
  * A class that represents a connection to a database.
  * 
@@ -32,12 +32,6 @@ use webfiori\database\ResultSet;
  * @version 1.0
  */
 abstract class Connection {
-    /**
-     * The result set which contains fetched data.
-     * 
-     * @var ResultSet 
-     */
-    private $resultSet;
     /**
      *
      * @var ConnectionInfo 
@@ -67,6 +61,12 @@ abstract class Connection {
      */
     private $lastQuery;
     /**
+     * The result set which contains fetched data.
+     * 
+     * @var ResultSet 
+     */
+    private $resultSet;
+    /**
      * Creates new instance of the class.
      * 
      * @param ConnectionInfo $connInfo An object that contains database connection 
@@ -83,27 +83,6 @@ abstract class Connection {
         if (!$this->connect()) {
             throw new DatabaseException($this->getLastErrCode().' - '.$this->getLastErrMessage());
         }
-    }
-    /**
-     * Returns last result set.
-     * 
-     * @return ResultSet|null The result set. If the result set is not set, the 
-     * method will return null.
-     * 
-     * @since 1.0
-     */
-    public function getLastResultSet() {
-        return $this->resultSet;
-    }
-    /**
-     * Sets result set.
-     * 
-     * @param ResultSet $result An object that represents result set.
-     * 
-     * @since 1.0
-     */
-    public function setResultSet(ResultSet $result) {
-        $this->resultSet = $result;
     }
     /**
      * Connect to RDBMS.
@@ -159,6 +138,17 @@ abstract class Connection {
     public function getLastQuery() {
         return $this->lastQuery;
     }
+    /**
+     * Returns last result set.
+     * 
+     * @return ResultSet|null The result set. If the result set is not set, the 
+     * method will return null.
+     * 
+     * @since 1.0
+     */
+    public function getLastResultSet() {
+        return $this->resultSet;
+    }
 
     public abstract function runQuery(AbstractQuery $query);
     /**
@@ -190,5 +180,15 @@ abstract class Connection {
      */
     public function setLastQuery(AbstractQuery $query) {
         $this->lastQuery = $query;
+    }
+    /**
+     * Sets result set.
+     * 
+     * @param ResultSet $result An object that represents result set.
+     * 
+     * @since 1.0
+     */
+    public function setResultSet(ResultSet $result) {
+        $this->resultSet = $result;
     }
 }

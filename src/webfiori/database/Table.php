@@ -34,8 +34,6 @@ namespace webfiori\database;
 abstract class Table {
     private $colsArr;
     private $comment;
-    private $withDbPrefix;
-    private $selectExpr;
     /**
      * An array that contains all table foreign keys.
      * 
@@ -53,6 +51,8 @@ abstract class Table {
     private $mapper;
     private $name;
     private $ownerSchema;
+    private $selectExpr;
+    private $withDbPrefix;
     /**
      * Creates a new instance of the class.
      * 
@@ -66,17 +66,6 @@ abstract class Table {
             $this->name = 'new_table';
         }
         $this->colsArr = [];
-    }
-    /**
-     * 
-     * @return SelectExpression
-     */
-    public function getSelect() {
-        if ($this->selectExpr === null) {
-            $this->selectExpr = new SelectExpression($this);
-        }
-
-        return $this->selectExpr;
     }
     /**
      * 
@@ -95,31 +84,6 @@ abstract class Table {
         }
 
         return false;
-    }
-    /**
-     * Sets the value of the attributes which determine if table name will be 
-     * prefixed with database name or not.
-     * 
-     * Note that table name will be prefixed with database name only if owner 
-     * schema is set.
-     * 
-     * @param boolean $withDbPrefix True to prefix table name with database name. 
-     * false to not prefix table name with database name.
-     * 
-     * @since 1.0
-     */
-    public function setWithDbPrefix($withDbPrefix) {
-        $this->withDbPrefix = $withDbPrefix === true;
-    }
-    /**
-     * Checks if table name will be prefixed with database name or not.
-     * 
-     * @return boolean True if it will be prefixed. False if not.
-     * 
-     * @since 1.0
-     */
-    public function isNameWithDbPrefix() {
-        return $this->withDbPrefix;
     }
     /**
      * Adds a set of columns as one patch.
@@ -187,40 +151,8 @@ abstract class Table {
                 }
             }
         }
-        
+
         $this->_createFk($refTable, $cols, $keyname, $onupdate, $ondelete);
-    }
-    private function _createFk($refTable, $cols, $keyname, $onupdate, $ondelete) {
-        if ($refTable instanceof Table) {
-            $fk = new ForeignKey();
-            $fk->setOwner($this);
-            $fk->setSource($refTable);
-
-            if ($fk->setKeyName($keyname) === true) {
-                foreach ($cols as $target => $source) {
-                    if (gettype($target) == 'integer') {
-                        //indexed array. 
-                        //It means source and target columns have same name.
-                        $fk->addReference($source, $source);
-                    } else {
-                        //Associative. Probably two columns with different names.
-                        $fk->addReference($target, $source);
-                    }
-                }
-
-                if (count($fk->getSourceCols()) != 0) {
-                    $fk->setOnUpdate($onupdate);
-                    $fk->setOnDelete($ondelete);
-                    $this->foreignKeys[] = $fk;
-
-                    return true;
-                }
-            } else {
-                throw new DatabaseException('Invalid FK name: \''.$keyname.'\'.');
-            }
-        } else {
-            throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
-        }
     }
     /**
      * Returns a column given its index.
@@ -256,6 +188,7 @@ abstract class Table {
      */
     public function getColByKey($key) {
         $trimmed = trim($key);
+
         if (isset($this->colsArr[$trimmed])) {
             return $this->colsArr[$trimmed];
         }
@@ -405,11 +338,11 @@ abstract class Table {
      */
     public function getName() {
         $owner = $this->getOwner();
-        
+
         if ($owner !== null && $this->isNameWithDbPrefix()) {
             return $owner->getName().'.'.$this->name;
         }
-        
+
         return $this->name;
     }
     /**
@@ -475,7 +408,19 @@ abstract class Table {
         $this->setWithDbPrefix(false);
         $keyName = trim($this->getName(), '`');
         $this->setWithDbPrefix($val);
+
         return $keyName.'_pk';
+    }
+    /**
+     * 
+     * @return SelectExpression
+     */
+    public function getSelect() {
+        if ($this->selectExpr === null) {
+            $this->selectExpr = new SelectExpression($this);
+        }
+
+        return $this->selectExpr;
     }
     /**
      * 
@@ -505,6 +450,16 @@ abstract class Table {
         $trimmed = trim($keyName);
 
         return isset($this->colsArr[$trimmed]);
+    }
+    /**
+     * Checks if table name will be prefixed with database name or not.
+     * 
+     * @return boolean True if it will be prefixed. False if not.
+     * 
+     * @since 1.0
+     */
+    public function isNameWithDbPrefix() {
+        return $this->withDbPrefix;
     }
     /**
      * Removes a column from the table given its key.
@@ -576,7 +531,54 @@ abstract class Table {
             $this->ownerSchema = null;
         }
     }
+    /**
+     * Sets the value of the attributes which determine if table name will be 
+     * prefixed with database name or not.
+     * 
+     * Note that table name will be prefixed with database name only if owner 
+     * schema is set.
+     * 
+     * @param boolean $withDbPrefix True to prefix table name with database name. 
+     * false to not prefix table name with database name.
+     * 
+     * @since 1.0
+     */
+    public function setWithDbPrefix($withDbPrefix) {
+        $this->withDbPrefix = $withDbPrefix === true;
+    }
     public abstract function toSQL();
+    private function _createFk($refTable, $cols, $keyname, $onupdate, $ondelete) {
+        if ($refTable instanceof Table) {
+            $fk = new ForeignKey();
+            $fk->setOwner($this);
+            $fk->setSource($refTable);
+
+            if ($fk->setKeyName($keyname) === true) {
+                foreach ($cols as $target => $source) {
+                    if (gettype($target) == 'integer') {
+                        //indexed array. 
+                        //It means source and target columns have same name.
+                        $fk->addReference($source, $source);
+                    } else {
+                        //Associative. Probably two columns with different names.
+                        $fk->addReference($target, $source);
+                    }
+                }
+
+                if (count($fk->getSourceCols()) != 0) {
+                    $fk->setOnUpdate($onupdate);
+                    $fk->setOnDelete($ondelete);
+                    $this->foreignKeys[] = $fk;
+
+                    return true;
+                }
+            } else {
+                throw new DatabaseException('Invalid FK name: \''.$keyname.'\'.');
+            }
+        } else {
+            throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
+        }
+    }
     /**
      * 
      * @param type $key

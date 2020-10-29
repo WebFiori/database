@@ -25,7 +25,6 @@
 namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\mysql\MySQLTable;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -36,9 +35,11 @@ use webfiori\database\mysql\MySQLTable;
 abstract class AbstractQuery {
     /**
      *
-     * @var AbstractQuery|null 
+     * @var Table|null 
+     * 
+     * @since 1.0
      */
-    private $prevQueryObj;
+    private $associatedTbl;
     /**
      * @var string 
      * 
@@ -62,6 +63,11 @@ abstract class AbstractQuery {
     private $offset;
     /**
      *
+     * @var AbstractQuery|null 
+     */
+    private $prevQueryObj;
+    /**
+     *
      * @var string 
      * 
      * @since 1.0
@@ -74,13 +80,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     private $schema;
-    /**
-     *
-     * @var Table|null 
-     * 
-     * @since 1.0
-     */
-    private $associatedTbl;
     /**
      * Creates new instance of the class.
      * 
@@ -109,111 +108,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function addCol($colKey, $location = null);
-    /**
-     * Perform a join query.
-     * 
-     * @param AbstractQuery $query The query at which the current query 
-     * result will be joined with.
-     * 
-     * @param string $joinType The type of the join such as 'left join'.
-     * 
-     * @return AbstractQuery The method will return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0
-     */
-    public function join(AbstractQuery $query, $joinType = 'join') {
-        $leftTable = $this->getPrevQuery()->getTable();
-        $rightTable = $query->getTable();
-        
-        $alias = $leftTable->getName();
-        
-        if ($leftTable instanceof JoinTable) {
-            $nameAsInt = intval(substr($alias, 1));
-            $alias = 'T'.(++$nameAsInt);
-        }
-
-        
-        $joinTable = new JoinTable($leftTable, $rightTable, $joinType, $alias);
-        $this->setTable($joinTable);
-        return $this;
-    }
-    /**
-     * Perform a right join query.
-     * 
-     * @param AbstractQuery $query The query at which the current query 
-     * result will be joined with.
-     * 
-     * @return AbstractQuery The method will return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0
-     */
-    public function rightJoin(AbstractQuery $query) {
-        return $this->join($query, 'right join');
-    }
-    /**
-     * Perform a left join query.
-     * 
-     * @param AbstractQuery $query The query at which the current query 
-     * result will be joined with.
-     * 
-     * @return AbstractQuery The method will return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0
-     */
-    public function leftJoin(AbstractQuery $query) {
-        return $this->join($query, 'left join');
-    }
-    /**
-     * Adds an 'on' condition to a join query.
-     * 
-     * @param string $leftCol The name of the column key which exist in the left table.
-     * 
-     * @param string $rightCol The name of the column key which exist in the right table.
-     * 
-     * @param string $cond A condition which is used to join a new 'on' condition 
-     * with existing one.
-     * 
-     * @return AbstractQuery The method will return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0
-     */
-    public function on($leftCol, $rightCol, $cond = '=', $joinWith = 'and') {
-        $table = $this->getTable();
-        if ($table instanceof JoinTable) {
-            $leftCol = $table->getLeft()->getColByKey($leftCol);
-            if ($leftCol instanceof Column) {
-                $leftCol->setWithTablePrefix(true);
-                if ($table->getLeft() instanceof JoinTable) {
-                    $leftCol->setOwner($table);
-                    $leftColName = $leftCol->getName();
-                    $leftCol->setOwner($leftCol->getPrevOwner());
-                } else {
-                    $leftColName = $leftCol->getName();
-                }
-                
-                $rightCol = $table->getRight()->getColByKey($rightCol);
-                if ($rightCol instanceof Column) {
-                    $rightCol->setWithTablePrefix(true);
-                    $rightColName = $rightCol->getName();
-                    $cond = new Condition($leftColName, $rightColName, $cond);
-                    $table->addJoinCondition($cond, $joinWith);
-                } else {
-                    $tblName = $table->getRight()->getName();
-                    throw new DatabaseException("The table $tblName has no column with key '$rightCol'.");
-                }
-            } else {
-                $tblName = $table->getLeft()->getName();
-                throw new DatabaseException("The table $tblName has no column with key '$leftCol'.");
-            }
-        } else {
-            throw new DatabaseException("The 'on' condition can be only used with join tables.");
-        }
-        return $this;
-    }
     /**
      * Constructs a query which can be used to add a primary key constrain to a 
      * table. 
@@ -264,7 +158,7 @@ abstract class AbstractQuery {
             $copy->offset = $this->offset;
             $copy->associatedTbl = $this->associatedTbl;
             $copy->schema = $this->schema;
-            
+
             return $copy;
         }
     }
@@ -384,6 +278,13 @@ abstract class AbstractQuery {
         return $this->offset;
     }
     /**
+     * 
+     * @return AbstractQuery|null
+     */
+    public function getPrevQuery() {
+        return $this->prevQueryObj;
+    }
+    /**
      * Returns the generated SQL query.
      * 
      * @return string Returns the generated query as string.
@@ -392,12 +293,12 @@ abstract class AbstractQuery {
      */
     public function getQuery() {
         $retVal = $this->query;
-        
+
         $lastQType = $this->getLastQueryType();
-        
+
         if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
             $whereExp = $this->getTable()->getSelect()->getWhereStr();
-        
+
             if (strlen($whereExp) != 0) {
                 $retVal .= $whereExp;
             }
@@ -440,6 +341,28 @@ abstract class AbstractQuery {
         return $this->associatedTbl;
     }
     /**
+     * Adds a set of columns to the 'group by' part of the query.
+     * 
+     * @param string|array $colOrColsArr This can be one column key or an 
+     * array that contains columns keys.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function groupBy($colOrColsArr) {
+        if (gettype($colOrColsArr) == 'array') {
+            foreach ($colOrColsArr as $colKey) {
+                $this->getTable()->getSelect()->groupBy($colKey);
+            }
+        } else {
+            $this->getTable()->getSelect()->groupBy($colOrColsArr);
+        }
+
+        return $this;
+    }
+    /**
      * Constructs a query which can be used to insert a record in a table.
      * 
      * @param array $colsAndVals An associative array that holds the columns and 
@@ -452,6 +375,50 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function insert(array $colsAndVals);
+    /**
+     * Perform a join query.
+     * 
+     * @param AbstractQuery $query The query at which the current query 
+     * result will be joined with.
+     * 
+     * @param string $joinType The type of the join such as 'left join'.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function join(AbstractQuery $query, $joinType = 'join') {
+        $leftTable = $this->getPrevQuery()->getTable();
+        $rightTable = $query->getTable();
+
+        $alias = $leftTable->getName();
+
+        if ($leftTable instanceof JoinTable) {
+            $nameAsInt = intval(substr($alias, 1));
+            $alias = 'T'.(++$nameAsInt);
+        }
+
+
+        $joinTable = new JoinTable($leftTable, $rightTable, $joinType, $alias);
+        $this->setTable($joinTable);
+
+        return $this;
+    }
+    /**
+     * Perform a left join query.
+     * 
+     * @param AbstractQuery $query The query at which the current query 
+     * result will be joined with.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function leftJoin(AbstractQuery $query) {
+        return $this->join($query, 'left join');
+    }
     /**
      * Sets the number of records that will be fetched by the query.
      * 
@@ -500,6 +467,83 @@ abstract class AbstractQuery {
     public function offset($offset) {
         if ($offset > 0) {
             $this->offset = $offset;
+        }
+
+        return $this;
+    }
+    /**
+     * Adds an 'on' condition to a join query.
+     * 
+     * @param string $leftCol The name of the column key which exist in the left table.
+     * 
+     * @param string $rightCol The name of the column key which exist in the right table.
+     * 
+     * @param string $cond A condition which is used to join a new 'on' condition 
+     * with existing one.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function on($leftCol, $rightCol, $cond = '=', $joinWith = 'and') {
+        $table = $this->getTable();
+
+        if ($table instanceof JoinTable) {
+            $leftCol = $table->getLeft()->getColByKey($leftCol);
+
+            if ($leftCol instanceof Column) {
+                $leftCol->setWithTablePrefix(true);
+
+                if ($table->getLeft() instanceof JoinTable) {
+                    $leftCol->setOwner($table);
+                    $leftColName = $leftCol->getName();
+                    $leftCol->setOwner($leftCol->getPrevOwner());
+                } else {
+                    $leftColName = $leftCol->getName();
+                }
+
+                $rightCol = $table->getRight()->getColByKey($rightCol);
+
+                if ($rightCol instanceof Column) {
+                    $rightCol->setWithTablePrefix(true);
+                    $rightColName = $rightCol->getName();
+                    $cond = new Condition($leftColName, $rightColName, $cond);
+                    $table->addJoinCondition($cond, $joinWith);
+                } else {
+                    $tblName = $table->getRight()->getName();
+                    throw new DatabaseException("The table $tblName has no column with key '$rightCol'.");
+                }
+            } else {
+                $tblName = $table->getLeft()->getName();
+                throw new DatabaseException("The table $tblName has no column with key '$leftCol'.");
+            }
+        } else {
+            throw new DatabaseException("The 'on' condition can be only used with join tables.");
+        }
+
+        return $this;
+    }
+    /**
+     * Adds a set of columns to the 'order by' part of the query.
+     * 
+     * @param array $colsArr An array that contains columns keys. To specify 
+     * order type, the indices should be columns keys and the values are order 
+     * type. Order type can have two values, 'a' for 
+     * ascending or 'd' for descending.
+     * 
+     * @return @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function orderBy(array $colsArr) {
+        foreach ($colsArr as $colKey => $orderTypeOrColKey) {
+            if (gettype($colKey) == 'string') {
+                $this->getTable()->getSelect()->orderBy($colKey, $orderTypeOrColKey);
+            } else {
+                $this->getTable()->getSelect()->orderBy($orderTypeOrColKey);
+            }
         }
 
         return $this;
@@ -566,6 +610,20 @@ abstract class AbstractQuery {
         $this->offset = -1;
     }
     /**
+     * Perform a right join query.
+     * 
+     * @param AbstractQuery $query The query at which the current query 
+     * result will be joined with.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function rightJoin(AbstractQuery $query) {
+        return $this->join($query, 'right join');
+    }
+    /**
      * Constructs a select query based on associated table.
      * 
      * @param array $cols An array that contains the keys of the columns that 
@@ -584,58 +642,31 @@ abstract class AbstractQuery {
         $selectVal = $select->getValue();
         $thisTable = $this->getTable();
         $thisCols = $thisTable->getSelect()->getColsStr();
-        
+
         if ($thisTable instanceof JoinTable) {
-            
             $columnsToSelect = $this->_getColsToSelect();
-            
+
             $tableSQL = $this->getTable()->toSQL(true);
-            
+
             if (strlen($columnsToSelect) == 0) {
                 $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
                 $this->setQuery($selectVal.$tableSQL);
-            } else if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
-                $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
-            } else if (strlen($columnsToSelect) != 0){
-                $this->setQuery("select $columnsToSelect from ".$tableSQL);
             } else {
-                $this->setQuery("select $thisCols from ".$tableSQL);
+                if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
+                    $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
+                } else {
+                    if (strlen($columnsToSelect) != 0) {
+                        $this->setQuery("select $columnsToSelect from ".$tableSQL);
+                    } else {
+                        $this->setQuery("select $thisCols from ".$tableSQL);
+                    }
+                }
             }
-            
         } else {
             $this->setQuery($selectVal);
         }
+
         return $this;
-    }
-    private function _getColsToSelect() {
-        $thisTable = $this->getTable();
-        
-        $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
-        if (!($thisTable->getLeft() instanceof JoinTable)) {
-            $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
-        } else {
-            $leftCols = '*';
-        }
-        $thisCols = $thisTable->getSelect()->getColsStr();
-        $columnsToSelect = '';
-        if ($thisCols != '*') {
-            $columnsToSelect .= $thisCols;
-        }
-        if ($leftCols != '*') {
-            if (strlen($columnsToSelect) != 0) {
-                $columnsToSelect .= ", $leftCols";
-            } else {
-                $columnsToSelect = $leftCols;
-            }
-        }
-        if ($rightCols != '*') {
-            if (strlen($columnsToSelect) != 0) {
-                $columnsToSelect .= ", $rightCols";
-            } else {
-                $columnsToSelect = $rightCols;
-            }
-        }
-        return $columnsToSelect;
     }
     /**
      * Sets a raw SQL query.
@@ -670,13 +701,6 @@ abstract class AbstractQuery {
         $this->schema = $schema;
     }
     /**
-     * 
-     * @return AbstractQuery|null
-     */
-    public function getPrevQuery() {
-        return $this->prevQueryObj;
-    }
-    /**
      * Associate a table with the query builder.
      * 
      * @param Table $table The table that will be associated.
@@ -699,58 +723,14 @@ abstract class AbstractQuery {
     public function table($tblName) {
         $tableObj = $this->getSchema()->getTable($tblName);
         $this->prevQueryObj = $this->copyQuery();
-        
+
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
             $this->reset();
         }
-        
+
         $this->setTable($tableObj);
 
-        return $this;
-    }
-    /**
-     * Adds a set of columns to the 'order by' part of the query.
-     * 
-     * @param array $colsArr An array that contains columns keys. To specify 
-     * order type, the indices should be columns keys and the values are order 
-     * type. Order type can have two values, 'a' for 
-     * ascending or 'd' for descending.
-     * 
-     * @return @return AbstractQuery The method will return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0
-     */
-    public function orderBy(array $colsArr) {
-        foreach ($colsArr as $colKey => $orderTypeOrColKey) {
-            if (gettype($colKey) == 'string') {
-                $this->getTable()->getSelect()->orderBy($colKey, $orderTypeOrColKey);
-            } else {
-                $this->getTable()->getSelect()->orderBy($orderTypeOrColKey);
-            }
-        }
-        return $this;
-    }
-    /**
-     * Adds a set of columns to the 'group by' part of the query.
-     * 
-     * @param string|array $colOrColsArr This can be one column key or an 
-     * array that contains columns keys.
-     * 
-     * @return AbstractQuery The method will return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0
-     */
-    public function groupBy($colOrColsArr) {
-        if (gettype($colOrColsArr) == 'array') {
-            foreach ($colOrColsArr as $colKey) {
-                $this->getTable()->getSelect()->groupBy($colKey);
-            }
-        } else {
-            $this->getTable()->getSelect()->groupBy($colOrColsArr);
-        }
         return $this;
     }
     /**
@@ -850,5 +830,40 @@ abstract class AbstractQuery {
         }
 
         return $this;
+    }
+    private function _getColsToSelect() {
+        $thisTable = $this->getTable();
+
+        $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
+
+        if (!($thisTable->getLeft() instanceof JoinTable)) {
+            $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
+        } else {
+            $leftCols = '*';
+        }
+        $thisCols = $thisTable->getSelect()->getColsStr();
+        $columnsToSelect = '';
+
+        if ($thisCols != '*') {
+            $columnsToSelect .= $thisCols;
+        }
+
+        if ($leftCols != '*') {
+            if (strlen($columnsToSelect) != 0) {
+                $columnsToSelect .= ", $leftCols";
+            } else {
+                $columnsToSelect = $leftCols;
+            }
+        }
+
+        if ($rightCols != '*') {
+            if (strlen($columnsToSelect) != 0) {
+                $columnsToSelect .= ", $rightCols";
+            } else {
+                $columnsToSelect = $rightCols;
+            }
+        }
+
+        return $columnsToSelect;
     }
 }

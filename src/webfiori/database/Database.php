@@ -27,7 +27,6 @@ namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\ResultSet;
 
 /**
  * A class which is used to represents the structure of the database.
@@ -119,6 +118,7 @@ class Database {
      */
     public function addTable(Table $table) {
         $trimmedName = trim($table->getName(),'`');
+
         if (!$this->hasTable($trimmedName)) {
             $table->setOwner($this);
             $this->tablesArr[$trimmedName] = $table;
@@ -185,6 +185,7 @@ class Database {
      */
     public function delete() {
         $this->clear();
+
         return $this->getQueryGenerator()->delete();
     }
     /**
@@ -197,6 +198,7 @@ class Database {
      */
     public function drop() {
         $this->clear();
+
         return $this->getQueryGenerator()->drop();
     }
     /**
@@ -223,18 +225,6 @@ class Database {
         }
         $this->clear();
         $this->getQueryGenerator()->setQuery(null);
-    }
-    /**
-     * Returns the last result set which was generated from executing a query such 
-     * as a 'select' query.
-     * 
-     * @return ResultSet|null The last result set. If no result set is available, 
-     * the method will return null.
-     * 
-     * @since 1.0
-     */
-    public function getLastResultSet() {
-        return $this->getConnection()->getLastResultSet();
     }
     /**
      * Returns the connection at which the instance will use to run SQL queries.
@@ -268,6 +258,16 @@ class Database {
         return $this->connection;
     }
     /**
+     * Returns an object that holds connection information.
+     * 
+     * @return ConnectionInfo An object that holds connection information.
+     * 
+     * @since 1.0
+     */
+    public function getConnectionInfo() {
+        return $this->connectionInfo;
+    }
+    /**
      * Returns the last database error info.
      * 
      * @return array The method will return an associative array with two indices. 
@@ -283,20 +283,11 @@ class Database {
                 'code' => $this->connection->getLastErrCode()
             ];
         }
+
         return [
             'message' => '',
             'code' => 0
         ];
-    }
-    /**
-     * Returns an object that holds connection information.
-     * 
-     * @return ConnectionInfo An object that holds connection information.
-     * 
-     * @since 1.0
-     */
-    public function getConnectionInfo() {
-        return $this->connectionInfo;
     }
     /**
      * 
@@ -306,6 +297,18 @@ class Database {
      */
     public function getLastQuery() {
         return trim($this->getQueryGenerator()->getQuery());
+    }
+    /**
+     * Returns the last result set which was generated from executing a query such 
+     * as a 'select' query.
+     * 
+     * @return ResultSet|null The last result set. If no result set is available, 
+     * the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function getLastResultSet() {
+        return $this->getConnection()->getLastResultSet();
     }
     /**
      * Returns the name of the database.
@@ -351,10 +354,11 @@ class Database {
      */
     public function getTable($tblName) {
         $trimmed = trim($tblName, '`');
+
         if (!isset($this->tablesArr[$trimmed])) {
             throw new DatabaseException('No such table: "'.$trimmed.'".');
         }
- 
+
         return $this->tablesArr[$trimmed];
     }
     /**
@@ -385,6 +389,7 @@ class Database {
      */
     public function insert($colsAndVals) {
         $this->clear();
+
         return $this->getQueryGenerator()->insert($colsAndVals);
     }
     /**
@@ -473,6 +478,7 @@ class Database {
      */
     public function select($cols = ['*']) {
         $this->clear();
+
         return $this->getQueryGenerator()->select($cols);
     }
     /**
@@ -530,6 +536,7 @@ class Database {
      */
     public function truncate() {
         $this->clear();
+
         return $this->getQueryGenerator()->truncate();
     }
     /**
@@ -547,6 +554,7 @@ class Database {
      */
     public function update($newColsVals) {
         $this->clear();
+
         return $this->getQueryGenerator()->update($newColsVals);
     }
     /**

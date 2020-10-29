@@ -143,7 +143,6 @@ abstract class Column {
      * @since 1.0
      */
     private $size;
-    private $withTablePrefix;
     /**
      * An array which holds all supported datatypes of the column.
      * 
@@ -152,6 +151,7 @@ abstract class Column {
      * @since 1.0 
      */
     private $supportedTypes;
+    private $withTablePrefix;
     /**
      * Creates new instance of the class.
      * 
@@ -176,30 +176,6 @@ abstract class Column {
         };
     }
     /**
-     * Sets an alias for the column.
-     * 
-     * @param string $alias Column alias.
-     * 
-     * @since 1.0
-     */
-    public function setAlias($alias) {
-        $trimmed = trim($alias);
-        
-        if (strlen($trimmed) != 0) {
-            $this->alias = $trimmed;
-        }
-    }
-    /**
-     * Returns column alias.
-     * 
-     * @return string|null Name alias.
-     * 
-     * @since 1.0
-     */
-    public function getAlias() {
-        return $this->alias;
-    }
-    /**
      * Returns a string that represents the column.
      * 
      * The developer should implement this method in a way that it returns a 
@@ -219,6 +195,16 @@ abstract class Column {
      * @since 1.0
      */
     public abstract function cleanValue($val);
+    /**
+     * Returns column alias.
+     * 
+     * @return string|null Name alias.
+     * 
+     * @since 1.0
+     */
+    public function getAlias() {
+        return $this->alias;
+    }
     /**
      * Returns a string that represents a comment which was added with the column.
      * 
@@ -281,37 +267,12 @@ abstract class Column {
      */
     public function getName() {
         $ownerTable = $this->getOwner();
-        
+
         if ($ownerTable !== null && $this->isNameWithTablePrefix()) {
             return $ownerTable->getName().'.'.$this->name;
         }
-        
+
         return $this->name;
-    }
-    /**
-     * Sets the value of the attributes which determine if table name will be 
-     * prefixed with database name or not.
-     * 
-     * Note that table name will be prefixed with database name only if owner 
-     * schema is set.
-     * 
-     * @param boolean $withDbPrefix True to prefix table name with database name. 
-     * false to not prefix table name with database name.
-     * 
-     * @since 1.0
-     */
-    public function setWithTablePrefix($withDbPrefix) {
-        $this->withTablePrefix = $withDbPrefix === true;
-    }
-    /**
-     * Checks if table name will be prefixed with database name or not.
-     * 
-     * @return boolean True if it will be prefixed. False if not.
-     * 
-     * @since 1.0
-     */
-    public function isNameWithTablePrefix() {
-        return $this->withTablePrefix;
     }
     /**
      * Returns the table who owns the column.
@@ -342,6 +303,17 @@ abstract class Column {
         }
 
         return 'mixed';
+    }
+    /**
+     * Returns the previous table which was owns the column.
+     * 
+     * @return Table|null If the owner of the table was set then updated, the 
+     * method will return the old owner value.
+     * 
+     * @since 1.0
+     */
+    public function getPrevOwner() {
+        return $this->prevOwner;
     }
     /**
      * Returns the value of scale.
@@ -378,6 +350,16 @@ abstract class Column {
         return $this->supportedTypes;
     }
     /**
+     * Checks if table name will be prefixed with database name or not.
+     * 
+     * @return boolean True if it will be prefixed. False if not.
+     * 
+     * @since 1.0
+     */
+    public function isNameWithTablePrefix() {
+        return $this->withTablePrefix;
+    }
+    /**
      * Checks if the column allows null values.
      * 
      * @return boolean true if the column allows null values. Default return 
@@ -410,6 +392,20 @@ abstract class Column {
         return $this->isUnique;
     }
     /**
+     * Sets an alias for the column.
+     * 
+     * @param string $alias Column alias.
+     * 
+     * @since 1.0
+     */
+    public function setAlias($alias) {
+        $trimmed = trim($alias);
+
+        if (strlen($trimmed) != 0) {
+            $this->alias = $trimmed;
+        }
+    }
+    /**
      * Sets a comment which will appear with the column.
      * 
      * @param string|null $comment Comment text. It must be non-empty string 
@@ -422,8 +418,10 @@ abstract class Column {
 
         if (strlen($trimmed) != 0) {
             $this->comment = $trimmed;
-        } else if ($comment === null) {
-            $this->comment = null;
+        } else {
+            if ($comment === null) {
+                $this->comment = null;
+            }
         }
     }
     /**
@@ -466,7 +464,7 @@ abstract class Column {
         if (!in_array($trimmed, $this->getSupportedTypes())) {
             throw new DatabaseException('Column datatype not supported: \''.$trimmed.'\'.');
         }
-        
+
         if ($trimmed == 'bool' || $trimmed == 'boolean') {
             $this->setIsNull(false);
         }
@@ -500,10 +498,10 @@ abstract class Column {
      */
     public function setIsNull($bool) {
         $colDatatype = $this->getDatatype();
-        
+
         if (!($colDatatype == 'bool' || $colDatatype == 'boolean') && !$this->isPrimary()) {
             $this->isNull = $bool === true;
-            
+
             return true;
         }
 
@@ -565,22 +563,13 @@ abstract class Column {
             $this->owner = $table;
             $colsCount = $table->getColsCount();
             $this->columnIndex = $colsCount == 0 ? 0 : $colsCount;
-        } else if ($table === null) {
-            $this->prevOwner = $this->owner;
-            $this->owner = null;
-            $this->columnIndex = -1;
+        } else {
+            if ($table === null) {
+                $this->prevOwner = $this->owner;
+                $this->owner = null;
+                $this->columnIndex = -1;
+            }
         }
-    }
-    /**
-     * Returns the previous table which was owns the column.
-     * 
-     * @return Table|null If the owner of the table was set then updated, the 
-     * method will return the old owner value.
-     * 
-     * @since 1.0
-     */
-    public function getPrevOwner() {
-        return $this->prevOwner;
     }
     /**
      * Sets the value of Scale.
@@ -636,5 +625,20 @@ abstract class Column {
                 $this->supportedTypes[] = $trimmed;
             }
         }
+    }
+    /**
+     * Sets the value of the attributes which determine if table name will be 
+     * prefixed with database name or not.
+     * 
+     * Note that table name will be prefixed with database name only if owner 
+     * schema is set.
+     * 
+     * @param boolean $withDbPrefix True to prefix table name with database name. 
+     * false to not prefix table name with database name.
+     * 
+     * @since 1.0
+     */
+    public function setWithTablePrefix($withDbPrefix) {
+        $this->withTablePrefix = $withDbPrefix === true;
     }
 }

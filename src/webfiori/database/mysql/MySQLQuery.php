@@ -28,8 +28,6 @@ namespace webfiori\database\mysql;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Column;
 use webfiori\database\DatabaseException;
-use webfiori\database\Expression;
-use webfiori\database\JoinTable;
 
 /**
  * A class which is used to build MySQL queries.
@@ -73,45 +71,8 @@ class MySQLQuery extends AbstractQuery {
             throw new DatabaseException("The table '$tblName' has no column with key '$colObjKey'.");
         } 
         $this->_alterColStm('add', $colToAdd, $location, $tblName);
-        
+
         return $this;
-    }
-    /**
-     * 
-     * @param type $alterOpType
-     * @param type $colToAdd
-     * @param type $location
-     * @param type $tblName
-     * @throws DatabaseException
-     */
-    private function _alterColStm($alterOpType, $colToAdd, $location, $tblName) {
-        $colObjAsStr = $colToAdd->asString();
-        if ($alterOpType == 'modify') {
-            $stm = "alter table $tblName change column $colObjAsStr";
-        } else {
-            $stm = "alter table $tblName add $colObjAsStr";
-        }
-
-        if ($location !== null) {
-            $lower = trim(strtolower($location));
-            $colObj = $this->getTable()->getColByKey($location);
-
-            if ($lower == 'first') {
-                $stm .= ' first';
-            } else if ($colObj instanceof MySQLColumn) {
-                $colIndex = $colObj->getIndex();
-
-                if ($colIndex == 0) {
-                    $stm .= " first";
-                } else {
-                    $colName = $colObj->getName();
-                    $stm .= " after $colName";
-                }
-            } else {
-                throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
-            }
-        }
-        $this->setQuery($stm.';');
     }
     /**
      * Constructs a query that can be used to add a primary key to the active table.
@@ -151,13 +112,13 @@ class MySQLQuery extends AbstractQuery {
      */
     public static function backtick($str) {
         $exp = explode('.', $str);
-        
+
         $arr = [];
-        
+
         foreach ($exp as $xStr) {
             $arr[] = '`'.trim($xStr,'`').'`';
         }
-        
+
         return implode('.', $arr);
     }
     /**
@@ -254,9 +215,10 @@ class MySQLQuery extends AbstractQuery {
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $colsArr = [];
             $tblName = $this->getTable()->getName();
-            
+
             foreach ($colsAndVals['cols'] as $colKey) {
                 $colObj = $this->getTable()->getColByKey($colKey);
+
                 if (!($colObj instanceof MySQLColumn)) {
                     throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
                 }
@@ -265,12 +227,12 @@ class MySQLQuery extends AbstractQuery {
             }
             $colsStr = '('.implode(', ', $colsArr).')';
             $suberValsArr = [];
+
             foreach ($colsAndVals['values'] as $valsArr) {
                 $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
             }
             $valsStr = implode(",\n", $suberValsArr);
             $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
-            
         } else {
             $this->setQuery($this->_createInsertStm($colsAndVals));
         }
@@ -315,7 +277,7 @@ class MySQLQuery extends AbstractQuery {
         if (!($colObj instanceof MySQLColumn)) {
             throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
         }
-        
+
         $this->_alterColStm('modify', $colObj, $location, $tblName);
 
         return $this;
@@ -381,88 +343,44 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
-     * Build a string that holds the values that will be inserted.
      * 
-     * @param array $colsKeysArr
-     * @param array $valuesToInsert
-     * @return type
+     * @param type $alterOpType
+     * @param type $colToAdd
+     * @param type $location
+     * @param type $tblName
      * @throws DatabaseException
      */
-    private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
+    private function _alterColStm($alterOpType, $colToAdd, $location, $tblName) {
+        $colObjAsStr = $colToAdd->asString();
 
-        $valsArr = [];
-        $columnsWithVals = [];
-        $valIndex = 0;
-        foreach ($colsKeysArr as $colKey) {
+        if ($alterOpType == 'modify') {
+            $stm = "alter table $tblName change column $colObjAsStr";
+        } else {
+            $stm = "alter table $tblName add $colObjAsStr";
+        }
 
-            $column = $this->getTable()->getColByKey($colKey);
+        if ($location !== null) {
+            $lower = trim(strtolower($location));
+            $colObj = $this->getTable()->getColByKey($location);
 
-            if ($column instanceof MySQLColumn) {
-                $columnsWithVals[] = $colKey;
-                $type = $column->getDatatype();
-                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : 'null';
-                
-                if ($val !== 'null') {
-                    $cleanedVal = $column->cleanValue($val);
+            if ($lower == 'first') {
+                $stm .= ' first';
+            } else {
+                if ($colObj instanceof MySQLColumn) {
+                    $colIndex = $colObj->getIndex();
 
-                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
-                        $fixedPath = str_replace('\\', '/', $val);
-
-                        if (file_exists($fixedPath)) {
-                            $file = fopen($fixedPath, 'r');
-                            $data = '';
-
-                            if ($file !== false) {
-                                $fileContent = fread($file, filesize($fixedPath));
-
-                                if ($fileContent !== false) {
-                                    $data = '\''.addslashes($fileContent).'\'';
-                                    $valsArr[] = $data;
-                                    $this->setIsBlobInsertOrUpdate(true);
-                                } else {
-                                    $valsArr[] = 'null';
-                                }
-                                fclose($file);
-                            } else {
-                                $data = '\''.addslashes($val).'\'';
-                                $valsArr[] = $data;
-                                $this->setIsBlobInsertOrUpdate(true);
-                            }
-                        } else {
-                            $data = '\''.addslashes($fileContent).'\'';
-                            $valsArr[] = $data;
-                        }
+                    if ($colIndex == 0) {
+                        $stm .= " first";
                     } else {
-                        $valsArr[] = $cleanedVal;
+                        $colName = $colObj->getName();
+                        $stm .= " after $colName";
                     }
                 } else {
-                    $valsArr[] = 'null';
-                }
-            } else {
-                $tblName = $this->getTable()->getName();
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
-            }
-            $valIndex++;
-        }
-
-        foreach ($this->getTable()->getColsKeys() as $key) {
-            if (!in_array($key, $columnsWithVals)) {
-                $colObj = $this->getTable()->getColByKey($key);
-                $defaultVal = $colObj->getDefault();
-                
-                if ($defaultVal !== null) {
-                    $type = $colObj->getDatatype();
-                    
-                    if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
-                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
-                    } else {
-                        $valsArr[] = $colObj->cleanValue($defaultVal);
-                    }
+                    throw new DatabaseException("The table '$tblName' has no column with key '$location'.");
                 }
             }
         }
-
-        return '('. implode(', ', $valsArr) .')';
+        $this->setQuery($stm.';');
     }
     private function _createInsertStm($colsAndVals) {
         $tblName = $this->getTable()->getName();
@@ -472,7 +390,6 @@ class MySQLQuery extends AbstractQuery {
         $columnsWithVals = [];
 
         foreach ($colsAndVals as $colIndex => $val) {
-
             $column = $this->getTable()->getColByKey($colIndex);
 
             if ($column instanceof MySQLColumn) {
@@ -525,11 +442,11 @@ class MySQLQuery extends AbstractQuery {
             if (!in_array($key, $columnsWithVals)) {
                 $colObj = $this->getTable()->getColByKey($key);
                 $defaultVal = $colObj->getDefault();
-                
+
                 if ($defaultVal !== null) {
                     $colsArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
-                    
+
                     if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
                         $valsArr[] = "'".date('Y-m-d H:i:s')."'";
                     } else {
@@ -538,9 +455,92 @@ class MySQLQuery extends AbstractQuery {
                 }
             }
         }
-        $cols = '('. implode(', ', $colsArr) .')';
-        $vals = '('. implode(', ', $valsArr) .')';
+        $cols = '('.implode(', ', $colsArr).')';
+        $vals = '('.implode(', ', $valsArr).')';
 
         return "insert into $tblName $cols values $vals;";
+    }
+    /**
+     * Build a string that holds the values that will be inserted.
+     * 
+     * @param array $colsKeysArr
+     * @param array $valuesToInsert
+     * @return type
+     * @throws DatabaseException
+     */
+    private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
+        $valsArr = [];
+        $columnsWithVals = [];
+        $valIndex = 0;
+
+        foreach ($colsKeysArr as $colKey) {
+            $column = $this->getTable()->getColByKey($colKey);
+
+            if ($column instanceof MySQLColumn) {
+                $columnsWithVals[] = $colKey;
+                $type = $column->getDatatype();
+                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : 'null';
+
+                if ($val !== 'null') {
+                    $cleanedVal = $column->cleanValue($val);
+
+                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
+                        $fixedPath = str_replace('\\', '/', $val);
+
+                        if (file_exists($fixedPath)) {
+                            $file = fopen($fixedPath, 'r');
+                            $data = '';
+
+                            if ($file !== false) {
+                                $fileContent = fread($file, filesize($fixedPath));
+
+                                if ($fileContent !== false) {
+                                    $data = '\''.addslashes($fileContent).'\'';
+                                    $valsArr[] = $data;
+                                    $this->setIsBlobInsertOrUpdate(true);
+                                } else {
+                                    $valsArr[] = 'null';
+                                }
+                                fclose($file);
+                            } else {
+                                $data = '\''.addslashes($val).'\'';
+                                $valsArr[] = $data;
+                                $this->setIsBlobInsertOrUpdate(true);
+                            }
+                        } else {
+                            $data = '\''.addslashes($fileContent).'\'';
+                            $valsArr[] = $data;
+                        }
+                    } else {
+                        $valsArr[] = $cleanedVal;
+                    }
+                } else {
+                    $valsArr[] = 'null';
+                }
+            } else {
+                $tblName = $this->getTable()->getName();
+                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+            }
+            $valIndex++;
+        }
+
+        foreach ($this->getTable()->getColsKeys() as $key) {
+            if (!in_array($key, $columnsWithVals)) {
+                $colObj = $this->getTable()->getColByKey($key);
+                $defaultVal = $colObj->getDefault();
+
+                if ($defaultVal !== null) {
+                    $type = $colObj->getDatatype();
+
+                    if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
+                    } else {
+                        $valsArr[] = $colObj->cleanValue($defaultVal);
+                    }
+                }
+            }
+        }
+
+        return '('.implode(', ', $valsArr).')';
     }
 }

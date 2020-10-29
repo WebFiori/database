@@ -156,16 +156,6 @@ class ConnectionInfo {
         $this->extras = $extras;
     }
     /**
-     * Returns the name of the connection.
-     * 
-     * @return string The name of the connection. Default return value is 'New_Connection'.
-     * 
-     * @since 1.0
-     */
-    public function getName() {
-        return $this->connectionName;
-    }
-    /**
      * Returns the type of the database at which the connection will use.
      * 
      * @return string Database type such as 'mysql' or 'maria-db'.
@@ -211,6 +201,16 @@ class ConnectionInfo {
         return $this->host;
     }
     /**
+     * Returns the name of the connection.
+     * 
+     * @return string The name of the connection. Default return value is 'New_Connection'.
+     * 
+     * @since 1.0
+     */
+    public function getName() {
+        return $this->connectionName;
+    }
+    /**
      * Returns the password of the user that will be used to access the database.
      * 
      * @return string A string that represents the password of the user.
@@ -240,24 +240,6 @@ class ConnectionInfo {
      */
     public function getUsername() {
         return $this->uName;
-    }
-    /**
-     * Sets the name of the connection.
-     * 
-     * @param string $newName The new name. Must be non-empty string.
-     * 
-     * @since 1.0
-     */
-    public function setName($newName) {
-        $trimmed = trim($newName);
-
-        if (strlen($trimmed) != 0) {
-            $this->connectionName = $trimmed;
-
-            return true;
-        }
-
-        return false;
     }
     /**
      * Sets the type of the database.
@@ -323,6 +305,24 @@ class ConnectionInfo {
      */
     public function setHost($hostAddr) {
         $this->host = $hostAddr;
+    }
+    /**
+     * Sets the name of the connection.
+     * 
+     * @param string $newName The new name. Must be non-empty string.
+     * 
+     * @since 1.0
+     */
+    public function setName($newName) {
+        $trimmed = trim($newName);
+
+        if (strlen($trimmed) != 0) {
+            $this->connectionName = $trimmed;
+
+            return true;
+        }
+
+        return false;
     }
     /**
      * Sets the password of the user that will be used to access the database.
