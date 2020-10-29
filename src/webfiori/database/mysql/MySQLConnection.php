@@ -99,7 +99,8 @@ class MySQLConnection extends Connection {
         $this->setLastQuery($query);
 
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
-            mysqli_query($this->link, 'set collation_connection =\''.$query->getTable()->getCollation().'\'');
+            $collation = filter_var($query->getTable()->getCollation());
+            mysqli_query($this->link, 'set collation_connection =\''.$collation.'\'');
         }
         $qType = $query->getLastQueryType();
 

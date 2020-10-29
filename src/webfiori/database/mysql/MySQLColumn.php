@@ -105,16 +105,6 @@ class MySQLColumn extends Column {
         $this->isAutoUpdate = false;
         $this->setMySQLVersion('8.0');
     }
-    public function getAlias() {
-        $alias = parent::getAlias();
-        if ($alias !== null) {
-            $alias = MySQLQuery::backtick($alias);
-        }
-        return $alias;
-    }
-    public function getName() {
-        return MySQLQuery::backtick(parent::getName());
-    }
     /**
      * Constructs a string that can be used to create the column in a table.
      * 
@@ -219,10 +209,12 @@ class MySQLColumn extends Column {
         if (isset($options['name'])) {
             if (isset($options['datatype'])) {
                 $datatype = $options['datatype'];
-            } else if (isset($options['type'])) {
-                $datatype = $options['type'];
             } else {
-                $datatype = 'varchar';
+                if (isset($options['type'])) {
+                    $datatype = $options['type'];
+                } else {
+                    $datatype = 'varchar';
+                }
             }
             $col = new MySQLColumn($options['name'], $datatype);
             $size = isset($options['size']) ? intval($options['size']) : 1;
@@ -233,6 +225,15 @@ class MySQLColumn extends Column {
 
             return $col;
         }
+    }
+    public function getAlias() {
+        $alias = parent::getAlias();
+
+        if ($alias !== null) {
+            $alias = MySQLQuery::backtick($alias);
+        }
+
+        return $alias;
     }
     /**
      * Returns the value of column collation.
@@ -280,16 +281,22 @@ class MySQLColumn extends Column {
                 if ($dt == 'decimal' || $dt == 'float' || $dt == 'double') {
                     $retVal = floatval($retVal);
                 }
-            } else if ($dt == 'timestamp' || $dt == 'datetime') {
-                if (!($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
-                    $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
+            } else {
+                if ($dt == 'timestamp' || $dt == 'datetime') {
+                    if (!($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                        $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
+                    } else {
+                        $retVal = $defaultVal;
+                    }
                 } else {
-                    $retVal = $defaultVal;
+                    if ($dt == 'int') {
+                        $retVal = intval($defaultVal);
+                    } else {
+                        if ($dt == 'boolean' || $dt == 'bool') {
+                            return $defaultVal === "b'1'" || $defaultVal === true;
+                        }
+                    }
                 }
-            } else if ($dt == 'int') {
-                $retVal = intval($defaultVal);
-            } else if ($dt == 'boolean' || $dt == 'bool') {
-                return $defaultVal === "b'1'" || $defaultVal === true;
             }
 
             return $retVal;
@@ -310,6 +317,9 @@ class MySQLColumn extends Column {
     public function getMySQLVersion() {
         return $this->mySqlVersion;
     }
+    public function getName() {
+        return MySQLQuery::backtick(parent::getName());
+    }
     /**
      * Returns a string that represents the datatype of column data in 
      * PHP.
@@ -325,21 +335,26 @@ class MySQLColumn extends Column {
      * @since 1.0
      */
     public function getPHPType() {
-        
         $colType = $this->getDatatype();
+
         if ($colType == 'bool' || $colType == 'boolean') {
             $isNullStr = '';
         } else {
             $isNullStr = $this->isNull() ? '|null' : '';
         }
+
         if ($colType == 'int') {
             return 'int'.$isNullStr;
-        } else if ($colType == 'decimal' || $colType == 'double' || $colType == 'float') {
-            return 'double'.$isNullStr;
-        } else if ($colType == 'boolean' || $colType == 'bool') {
-            return 'boolean'.$isNullStr;
         } else {
-            return 'string'.$isNullStr;
+            if ($colType == 'decimal' || $colType == 'double' || $colType == 'float') {
+                return 'double'.$isNullStr;
+            } else {
+                if ($colType == 'boolean' || $colType == 'bool') {
+                    return 'boolean'.$isNullStr;
+                } else {
+                    return 'string'.$isNullStr;
+                }
+            }
         }
     }
     /**
@@ -582,14 +597,20 @@ class MySQLColumn extends Column {
 
         if ($type == 'boolean' || $type == 'bool') {
             $retVal = parent::setSize(1);
-        } else if ($type == 'varchar' || $type == 'text') {
-            $retVal = $this->_textTypeSize($size);
-        } else if ($type == 'int') {
-            $retVal = $this->_intSize($size);
-        } else if (($type == 'decimal' || $type == 'float' || $type == 'double') && $size >= 0) {
-            $retVal = parent::setSize($size);
         } else {
-            $retVal = false;
+            if ($type == 'varchar' || $type == 'text') {
+                $retVal = $this->_textTypeSize($size);
+            } else {
+                if ($type == 'int') {
+                    $retVal = $this->_intSize($size);
+                } else {
+                    if (($type == 'decimal' || $type == 'float' || $type == 'double') && $size >= 0) {
+                        $retVal = parent::setSize($size);
+                    } else {
+                        $retVal = false;
+                    }
+                }
+            }
         }
 
         return $retVal;
@@ -600,35 +621,44 @@ class MySQLColumn extends Column {
 
         if ($val === null) {
             return null;
-        } else if ($colDatatype == 'int') {
-            $cleanedVal = intval($val);
-        } else if ($colDatatype == 'bool' || $colDatatype == 'boolean') {
-            if ($val === true) {
-                return "b'1'";
-            } else {
-                return "b'0'";
-            }
-        } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
-            $cleanedVal = '\''.floatval($val).'\'';
-        } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
-            $cleanedVal = str_replace("'", "\'", $val);
-        } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
-            if ($val != 'now()' && $val != 'current_timestamp') {
-                $cleanedVal = $this->_dateCleanUp($val);
-            } else {
-                $cleanedVal = $val;
-            }
         } else {
-            //blob mostly
-            $cleanedVal = $val;
+            if ($colDatatype == 'int') {
+                $cleanedVal = intval($val);
+            } else {
+                if ($colDatatype == 'bool' || $colDatatype == 'boolean') {
+                    if ($val === true) {
+                        return "b'1'";
+                    } else {
+                        return "b'0'";
+                    }
+                } else {
+                    if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
+                        $cleanedVal = '\''.floatval($val).'\'';
+                    } else {
+                        if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
+                            $cleanedVal = str_replace("'", "\'", $val);
+                        } else {
+                            if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
+                                if ($val != 'now()' && $val != 'current_timestamp') {
+                                    $cleanedVal = $this->_dateCleanUp($val);
+                                } else {
+                                    $cleanedVal = $val;
+                                }
+                            } else {
+                                //blob mostly
+                                $cleanedVal = $val;
+                            }
+                        }
+                    }
+                }
+            }
         }
         $retVal = call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
-        
+
         if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext')) {
-            
             return "'".$retVal."'";
         }
-        
+
         return $retVal;
     }
     private function _commentPart() {
@@ -644,12 +674,18 @@ class MySQLColumn extends Column {
 
         if ($trimmed == 'current_timestamp') {
             $cleanedVal = 'current_timestamp';
-        } else if ($trimmed == 'now()') {
-            $cleanedVal = 'now()';
-        } else if ($this->_validateDateAndTime($trimmed)) {
-            $cleanedVal = '\''.$trimmed.'\'';
-        } else if ($this->_validateDate($trimmed)) {
-            $cleanedVal = '\''.$trimmed.' 00:00:00\'';
+        } else {
+            if ($trimmed == 'now()') {
+                $cleanedVal = 'now()';
+            } else {
+                if ($this->_validateDateAndTime($trimmed)) {
+                    $cleanedVal = '\''.$trimmed.'\'';
+                } else {
+                    if ($this->_validateDate($trimmed)) {
+                        $cleanedVal = '\''.$trimmed.' 00:00:00\'';
+                    }
+                }
+            }
         }
 
         return $cleanedVal;
@@ -665,14 +701,16 @@ class MySQLColumn extends Column {
                 } else {
                     return 'default b\'0\' ';
                 }
-            } else if ($colDataType == 'datetime' || $colDataType == 'timestamp') {
-                if ($colDefault == 'now()' || $colDefault == 'current_timestamp') {
-                    return 'default '.$colDefault.' ';
+            } else {
+                if ($colDataType == 'datetime' || $colDataType == 'timestamp') {
+                    if ($colDefault == 'now()' || $colDefault == 'current_timestamp') {
+                        return 'default '.$colDefault.' ';
+                    } else {
+                        return 'default '.$this->cleanValue($colDefault).' ';
+                    }
                 } else {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
-            } else {
-                return 'default '.$this->cleanValue($colDefault).' ';
             }
         }
     }
@@ -744,10 +782,12 @@ class MySQLColumn extends Column {
             parent::setSize($size);
 
             return true;
-        } else if ($size > 11) {
-            parent::setSize(11);
+        } else {
+            if ($size > 11) {
+                parent::setSize(11);
 
-            return true;
+                return true;
+            }
         }
 
         return false;

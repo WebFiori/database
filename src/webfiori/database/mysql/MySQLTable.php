@@ -24,8 +24,8 @@
  */
 namespace webfiori\database\mysql;
 
-use webfiori\database\Table;
 use webfiori\database\Column;
+use webfiori\database\Table;
 /**
  * A class that represents MySQL table.
  *
@@ -53,9 +53,6 @@ class MySQLTable extends Table {
         $this->engine = 'InnoDB';
         $this->charset = 'utf8mb4';
         $this->mysqlVnum = '8.0';
-    }
-    public function getName() {
-        return MySQLQuery::backtick(parent::getName());
     }
     /**
      * Adds new column to the table.
@@ -126,14 +123,16 @@ class MySQLTable extends Table {
         foreach ($colsArr as $key => $arrOrObj) {
             if ($arrOrObj instanceof MySQLColumn) {
                 $arrToAdd[$key] = $arrOrObj;
-            } else if (gettype($arrOrObj) == 'array') {
-                if (!isset($arrOrObj['name'])) {
-                    $arrOrObj['name'] = str_replace('-', '_', $key);
-                }
-                $colObj = MySQLColumn::createColObj($arrOrObj);
+            } else {
+                if (gettype($arrOrObj) == 'array') {
+                    if (!isset($arrOrObj['name'])) {
+                        $arrOrObj['name'] = str_replace('-', '_', $key);
+                    }
+                    $colObj = MySQLColumn::createColObj($arrOrObj);
 
-                if ($colObj instanceof MySQLColumn) {
-                    $arrToAdd[$key] = $colObj;
+                    if ($colObj instanceof MySQLColumn) {
+                        $arrToAdd[$key] = $colObj;
+                    }
                 }
             }
         }
@@ -194,6 +193,9 @@ class MySQLTable extends Table {
     public function getMySQLVersion() {
         return $this->mysqlVnum;
     }
+    public function getName() {
+        return MySQLQuery::backtick(parent::getName());
+    }
     /**
      * Removes a column given its key.
      * 
@@ -253,7 +255,7 @@ class MySQLTable extends Table {
         }
         $queryStr .= 'engine = '.$this->getEngine()."\n";
         $queryStr .= 'default charset = '.$this->getCharSet()."\n";
-        
+
         return $queryStr.'collate = '.$this->getCollation().';';
     }
 
@@ -325,7 +327,7 @@ class MySQLTable extends Table {
             if ($fkObj->getOnUpdate() !== null) {
                 $fkConstraint .= ' on update '.$fkObj->getOnUpdate();
             }
-            
+
             if ($fkObj->getOnDelete() !== null) {
                 $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
             }
