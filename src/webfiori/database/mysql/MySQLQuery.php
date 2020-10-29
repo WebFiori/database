@@ -451,7 +451,6 @@ class MySQLQuery extends AbstractQuery {
                 $defaultVal = $colObj->getDefault();
                 
                 if ($defaultVal !== null) {
-                    $colsArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
                     
                     if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {

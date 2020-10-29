@@ -25,12 +25,13 @@
 namespace webfiori\database;
 
 /**
- * Description of Table
+ * A class that can be used to represents database tables.
  *
  * @author Ibrahim
+ * 
+ * @since 1.0
  */
 abstract class Table {
-    private $builder;
     private $colsArr;
     private $comment;
     private $withDbPrefix;
@@ -472,9 +473,9 @@ abstract class Table {
     public function getPrimaryKeyName() {
         $val = $this->isNameWithDbPrefix();
         $this->setWithDbPrefix(false);
-        $name = trim($this->getName(), '`');
+        $keyName = trim($this->getName(), '`');
         $this->setWithDbPrefix($val);
-        return $name.'_pk';
+        return $keyName.'_pk';
     }
     /**
      * 

@@ -82,13 +82,6 @@ abstract class AbstractQuery {
      */
     private $associatedTbl;
     /**
-     *
-     * @var WhereExpression 
-     * 
-     * @since 1.0
-     */
-    private $whereExp;
-    /**
      * Creates new instance of the class.
      * 
      * @since 1.0
@@ -270,7 +263,6 @@ abstract class AbstractQuery {
             $copy->limit = $this->limit;
             $copy->offset = $this->offset;
             $copy->associatedTbl = $this->associatedTbl;
-            //$copy->whereExp = $this->whereExp;
             $copy->schema = $this->schema;
             
             return $copy;
@@ -401,10 +393,10 @@ abstract class AbstractQuery {
     public function getQuery() {
         $retVal = $this->query;
         
-        $lastQueryType = $this->getLastQueryType();
+        $lastQType = $this->getLastQueryType();
         
-        if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
-            $whereExp = $this->getTable()->getSelect()->getWhereWithGroupAndOrder();
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $whereExp = $this->getTable()->getSelect()->getWhereStr();
         
             if (strlen($whereExp) != 0) {
                 $retVal .= $whereExp;
@@ -569,13 +561,9 @@ abstract class AbstractQuery {
      */
     public function reset() {
         $this->query = '';
-        $this->whereExp = null;
         $this->lastQueryType = '';
         $this->limit = -1;
         $this->offset = -1;
-        if ($this->getTable() !== null) {
-            //$this->getTable()->getSelect()->clear();
-        }
     }
     /**
      * Constructs a select query based on associated table.
@@ -597,31 +585,8 @@ abstract class AbstractQuery {
         $thisTable = $this->getTable();
         if ($thisTable instanceof JoinTable) {
             
-            $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
-            if (!($thisTable->getLeft() instanceof JoinTable)) {
-                $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
-            } else {
-                $leftCols = '*';
-            }
-            $thisCols = $select->getColsStr();
-            $columnsToSelect = '';
-            if ($thisCols != '*') {
-                $columnsToSelect .= $thisCols;
-            }
-            if ($leftCols != '*') {
-                if (strlen($columnsToSelect) != 0) {
-                    $columnsToSelect .= ", $leftCols";
-                } else {
-                    $columnsToSelect = $leftCols;
-                }
-            }
-            if ($rightCols != '*') {
-                if (strlen($columnsToSelect) != 0) {
-                    $columnsToSelect .= ", $rightCols";
-                } else {
-                    $columnsToSelect = $rightCols;
-                }
-            }
+            $columnsToSelect = $this->_getColsToSelect();
+            
             $tableSQL = $this->getTable()->toSQL(true);
             
             if (strlen($columnsToSelect) == 0) {
@@ -639,6 +604,36 @@ abstract class AbstractQuery {
             $this->setQuery($selectVal);
         }
         return $this;
+    }
+    private function _getColsToSelect() {
+        $thisTable = $this->getTable();
+        
+        $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
+        if (!($thisTable->getLeft() instanceof JoinTable)) {
+            $leftCols = $thisTable->getLeft()->getSelect()->getColsStr();
+        } else {
+            $leftCols = '*';
+        }
+        $thisCols = $thisTable->getSelect()->getColsStr();
+        $columnsToSelect = '';
+        if ($thisCols != '*') {
+            $columnsToSelect .= $thisCols;
+        }
+        if ($leftCols != '*') {
+            if (strlen($columnsToSelect) != 0) {
+                $columnsToSelect .= ", $leftCols";
+            } else {
+                $columnsToSelect = $leftCols;
+            }
+        }
+        if ($rightCols != '*') {
+            if (strlen($columnsToSelect) != 0) {
+                $columnsToSelect .= ", $rightCols";
+            } else {
+                $columnsToSelect = $rightCols;
+            }
+        }
+        return $columnsToSelect;
     }
     /**
      * Sets a raw SQL query.
@@ -833,11 +828,11 @@ abstract class AbstractQuery {
             $this->getTable()->getSelect()->addWhere($col, null, null, $joinCond);
         } else {
             // A where condition based on last select, delete or update
-            $lastQueryType = $this->getLastQueryType();
+            $lastQType = $this->getLastQueryType();
             $table = $this->getTable();
             $tableName = $table->getName();
 
-            if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
+            if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
                 $colObj = $table->getColByKey($col);
 
                 if ($colObj === null) {

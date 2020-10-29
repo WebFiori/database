@@ -136,16 +136,24 @@ class SelectExpression extends Expression {
      * Returns a string that represents the 'where' part of the select in addition 
      * to the 'order by' and 'group by'.
      * 
+     * @param boolean $withOrderBy If set to true, the 'order by' part of the 
+     * 'where' will be included. Default is 'true'.
+     * 
+     * @param boolean $withGroupBy If set to true, the 'order by' part of the 
+     * 'where' will be included. Default is 'true'.
+     * 
      * @return string
      * 
      * @since 1.0
      */
-    public function getWhereWithGroupAndOrder() {
-        $table = $this->getTable();
+    public function getWhereStr($withGroupBy = true, $withOrderBy = true) {
+        $thisTable = $this->getTable();
         $retVal = '';
-        if ($table instanceof JoinTable) {
-            $leftWhere = $table->getLeft()->getSelect()->getWhereExpr();
-            $rightWhere = $table->getRight()->getSelect()->getWhereExpr();
+        $orderBy = '';
+        $groupBy = '';
+        if ($thisTable instanceof JoinTable) {
+            $leftWhere = $thisTable->getLeft()->getSelect()->getWhereExpr();
+            $rightWhere = $thisTable->getRight()->getSelect()->getWhereExpr();
             if ($leftWhere !== null) {
                 if ($rightWhere !== null) {
                     $leftWhere->addCondition($leftWhere->getCondition(), 'and');
@@ -165,8 +173,12 @@ class SelectExpression extends Expression {
         } else if ($this->whereExp !== null) {
             $retVal = $this->whereExp->getValue();
         }
-        $groupBy = $this->getGroupBy();
-        $orderBy = $this->getOrderBy();
+        if ($withGroupBy) {
+            $groupBy = $this->getGroupBy();
+        }
+        if ($withOrderBy) {
+            $orderBy = $this->getOrderBy();
+        }
         if (strlen($retVal) != 0) {
             return ' where '.$retVal.$groupBy.$orderBy;
         }
@@ -417,8 +429,8 @@ class SelectExpression extends Expression {
         } else {
             $selectArr = [];
             $cols = $this->getSelectCols();
-            $table = $this->getTable();
-            $isJoinTable = $table instanceof JoinTable ? true : false;
+            $thisTable = $this->getTable();
+            $isJoinTable = $thisTable instanceof JoinTable ? true : false;
             foreach ($cols as $colKey => $colObjOrExpr) {
                 if ($colObjOrExpr instanceof Column) {
                     $colObjOrExpr->setWithTablePrefix(true);
@@ -426,17 +438,17 @@ class SelectExpression extends Expression {
                     $resetOwner = false;
                     if ($isJoinTable) {
                         
-                        if (!$table->getLeft() instanceof JoinTable) {
-                            $existInLeft = $table->getLeft()->getSelect()->hasCol($colKey);
-                            $existInRight = $table->getRight()->getSelect()->hasCol($colKey);
+                        if (!$thisTable->getLeft() instanceof JoinTable) {
+                            $existInLeft = $thisTable->getLeft()->getSelect()->hasCol($colKey);
+                            $existInRight = $thisTable->getRight()->getSelect()->hasCol($colKey);
                             
                             $addCol = !$existInLeft && !$existInRight;
 
                             if (!$existInLeft && !$existInRight) {
                                 $ownerName = $colObjOrExpr->getOwner()->getName();
-                                $leftName = $table->getLeft()->getName();
-                                $rightName = $table->getRight()->getName();
-                                $tableName = $table->getName();
+                                $leftName = $thisTable->getLeft()->getName();
+                                $rightName = $thisTable->getRight()->getName();
+                                $tableName = $thisTable->getName();
                                 if ($ownerName != $leftName && $ownerName != $rightName && $tableName != $ownerName) {
                                     $colObjOrExpr->setOwner($this->getTable());
                                 }
@@ -445,11 +457,9 @@ class SelectExpression extends Expression {
                             $colObjOrExpr->setOwner($this->getTable());
                         }
                         
-                    } else {
-                        if ($colObjOrExpr->getPrevOwner() !== null) {
-                            $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
-                            $resetOwner = true;
-                        }
+                    } else if ($colObjOrExpr->getPrevOwner() !== null) {
+                        $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
+                        $resetOwner = true;
                     }
                     if ($addCol) {
                         $alias = $colObjOrExpr->getAlias();
