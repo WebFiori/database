@@ -90,6 +90,14 @@ class JoinTable extends Table {
         $this->left = $left;
         $this->right = $right;
         $this->isSubJoin = false;
+        $leftWheres = $left->getSelect()->getWhereExpr();
+        if ($leftWheres !== null) {
+            $this->getSelect()->addWhereCondition($leftWheres->getCondition());
+        }
+        $rightWheres = $right->getSelect()->getWhereExpr();
+        if ($rightWheres !== null) {
+            $this->getSelect()->addWhereCondition($rightWheres->getCondition());
+        }
     }
     public function setIsSubJoin($bool) {
         $this->isSubJoin = $bool === true;
@@ -256,8 +264,9 @@ class JoinTable extends Table {
     public function toSQL($firstCall = false) {
         $leftTbl = $this->getLeft();
         $rightTbl = $this->getRight();
+        $where = $this->getSelect()->getWhereWithGroupAndOrder();
         $retVal = '';
-        
+
         $rightSelectCols = $rightTbl->getSelect()->getColsStr();
         if ($rightSelectCols == '*') {
             $rightSelectCols = '';
@@ -284,6 +293,7 @@ class JoinTable extends Table {
             
             $xleftTbl = $leftTbl->getLeft();
             $xrightTbl = $leftTbl->getRight();
+            $xwhere = $leftTbl->getSelect()->getWhereWithGroupAndOrder();
             $retVal = '';
 
             $xrightSelectCols = $xrightTbl->getSelect()->getColsStr();
@@ -296,6 +306,9 @@ class JoinTable extends Table {
                     $leftSelectCols = $xleftSelectCols;
                 }
             } 
+            if (strlen($xwhere) != 0) {
+                $where = $xwhere;
+            }
             if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
                 $colsToSelect = "$leftSelectCols, $rightSelectCols";
             } else if (strlen($leftSelectCols) != 0) {
@@ -309,20 +322,20 @@ class JoinTable extends Table {
             
             if ($colsToSelect == '*') {
                 if ($xleftTbl instanceof JoinTable) {
-                     $retVal .= '(select * from '.$leftAsSQL.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                     $retVal .= '(select * from '.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
                 } else {
-                    $retVal .= '('.$leftAsSQL.') as '.$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                    $retVal .= '('.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
                 }
                 if ($this->getJoinCondition() !== null) {
                     $retVal .= ' on('.$this->getJoinCondition().')';
                 }
             } else if ($xleftTbl instanceof JoinTable) {
-                $retVal .= "(select $colsToSelect from $leftAsSQL) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                $retVal .= "(select $colsToSelect from $leftAsSQL$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
                 if ($this->getJoinCondition() !== null) {
                     $retVal .= ' on('.$this->getJoinCondition().')';
                 }
             } else {
-                $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin().") as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+                $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin()."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
                 if ($this->getJoinCondition() !== null) {
                     $retVal .= ' on('.$this->getJoinCondition().')';
                 }

@@ -40,14 +40,6 @@ abstract class AbstractQuery {
      */
     private $prevQueryObj;
     /**
-     *
-     * @var type 
-     * 
-     * @since 1.0
-     */
-    private $joins;
-    /**
-     *
      * @var string 
      * 
      * @since 1.0
@@ -124,15 +116,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function addCol($colKey, $location = null);
-    public function addJoin($joinCond, $join) {
-        if (count($this->joins) != 0) {
-            if (!in_array($join, ['and', 'or'])) {
-                $join = 'and';
-            }
-            $this->joins[] = $joinCond;
-        }
-        $this->joins[] = $joinCond;
-    }
     /**
      * Perform a join query.
      * 
@@ -252,32 +235,6 @@ abstract class AbstractQuery {
      */
     public abstract function addPrimaryKey($pkName, array $pkCols);
     /**
-     * 
-     * @param type $leftOpOrExp
-     * @param type $rightOp
-     * @param type $cond
-     * @param string $join
-     */
-    public function addWhere($leftOpOrExp, $rightOp = null, $cond = null, $join = 'and') {
-        if (!in_array($join, ['and', 'or'])) {
-            $join = 'and';
-        }
-
-        if ($leftOpOrExp instanceof AbstractQuery) {
-            $parentWhere = new WhereExpression('');
-            $this->whereExp->setJoinCondition($join);
-            $this->whereExp->setParent($parentWhere);
-
-            $this->whereExp = $parentWhere;
-        } else {
-            if ($this->whereExp === null) {
-                $this->whereExp = new WhereExpression('');
-            }
-            $condition = new Condition($leftOpOrExp, $rightOp, $cond);
-            $this->whereExp->addCondition($condition, $join);
-        }
-    }
-    /**
      * Build a where condition.
      * 
      * This method can be used to append an 'and' condition to an already existing 
@@ -313,7 +270,7 @@ abstract class AbstractQuery {
             $copy->limit = $this->limit;
             $copy->offset = $this->offset;
             $copy->associatedTbl = $this->associatedTbl;
-            $copy->whereExp = $this->whereExp;
+            //$copy->whereExp = $this->whereExp;
             $copy->schema = $this->schema;
             
             return $copy;
@@ -399,9 +356,6 @@ abstract class AbstractQuery {
             throw new DatabaseException($ex->getMessage());
         }
     }
-    public function getJoinStatement() {
-        return implode(' ', $this->joins);
-    }
     /**
      * Returns the type of last generated SQL query.
      * 
@@ -446,10 +400,15 @@ abstract class AbstractQuery {
      */
     public function getQuery() {
         $retVal = $this->query;
-        $whereExp = $this->getWhereStatement();
         
-        if (strlen($whereExp) != 0) {
-            $retVal .= ' where '.$whereExp;
+        $lastQueryType = $this->getLastQueryType();
+        
+        if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
+            $whereExp = $this->getTable()->getSelect()->getWhereWithGroupAndOrder();
+        
+            if (strlen($whereExp) != 0) {
+                $retVal .= $whereExp;
+            }
         }
 
         return $retVal;
@@ -487,22 +446,6 @@ abstract class AbstractQuery {
         }
 
         return $this->associatedTbl;
-    }
-    public function getWhereStatement() {
-        if ($this->getTable() instanceof JoinTable) {
-            $prevWhere = $this->getPrevQuery()->whereExp;
-            if ($prevWhere !== null) {
-                if ($this->whereExp !== null) {
-                    $prevWhere->addCondition($this->whereExp->getCondition(), 'and');
-                }
-                return $prevWhere->getValue();
-            } else if ($this->whereExp !== null) {
-                return $this->whereExp->getValue();
-            }
-        } else if ($this->whereExp !== null) {
-            return $this->whereExp->getValue();
-        }
-        return '';
     }
     /**
      * Constructs a query which can be used to insert a record in a table.
@@ -630,6 +573,9 @@ abstract class AbstractQuery {
         $this->lastQueryType = '';
         $this->limit = -1;
         $this->offset = -1;
+        if ($this->getTable() !== null) {
+            //$this->getTable()->getSelect()->clear();
+        }
     }
     /**
      * Constructs a select query based on associated table.
@@ -767,6 +713,50 @@ abstract class AbstractQuery {
         return $this;
     }
     /**
+     * Adds a set of columns to the 'order by' part of the query.
+     * 
+     * @param array $colsArr An array that contains columns keys. To specify 
+     * order type, the indices should be columns keys and the values are order 
+     * type. Order type can have two values, 'a' for 
+     * ascending or 'd' for descending.
+     * 
+     * @return @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function orderBy(array $colsArr) {
+        foreach ($colsArr as $colKey => $orderTypeOrColKey) {
+            if (gettype($colKey) == 'string') {
+                $this->getTable()->getSelect()->orderBy($colKey, $orderTypeOrColKey);
+            } else {
+                $this->getTable()->getSelect()->orderBy($orderTypeOrColKey);
+            }
+        }
+        return $this;
+    }
+    /**
+     * Adds a set of columns to the 'group by' part of the query.
+     * 
+     * @param string|array $colOrColsArr This can be one column key or an 
+     * array that contains columns keys.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function groupBy($colOrColsArr) {
+        if (gettype($colOrColsArr) == 'array') {
+            foreach ($colOrColsArr as $colKey) {
+                $this->getTable()->getSelect()->groupBy($colKey);
+            }
+        } else {
+            $this->getTable()->getSelect()->groupBy($colOrColsArr);
+        }
+        return $this;
+    }
+    /**
      * Constructs a query which will truncate a database table when executed.
      * 
      * @return AbstractQuery The method will return the same instance at which 
@@ -815,31 +805,53 @@ abstract class AbstractQuery {
      */
     public abstract function update(array $newColsVals);
     /**
-     * Build a where condition.
+     * Adds a 'where' condition to an existing select, update or delete query.
      * 
-     * This method must be implemented in a way it builds the 'where' part of 
-     * the query. 
+     * @param AbstractQuery|string $col The key of the column. This also can be an 
+     * object of type AbstractQuery. The object is used to build a sub 
+     * where condition.
      * 
-     * @param AbstractQuery|string $col A string that represents the name of the 
-     * column that will be evaluated. This also can be an object of type 
-     * 'AbstractQuery' in case the developer would like to build a sub-where 
-     * condition.
+     * @param string $cond A string such as '=' or '!='.
      * 
-     * @param string $cond A string that represents the condition at which column 
-     * value will be evaluated against. Can be ignored if first parameter is of 
-     * type 'AbstractQuery'.
+     * @param mixed $val The value at which column value will be evaluated againest.
      * 
-     * @param mixed $val The value (or values) at which the column will be evaluated 
-     * against. Can be ignored if first parameter is of 
-     * type 'AbstractQuery'.
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
      * 
-     * @param string $joinCond An optional string which can be used to join 
-     * multiple where conditions. If not provided, 'and' will be used by default.
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
      * 
-     * @return AbstractQuery The method should be implemented in a way it returns 
-     * the same instance at which the method is called on.
+     * @throws DatabaseException If one of the columns does not exist, the method 
+     * will throw an exception.
      * 
      * @since 1.0
      */
-    public abstract function where($col, $cond = null, $val = null, $joinCond = 'and');
+    public function where($col, $cond = null, $val = null, $joinCond = 'and') {
+        if ($col instanceof AbstractQuery) {
+            //Prev where was a sub where
+            $this->getTable()->getSelect()->addWhere($col, null, null, $joinCond);
+        } else {
+            // A where condition based on last select, delete or update
+            $lastQueryType = $this->getLastQueryType();
+            $table = $this->getTable();
+            $tableName = $table->getName();
+
+            if ($lastQueryType == 'select' || $lastQueryType == 'delete' || $lastQueryType == 'update') {
+                $colObj = $table->getColByKey($col);
+
+                if ($colObj === null) {
+                    throw new DatabaseException("The table '$tableName' has no column with key '$col'.");
+                }
+                $colObj->setWithTablePrefix(true);
+                $colName = $colObj->getName();
+                $cleanVal = $colObj->cleanValue($val);
+                $this->getTable()->getSelect()->addWhere($colName, $cleanVal, $cond, $joinCond);
+            } else {
+                throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+            }
+        }
+
+        return $this;
+    }
 }

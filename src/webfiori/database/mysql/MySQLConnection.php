@@ -55,17 +55,18 @@ class MySQLConnection extends Connection {
     public function connect() {
         $test = false;
         $connInfo = $this->getConnectionInfo();
-        set_error_handler(function()
-        {
-        });
+        
         $host = $connInfo->getHost();
         $port = $connInfo->getPort();
         $user = $connInfo->getUsername();
         $pass = $connInfo->getPassword();
         $dbName = $connInfo->getDBName();
         
-        $this->link = @mysqli_connect($host, $user, $pass, null, $port);
-        
+        set_error_handler(function()
+        {
+        });
+        $this->link = mysqli_connect($host, $user, $pass, null, $port);
+        restore_error_handler();
 
         if ($this->link instanceof mysqli) {
             $test = mysqli_select_db($this->link, $dbName);
@@ -79,7 +80,7 @@ class MySQLConnection extends Connection {
             $this->setErrCode(mysqli_connect_errno());
             $this->setErrMessage(mysqli_connect_error());
         }
-        restore_error_handler();
+        
         return $test;
     }
     

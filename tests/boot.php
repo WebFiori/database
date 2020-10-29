@@ -64,11 +64,18 @@ require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQL
 
 require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
 
+use webfiori\database\ConnectionInfo;
+use webfiori\database\mysql\MySQLConnection;
+use webfiori\database\tests\MySQLTestSchema;
 
 register_shutdown_function(function()
 {
     echo "Dropping test tables...\n";
-    $mysqlSchema = new \webfiori\database\tests\MySQLTestSchema();
+    $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db');
+    $conn = new MySQLConnection($connInfo);
+    $mysqlSchema = new MySQLTestSchema();
+    $mysqlSchema->setConnection($conn);
+
     
     try{
         $mysqlSchema->table('users_privileges')->drop()->execute();

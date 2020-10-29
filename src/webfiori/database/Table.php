@@ -30,6 +30,7 @@ namespace webfiori\database;
  * @author Ibrahim
  */
 abstract class Table {
+    private $builder;
     private $colsArr;
     private $comment;
     private $withDbPrefix;
