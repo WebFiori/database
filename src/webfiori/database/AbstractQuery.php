@@ -583,6 +583,8 @@ abstract class AbstractQuery {
         $select->select($cols);
         $selectVal = $select->getValue();
         $thisTable = $this->getTable();
+        $thisCols = $thisTable->getSelect()->getColsStr();
+        
         if ($thisTable instanceof JoinTable) {
             
             $columnsToSelect = $this->_getColsToSelect();

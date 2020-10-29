@@ -289,10 +289,36 @@ class JoinTable extends Table {
         return $retVal;
     }
     private function _toSQLHelper($leftTbl, $rightTbl, $leftSelectCols, $rightSelectCols, $where) {
+        $colsToSelect = $this->_getColsToSelect($leftTbl, $leftSelectCols, $rightSelectCols, $where);
+        $leftAsSQL = $leftTbl->toSQL();
+        $xleftTbl = $leftTbl->getLeft();
+        $retVal = '';
+        if ($colsToSelect == '*') {
+            if ($xleftTbl instanceof JoinTable) {
+                 $retVal .= '(select * from '.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+            } else {
+                $retVal .= '('.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+            }
+            if ($this->getJoinCondition() !== null) {
+                $retVal .= ' on('.$this->getJoinCondition().')';
+            }
+        } else if ($xleftTbl instanceof JoinTable) {
+            $retVal .= "(select $colsToSelect from $leftAsSQL$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+            if ($this->getJoinCondition() !== null) {
+                $retVal .= ' on('.$this->getJoinCondition().')';
+            }
+        } else {
+            $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin()."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
+            if ($this->getJoinCondition() !== null) {
+                $retVal .= ' on('.$this->getJoinCondition().')';
+            }
+        }
+        return $retVal;
+    }
+    private function _getColsToSelect($leftTbl, $leftSelectCols, $rightSelectCols, $where) {
         $xleftTbl = $leftTbl->getLeft();
         $xrightTbl = $leftTbl->getRight();
         $xwhere = $leftTbl->getSelect()->getWhereStr();
-        $retVal = '';
 
         $xrightSelectCols = $xrightTbl->getSelect()->getColsStr();
         if ($xrightSelectCols != '*') {
@@ -316,29 +342,7 @@ class JoinTable extends Table {
         } else {
             $colsToSelect = "*";
         }
-        $leftAsSQL = $leftTbl->toSQL();
-
-        if ($colsToSelect == '*') {
-            if ($xleftTbl instanceof JoinTable) {
-                 $retVal .= '(select * from '.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-            } else {
-                $retVal .= '('.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-            }
-            if ($this->getJoinCondition() !== null) {
-                $retVal .= ' on('.$this->getJoinCondition().')';
-            }
-        } else if ($xleftTbl instanceof JoinTable) {
-            $retVal .= "(select $colsToSelect from $leftAsSQL$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-            if ($this->getJoinCondition() !== null) {
-                $retVal .= ' on('.$this->getJoinCondition().')';
-            }
-        } else {
-            $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin()."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-            if ($this->getJoinCondition() !== null) {
-                $retVal .= ' on('.$this->getJoinCondition().')';
-            }
-        }
-        return $retVal;
+        return $colsToSelect;
     }
     public function getJoin() {
         $retVal = $this->getLeft()->getName()
