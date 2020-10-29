@@ -270,7 +270,7 @@ abstract class AbstractQuery {
             $copy->limit = $this->limit;
             $copy->offset = $this->offset;
             $copy->associatedTbl = $this->associatedTbl;
-            $copy->whereExp = $this->whereExp;
+            //$copy->whereExp = $this->whereExp;
             $copy->schema = $this->schema;
             
             return $copy;
@@ -573,6 +573,9 @@ abstract class AbstractQuery {
         $this->lastQueryType = '';
         $this->limit = -1;
         $this->offset = -1;
+        if ($this->getTable() !== null) {
+            //$this->getTable()->getSelect()->clear();
+        }
     }
     /**
      * Constructs a select query based on associated table.

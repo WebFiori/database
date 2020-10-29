@@ -25,6 +25,24 @@ use super\entity\UserEntity;
  * @author Ibrahim
  */
 class MySQLQueryBuilderTest extends TestCase {
+//    public function testConnect() {
+//        //Testing multiple connections.
+//        
+//        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db');
+//        $conn = new MySQLConnection($connInfo);
+//        $schema = new MySQLTestSchema();
+//        $schema->setConnection($conn);
+//        
+//        $s = new MySQLTestSchema();
+//        $c = $s->getConnection();
+//        
+//        $s2 = new MySQLTestSchema();
+//        $c2 = $s2->getConnection();
+//        
+//        $s3 = new MySQLTestSchema();
+//        $c3 = $s3->getConnection();
+//        $this->assertTrue(true);
+//    }
     /**
      * 
      * @param MySQLTestSchema $schema

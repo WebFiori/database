@@ -89,17 +89,9 @@ class Database {
      * 
      * @since 1.0
      */
-    public function __construct(ConnectionInfo $connectionInfo) {
+    public function __construct(ConnectionInfo $connectionInfo = null) {
+        $this->setConnectionInfo($connectionInfo);
         $this->queries = [];
-        $this->connectionInfo = $connectionInfo;
-        $driver = $connectionInfo->getDatabaseType();
-
-        if ($driver == 'mysql') {
-            $this->queryGenerator = new MySQLQuery();
-            $this->queryGenerator->setSchema($this);
-        } else {
-            throw new DatabaseException('Driver not supported: "'.$driver.'".');
-        }
     }
     /**
      * 
@@ -192,6 +184,7 @@ class Database {
      * @since 1.0
      */
     public function delete() {
+        $this->clear();
         return $this->getQueryGenerator()->delete();
     }
     /**
@@ -203,6 +196,7 @@ class Database {
      * @since 1.0
      */
     public function drop() {
+        $this->clear();
         return $this->getQueryGenerator()->drop();
     }
     /**
@@ -262,7 +256,9 @@ class Database {
 
             if ($driver == 'mysql') {
                 try {
-                    $this->connection = new MySQLConnection($this->getConnectionInfo());
+                    $connInfo = $this->getConnectionInfo();
+                    $conn = new MySQLConnection($connInfo);
+                    $this->setConnection($conn);
                 } catch (DatabaseException $ex) {
                     throw new DatabaseException($ex->getMessage());
                 }
@@ -388,6 +384,7 @@ class Database {
      * @since 1.0
      */
     public function insert($colsAndVals) {
+        $this->clear();
         return $this->getQueryGenerator()->insert($colsAndVals);
     }
     /**
@@ -475,6 +472,7 @@ class Database {
      * @since 1.0
      */
     public function select($cols = ['*']) {
+        $this->clear();
         return $this->getQueryGenerator()->select($cols);
     }
     /**
@@ -486,6 +484,27 @@ class Database {
      */
     public function setConnection(Connection $con) {
         $this->connection = $con;
+    }
+    /**
+     * Sets database connection information.
+     * 
+     * @param ConnectionInfo $info An object that holds connection information.
+     * 
+     * @throws DatabaseException The method will throw an exception if database 
+     * driver is not supported.
+     * 
+     * @since 1.0
+     */
+    public function setConnectionInfo(ConnectionInfo $info) {
+        $driver = $info->getDatabaseType();
+
+        if ($driver == 'mysql') {
+            $this->queryGenerator = new MySQLQuery();
+            $this->queryGenerator->setSchema($this);
+        } else {
+            throw new DatabaseException('Driver not supported: "'.$driver.'".');
+        }
+        $this->connectionInfo = $info;
     }
     /**
      * Select one of the tables which exist on the schema and use it to build
@@ -510,6 +529,7 @@ class Database {
      * @since 1.0
      */
     public function truncate() {
+        $this->clear();
         return $this->getQueryGenerator()->truncate();
     }
     /**
@@ -526,6 +546,7 @@ class Database {
      * @since 1.0
      */
     public function update($newColsVals) {
+        $this->clear();
         return $this->getQueryGenerator()->update($newColsVals);
     }
     /**

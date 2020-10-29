@@ -82,8 +82,23 @@ class SelectExpression extends Expression {
         $this->orderByCols = [];
         $this->groupByCols = [];
     }
+    /**
+     * 
+     * @return WhereExpression|null
+     */
     public function getWhereExpr() {
         return $this->whereExp;
+    }
+    /**
+     * 
+     * @param Condition $cond
+     * @param type $join
+     */
+    public function addWhereCondition(Condition $cond, $join = 'and') {
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression();
+        }
+        $this->whereExp->addCondition($cond, $join);
     }
     /**
      * Adds a condition to the 'where' part of the select.
@@ -338,6 +353,7 @@ class SelectExpression extends Expression {
         $this->selectCols = [];
         $this->groupByCols = [];
         $this->orderByCols = [];
+        $this->whereExp = null;
     }
     /**
      * Returns an array that contains all columns keys which are in the select.
