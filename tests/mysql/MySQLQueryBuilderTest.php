@@ -43,6 +43,54 @@ class MySQLQueryBuilderTest extends TestCase {
 //        $c3 = $s3->getConnection();
 //        $this->assertTrue(true);
 //    }
+    public function testCreateTables() {
+        $schema = new MySQLTestSchema();
+        $schema->createTables();
+        $this->assertEquals("create table if not exists `users` (\n"
+                . "    `id` int not null unique auto_increment,\n"
+                . "    `first_name` varchar(15) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    `last_name` varchar(20) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    `age` int not null,\n"
+                . "    constraint `users_pk` primary key (`id`)\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;\n"
+                . "create table if not exists `users_privileges` (\n"
+                . "    `id` int not null unique,\n"
+                . "    `can_edit_price` bit(1) not null default b'0',\n"
+                . "    `can_change_username` bit(1) not null,\n"
+                . "    `can_do_anything` bit(1) not null,\n"
+                . "    constraint `users_privileges_pk` primary key (`id`),\n"
+                . "    constraint `user_privilege_fk` foreign key (`id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;\n"
+                . "create table if not exists `users_tasks` (\n"
+                . "    `task_id` int not null unique auto_increment,\n"
+                . "    `user_id` int not null comment 'The ID of the user who must perform the activity.',\n"
+                . "    `created_on` timestamp not null default now(),\n"
+                . "    `last_updated` datetime null,\n"
+                . "    `is_finished` bit(1) not null default b'0',\n"
+                . "    `details` varchar(1500) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    constraint `users_tasks_pk` primary key (`task_id`),\n"
+                . "    constraint `user_task_fk` foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "comment 'The tasks at which each user can have.'\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;\n"
+                . "create table if not exists `profile_pics` (\n"
+                . "    `user_id` int not null unique,\n"
+                . "    `pic` mediumblob not null,\n"
+                . "    constraint `profile_pics_pk` primary key (`user_id`),\n"
+                . "    constraint `user_profile_pic_fk` foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
+    }
     /**
      * 
      * @param MySQLTestSchema $schema
