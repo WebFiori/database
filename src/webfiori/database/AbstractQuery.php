@@ -219,9 +219,26 @@ abstract class AbstractQuery {
      * 
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
+     * 
+     * @since 1.0
      */
     public abstract function dropPrimaryKey($pkName = null);
-
+    /**
+     * Constructs a query which can be used to drop foreign key constraint.
+     * 
+     * @param string $keyName The name of the key as it appears in the database.
+     * 
+     * @return AbstractQuery The method should return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0
+     */
+    public function dropForeignKey($keyName) {
+        $tableName = $this->getTable()->getName();
+        $query = "alter table $tableName drop constraint $keyName;";
+        $this->setQuery($query);
+        return $this;
+    }
     /**
      * Execute the generated SQL query.
      * 
@@ -436,6 +453,18 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    /**
+     * Constructs a query which can be used to rename a column.
+     * 
+     * @param string $colKey The name of column key as specified when the column 
+     * was added to the table.
+     * 
+     * @param string $newName The new name of the column.
+     * 
+     * @return AbstractQuery The method should return the same instance at which 
+     * the method is called on.
+     */
+    public abstract function renameCol($colKey);
     /**
      * Constructs a query that can be used to modify a column.
      * 

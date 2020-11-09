@@ -948,4 +948,33 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as T2 "
                 . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)) as T3 join `users` on(`T3`.`id` = `users`.`id`)", $schema->getLastQuery());
     }
+    /**
+     * @test
+     */
+    public function renameColTest00() {
+        $schema = new MySQLTestSchema();
+        $schema->getTable('users')->getColByKey('id')->setName('user_id');
+        
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->renameCol('id');
+        $this->assertEquals('alter table `users` rename column `id` to `user_id`;', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function renameColTest01() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->renameCol('not-exist');
+    }
+    /**
+     * @test
+     */
+    public function renameColTest02() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('Cannot build the query. Old column name is null.');
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->renameCol('id');
+    }
 }

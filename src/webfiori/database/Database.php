@@ -290,8 +290,9 @@ class Database {
         ];
     }
     /**
+     * Returns the last generated SQL query.
      * 
-     * @return string
+     * @return string Last generated SQL query as string.
      * 
      * @since 1.0
      */
