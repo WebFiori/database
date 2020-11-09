@@ -242,6 +242,14 @@ class MySQLTable extends Table {
             }
         }
     }
+    /**
+     * Returns SQL query which can be used to create the table.
+     * 
+     * @return string A string that represents SQL query which can be used 
+     * to create the table.
+     * 
+     * @since 1.0
+     */
     public function toSQL() {
         $queryStr = '';
 
