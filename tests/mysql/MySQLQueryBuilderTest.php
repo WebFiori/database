@@ -977,4 +977,29 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $schema->table('users')->renameCol('id');
     }
+    /**
+     * @test
+     */
+    public function testAddFk00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->addForeignKey('user_task_fk');
+        $this->assertEquals("alter table `users_tasks` add constraint user_task_fk foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict;", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddFk01() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("No such foreign key: 'xyz'.");
+        $schema->table('users_tasks')->addForeignKey('xyz');
+    }
+    /**
+     * @test
+     */
+    public function testDropFk00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->dropForeignKey('user_task_fk');
+        $this->assertEquals("alter table `users_tasks` drop foreign key user_task_fk;", $schema->getLastQuery());
+    }
 }
