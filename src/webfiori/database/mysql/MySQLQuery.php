@@ -184,6 +184,25 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
+     * Constructs a query that can be used to drop foreign key constraint.
+     * 
+     * @param string $keyName The name of the key.
+     * 
+     * @return MySQLQuery The method should return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0.1
+     */
+    public function dropForeignKey($keyName) {
+        $trimmed = trim($keyName);
+        if (strlen($trimmed) != 0) {
+            $tblName = $this->getTable()->getName();
+            $query = "alter table $tblName drop foreign key $trimmed;";
+            $this->setQuery($query);
+        }
+        return $this;
+    }
+    /**
      * Returns the generated SQL query.
      * 
      * @return string Returns the generated query as string.
