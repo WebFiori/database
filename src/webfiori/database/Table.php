@@ -353,6 +353,27 @@ abstract class Table {
         return $this->mapper;
     }
     /**
+     * Returns a foreign key given its name.
+     * 
+     * @param string $keyName The name of the foreign key as specified when it 
+     * was added to the table.
+     * 
+     * @return ForeignKey|null If a key with the given name exist, the method 
+     * will return an object that represent it. Other than that, the method will 
+     * return null.
+     * 
+     * @since 1.0.1
+     */
+    public function getForeignKey($keyName) {
+        
+        foreach ($this->getForignKeys() as $keyObj) {
+            
+            if ($keyObj->getKeyName() == $keyName) {
+                return $keyObj;
+            }
+        }
+    }
+    /**
      * Returns an array that contains all table foreign keys.
      * 
      * @return array An array of FKs.
