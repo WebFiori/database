@@ -555,7 +555,7 @@ abstract class Table {
         $removedKeyObj = null;
         
         foreach ($this->foreignKeys as $key) {
-            $key instanceof ForeignKey;
+
             if (!($key->getKeyName() == $trimmed)) {
                 $newKeysArr[] = $key;
             } else {

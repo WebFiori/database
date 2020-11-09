@@ -162,8 +162,8 @@ abstract class AbstractQuery {
         if ($fkObj->getOnDelete() !== null) {
             $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
         }
-        $query = "alter table $tblName add $fkConstraint;";
-        $this->setQuery($query);
+        $finalQuery = "alter table $tblName add $fkConstraint;";
+        $this->setQuery($finalQuery);
         
         return $this;
     }
@@ -287,8 +287,8 @@ abstract class AbstractQuery {
         $trimmed = trim($keyName);
         if (strlen($trimmed) != 0) {
             $tableName = $this->getTable()->getName();
-            $query = "alter table $tableName drop constraint $trimmed;";
-            $this->setQuery($query);
+            $alterQuery = "alter table $tableName drop constraint $trimmed;";
+            $this->setQuery($alterQuery);
         }
         return $this;
     }

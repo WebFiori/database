@@ -183,13 +183,12 @@ class Database {
      * @since 1.0.1
      */
     public function createTables() {
-        $query = '';
+        $generatedQuery = '';
         
         foreach ($this->getTables() as $tableObj) {
-            $tableObj instanceof Table;
-            $query .= $tableObj->toSQL()."\n";
+            $generatedQuery .= $tableObj->toSQL()."\n";
         }
-        $this->getQueryGenerator()->setQuery($query);
+        $this->getQueryGenerator()->setQuery($generatedQuery);
         
         return $this->getQueryGenerator();
     }
