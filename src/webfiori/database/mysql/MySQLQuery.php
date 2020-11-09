@@ -34,7 +34,7 @@ use webfiori\database\DatabaseException;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class MySQLQuery extends AbstractQuery {
     /**
@@ -106,20 +106,25 @@ class MySQLQuery extends AbstractQuery {
      * @param string $str This can be the name of a column in a table or the name 
      * of a table.
      * 
-     * @return string The method will return a string surounded by backticks.
+     * @return string|null The method will return a string surounded by backticks. 
+     * If empty string is given, the method will return null.
      * 
      * @since 1.0
      */
     public static function backtick($str) {
-        $exp = explode('.', $str);
+        $trimmed = trim($str);
+        
+        if (strlen($trimmed) != 0) {
+            $exp = explode('.', $trimmed);
 
-        $arr = [];
+            $arr = [];
 
-        foreach ($exp as $xStr) {
-            $arr[] = '`'.trim($xStr,'`').'`';
+            foreach ($exp as $xStr) {
+                $arr[] = '`'.trim($xStr,'`').'`';
+            }
+
+            return implode('.', $arr);
         }
-
-        return implode('.', $arr);
     }
     /**
      * Constructs a query which can be used to remove a record from the associated 
@@ -176,6 +181,25 @@ class MySQLQuery extends AbstractQuery {
     public function dropPrimaryKey($pkName = null) {
         $this->setQuery('alter table '.$this->getTable()->getName().' drop primary key;');
 
+        return $this;
+    }
+    /**
+     * Constructs a query that can be used to drop foreign key constraint.
+     * 
+     * @param string $keyName The name of the key.
+     * 
+     * @return MySQLQuery The method should return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0.1
+     */
+    public function dropForeignKey($keyName) {
+        $trimmed = trim($keyName);
+        if (strlen($trimmed) != 0) {
+            $tblName = $this->getTable()->getName();
+            $query = "alter table $tblName drop foreign key $trimmed;";
+            $this->setQuery($query);
+        }
         return $this;
     }
     /**
@@ -543,4 +567,47 @@ class MySQLQuery extends AbstractQuery {
 
         return '('.implode(', ', $valsArr).')';
     }
+    /**
+     * Constructs a query which can be used to modify the name of 
+     * a column.
+     * 
+     * @param string $colKey Column key.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException The method will throw an exception if 
+     * the table has no column with given key or the name of the 
+     * specified column was not changed.
+     * 
+     * @since 1.0.1
+     */
+    public function renameCol($colKey) {
+        $colObj = $this->getTable()->getColByKey($colKey);
+        $tblName = $this->getTable()->getName();
+        
+        if (!$colObj instanceof MySQLColumn) {
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+        
+        if ($colObj->getOldName() == null) {
+            throw new DatabaseException('Cannot build the query. Old column name is null.');
+        }
+
+        $split = explode('.', $colObj->getMySQLVersion());
+        $oldName = $colObj->getOldName();
+        $newName = $colObj->getName();
+        
+        if (isset($split[0]) && intval($split[0]) >= 8) {
+            //8.0 support new syntax
+            $query = "alter table $tblName rename column $oldName to $newName;";
+        } else {
+            $colDef = substr($colObj->asString(), strlen($newName));
+            $query = "alter table $tblName change column $oldName $newName $colDef;";
+        }
+        $this->setQuery($query);
+        
+        return $this;
+    }
+
 }

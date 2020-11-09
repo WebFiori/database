@@ -32,7 +32,7 @@ namespace webfiori\database;
  * 
  * @author Ibrahim
  * 
- * @since 1.0
+ * @since 1.0.1
  */
 abstract class Column {
     /**
@@ -143,6 +143,11 @@ abstract class Column {
      * @since 1.0
      */
     private $size;
+    /**
+     *
+     * @var string|null 
+     */
+    private $oldName;
     /**
      * An array which holds all supported datatypes of the column.
      * 
@@ -273,6 +278,20 @@ abstract class Column {
         }
 
         return $this->name;
+    }
+    /**
+     * Returns the old name of the column.
+     * 
+     * Note that the old name will be set only if the method 
+     * Column::setName() is called more than once in the same instance.
+     * 
+     * @return string|null The method will return a string that represents the 
+     * old name if it is set. Null if not.
+     * 
+     * @since 1.0.1
+     */
+    public function getOldName() {
+        return $this->oldName;
     }
     /**
      * Returns the table who owns the column.
@@ -544,6 +563,7 @@ abstract class Column {
      * @since 1.0
      */
     public function setName($name) {
+        $this->oldName = $this->getName();
         $this->name = trim($name);
     }
     /**
@@ -563,12 +583,10 @@ abstract class Column {
             $this->owner = $table;
             $colsCount = $table->getColsCount();
             $this->columnIndex = $colsCount == 0 ? 0 : $colsCount;
-        } else {
-            if ($table === null) {
-                $this->prevOwner = $this->owner;
-                $this->owner = null;
-                $this->columnIndex = -1;
-            }
+        } else if ($table === null) {
+            $this->prevOwner = $this->owner;
+            $this->owner = null;
+            $this->columnIndex = -1;
         }
     }
     /**

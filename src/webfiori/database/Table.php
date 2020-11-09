@@ -29,11 +29,30 @@ namespace webfiori\database;
  *
  * @author Ibrahim
  * 
- * @since 1.0
+ * @since 1.0.1
  */
 abstract class Table {
+    /**
+     *
+     * @var array
+     * 
+     * @since 1.0
+     */
     private $colsArr;
+    /**
+     *
+     * @var string|null
+     * 
+     * @since 1.0
+     */
     private $comment;
+    /**
+     *
+     * @var string|null 
+     * 
+     * @since 1.0.1 
+     */
+    private $oldName;
     /**
      * An array that contains all table foreign keys.
      * 
@@ -49,14 +68,38 @@ abstract class Table {
      * @since 1.0 
      */
     private $mapper;
+    /**
+     *
+     * @var string
+     * 
+     * @since 1.0
+     */
     private $name;
+    /**
+     *
+     * @var Database|null
+     * 
+     * @since 1.0
+     */
     private $ownerSchema;
+    /**
+     *
+     * @var type
+     * 
+     * @since 1.0
+     */
     private $selectExpr;
+    /**
+     *
+     * @var boolean
+     * 
+     * @since 1.0
+     */
     private $withDbPrefix;
     /**
      * Creates a new instance of the class.
      * 
-     * @param string $tName The name of the table. If empty string is given, 
+     * @param string $name The name of the table. If empty string is given, 
      * the value 'new_table' will be used as default.
      * 
      * @since 1.0
@@ -310,6 +353,27 @@ abstract class Table {
         return $this->mapper;
     }
     /**
+     * Returns a foreign key given its name.
+     * 
+     * @param string $keyName The name of the foreign key as specified when it 
+     * was added to the table.
+     * 
+     * @return ForeignKey|null If a key with the given name exist, the method 
+     * will return an object that represent it. Other than that, the method will 
+     * return null.
+     * 
+     * @since 1.0.1
+     */
+    public function getForeignKey($keyName) {
+        
+        foreach ($this->getForignKeys() as $keyObj) {
+            
+            if ($keyObj->getKeyName() == $keyName) {
+                return $keyObj;
+            }
+        }
+    }
+    /**
      * Returns an array that contains all table foreign keys.
      * 
      * @return array An array of FKs.
@@ -344,6 +408,20 @@ abstract class Table {
         }
 
         return $this->name;
+    }
+    /**
+     * Returns the old name of the column.
+     * 
+     * Note that the old name will be set only if the method 
+     * Table::setName() is called more than once in the same instance.
+     * 
+     * @return string|null The method will return a string that represents the 
+     * old name if it is set. Null if not.
+     * 
+     * @since 1.0.1
+     */
+    public function getOldName() {
+        return $this->oldName;
     }
     /**
      * Returns the database which owns the table.
@@ -462,6 +540,33 @@ abstract class Table {
         return $this->withDbPrefix;
     }
     /**
+     * Removes a foreign key given its name.
+     * 
+     * @param string $keyName The name of the foreign key.
+     * 
+     * @return ForeignKey|null If the key was removed, the method will return the 
+     * removed key as an object. If nothing changed, the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function removeReference($keyName) {
+        $trimmed = trim($keyName);
+        $newKeysArr = [];
+        $removedKeyObj = null;
+        
+        foreach ($this->foreignKeys as $key) {
+
+            if (!($key->getKeyName() == $trimmed)) {
+                $newKeysArr[] = $key;
+            } else {
+                $removedKeyObj = $key;
+            }
+        }
+        $this->foreignKeys = $newKeysArr;
+        
+        return $removedKeyObj;
+    }
+    /**
      * Removes a column from the table given its key.
      * 
      * @param string $colKey Key name of the column.
@@ -509,6 +614,7 @@ abstract class Table {
         $trimmed = trim($name);
 
         if (strlen($trimmed) > 0) {
+            $this->oldName = $this->getName();
             $this->name = $trimmed;
 
             return true;

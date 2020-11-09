@@ -25,6 +25,7 @@ class MySQLColumnTest extends TestCase {
      */
     public function testConstructor16() {
         $col = new MySQLColumn('hello_col', 'varchar');
+        $this->assertNull($col->getOldName());
         $this->assertEquals('`hello_col`', $col->getName());
         $this->assertEquals('varchar', $col->getDatatype());
         $this->assertNull($col->getDefault());
@@ -193,6 +194,9 @@ class MySQLColumnTest extends TestCase {
         $this->assertEquals(-99,$col->cleanValue('-99.65'));
         $this->assertEquals(0,$col->cleanValue('hello-99.65'));
         $this->assertEquals(5,$col->cleanValue(5));
+        $this->assertNull($col->getOldName());
+        $col->setName('new');
+        $this->assertEquals('`col`', $col->getOldName());
     }
     /**
      * @test

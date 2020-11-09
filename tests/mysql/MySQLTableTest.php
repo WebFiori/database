@@ -61,6 +61,7 @@ class MySQLTableTest extends TestCase {
      */
     public function testConstructor00() {
         $table = new MySQLTable();
+        $this->assertNull($table->getOldName());
         $this->assertEquals('`new_table`',$table->getName());
     }
     /**
@@ -75,7 +76,10 @@ class MySQLTableTest extends TestCase {
      */
     public function testConstructor02() {
         $table = new MySQLTable('    another_Valid_Name    ');
+        $this->assertNull($table->getOldName());
         $this->assertEquals('`another_Valid_Name`',$table->getName());
+        $table->setName('new-name');
+        $this->assertEquals('`another_Valid_Name`', $table->getOldName());
     }
     /**
      * 
@@ -253,5 +257,52 @@ class MySQLTableTest extends TestCase {
             ]
         ]);
         $this->assertEquals('bool',$table->getColByKey('is-active')->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testRemoveRef00() {
+        $table = new MySQLTable();
+        $table->addColumns([
+            'user-id' => [
+                'size' => 15
+            ],
+            'is-active' => [
+                'type' => 'bool'
+            ]
+        ]);
+        $this->assertNull($table->removeReference('not-exist'));
+    }
+    /**
+     * @test
+     */
+    public function testRemoveRef01() {
+        $table = new MySQLTable('active_or_not');
+        $table->addColumns([
+            'user-id' => [
+                'size' => 15
+            ],
+            'is-active' => [
+                'type' => 'bool'
+            ]
+        ]);
+        $table2 = new MySQLTable('user_info');
+        $table2->addColumns([
+            'user-id' => [
+                'size' => 15
+            ],
+            'first-name' => [
+                'size' => '50'
+            ],
+            'last-name' => [
+                'size' => '50'
+            ]
+        ]);
+        $table->addReference($table2, ['user-id'], 'hello_fk');
+        $this->assertEquals(1, $table->getForignKeysCount());
+        $this->assertNull($table->removeReference('not-exist'));
+        $obj = $table->removeReference('hello_fk');
+        $this->assertEquals('hello_fk', $obj->getKeyName());
+        $this->assertEquals(0, $table->getForignKeysCount());
     }
 }

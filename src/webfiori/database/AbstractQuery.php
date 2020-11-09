@@ -121,6 +121,53 @@ abstract class AbstractQuery {
      * the method is called on.
      */
     public abstract function addPrimaryKey($pkName, array $pkCols);
+        /**
+     * Constructs a query that can be used to add foreign key constraint.
+     * 
+     * @param string $keyName The name of the foreign key as specified when creating 
+     * the table.
+     * 
+     * @return AbstractQuery The method should return the same instance at which 
+     * the method is called on.
+     * 
+     * @throws DatabaseException If no key with the given name exist in the table.
+     * 
+     * @since 1.0.1
+     */
+    public function addForeignKey($keyName) {
+        $fkObj = $this->getTable()->getForeignKey($keyName);
+        
+        if ($fkObj === null) {
+            throw new DatabaseException("No such foreign key: '$keyName'.");
+        }
+        
+        $sourceCols = [];
+
+        foreach ($fkObj->getSourceCols() as $colObj) {
+            $sourceCols[] = $colObj->getName();
+        }
+        $targetCols = [];
+
+        foreach ($fkObj->getOwnerCols() as $colObj) {
+            $targetCols[] = $colObj->getName();
+        }
+        $fkConstraint = "constraint ".$fkObj->getKeyName().' '
+                .'foreign key ('.implode(', ', $targetCols).') '
+                .'references '.$fkObj->getSourceName().' ('.implode(', ', $sourceCols).')';
+        $tblName = $this->getTable()->getName();
+        if ($fkObj->getOnUpdate() !== null) {
+            $fkConstraint .= ' on update '.$fkObj->getOnUpdate();
+        }
+
+        if ($fkObj->getOnDelete() !== null) {
+            $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
+        }
+        $finalQuery = "alter table $tblName add $fkConstraint;";
+        $this->setQuery($finalQuery);
+        
+        return $this;
+    }
+    
     /**
      * Build a where condition.
      * 
@@ -219,9 +266,32 @@ abstract class AbstractQuery {
      * 
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
+     * 
+     * @since 1.0
      */
     public abstract function dropPrimaryKey($pkName = null);
-
+    /**
+     * Constructs a query that can be used to drop foreign key constraint.
+     * 
+     * Note that the syntax will support only SQL Server and Oracle. The developer 
+     * may have to override this method to support other databases.
+     * 
+     * @param string $keyName The name of the key.
+     * 
+     * @return AbstractQuery The method should return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0.1
+     */
+    public function dropForeignKey($keyName) {
+        $trimmed = trim($keyName);
+        if (strlen($trimmed) != 0) {
+            $tableName = $this->getTable()->getName();
+            $alterQuery = "alter table $tableName drop constraint $trimmed;";
+            $this->setQuery($alterQuery);
+        }
+        return $this;
+    }
     /**
      * Execute the generated SQL query.
      * 
@@ -436,6 +506,18 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    /**
+     * Constructs a query which can be used to rename a column.
+     * 
+     * @param string $colKey The name of column key as specified when the column 
+     * was added to the table.
+     * 
+     * @param string $newName The new name of the column.
+     * 
+     * @return AbstractQuery The method should return the same instance at which 
+     * the method is called on.
+     */
+    public abstract function renameCol($colKey);
     /**
      * Constructs a query that can be used to modify a column.
      * 

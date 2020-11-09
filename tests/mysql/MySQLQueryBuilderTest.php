@@ -43,6 +43,54 @@ class MySQLQueryBuilderTest extends TestCase {
 //        $c3 = $s3->getConnection();
 //        $this->assertTrue(true);
 //    }
+    public function testCreateTables() {
+        $schema = new MySQLTestSchema();
+        $schema->createTables();
+        $this->assertEquals("create table if not exists `users` (\n"
+                . "    `id` int not null unique auto_increment,\n"
+                . "    `first_name` varchar(15) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    `last_name` varchar(20) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    `age` int not null,\n"
+                . "    constraint `users_pk` primary key (`id`)\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;\n"
+                . "create table if not exists `users_privileges` (\n"
+                . "    `id` int not null unique,\n"
+                . "    `can_edit_price` bit(1) not null default b'0',\n"
+                . "    `can_change_username` bit(1) not null,\n"
+                . "    `can_do_anything` bit(1) not null,\n"
+                . "    constraint `users_privileges_pk` primary key (`id`),\n"
+                . "    constraint `user_privilege_fk` foreign key (`id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;\n"
+                . "create table if not exists `users_tasks` (\n"
+                . "    `task_id` int not null unique auto_increment,\n"
+                . "    `user_id` int not null comment 'The ID of the user who must perform the activity.',\n"
+                . "    `created_on` timestamp not null default now(),\n"
+                . "    `last_updated` datetime null,\n"
+                . "    `is_finished` bit(1) not null default b'0',\n"
+                . "    `details` varchar(1500) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    constraint `users_tasks_pk` primary key (`task_id`),\n"
+                . "    constraint `user_task_fk` foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "comment 'The tasks at which each user can have.'\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;\n"
+                . "create table if not exists `profile_pics` (\n"
+                . "    `user_id` int not null unique,\n"
+                . "    `pic` mediumblob not null,\n"
+                . "    constraint `profile_pics_pk` primary key (`user_id`),\n"
+                . "    constraint `user_profile_pic_fk` foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
+    }
     /**
      * 
      * @param MySQLTestSchema $schema
@@ -947,5 +995,59 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
                 . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as T2 "
                 . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)) as T3 join `users` on(`T3`.`id` = `users`.`id`)", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function renameColTest00() {
+        $schema = new MySQLTestSchema();
+        $schema->getTable('users')->getColByKey('id')->setName('user_id');
+        
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->renameCol('id');
+        $this->assertEquals('alter table `users` rename column `id` to `user_id`;', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function renameColTest01() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->renameCol('not-exist');
+    }
+    /**
+     * @test
+     */
+    public function renameColTest02() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('Cannot build the query. Old column name is null.');
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->renameCol('id');
+    }
+    /**
+     * @test
+     */
+    public function testAddFk00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->addForeignKey('user_task_fk');
+        $this->assertEquals("alter table `users_tasks` add constraint user_task_fk foreign key (`user_id`) references `users` (`id`) on update cascade on delete restrict;", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddFk01() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("No such foreign key: 'xyz'.");
+        $schema->table('users_tasks')->addForeignKey('xyz');
+    }
+    /**
+     * @test
+     */
+    public function testDropFk00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->dropForeignKey('user_task_fk');
+        $this->assertEquals("alter table `users_tasks` drop foreign key user_task_fk;", $schema->getLastQuery());
     }
 }
