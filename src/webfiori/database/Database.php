@@ -33,7 +33,7 @@ use webfiori\database\mysql\MySQLQuery;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class Database {
     /**
@@ -173,6 +173,25 @@ class Database {
      */
     public function createTable() {
         return $this->getQueryGenerator()->createTable();
+    }
+    /**
+     * Create SQL query which can be used to create all database tables.
+     * 
+     * @return AbstractQuery The method will return an instance of the class 
+     * 'AbstractQuery' which can be used to build SQL queries.
+     * 
+     * @since 1.0.1
+     */
+    public function createTables() {
+        $query = '';
+        
+        foreach ($this->getTables() as $tableObj) {
+            $tableObj instanceof Table;
+            $query .= $tableObj->toSQL()."\n";
+        }
+        $this->getQueryGenerator()->setQuery($query);
+        
+        return $this->getQueryGenerator();
     }
     /**
      * Constructs a query which can be used to remove a record from the 
@@ -361,6 +380,17 @@ class Database {
         }
 
         return $this->tablesArr[$trimmed];
+    }
+    /**
+     * Returns an array that contains all added tables.
+     * 
+     * @return array The method will return an associative array. The indices 
+     * of the array are tables names and the values are objects of type 'Table'.
+     * 
+     * @since 1.0.1
+     */
+    public function getTables() {
+        return $this->tablesArr;
     }
     /**
      * Checks if a table exist in the database or not.
