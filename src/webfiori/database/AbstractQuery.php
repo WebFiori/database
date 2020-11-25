@@ -30,9 +30,16 @@ use webfiori\database\mysql\MySQLQuery;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 abstract class AbstractQuery {
+    /**
+     *
+     * @var boolean
+     * 
+     * @since 1.0.1 
+     */
+    private $isMultiQuery;
     /**
      *
      * @var Table|null 
@@ -446,6 +453,17 @@ abstract class AbstractQuery {
      */
     public abstract function insert(array $colsAndVals);
     /**
+     * Checks if the query represents a multi-query.
+     * 
+     * @return boolean The method will return true if the query is a multi-query. 
+     * False if not.
+     * 
+     * @since 1.0.1
+     */
+    public function isMultiQuery() {
+        return $this->isMultiQuery;
+    }
+    /**
      * Perform a join query.
      * 
      * @param AbstractQuery $query The query at which the current query 
@@ -733,16 +751,12 @@ abstract class AbstractQuery {
             if (strlen($columnsToSelect) == 0) {
                 $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
                 $this->setQuery($selectVal.$tableSQL);
+            } else if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
+                $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
+            } else if (strlen($columnsToSelect) != 0) {
+                $this->setQuery("select $columnsToSelect from ".$tableSQL);
             } else {
-                if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
-                    $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
-                } else {
-                    if (strlen($columnsToSelect) != 0) {
-                        $this->setQuery("select $columnsToSelect from ".$tableSQL);
-                    } else {
-                        $this->setQuery("select $thisCols from ".$tableSQL);
-                    }
-                }
+                $this->setQuery("select $thisCols from ".$tableSQL);
             }
         } else {
             $this->setQuery($selectVal);
@@ -755,8 +769,12 @@ abstract class AbstractQuery {
      * 
      * @param string $query SQL query.
      * 
+     * @param boolean $multiQuery A boolean which is set to true if the query 
+     * represents multi-query.
+     * 
+     * @since 1.0
      */
-    public function setQuery($query) {
+    public function setQuery($query, $multiQuery = false) {
         if ($query === null) {
             $this->query = '';
             $this->lastQueryType = '';
@@ -768,6 +786,7 @@ abstract class AbstractQuery {
         if (!empty($exp)) {
             $this->lastQueryType = $exp[0];
         }
+        $this->isMultiQuery = $multiQuery === true;
         $this->query = $query;
         $this->getSchema()->addQuery($query, $this->getLastQueryType());
     }
