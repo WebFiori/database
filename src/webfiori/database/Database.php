@@ -188,7 +188,7 @@ class Database {
         foreach ($this->getTables() as $tableObj) {
             $generatedQuery .= $tableObj->toSQL()."\n";
         }
-        $this->getQueryGenerator()->setQuery($generatedQuery);
+        $this->getQueryGenerator()->setQuery($generatedQuery, true);
         
         return $this->getQueryGenerator();
     }
