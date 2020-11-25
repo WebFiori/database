@@ -37,10 +37,27 @@ use webfiori\database\ResultSet;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class MySQLConnection extends Connection {
+    /**
+     *
+     * @var mysqli|null
+     * 
+     * @since 1.0 
+     */
     private $link;
+    /**
+     * Returns the instance at which the connection uses to execute 
+     * database queries.
+     * 
+     * @return mysqli|null The object which is used to connect to the database.
+     * 
+     * @since 1.0.1
+     */
+    public function getMysqli() {
+        return $this->link;
+    }
     public function __destruct() {
         mysqli_close($this->link);
     }
@@ -139,27 +156,24 @@ class MySQLConnection extends Connection {
     }
     private function _otherQuery() {
         $query = $this->getLastQuery()->getQuery();
-        $r = mysqli_query($this->link, $query);
         $retVal = false;
-
+        
+        if (!$this->getLastQuery()->isMultiQuery()) {
+            $r = mysqli_query($this->link, $query);
+        } else {
+            $r = mysqli_multi_query($this->link, $query);
+        }
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
-            $r = mysqli_multi_query($this->link, $query);
-
-            if ($r) {
-                $this->setErrMessage('NO ERRORS');
-                $this->setErrCode(0);
-                $retVal = true;
-            }
         } else {
             $this->setErrMessage('NO ERRORS');
             $this->setErrCode(0);
             $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
-
             $retVal = true;
         }
-        $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
+        $r = mysqli_query($this->link, $query);
+        
 
         return $retVal;
     }
