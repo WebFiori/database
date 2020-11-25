@@ -613,7 +613,22 @@ class MySQLColumn extends Column {
         } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
             $cleanedVal = "'".floatval($val)."'";
         } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
-            $cleanedVal = mysqli_real_escape_string($cleanedVal);
+            $ownerTable = $this->getOwner();
+            if ($ownerTable !== null) {
+                $db = $ownerTable->getOwner();
+                if ($db !== null) {
+                    $conn = $db->getConnection();
+                    $cleanedVal = mysqli_real_escape_string($conn->getMysqli(), $cleanedVal);
+                } else {
+                    $cleanedVal = filter_var(addslashes($val));
+                }
+            } else {
+                $cleanedVal = filter_var(addslashes($val));
+            }
+            // It is not secure if not escaped without connection
+            // Think about multi-byte strings
+            // At minimum, just sanitize the value using default filter
+            
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
