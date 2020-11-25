@@ -613,7 +613,7 @@ class MySQLColumn extends Column {
         } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
             $cleanedVal = "'".floatval($val)."'";
         } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
-            $cleanedVal = mysql_real_escape_string($cleanedVal);
+            $cleanedVal = mysqli_real_escape_string($cleanedVal);
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
