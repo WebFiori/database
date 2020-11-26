@@ -203,6 +203,21 @@ abstract class AbstractQuery {
     public function andWhere($col, $cond = null, $val = null) {
         return $this->where($col, $cond, $val, 'and');
     }
+    /**
+     * Creates and returns a copy of the builder.
+     * 
+     * The information that will be copied includes:
+     * <ul>
+     * <li>Limit</li>
+     * <li>Offset</li>
+     * <li>Linked table.</li>
+     * <li>Linked schema</li>
+     * </ul>
+     * 
+     * @return MySQLQuery
+     * 
+     * @since 1.0
+     */
     public function copyQuery() {
         $driver = $this->getSchema()->getConnectionInfo()->getDatabaseType();
 
@@ -355,6 +370,7 @@ abstract class AbstractQuery {
         return $this->offset;
     }
     /**
+     * Returns the previously lined query builder.
      * 
      * @return AbstractQuery|null
      */
