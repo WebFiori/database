@@ -618,7 +618,7 @@ class MySQLColumn extends Column {
                 $db = $ownerTable->getOwner();
                 if ($db !== null) {
                     $conn = $db->getConnection();
-                    $cleanedVal = mysqli_real_escape_string($conn->getMysqli(), $cleanedVal);
+                    $cleanedVal = mysqli_real_escape_string($conn->getMysqli(), $val);
                 } else {
                     $cleanedVal = filter_var(addslashes($val));
                 }
