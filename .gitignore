@@ -2,3 +2,5 @@
 .phpunit.result.cache
 src/webfiori/database/UserClass.php
 clover.xml
+.php_cs.cache
+tests/mysql/UserEntity.php
