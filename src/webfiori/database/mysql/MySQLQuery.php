@@ -348,7 +348,7 @@ class MySQLQuery extends AbstractQuery {
             }
             $valClean = $colObj->cleanValue($newVal);
             $colName = $colObj->getName();
-            $updateArr[] = "set $colName = $valClean";
+            $updateArr[] = "$colName = $valClean";
             $colsWithVals[] = $colKey;
         }
 
@@ -357,11 +357,11 @@ class MySQLQuery extends AbstractQuery {
                 $colObj = $this->getTable()->getColByKey($key);
 
                 if (($colObj->getDatatype() == 'datetime' || $colObj->getDatatype() == 'timestamp') && $colObj->isAutoUpdate()) {
-                    $updateArr[] = "set ".$colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                    $updateArr[] = $colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
                 }
             }
         }
-        $query = "update $tblName ".implode(', ', $updateArr);
+        $query = "update $tblName set ".implode(', ', $updateArr);
         $this->setQuery($query);
 
         return $this;
