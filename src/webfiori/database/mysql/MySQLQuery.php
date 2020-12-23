@@ -426,7 +426,8 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
-
+                        set_error_handler(function () {});
+                        $this->setIsBlobInsertOrUpdate(true);
                         if (file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
                             $data = '';
@@ -437,7 +438,6 @@ class MySQLQuery extends AbstractQuery {
                                 if ($fileContent !== false) {
                                     $data = '\''.addslashes($fileContent).'\'';
                                     $valsArr[] = $data;
-                                    $this->setIsBlobInsertOrUpdate(true);
                                 } else {
                                     $valsArr[] = 'null';
                                 }
@@ -445,12 +445,12 @@ class MySQLQuery extends AbstractQuery {
                             } else {
                                 $data = '\''.addslashes($val).'\'';
                                 $valsArr[] = $data;
-                                $this->setIsBlobInsertOrUpdate(true);
                             }
                         } else {
-                            $data = '\''.addslashes($fileContent).'\'';
+                            $data = '\''.addslashes($cleanedVal).'\'';
                             $valsArr[] = $data;
                         }
+                        restore_error_handler();
                     } else {
                         $valsArr[] = $cleanedVal;
                     }
@@ -510,8 +510,9 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
-
-                        if (file_exists($fixedPath)) {
+                        set_error_handler(function () {});
+                        $this->setIsBlobInsertOrUpdate(true);
+                        if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
                             $data = '';
 
@@ -521,7 +522,6 @@ class MySQLQuery extends AbstractQuery {
                                 if ($fileContent !== false) {
                                     $data = '\''.addslashes($fileContent).'\'';
                                     $valsArr[] = $data;
-                                    $this->setIsBlobInsertOrUpdate(true);
                                 } else {
                                     $valsArr[] = 'null';
                                 }
@@ -529,12 +529,12 @@ class MySQLQuery extends AbstractQuery {
                             } else {
                                 $data = '\''.addslashes($val).'\'';
                                 $valsArr[] = $data;
-                                $this->setIsBlobInsertOrUpdate(true);
                             }
                         } else {
-                            $data = '\''.addslashes($fileContent).'\'';
+                            $data = '\''.addslashes($cleanedVal).'\'';
                             $valsArr[] = $data;
                         }
+                        restore_error_handler();
                     } else {
                         $valsArr[] = $cleanedVal;
                     }
