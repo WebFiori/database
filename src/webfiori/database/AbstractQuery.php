@@ -797,14 +797,15 @@ abstract class AbstractQuery {
 
             return;
         }
-        $exp = explode(' ', $query);
+        $trimmed = trim($query);
+        $exp = explode(' ', $trimmed);
 
         if (!empty($exp)) {
             $this->lastQueryType = $exp[0];
         }
         $this->isMultiQuery = $multiQuery === true;
-        $this->query = $query;
-        $this->getSchema()->addQuery($query, $this->getLastQueryType());
+        $this->query = $trimmed;
+        $this->getSchema()->addQuery($trimmed, $this->getLastQueryType());
     }
     /**
      * Associate query generator with a database schema.
