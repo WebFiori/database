@@ -627,12 +627,16 @@ abstract class AbstractQuery {
                     $cond = new Condition($leftColName, $rightColName, $cond);
                     $table->addJoinCondition($cond, $joinWith);
                 } else {
-                    $tblName = $table->getRight()->getName();
-                    throw new DatabaseException("The table $tblName has no column with key '$rightCol'.");
+                    $tableName = $table->getName();
+                    $colsKeys = $table->getColsKeys();
+                    $message = "The table '$tableName' has no column with key '$rightCol'. Available columns: ".implode(',', $colsKeys);
+                    throw new DatabaseException($message);
                 }
             } else {
-                $tblName = $table->getLeft()->getName();
-                throw new DatabaseException("The table $tblName has no column with key '$leftCol'.");
+                $tableName = $table->getName();
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$leftCol'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
             }
         } else {
             throw new DatabaseException("The 'on' condition can be only used with join tables.");
@@ -801,7 +805,7 @@ abstract class AbstractQuery {
         $exp = explode(' ', $trimmed);
 
         if (!empty($exp)) {
-            $this->lastQueryType = $exp[0];
+            $this->lastQueryType = strtolower($exp[0]);
         }
         $this->isMultiQuery = $multiQuery === true;
         $this->query = $trimmed;
@@ -936,7 +940,9 @@ abstract class AbstractQuery {
                 $colObj = $table->getColByKey($col);
 
                 if ($colObj === null) {
-                    throw new DatabaseException("The table '$tableName' has no column with key '$col'.");
+                    $colsKeys = $table->getColsKeys();
+                    $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                    throw new DatabaseException($message);
                 }
                 $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
