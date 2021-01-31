@@ -239,7 +239,7 @@ class Database {
         }
 
         if (!$conn->runQuery($this->getQueryGenerator())) {
-            throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage());
+            throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }
         $this->clear();
         $this->getQueryGenerator()->setQuery(null);
@@ -268,7 +268,7 @@ class Database {
                     $conn = new MySQLConnection($connInfo);
                     $this->setConnection($conn);
                 } catch (DatabaseException $ex) {
-                    throw new DatabaseException($ex->getMessage());
+                    throw new DatabaseException($ex->getMessage(), $ex->getCode());
                 }
             }
         }
