@@ -29,6 +29,7 @@ use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
 use webfiori\database\ConnectionInfo;
 use webfiori\database\ResultSet;
+use webfiori\database\DatabaseException;
 /**
  * A class that represents a connection to MySQL server.
  * 
@@ -116,7 +117,11 @@ class MySQLConnection extends Connection {
         $this->setLastQuery($query);
 
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
-            $collation = filter_var($query->getTable()->getCollation());
+            try {
+                $collation = filter_var($query->getTable()->getCollation());
+            } catch (DatabaseException $ex) {
+                $collation = 'utf8mb4_unicode_520_ci';
+            }
             mysqli_query($this->link, 'set collation_connection =\''.$collation.'\'');
         }
         $qType = $query->getLastQueryType();
