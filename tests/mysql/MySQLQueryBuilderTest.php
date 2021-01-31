@@ -1050,4 +1050,10 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->table('users_tasks')->dropForeignKey('user_task_fk');
         $this->assertEquals("alter table `users_tasks` drop foreign key user_task_fk;", $schema->getLastQuery());
     }
+    public function testRawQuery00() {
+        $schema = new MySQLTestSchema();
+        $schema->getQueryGenerator()->setQuery('select * from xyz;');
+        $schema->execute();
+        $this->assertTrue(true);
+    }
 }
