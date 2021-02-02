@@ -389,8 +389,9 @@ abstract class AbstractQuery {
 
         $lastQType = $this->getLastQueryType();
 
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $whereExp = $this->getTable()->getSelect()->getWhereStr();
+        $table = $this->getTable();
+        if ($table !== null && ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update')) {
+            $whereExp = $table->getSelect()->getWhereStr();
 
             if (strlen($whereExp) != 0) {
                 $retVal .= $whereExp;
@@ -419,7 +420,8 @@ abstract class AbstractQuery {
     /**
      * Returns the table which was associated with the query.
      * 
-     * @return Table The associated table as an object.
+     * @return Table|null The associated table as an object. If no table is 
+     * associated, the method will return null.
      * 
      * @throws DatabaseException If no table was associated with the query builder, 
      * the method will throw an exception.
@@ -427,9 +429,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function getTable() {
-        if ($this->associatedTbl === null) {
-            throw new DatabaseException('No associated table.');
-        }
 
         return $this->associatedTbl;
     }

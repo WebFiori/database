@@ -33,7 +33,7 @@ use webfiori\database\mysql\MySQLQuery;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
+ * @version 1.0.2
  */
 class Database {
     /**
@@ -541,6 +541,16 @@ class Database {
             throw new DatabaseException('Driver not supported: "'.$driver.'".');
         }
         $this->connectionInfo = $info;
+    }
+    /**
+     * Sets the database query to a raw SQL query.
+     * 
+     * @param string $query A string that represents the query.
+     * 
+     * @since 1.0.2
+     */
+    public function setQuery($query) {
+        $this->getQueryGenerator()->setQuery($query);
     }
     /**
      * Select one of the tables which exist on the schema and use it to build
