@@ -222,10 +222,10 @@ abstract class AbstractQuery {
      * 
      * The information that will be copied includes:
      * <ul>
-     * <li>Limit</li>
-     * <li>Offset</li>
+     * <li>Limit.</li>
+     * <li>Offset.</li>
      * <li>Linked table.</li>
-     * <li>Linked schema</li>
+     * <li>Linked schema.</li>
      * </ul>
      * 
      * @return MySQLQuery
