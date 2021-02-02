@@ -30,9 +30,21 @@ use webfiori\database\mysql\MySQLQuery;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.1
+ * @version 1.0.2
  */
 abstract class AbstractQuery {
+    /**
+     *
+     * @var boolean
+     * 
+     * @since 1.0.2 
+     */
+    private $isPrepare;
+    /**
+     *
+     * @var array 
+     */
+    private $params;
     /**
      *
      * @var boolean
@@ -96,6 +108,8 @@ abstract class AbstractQuery {
         $this->limit = -1;
         $this->offset = -1;
         $this->query = '';
+        $this->params = [];
+        $this->isPrepare = false;
     }
     /**
      * Constructs a query that can be used to add a column to a database table.
@@ -370,6 +384,18 @@ abstract class AbstractQuery {
         return $this->offset;
     }
     /**
+     * Returns an array that contains the values at which the prepared query 
+     * will be bind to.
+     * 
+     * @return array An array that contains the values at which the prepared query 
+     * will be bind to.
+     * 
+     * @since 1.0.2
+     */
+    public function getParams() {
+        return $this->params;
+    }
+    /**
      * Returns the previously lined query builder.
      * 
      * @return AbstractQuery|null
@@ -467,6 +493,17 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function insert(array $colsAndVals);
+    /**
+     * Checks if the query will be prepared before execution or not.
+     * 
+     * @return boolean The method will return true if the query will be prepared 
+     * before execution. False if not.
+     * 
+     * @since 1.0.2
+     */
+    public function isPrepareBeforeExec() {
+        return $this->isPrepare;
+    }
     /**
      * Checks if the query represents a multi-query.
      * 
@@ -782,6 +819,32 @@ abstract class AbstractQuery {
         }
 
         return $this;
+    }
+    /**
+     * Sets the parameters which will be used in case the query will be prepared.
+     * 
+     * @param array $parameters An array that holds the parameters. The structure of 
+     * the array depends on how the developer have implemented the method 
+     * Connection::bind().
+     * 
+     * @since 1.0.2
+     */
+    public function setParams(array $parameters) {
+        $this->params = $parameters;
+    }
+    /**
+     * Sets the value of the property which is used to tell if the query 
+     * will be prepared query or not.
+     * 
+     * This will mostly be used in case of raw SQL queries.
+     * 
+     * @param boolean $bool True to make a prepared query before execution. False 
+     * to execute the query without preparation.
+     * 
+     * @since 1.0.2
+     */
+    public function setPrepareBeforeExec($bool) {
+        $this->isPrepare = $bool === true;
     }
     /**
      * Sets a raw SQL query.

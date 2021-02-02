@@ -25,6 +25,7 @@
 namespace webfiori\database\mysql;
 
 use mysqli;
+use mysqli_stmt;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
 use webfiori\database\ConnectionInfo;
@@ -38,9 +39,16 @@ use webfiori\database\DatabaseException;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
+ * @version 1.0.2
  */
 class MySQLConnection extends Connection {
+    /**
+     *
+     * @var mysqli_stmt|null
+     * 
+     * @since 1.0.2 
+     */
+    private $sqlStm;
     /**
      *
      * @var mysqli|null
@@ -113,13 +121,14 @@ class MySQLConnection extends Connection {
      * 
      * @since 1.0
      */
-    public function runQuery(AbstractQuery $query) {
+    public function runQuery(AbstractQuery $query = null) {
         $this->setLastQuery($query);
 
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
-            try {
+            $table = $query->getTable();
+            if ($table !== null) {
                 $collation = filter_var($query->getTable()->getCollation());
-            } catch (DatabaseException $ex) {
+            } else {
                 $collation = 'utf8mb4_unicode_520_ci';
             }
             mysqli_query($this->link, 'set collation_connection =\''.$collation.'\'');
@@ -134,12 +143,20 @@ class MySQLConnection extends Connection {
             return $this->_otherQuery();
         }
     }
-
+    private function _bindAndExc() {
+        $this->prepare();
+        $this->bind($query->getParams());
+        return $this->sqlStm->execute();
+    }
     private function _insertQuery() {
         $query = $this->getLastQuery();
+        if ($query->isPrepareBeforeExec()) {
+            $r = $this->_bindAndExc();
+        } else {
+            $r = mysqli_query($this->link, $query->getQuery());
+        }
         $retVal = false;
-        $r = mysqli_query($this->link, $query->getQuery());
-
+        
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
@@ -162,11 +179,14 @@ class MySQLConnection extends Connection {
     private function _otherQuery() {
         $query = $this->getLastQuery()->getQuery();
         $retVal = false;
-        
-        if (!$this->getLastQuery()->isMultiQuery()) {
-            $r = mysqli_query($this->link, $query);
+        if ($this->getLastQuery()->isPrepareBeforeExec()) {
+            $r = $this->_bindAndExc();
         } else {
-            $r = mysqli_multi_query($this->link, $query);
+            if (!$this->getLastQuery()->isMultiQuery()) {
+                $r = mysqli_query($this->link, $query);
+            } else {
+                $r = mysqli_multi_query($this->link, $query);
+            }
         }
         if (!$r) {
             $this->setErrMessage($this->link->error);
@@ -183,20 +203,27 @@ class MySQLConnection extends Connection {
         return $retVal;
     }
     private function _selectQuery() {
-        $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
+        if ($this->getLastQuery()->isPrepareBeforeExec()) {
+            $r = $this->_bindAndExc();
+        } else {
+            $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
+        }
 
         if ($r) {
             $this->setErrCode(0);
-            
+            $rows = [];
+            if ($this->getLastQuery()->isPrepareBeforeExec()) {
+                $this->sqlStm->store_result();
+                $r = $this->sqlStm->get_result();
+            }
             if (function_exists('mysqli_fetch_all')) {
                 $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
             } else {
-                $rows = [];
 
                 while ($row = $r->fetch_assoc()) {
                     $rows[] = $row;
                 }
-                
+
             }
             $this->setResultSet(new ResultSet($rows));
 
@@ -208,4 +235,52 @@ class MySQLConnection extends Connection {
             return false;
         }
     }
+    /**
+     * Bind parameters to MySQL query.
+     * 
+     * @param array $params An array that holds sub associative arrays that holds 
+     * values. Each sub array must have two indices:
+     * <ul>
+     * <li><b>value</b>: The value to bind.</li>
+     * <li><b>type</b>: The type of the value as a character. can be one of 4 values: 
+     * <ul>
+     * <li>i: corresponding variable has type integer</li>
+     * <li>d: corresponding variable has type double</li>
+     * <li>s: corresponding variable has type string</li>
+     * <li>b: corresponding variable is a blob and will be sent in packets</li>
+     * </ul>
+     * </li>
+     * <ul>
+     * 
+     * @since 1.0.2
+     */
+    public function bind(array $params) {
+        if (gettype($this->sqlStm) == 'object') {
+            foreach ($params as $subArr) {
+                $value = isset($subArr['value']) ? $subArr['value'] : null;
+                $type = isset($subArr['type']) ? $subArr['type'] : 's';
+                $this->sqlStm->bind_param("$type", $value);
+            }
+        }
+    }
+    /**
+     * Prepare SQL statement.
+     * 
+     * @return boolean If the statement was successfully prepared, the method 
+     * will return true. If an error happens, the method will return false.
+     * 
+     * @since 1.0.2
+     */
+    public function prepare() {
+        $queryObj = $this->getLastQuery();
+        if ($queryObj !== null) {
+            $queryStr = $queryObj->getQuery();
+            $this->sqlStm = mysqli_prepare ($this->link, $queryStr);
+            if (gettype($this->sqlStm) == 'object') {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

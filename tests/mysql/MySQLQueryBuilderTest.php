@@ -533,6 +533,20 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
+    public function testInsert05() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->insert([
+            'user-id' => null,
+            'details' => 'OK task'
+        ]);
+        $this->assertEquals("insert into `users_tasks` "
+                . "(`user_id`, `details`, `created_on`, `is_finished`) "
+                . "values (null, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
     public function testUpdate00() {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users_tasks');
@@ -541,7 +555,7 @@ class MySQLQueryBuilderTest extends TestCase {
             'details' => 'OKKKKKKKk'
         ]);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', set `last_updated` = '$date'", $schema->getLastQuery());
+        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', `last_updated` = '$date'", $schema->getLastQuery());
     }
     /**
      * @test
@@ -554,9 +568,25 @@ class MySQLQueryBuilderTest extends TestCase {
             'details' => 'OKKKKKKKk'
         ])->where('task-id', '=', 77);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', set `last_updated` = '$date' where `users_tasks`.`task_id` = 77", $schema->getLastQuery());
+        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', `last_updated` = '$date' where `users_tasks`.`task_id` = 77", $schema->getLastQuery());
         $q->andWhere('user-id', '=', 6);
-        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', set `last_updated` = '$date' "
+        $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', `last_updated` = '$date' "
+                . "where `users_tasks`.`task_id` = 77 and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
+    }
+     /**
+     * @test
+     */
+    public function testUpdate02() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users_tasks');
+        
+        $q->update([
+            'details' => null
+        ])->where('task-id', '=', 77);
+        $date = date('Y-m-d H:i:s');
+        $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' where `users_tasks`.`task_id` = 77", $schema->getLastQuery());
+        $q->andWhere('user-id', '=', 6);
+        $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' "
                 . "where `users_tasks`.`task_id` = 77 and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
     }
     /**
@@ -1051,8 +1081,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals("alter table `users_tasks` drop foreign key user_task_fk;", $schema->getLastQuery());
     }
     public function testRawQuery00() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("1146 - Table 'testing_db.users_tasks' doesn't exist");
         $schema = new MySQLTestSchema();
-        $schema->getQueryGenerator()->setQuery('select * from xyz;');
+        $schema->setQuery('select * from users_tasks;');
+        $this->assertEquals('select * from users_tasks;', $schema->getLastQuery());
         $schema->execute();
         $this->assertTrue(true);
     }

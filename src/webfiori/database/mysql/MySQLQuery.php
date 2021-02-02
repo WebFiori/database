@@ -346,9 +346,13 @@ class MySQLQuery extends AbstractQuery {
             if (!$colObj instanceof MySQLColumn) {
                 throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
             }
-            $valClean = $colObj->cleanValue($newVal);
             $colName = $colObj->getName();
-            $updateArr[] = "$colName = $valClean";
+            if ($newVal === null) {
+                $updateArr[] = "$colName = null";
+            } else {
+                $valClean = $colObj->cleanValue($newVal);
+                $updateArr[] = "$colName = $valClean";
+            }
             $colsWithVals[] = $colKey;
         }
 
@@ -421,7 +425,7 @@ class MySQLQuery extends AbstractQuery {
                 $colsArr[] = $column->getName();
                 $type = $column->getDatatype();
 
-                if ($val !== 'null') {
+                if ($val !== null) {
                     $cleanedVal = $column->cleanValue($val);
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
@@ -503,9 +507,9 @@ class MySQLQuery extends AbstractQuery {
             if ($column instanceof MySQLColumn) {
                 $columnsWithVals[] = $colKey;
                 $type = $column->getDatatype();
-                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : 'null';
+                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : null;
 
-                if ($val !== 'null') {
+                if ($val !== null) {
                     $cleanedVal = $column->cleanValue($val);
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
