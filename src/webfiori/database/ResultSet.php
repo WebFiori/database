@@ -65,30 +65,41 @@ class ResultSet implements Countable, Iterator {
      * Return the number of mapped rows in the set.
      * 
      * @return int If no result returned by MySQL server, the method will return -1. If 
-     * the executed query returned 0 rows, the method will return 0.
+     * the executed query returned 0 rows, the method will return 0. Note that 
+     * if the mapping function returned other than an array, the method will 
+     * always return 0.
      * 
      * @since 1.0
      */
     public function count() {
-        return $this->getMappedRowsCount();
+        if (gettype($this->getMappedRowsCount()) == 'array') {
+            return $this->getMappedRowsCount();
+        }
+        return 0;
     }
 
     /**
+     * Returns the element which exist at current cursor location in the 
+     * mapped result.
      * 
-     * @return mixed|array
+     * @return mixed Note that if the mapping function did not return an array, 
+     * the method will always return null.
      * 
      * @since 1.0
      */
     public function current() {
-        return $this->getMappedRows()[$this->cursorPos];
+        if (gettype($this->getMappedRows()) == 'array') {
+            return $this->getMappedRows()[$this->cursorPos];
+        }
     }
     /**
      * Returns the records which was generated after calling the map 
      * function.
      * 
      * 
-     * @return array An array that holds the records which was generated after 
-     * the mapping.
+     * @return mixed The return value of this method will depend on how the 
+     * developer implemented the mapping function. By default, the method will
+     * return an array that holds fetched records information.
      * 
      * @since 1.0
      */
@@ -100,14 +111,19 @@ class ResultSet implements Countable, Iterator {
      * function.
      * 
      * The number of records might be less or more based on how the developer 
-     * have implemented the mapping function.
+     * have implemented the mapping function. Note that if the mapping function 
+     * did not return an array, the method will return 1.
      * 
      * @return int Number of records after mapping.
      * 
      * @since 1.0
      */
     public function getMappedRowsCount() {
-        return count($this->getMappedRows());
+        if (gettype($this->resultRows) == 'array') {
+            return count($this->getMappedRows());
+        } else {
+            return 1;
+        }
     }
     /**
      * Returns an array which contains all records in the set.
@@ -162,12 +178,16 @@ class ResultSet implements Countable, Iterator {
      * @return boolean If the function is set, the method will return true. 
      * If not, the method will return false.
      * 
+     * @param array $otherParams An array that holds extra arguments which can 
+     * be passed to the mapping function.
+     * 
      * @since 1.0
      */
-    public function setMappingFunction($callback) {
+    public function setMappingFunction($callback, array $otherParams = []) {
         if (is_callable($callback)) {
             $this->mappingFunction = $callback;
-            $result = call_user_func_array($this->mappingFunction, [$this->getRows()]);
+            $args = array_merge([$this->getRows()], $otherParams);
+            $result = call_user_func_array($this->mappingFunction, $args);
 
             if (gettype($result) == 'array') {
                 $this->resultRows = $result;
