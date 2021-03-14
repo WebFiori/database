@@ -229,6 +229,10 @@ class Database {
      * <li>An error has occurred while executing the query.</li>
      * </ul>
      * 
+     * @return ResultSet|null If the last executed query was a select, show or 
+     * describe query, the method will return an object of type 'ResultSet' that 
+     * holds fetched records. Other than that, the method will return null.
+     * 
      * @since 1.0
      */
     public function execute() {
@@ -242,7 +246,12 @@ class Database {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }
         $this->clear();
+        $resultSet = null;
+        if (in_array($this->getQueryGenerator()->getLastQueryType(), ['select', 'show', 'describe']) ) {
+            $resultSet = $this->getLastResultSet();
+        }
         $this->getQueryGenerator()->setQuery(null);
+        return $resultSet;
     }
     /**
      * Returns the connection at which the instance will use to run SQL queries.
