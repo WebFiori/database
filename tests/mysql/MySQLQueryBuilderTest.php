@@ -1075,6 +1075,122 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
+    public function testLike00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLike('task-id', 9);
+        $this->assertEquals("select * from `users_tasks`", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testLike01() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->select()->whereLike('first-name', '%Ibra%');
+        $this->assertEquals("select * from `users` where `users`.`first_name` like '%Ibra%'", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testLike02() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->select()->whereNotLike('first-name', '%Ibra%');
+        $this->assertEquals("select * from `users` where `users`.`first_name` not like '%Ibra%'", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testLike03() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $schema->table('users_tasks')->select()->whereNotLike('first-naome', '%Ibra%');
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereIn('task-id', [7,"9","100"]);
+        $this->assertEquals("select * from `users_tasks` where `users_tasks`.`task_id` in(7, 9, 100)", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn01() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereNotIn('task-id', [7,"9","100"]);
+        $this->assertEquals("select * from `users_tasks` where `users_tasks`.`task_id` not in(7, 9, 100)", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn02() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->select()->whereNotIn('first-name', [7,"9","100"]);
+        $this->assertEquals("select * from `users` where `users`.`first_name` not in('7', '9', '100')", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn03() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $schema->table('users')->select()->whereNotIn('first-naiome', [7,"9","100"]);
+    }
+    /**
+     * @test
+     */
+    public function testWhereBetween00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereBetween('task-id', 0, 33);
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` between 0 and 33)', $schema->getLastQuery());
+        $schema->andWhere('user-id', '=', 88);
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` between 0 and 33) and `users_tasks`.`user_id` = 88', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testWhereBetween01() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
+    }
+    /**
+     * @test
+     */
+    public function testWhereBetween02() {
+        $schema = new MySQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $schema->table('users_tasks')->whereBetween('task-idx', 0, 33);
+    }
+    /**
+     * @test
+     */
+    public function testWhereBetween03() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereNotBetween('task-id', 0, 33);
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` not between 0 and 33)', $schema->getLastQuery());
+        $schema->getQueryGenerator()->andWhere('user-id', '=', 88);
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` not between 0 and 33) and `users_tasks`.`user_id` = 88', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testWhereBetween04() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereNotBetween('task-id', 0, 33);
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` not between 0 and 33)', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testWhereBetween05() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereBetween('last-updated', '2020-01-02 01:30:00', '2020-02-15');
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`last_updated` between \'2020-01-02 01:30:00\' and \'2020-02-15 00:00:00\')', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
     public function testDropFk00() {
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->dropForeignKey('user_task_fk');

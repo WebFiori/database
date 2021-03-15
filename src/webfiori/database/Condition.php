@@ -33,7 +33,7 @@ namespace webfiori\database;
  *
  * @author Ibrahim
  * 
- * @since 1.0
+ * @since 1.0.1
  */
 class Condition {
     /**
@@ -83,8 +83,10 @@ class Condition {
      * Creates and returns a string that represents the condition.
      * 
      * @return string A string which looks like 'A = B' where 'A' is the left 
-     * hand side operand and 'B' is right hand side operand' and the '=' is the 
-     * condition.
+     * hand side operand and 'B' is right hand side operand and the '=' is the 
+     * condition. Note that if left side operand is not null and right operand is 
+     * null, the method will return the left operand without a condition and vise versa. If the 
+     * two operands are null, the method will return empty string.
      * 
      * @since 1.0
      */
@@ -92,7 +94,15 @@ class Condition {
         $right = $this->getRightOperand();
         $left = $this->getLeftOperand();
 
-        return $left.' '.$this->getCondition().' '.$right;
+        if ($right !== null && $left !== null) {
+            return $left.' '.$this->getCondition().' '.$right;
+        } else if ($left !== null) {
+            return $left.'';
+        } else if ($right !== null) {
+            return $right.'';
+        } else {
+            return '';
+        }
     }
     /**
      * Checks if two conditions represent same condition.
@@ -137,5 +147,27 @@ class Condition {
      */
     public function getRightOperand() {
         return $this->rightOperand;
+    }
+    /**
+     * Sets the left hand side operand of the condition.
+     * 
+     * @param string|Expression|Condition $op The left hand side operand 
+     * of the condition.
+     * 
+     * @since 1.0.1
+     */
+    public function setLeftOperand($op) {
+        $this->leftOperand = $op;
+    }
+    /**
+     * Sets the right hand side operand of the condition.
+     * 
+     * @param string|Expression|Condition $op The right hand side operand 
+     * of the condition.
+     * 
+     * @since 1.0.1
+     */
+    public function setRightOperand($op) {
+        $this->rightOperand = $op;
     }
 }

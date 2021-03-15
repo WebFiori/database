@@ -87,7 +87,7 @@ class WhereExpression extends Expression {
     /**
      * Adds a condition to the expression and chain it with existing conditions. 
      * 
-     * @param Condition $condition The condition as an object
+     * @param Condition|Expression $condition The condition as an object
      *
      * @param string $joinOp A string such as 'and' or 'or' which will be used 
      * to chain the condition with the previously added one. If the expression 
@@ -97,16 +97,18 @@ class WhereExpression extends Expression {
      * @since 1.0
      * 
      */
-    public function addCondition(Condition $condition, $joinOp) {
+    public function addCondition($condition, $joinOp) {
         if ($this->getCondition() !== null) {
             $cond = new Condition($this->getCondition(), $condition, $joinOp);
             $this->condsChain = $cond;
-        } else {
+        } else if ( $condition instanceof Condition) {
             $this->condsChain = $condition;
 
             if (count($this->children) != 0) {
                 $this->setJoinCondition($joinOp);
             }
+        } else if ($condition instanceof Expression) {
+            $this->condsChain = new Condition($condition, null, $joinOp);
         }
         $this->condsCount++;
     }

@@ -30,7 +30,7 @@ use webfiori\database\mysql\MySQLQuery;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.2
+ * @version 1.0.3
  */
 abstract class AbstractQuery {
     /**
@@ -965,6 +965,197 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function update(array $newColsVals);
+    /**
+     * Constructs a 'where between ' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param mixed $firstVal The left hand side operand of the between condition.
+     * 
+     * @param mixed $secondVal The right hand side operand of the between condition.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'between' condition will be set 
+     * to 'not between'.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.3
+     */
+    public function whereBetween($col, $firstVal, $secondVal, $joinCond = 'and', $not = false) {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $firstCleanVal = $colObj->cleanValue($firstVal);
+            $secCleanVal = $colObj->cleanValue($secondVal);
+            $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+    }
+    /**
+     * Constructs a 'where like' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on. Note that the column type must be a string type such as varchar or the 
+     * call to the method will be ignored.
+     * 
+     * @param string $val The value at which the 'like' condition will be 
+     * based on.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'like' condition will be set 
+     * to 'not like'.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     */
+    public function whereLike($col, $val, $joinCond = 'and', $not = false) {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+        
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+            
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $cleanVal = $colObj->cleanValue($val);
+            if (gettype($cleanVal) == 'string') {
+                $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
+            }
+            
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+    }
+    /**
+     * Constructs a 'where like' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on. Note that the column type must be a string type such as varchar or the 
+     * call to the method will be ignored.
+     * 
+     * @param string $val The value at which the 'like' condition will be 
+     * based on.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     */
+    public function whereNotLike($col, $val, $joinCond = 'and') {
+        $this->whereLike($col, $val, $joinCond, true);
+    }
+    /**
+     * Constructs a 'where not between ' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param mixed $firstVal The left hand side operand of the between condition.
+     * 
+     * @param mixed $secVal The right hand side operand of the between condition.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.3
+     */
+    public function whereNotBetween($col, $firstVal, $secVal, $joinCond = 'and') {
+        $this->whereBetween($col, $firstVal, $secVal, $joinCond, true);
+    }
+    /**
+     * Constructs a 'where not in()' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param array $vals An array that holds the values that will be checked.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.3
+     */
+    public function whereNotIn($col, array $vals, $joinCond = 'and') {
+        $this->whereIn($col, $vals, $joinCond, true);
+    }
+    /**
+     * Constructs a 'where in()' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param array $vals An array that holds the values that will be checked.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'in' condition will be set 
+     * to 'not in'.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.3
+     */
+    public function whereIn($col, array $vals, $joinCond = 'and', $not = false) {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $cleanedVals = $colObj->cleanValue($vals);
+            $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+    }
     /**
      * Adds a 'where' condition to an existing select, update or delete query.
      * 

@@ -29,7 +29,7 @@ namespace webfiori\database;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class SelectExpression extends Expression {
     /**
@@ -141,6 +141,101 @@ class SelectExpression extends Expression {
             $condition = new Condition($leftOpOrExp, $rightOp, $cond);
             $this->whereExp->addCondition($condition, $join);
         }
+    }
+    /**
+     * Adds a 'like' condition to the 'where' part of the select.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param string $val The value of the 'like' condition.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'like' condition will be set 
+     * to 'not like'.
+     * 
+     * @since 1.0.1
+     */
+    public function addLike($colName, $val, $join = 'and', $not = false) {
+        
+        if ($not === true) {
+            $expr = new Expression($colName." not like $val");
+        } else {
+            $expr = new Expression($colName." like $val");
+        }
+        
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
+        }
+        $this->getWhereExpr()->addCondition($expr, $join);
+    }
+    /**
+     * Adds a 'where between ' condition.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param mixed $firstVal The left hand side operand of the between condition.
+     * 
+     * @param mixed $secVal The right hand side operand of the between condition.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'between' condition will be set 
+     * to 'not between'.
+     * 
+     * 
+     * @since 1.0.1
+     */
+    public function addWhereBetween($colName, $firstVal, $secVal, $join = 'and', $not = false) {
+        $cond = new Condition($firstVal, $secVal, 'and');
+        
+        if ($not === true) {
+            $expr = new Expression('('.$colName.' not between '.$cond.')');
+        } else {
+            $expr = new Expression('('.$colName.' between '.$cond.')');
+        }
+        
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
+        }
+        $this->getWhereExpr()->addCondition($expr, $join);
+    }
+    /**
+     * Adds a 'where in()' condition.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param array $vals An array that holds the values that will be checked.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'in' condition will be set 
+     * to 'not in'.
+     * 
+     * @since 1.0.1
+     */
+    public function addWhereIn($colName, array $vals, $join = 'and', $not = false) {
+        $valsStr = implode(', ', $vals);
+        
+        if ($not === true) {
+            $expr = new Expression($colName." not in($valsStr)");
+        } else {
+            $expr = new Expression($colName." in($valsStr)");
+        }
+        
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
+        }
+        $this->getWhereExpr()->addCondition($expr, $join);
     }
     /**
      * 
