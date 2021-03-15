@@ -16,23 +16,26 @@ class EntityMapperTest extends TestCase {
         $entityMapper->setUseJsonI(true);
         $this->assertEquals('UserClass', $entityMapper->getEntityName());
         $this->assertEquals([
-            'id',
+            'age',
             'firstName',
+            'id',
             'lastName',
-            'age'
+            
         ], $entityMapper->getAttribitesNames());
         $this->assertEquals([
             'setters' => [
-                'setId',
+                'setAge',
                 'setFirstName',
+                'setId',
                 'setLastName',
-                'setAge'
+                
             ],
             'getters' => [
-                'getId',
+                'getAge',
                 'getFirstName',
+                'getId',
                 'getLastName',
-                'getAge'
+                
             ]
         ], $entityMapper->getEntityMethods());
         $this->assertEquals([
