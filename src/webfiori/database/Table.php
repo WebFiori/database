@@ -47,13 +47,6 @@ abstract class Table {
      */
     private $comment;
     /**
-     *
-     * @var string|null 
-     * 
-     * @since 1.0.1 
-     */
-    private $oldName;
-    /**
      * An array that contains all table foreign keys.
      * 
      * @var array 
@@ -75,6 +68,13 @@ abstract class Table {
      * @since 1.0
      */
     private $name;
+    /**
+     *
+     * @var string|null 
+     * 
+     * @since 1.0.1 
+     */
+    private $oldName;
     /**
      *
      * @var Database|null
@@ -365,9 +365,7 @@ abstract class Table {
      * @since 1.0.1
      */
     public function getForeignKey($keyName) {
-        
         foreach ($this->getForignKeys() as $keyObj) {
-            
             if ($keyObj->getKeyName() == $keyName) {
                 return $keyObj;
             }
@@ -540,33 +538,6 @@ abstract class Table {
         return $this->withDbPrefix;
     }
     /**
-     * Removes a foreign key given its name.
-     * 
-     * @param string $keyName The name of the foreign key.
-     * 
-     * @return ForeignKey|null If the key was removed, the method will return the 
-     * removed key as an object. If nothing changed, the method will return null.
-     * 
-     * @since 1.0
-     */
-    public function removeReference($keyName) {
-        $trimmed = trim($keyName);
-        $newKeysArr = [];
-        $removedKeyObj = null;
-        
-        foreach ($this->foreignKeys as $key) {
-
-            if (!($key->getKeyName() == $trimmed)) {
-                $newKeysArr[] = $key;
-            } else {
-                $removedKeyObj = $key;
-            }
-        }
-        $this->foreignKeys = $newKeysArr;
-        
-        return $removedKeyObj;
-    }
-    /**
      * Removes a column from the table given its key.
      * 
      * @param string $colKey Key name of the column.
@@ -585,6 +556,32 @@ abstract class Table {
         }
 
         return $colObj;
+    }
+    /**
+     * Removes a foreign key given its name.
+     * 
+     * @param string $keyName The name of the foreign key.
+     * 
+     * @return ForeignKey|null If the key was removed, the method will return the 
+     * removed key as an object. If nothing changed, the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function removeReference($keyName) {
+        $trimmed = trim($keyName);
+        $newKeysArr = [];
+        $removedKeyObj = null;
+
+        foreach ($this->foreignKeys as $key) {
+            if (!($key->getKeyName() == $trimmed)) {
+                $newKeysArr[] = $key;
+            } else {
+                $removedKeyObj = $key;
+            }
+        }
+        $this->foreignKeys = $newKeysArr;
+
+        return $removedKeyObj;
     }
     /**
      * Sets a comment which will appear with the table.
