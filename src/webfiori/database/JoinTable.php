@@ -146,7 +146,7 @@ class JoinTable extends Table {
      * The method will first check for such column in the left table. If 
      * not found in the left, the method will check the right table.
      * 
-     * @param string $key The name of column as it appears in the database.
+     * @param string $name The name of column as it appears in the database.
      * 
      * @return Column|null If a column which has the given name exist on the table, 
      * the method will return it as an object. Other than that, the method will return 
@@ -213,6 +213,13 @@ class JoinTable extends Table {
     public function getColsNames() {
         return array_merge($this->getLeft()->getColsNames(), $this->getRight()->getColsNames());
     }
+    /**
+     * Returns a string which represents the join condition of the two tables.
+     * 
+     * @return string
+     * 
+     * @since 1.0
+     */
     public function getJoin() {
         $retVal = $this->getLeft()->getName()
                 .' '.$this->getJoinType()
@@ -291,10 +298,7 @@ class JoinTable extends Table {
         } else {
             $colsToSelect = "*";
         }
-
-        //select * from (select * from `users_privileges`.`can_edit_price`, 
-        //`users_privileges`.`can_change_username``users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as T0 join `users_tasks` on(`T0`.`id` = `users_tasks`.`user_id`)
-
+        
         if ($leftTbl instanceof JoinTable) {
             $retVal = $this->_toSQLHelper($leftTbl, $rightTbl, $leftSelectCols, $rightSelectCols, $where);
         } else if ($firstCall) {
