@@ -193,7 +193,7 @@ class EntityMapper {
             $retVal[] = $attrName;
         }
         sort($retVal, SORT_STRING);
-        
+
         return $retVal;
     }
     /**
@@ -237,7 +237,7 @@ class EntityMapper {
         }
         sort($retVal['getters'], SORT_STRING);
         sort($retVal['setters'], SORT_STRING);
-        
+
         return $retVal;
     }
     /**
@@ -431,47 +431,6 @@ class EntityMapper {
     public function setUseJsonI($bool) {
         $this->implJsonI = $bool === true;
     }
-    private function _createEntityMethods() {
-        $entityAttrs = $this->getAttribitesNames();
-        $attrsCount = count($entityAttrs);
-        $colsTypes = $this->getTable()->getColsDatatypes();
-        $colsNames = $this->getTable()->getColsNames();
-        $settersGettersMap = $this->getEntityMethods();
-        
-        for ($x = 0 ; $x < $attrsCount ; $x++) {
-            $colName = $colsNames[$x];
-            $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
-            $getterName = $settersGettersMap['getters'][$x];
-            $this->_appendGetterMethod($entityAttrs[$x], $colName, $phpType, $getterName);
-        }
-        
-        for ($x = 0 ; $x < $attrsCount ; $x++) {
-            $colName = $colsNames[$x];
-            $setterName = $settersGettersMap['setters'][$x];
-            $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
-            $this->_appendSetter($entityAttrs[$x], $colName, $phpType, $setterName, $colsTypes[$x]);
-        }
-        $this->_createMapFunction();
-    }
-    private function _appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
-        $this->classStr .= ""
-            ."    /**\n"
-            ."     * Sets the value of the attribute '".$attrName."'.\n"
-            ."     * \n"
-            ."     * The value of the attribute is mapped to the column which has\n"
-            ."     * the name '".trim($colName, "`")."'.\n"
-            ."     * \n"
-            ."     * @param \$$attrName ".$phpType." The new value of the attribute.\n"
-            ."     **/\n"
-            .'    public function '.$setterName.'($'.$attrName.") {\n";
-
-            if ($colDatatype == 'boolean' || $colDatatype == 'bool') {
-                $this->classStr .= '        $this->'.$attrName.' = $'.$attrName." === true || $".$attrName." == 'Y';\n";
-            } else {
-                $this->classStr .= '        $this->'.$attrName.' = $'.$attrName.";\n";
-            }
-            $this->classStr .= "    }\n";
-    }
     private function _appendGetterMethod($attrName, $colName, $phpType, $getterName) {
         $this->classStr .= ""
         ."    /**\n"
@@ -485,6 +444,47 @@ class EntityMapper {
         .'    public function '.$getterName."() {\n"
         .'        return $this->'.$attrName.";\n"
         ."    }\n";
+    }
+    private function _appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
+        $this->classStr .= ""
+            ."    /**\n"
+            ."     * Sets the value of the attribute '".$attrName."'.\n"
+            ."     * \n"
+            ."     * The value of the attribute is mapped to the column which has\n"
+            ."     * the name '".trim($colName, "`")."'.\n"
+            ."     * \n"
+            ."     * @param \$$attrName ".$phpType." The new value of the attribute.\n"
+            ."     **/\n"
+            .'    public function '.$setterName.'($'.$attrName.") {\n";
+
+        if ($colDatatype == 'boolean' || $colDatatype == 'bool') {
+            $this->classStr .= '        $this->'.$attrName.' = $'.$attrName." === true || $".$attrName." == 'Y';\n";
+        } else {
+            $this->classStr .= '        $this->'.$attrName.' = $'.$attrName.";\n";
+        }
+        $this->classStr .= "    }\n";
+    }
+    private function _createEntityMethods() {
+        $entityAttrs = $this->getAttribitesNames();
+        $attrsCount = count($entityAttrs);
+        $colsTypes = $this->getTable()->getColsDatatypes();
+        $colsNames = $this->getTable()->getColsNames();
+        $settersGettersMap = $this->getEntityMethods();
+
+        for ($x = 0 ; $x < $attrsCount ; $x++) {
+            $colName = $colsNames[$x];
+            $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
+            $getterName = $settersGettersMap['getters'][$x];
+            $this->_appendGetterMethod($entityAttrs[$x], $colName, $phpType, $getterName);
+        }
+
+        for ($x = 0 ; $x < $attrsCount ; $x++) {
+            $colName = $colsNames[$x];
+            $setterName = $settersGettersMap['setters'][$x];
+            $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
+            $this->_appendSetter($entityAttrs[$x], $colName, $phpType, $setterName, $colsTypes[$x]);
+        }
+        $this->_createMapFunction();
     }
     private function _createEntityVariables() {
         $index = 0;
@@ -501,6 +501,31 @@ class EntityMapper {
             ."    private $".$attrName.";\n";
             $index++;
         }
+    }
+    private function _createMapFunction() {
+        $tableName = $this->getTable()->getName();
+        $docStr = "    /**\n"
+                ."     * Maps a record which is taken from the table $tableName to an instance of the class.\n"
+                ."     * \n"
+                ."     * @param array \$record An associative array that represents the\n"
+                ."     * record. The array should have the following indices:\n"
+                ."     * <ul>\n";
+        $className = $this->getEntityName();
+        $mapMethodStr = "    public static function map(array \$record) {\n"
+                ."        \$instance = new $className();\n";
+
+        foreach ($this->getSettersMap() as $methodName => $colName) {
+            $mapMethodStr .= "        \$instance->$methodName(\$record['$colName']);\n";
+            $docStr .= "     * <li>$colName</li>\n";
+        }
+        $mapMethodStr .= "        \n"
+                ."        return \$instance;\n"
+                ."    }\n";
+        $docStr .= "     * </ul>\n"
+                ."     * \n"
+                ."     * @return $className An instance of the class.\n"
+                ."     */\n";
+        $this->classStr .= $docStr.$mapMethodStr;
     }
     private function _imlpJsonX() {
         if ($this->implJsonI) {
@@ -571,13 +596,19 @@ class EntityMapper {
 
                 if ($x == 0 && ($ch == '\\' || ($ch >= '0' && $ch <= '9'))) {
                     return false;
-                } else if ($ch == '\\' && $slashCount > 1) {
-                    return false;
-                } else if ($ch == '\\') {
-                    $slashCount++;
-                    continue;
-                } else if (!($ch == '_' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
-                    return false;
+                } else {
+                    if ($ch == '\\' && $slashCount > 1) {
+                        return false;
+                    } else {
+                        if ($ch == '\\') {
+                            $slashCount++;
+                            continue;
+                        } else {
+                            if (!($ch == '_' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
+                                return false;
+                            }
+                        }
+                    }
                 }
                 $slashCount = 0;
             }
@@ -586,29 +617,5 @@ class EntityMapper {
         }
 
         return false;
-    }
-    private function _createMapFunction() {
-        $tableName = $this->getTable()->getName();
-        $docStr = "    /**\n"
-                . "     * Maps a record which is taken from the table $tableName to an instance of the class.\n"
-                . "     * \n"
-                . "     * @param array \$record An associative array that represents the\n"
-                . "     * record. The array should have the following indices:\n"
-                . "     * <ul>\n";
-        $className = $this->getEntityName();
-        $mapMethodStr = "    public static function map(array \$record) {\n"
-                . "        \$instance = new $className();\n";
-        foreach ($this->getSettersMap() as $methodName => $colName) {
-            $mapMethodStr .= "        \$instance->$methodName(\$record['$colName']);\n";
-            $docStr .= "     * <li>$colName</li>\n";
-        }
-        $mapMethodStr .= "        \n"
-                . "        return \$instance;\n"
-                . "    }\n";
-        $docStr .= "     * </ul>\n"
-                . "     * \n"
-                . "     * @return $className An instance of the class.\n"
-                . "     */\n";
-        $this->classStr .= $docStr.$mapMethodStr;
     }
 }
