@@ -3,8 +3,8 @@
 Database abstraction layer of WebFiori framework.
 
 <p align="center">
-  <a href="https://travis-ci.com/github/WebFiori/database">
-    <img src="https://travis-ci.com/WebFiori/database.svg?branch=main">
+  <a href="https://github.com/WebFiori/database/actions">
+    <img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207,8/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/database">
     <img src="https://codecov.io/gh/WebFiori/database/branch/main/graph/badge.svg?token=cDF6CxGTFi" />
@@ -24,5 +24,8 @@ The library currently supports only MySQL database but more are coming in the fu
 
 ## Features
 * Building your database within PHP.
-* Fast and easy to use query builde.
+* Fast and easy to use query builder.
 * Database abstraction which makes it easy to migrate your system to different DBMS.
+
+## How to Use
+For more information on how to use the library (specially with WebFiori Framework), check [here](https://webfiori.com/learn/database)
