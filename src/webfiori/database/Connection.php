@@ -163,6 +163,18 @@ abstract class Connection {
         return $this->resultSet;
     }
     /**
+     * Creates a prepared SQL statement from the query.
+     * 
+     * The implementation of this method should execute a prepare statement 
+     * on the database engine. An example is MySQL. In this case, the developer 
+     * must use the method mysqli::prepare(). After the statement is prepared, 
+     * then the developer can bind parameters values using the 
+     * method mysqli_stmt::bind_param().
+     * 
+     * @since 1.0.1
+     */
+    public abstract function prepare();
+    /**
      * Sets the last query and execute it.
      * 
      * This method should be implemented in a way that it accepts null or an 
@@ -214,16 +226,4 @@ abstract class Connection {
     public function setResultSet(ResultSet $result) {
         $this->resultSet = $result;
     }
-    /**
-     * Creates a prepared SQL statement from the query.
-     * 
-     * The implementation of this method should execute a prepare statement 
-     * on the database engine. An example is MySQL. In this case, the developer 
-     * must use the method mysqli::prepare(). After the statement is prepared, 
-     * then the developer can bind parameters values using the 
-     * method mysqli_stmt::bind_param().
-     * 
-     * @since 1.0.1
-     */
-    public abstract function prepare();
 }
