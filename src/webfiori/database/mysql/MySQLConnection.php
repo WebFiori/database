@@ -127,11 +127,13 @@ class MySQLConnection extends Connection {
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
             $table = $query->getTable();
             if ($table !== null) {
-                $collation = filter_var($query->getTable()->getCollation());
+                $collation = $query->getTable()->getCollation();
             } else {
                 $collation = 'utf8mb4_unicode_520_ci';
             }
-            mysqli_query($this->link, 'set collation_connection =\''.$collation.'\'');
+            $stm = mysqli_prepare($this->link, 'set collation_connection = ?');
+            $stm->bind_param('s', $collation);
+            $stm->execute();
         }
         $qType = $query->getLastQueryType();
 
@@ -145,7 +147,7 @@ class MySQLConnection extends Connection {
     }
     private function _bindAndExc() {
         $this->prepare();
-        $this->bind($query->getParams());
+        $this->bind($this->getLastQuery()->getParams());
         return $this->sqlStm->execute();
     }
     private function _insertQuery() {
@@ -198,7 +200,9 @@ class MySQLConnection extends Connection {
             $retVal = true;
         }
         $r = mysqli_query($this->link, $query);
-        
+        if ($r === true || gettype($r) == 'object') {
+            $retVal = true;
+        }
 
         return $retVal;
     }
