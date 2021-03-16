@@ -111,6 +111,35 @@ class SelectExpression extends Expression {
         $this->selectCols[hash('sha256', $expr->getValue())] = $expr;
     }
     /**
+     * Adds a 'like' condition to the 'where' part of the select.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param string $val The value of the 'like' condition.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'like' condition will be set 
+     * to 'not like'.
+     * 
+     * @since 1.0.1
+     */
+    public function addLike($colName, $val, $join = 'and', $not = false) {
+        if ($not === true) {
+            $expr = new Expression($colName." not like $val");
+        } else {
+            $expr = new Expression($colName." like $val");
+        }
+
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
+        }
+        $this->getWhereExpr()->addCondition($expr, $join);
+    }
+    /**
      * Adds a condition to the 'where' part of the select.
      * 
      * @param type $leftOpOrExp
@@ -143,36 +172,6 @@ class SelectExpression extends Expression {
         }
     }
     /**
-     * Adds a 'like' condition to the 'where' part of the select.
-     * 
-     * @param string $colName The name of the column that the condition will be 
-     * based on as it appears in the database.
-     * 
-     * @param string $val The value of the 'like' condition.
-     * 
-     * @param string $join An optional string which could be used to join 
-     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
-     * default value.
-     * 
-     * @param boolean $not If set to true, the 'like' condition will be set 
-     * to 'not like'.
-     * 
-     * @since 1.0.1
-     */
-    public function addLike($colName, $val, $join = 'and', $not = false) {
-        
-        if ($not === true) {
-            $expr = new Expression($colName." not like $val");
-        } else {
-            $expr = new Expression($colName." like $val");
-        }
-        
-        if ($this->whereExp === null) {
-            $this->whereExp = new WhereExpression('');
-        }
-        $this->getWhereExpr()->addCondition($expr, $join);
-    }
-    /**
      * Adds a 'where between ' condition.
      * 
      * @param string $colName The name of the column that the condition will be 
@@ -194,17 +193,28 @@ class SelectExpression extends Expression {
      */
     public function addWhereBetween($colName, $firstVal, $secVal, $join = 'and', $not = false) {
         $cond = new Condition($firstVal, $secVal, 'and');
-        
+
         if ($not === true) {
             $expr = new Expression('('.$colName.' not between '.$cond.')');
         } else {
             $expr = new Expression('('.$colName.' between '.$cond.')');
         }
-        
+
         if ($this->whereExp === null) {
             $this->whereExp = new WhereExpression('');
         }
         $this->getWhereExpr()->addCondition($expr, $join);
+    }
+    /**
+     * 
+     * @param Condition $cond
+     * @param type $join
+     */
+    public function addWhereCondition(Condition $cond, $join = 'and') {
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression();
+        }
+        $this->whereExp->addCondition($cond, $join);
     }
     /**
      * Adds a 'where in()' condition.
@@ -225,28 +235,17 @@ class SelectExpression extends Expression {
      */
     public function addWhereIn($colName, array $vals, $join = 'and', $not = false) {
         $valsStr = implode(', ', $vals);
-        
+
         if ($not === true) {
             $expr = new Expression($colName." not in($valsStr)");
         } else {
             $expr = new Expression($colName." in($valsStr)");
         }
-        
+
         if ($this->whereExp === null) {
             $this->whereExp = new WhereExpression('');
         }
         $this->getWhereExpr()->addCondition($expr, $join);
-    }
-    /**
-     * 
-     * @param Condition $cond
-     * @param type $join
-     */
-    public function addWhereCondition(Condition $cond, $join = 'and') {
-        if ($this->whereExp === null) {
-            $this->whereExp = new WhereExpression();
-        }
-        $this->whereExp->addCondition($cond, $join);
     }
     /**
      * Removes all columns and expressions in the select.
@@ -323,9 +322,11 @@ class SelectExpression extends Expression {
                         } else {
                             $colObjOrExpr->setOwner($this->getTable());
                         }
-                    } else if ($colObjOrExpr->getPrevOwner() !== null) {
-                        $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
-                        $resetOwner = true;
+                    } else {
+                        if ($colObjOrExpr->getPrevOwner() !== null) {
+                            $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
+                            $resetOwner = true;
+                        }
                     }
 
                     if ($addCol) {
@@ -482,16 +483,22 @@ class SelectExpression extends Expression {
                     $leftWhere->addCondition($this->whereExp->getCondition(), 'and');
                 }
                 $retVal = $leftWhere->getValue();
-            } else if ($rightWhere !== null) {
-                if ($this->whereExp !== null) {
-                    $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
+            } else {
+                if ($rightWhere !== null) {
+                    if ($this->whereExp !== null) {
+                        $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
+                    }
+                    $retVal = $rightWhere->getValue();
+                } else {
+                    if ($this->whereExp !== null) {
+                        $retVal = $this->whereExp->getValue();
+                    }
                 }
-                $retVal = $rightWhere->getValue();
-            } else if ($this->whereExp !== null) {
+            }
+        } else {
+            if ($this->whereExp !== null) {
                 $retVal = $this->whereExp->getValue();
             }
-        } else if ($this->whereExp !== null) {
-            $retVal = $this->whereExp->getValue();
         }
 
         if ($withGroupBy) {
@@ -572,8 +579,10 @@ class SelectExpression extends Expression {
 
             if ($orderType == 'd') {
                 $colArr['order'] = 'desc';
-            } else if ($orderType == 'a') {
-                $colArr['order'] = 'asc';
+            } else {
+                if ($orderType == 'a') {
+                    $colArr['order'] = 'asc';
+                }
             }
         }
         $this->orderByCols[$colKey] = $colArr;
@@ -603,10 +612,12 @@ class SelectExpression extends Expression {
             foreach ($colsOrExprs as $index => $colOrExprOrAlias) {
                 if ($colOrExprOrAlias instanceof Expression) {
                     $this->addExpression($colOrExprOrAlias);
-                } else if (gettype($index) == 'string') {
-                    $this->addColumn($index, $colOrExprOrAlias);
                 } else {
-                    $this->addColumn($colOrExprOrAlias);
+                    if (gettype($index) == 'string') {
+                        $this->addColumn($index, $colOrExprOrAlias);
+                    } else {
+                        $this->addColumn($colOrExprOrAlias);
+                    }
                 }
             }
         } catch (DatabaseException $ex) {
