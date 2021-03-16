@@ -116,6 +116,11 @@ abstract class Column {
     private $name;
     /**
      *
+     * @var string|null 
+     */
+    private $oldName;
+    /**
+     *
      * @var Table|null 
      * 
      * @since 1.0
@@ -143,11 +148,6 @@ abstract class Column {
      * @since 1.0
      */
     private $size;
-    /**
-     *
-     * @var string|null 
-     */
-    private $oldName;
     /**
      * An array which holds all supported datatypes of the column.
      * 
