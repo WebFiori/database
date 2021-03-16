@@ -113,7 +113,7 @@ class MySQLQuery extends AbstractQuery {
      */
     public static function backtick($str) {
         $trimmed = trim($str);
-        
+
         if (strlen($trimmed) != 0) {
             $exp = explode('.', $trimmed);
 
@@ -169,6 +169,27 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
+     * Constructs a query that can be used to drop foreign key constraint.
+     * 
+     * @param string $keyName The name of the key.
+     * 
+     * @return MySQLQuery The method should return the same instance at which 
+     * the method is called on.
+     * 
+     * @since 1.0.1
+     */
+    public function dropForeignKey($keyName) {
+        $trimmed = trim($keyName);
+
+        if (strlen($trimmed) != 0) {
+            $tblName = $this->getTable()->getName();
+            $query = "alter table $tblName drop foreign key $trimmed;";
+            $this->setQuery($query);
+        }
+
+        return $this;
+    }
+    /**
      * Build a query which is used to drop primary key of linked table.
      * 
      * @param null $pkName Not used.
@@ -181,25 +202,6 @@ class MySQLQuery extends AbstractQuery {
     public function dropPrimaryKey($pkName = null) {
         $this->setQuery('alter table '.$this->getTable()->getName().' drop primary key;');
 
-        return $this;
-    }
-    /**
-     * Constructs a query that can be used to drop foreign key constraint.
-     * 
-     * @param string $keyName The name of the key.
-     * 
-     * @return MySQLQuery The method should return the same instance at which 
-     * the method is called on.
-     * 
-     * @since 1.0.1
-     */
-    public function dropForeignKey($keyName) {
-        $trimmed = trim($keyName);
-        if (strlen($trimmed) != 0) {
-            $tblName = $this->getTable()->getName();
-            $query = "alter table $tblName drop foreign key $trimmed;";
-            $this->setQuery($query);
-        }
         return $this;
     }
     /**
@@ -307,6 +309,48 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
+     * Constructs a query which can be used to modify the name of 
+     * a column.
+     * 
+     * @param string $colKey Column key.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException The method will throw an exception if 
+     * the table has no column with given key or the name of the 
+     * specified column was not changed.
+     * 
+     * @since 1.0.1
+     */
+    public function renameCol($colKey) {
+        $colObj = $this->getTable()->getColByKey($colKey);
+        $tblName = $this->getTable()->getName();
+
+        if (!$colObj instanceof MySQLColumn) {
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+
+        if ($colObj->getOldName() == null) {
+            throw new DatabaseException('Cannot build the query. Old column name is null.');
+        }
+
+        $split = explode('.', $colObj->getMySQLVersion());
+        $oldName = $colObj->getOldName();
+        $newName = $colObj->getName();
+
+        if (isset($split[0]) && intval($split[0]) >= 8) {
+            //8.0 support new syntax
+            $query = "alter table $tblName rename column $oldName to $newName;";
+        } else {
+            $colDef = substr($colObj->asString(), strlen($newName));
+            $query = "alter table $tblName change column $oldName $newName $colDef;";
+        }
+        $this->setQuery($query);
+
+        return $this;
+    }
+    /**
      * Sets the property that is used to check if the query represents an insert 
      * or an update of a blob datatype.
      * 
@@ -347,6 +391,7 @@ class MySQLQuery extends AbstractQuery {
                 throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
             }
             $colName = $colObj->getName();
+
             if ($newVal === null) {
                 $updateArr[] = "$colName = null";
             } else {
@@ -430,8 +475,11 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(function () {});
+                        set_error_handler(function ()
+                        {
+                        });
                         $this->setIsBlobInsertOrUpdate(true);
+
                         if (file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
                             $data = '';
@@ -514,8 +562,11 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(function () {});
+                        set_error_handler(function ()
+                        {
+                        });
                         $this->setIsBlobInsertOrUpdate(true);
+
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
                             $data = '';
@@ -571,47 +622,4 @@ class MySQLQuery extends AbstractQuery {
 
         return '('.implode(', ', $valsArr).')';
     }
-    /**
-     * Constructs a query which can be used to modify the name of 
-     * a column.
-     * 
-     * @param string $colKey Column key.
-     * 
-     * @return MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException The method will throw an exception if 
-     * the table has no column with given key or the name of the 
-     * specified column was not changed.
-     * 
-     * @since 1.0.1
-     */
-    public function renameCol($colKey) {
-        $colObj = $this->getTable()->getColByKey($colKey);
-        $tblName = $this->getTable()->getName();
-        
-        if (!$colObj instanceof MySQLColumn) {
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
-        }
-        
-        if ($colObj->getOldName() == null) {
-            throw new DatabaseException('Cannot build the query. Old column name is null.');
-        }
-
-        $split = explode('.', $colObj->getMySQLVersion());
-        $oldName = $colObj->getOldName();
-        $newName = $colObj->getName();
-        
-        if (isset($split[0]) && intval($split[0]) >= 8) {
-            //8.0 support new syntax
-            $query = "alter table $tblName rename column $oldName to $newName;";
-        } else {
-            $colDef = substr($colObj->asString(), strlen($newName));
-            $query = "alter table $tblName change column $oldName $newName $colDef;";
-        }
-        $this->setQuery($query);
-        
-        return $this;
-    }
-
 }
