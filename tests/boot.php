@@ -71,7 +71,7 @@ use webfiori\database\tests\MySQLTestSchema;
 register_shutdown_function(function()
 {
     echo "Dropping test tables...\n";
-    $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db');
+    $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
     $conn = new MySQLConnection($connInfo);
     $mysqlSchema = new MySQLTestSchema();
     $mysqlSchema->setConnection($conn);

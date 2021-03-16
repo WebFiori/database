@@ -12,7 +12,7 @@ use webfiori\database\ConnectionInfo;
  */
 class MySQLTestSchema extends Database {
     public function __construct() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', 'localhost');
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $this->setConnectionInfo($connInfo);
         $table00 = new MySQLTable('users');
         $table00->addColumns([

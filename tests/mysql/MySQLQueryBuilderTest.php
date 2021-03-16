@@ -668,7 +668,7 @@ class MySQLQueryBuilderTest extends TestCase {
      * @return MySQLTestSchema Description
      */
     public function testSetConnection00() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db');
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $conn = new MySQLConnection($connInfo);
         $schema = new MySQLTestSchema();
         $schema->setConnection($conn);

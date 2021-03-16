@@ -257,7 +257,7 @@ class Database {
      * Returns the connection at which the instance will use to run SQL queries.
      * 
      * This method will try to connect to the database if no connection is active. 
-     * If the connection was not established, the method will throw an exption. 
+     * If the connection was not established, the method will throw an exception. 
      * If the connection is already active, the method will return it.
      * 
      * @return Connection The connection at which the instance will use to run SQL queries.

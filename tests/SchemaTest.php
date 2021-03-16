@@ -19,7 +19,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test00() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db');
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         $table = new MySQLTable('hello');
         $table->addColumn('user-id', new MySQLColumn('user_id', 'int', 11));
