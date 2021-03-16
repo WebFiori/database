@@ -34,12 +34,18 @@ jobs:
       - name: Set up MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
-          mysql version: '8.0'
+          mysql version: '5.7'
           mysql database: 'testing_db'
           mysql root password: 123456
           mysql user: 'root' 
           mysql password: 123456
-      
+          
+      - name: Wait for MySQL
+        run: |
+          while ! mysqladmin ping --host=127.0.0.1 --password=123456 --silent; do
+            sleep 1
+          done
+          
       - name: Execute Tests
         run: phpunit
       
