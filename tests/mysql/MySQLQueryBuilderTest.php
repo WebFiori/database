@@ -682,7 +682,7 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testSetConnection01() {
         $this->expectException(DatabaseException::class);
-        $connInfo = new ConnectionInfo('mysql', 'root', '12345', 'testing_db');
+        $connInfo = new ConnectionInfo('mysql', 'root', '12345', 'testing_db', '127.0.0.1');
         $conn = new MySQLConnection($connInfo);
         $schema = new MySQLTestSchema();
         $schema->setConnection($conn);
@@ -1198,10 +1198,10 @@ class MySQLQueryBuilderTest extends TestCase {
     }
     public function testRawQuery00() {
         $this->expectException(DatabaseException::class);
-        $this->expectExceptionMessage("1146 - Table 'testing_db.users_tasks' doesn't exist");
+        $this->expectExceptionMessage("1146 - Table 'testing_db.userss_tasks' doesn't exist");
         $schema = new MySQLTestSchema();
-        $schema->setQuery('select * from users_tasks;');
-        $this->assertEquals('select * from users_tasks;', $schema->getLastQuery());
+        $schema->setQuery('select * from userss_tasks;');
+        $this->assertEquals('select * from userss_tasks;', $schema->getLastQuery());
         $schema->execute();
         $this->assertTrue(true);
     }
