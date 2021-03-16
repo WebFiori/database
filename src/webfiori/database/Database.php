@@ -184,12 +184,12 @@ class Database {
      */
     public function createTables() {
         $generatedQuery = '';
-        
+
         foreach ($this->getTables() as $tableObj) {
             $generatedQuery .= $tableObj->toSQL()."\n";
         }
         $this->getQueryGenerator()->setQuery($generatedQuery, true);
-        
+
         return $this->getQueryGenerator();
     }
     /**
@@ -247,10 +247,12 @@ class Database {
         }
         $this->clear();
         $resultSet = null;
-        if (in_array($this->getQueryGenerator()->getLastQueryType(), ['select', 'show', 'describe']) ) {
+
+        if (in_array($this->getQueryGenerator()->getLastQueryType(), ['select', 'show', 'describe'])) {
             $resultSet = $this->getLastResultSet();
         }
         $this->getQueryGenerator()->setQuery(null);
+
         return $resultSet;
     }
     /**
