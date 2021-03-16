@@ -440,17 +440,14 @@ class EntityMapper {
         
         for ($x = 0 ; $x < $attrsCount ; $x++) {
             $colName = $colsNames[$x];
-            $setterName = $settersGettersMap['setters'][$x];
-            $attrName = $entityAttrs[$x];
             $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
             $getterName = $settersGettersMap['getters'][$x];
-            $this->_appendGetterMethod($attrName, $colName, $phpType, $getterName);
+            $this->_appendGetterMethod($entityAttrs[$x], $colName, $phpType, $getterName);
         }
         
         for ($x = 0 ; $x < $attrsCount ; $x++) {
             $colName = $colsNames[$x];
             $setterName = $settersGettersMap['setters'][$x];
-            $attrName = $entityAttrs[$x];
             $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
             $this->_appendSetter($entityAttrs[$x], $colName, $phpType, $setterName, $colsTypes[$x]);
         }
