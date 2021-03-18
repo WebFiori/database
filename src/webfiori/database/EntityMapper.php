@@ -165,7 +165,8 @@ class EntityMapper {
      * name 'user-PASS', then the two attributes which represents the two columns 
      * will have the names 'userId' and 'userPASS'.
      * 
-     * @return array An indexed array that contains attributes names. 
+     * @return array An associative array that contains attributes names. The 
+     * indices will be columns keys and the values are attributes names. 
      * 
      * @since 1.0
      */
@@ -174,27 +175,31 @@ class EntityMapper {
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $split = explode('-', $keyName);
-            $attrName = '';
-            $index = 0;
-
-            foreach ($split as $namePart) {
-                if (strlen($namePart) == 1) {
-                    $attrName .= strtolower($namePart);
-                    $index++;
-                } else if ($index != 0) {
-                    $firstChar = $namePart[0];
-                    $attrName .= strtoupper($firstChar).substr($namePart, 1);
-                } else {
-                    $index++;
-                    $attrName .= strtolower($namePart);
-                }
-            }
-            $retVal[] = $attrName;
+            
+            $retVal[$keyName] = $this->_colKeyToAttr($keyName);
         }
-        sort($retVal, SORT_STRING);
+        ksort($retVal, SORT_STRING);
 
         return $retVal;
+    }
+    private function _colKeyToAttr($key) {
+        $split = explode('-', $key);
+        $attrName = '';
+        $index = 0;
+
+        foreach ($split as $namePart) {
+            if (strlen($namePart) == 1) {
+                $attrName .= strtolower($namePart);
+                $index++;
+            } else if ($index != 0) {
+                $firstChar = $namePart[0];
+                $attrName .= strtoupper($firstChar).substr($namePart, 1);
+            } else {
+                $index++;
+                $attrName .= strtolower($namePart);
+            }
+        }
+        return $attrName;
     }
     /**
      * Returns an associative array that contains the possible names 
@@ -221,24 +226,32 @@ class EntityMapper {
         ];
 
         foreach ($keys as $keyName) {
-            $split = explode('-', $keyName);
-            $methodName = '';
-
-            foreach ($split as $namePart) {
-                if (strlen($namePart) == 1) {
-                    $methodName .= strtoupper($namePart);
-                } else {
-                    $firstChar = $namePart[0];
-                    $methodName .= strtoupper($firstChar).substr($namePart, 1);
-                }
-            }
-            $retVal['getters'][] = 'get'.$methodName;
-            $retVal['setters'][] = 'set'.$methodName;
+            
+            $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName, 'g');
+            $retVal['setters'][] = $this->_colKeyToSetterOrGetter($keyName, 's');
         }
         sort($retVal['getters'], SORT_STRING);
         sort($retVal['setters'], SORT_STRING);
 
         return $retVal;
+    }
+    private function _colKeyToSetterOrGetter($key, $type = 'g') {
+        $split = explode('-', $key);
+        $methodName = '';
+
+        foreach ($split as $namePart) {
+            if (strlen($namePart) == 1) {
+                $methodName .= strtoupper($namePart);
+            } else {
+                $firstChar = $namePart[0];
+                $methodName .= strtoupper($firstChar).substr($namePart, 1);
+            }
+        }
+        if ($type == 'g') {
+            return 'get'.$methodName;
+        } else {
+            return 'set'.$methodName;
+        }
     }
     /**
      * Returns the name of the class that the table is mapped to.
@@ -466,23 +479,19 @@ class EntityMapper {
     }
     private function _createEntityMethods() {
         $entityAttrs = $this->getAttribitesNames();
-        $attrsCount = count($entityAttrs);
-        $colsTypes = $this->getTable()->getColsDatatypes();
         $colsNames = $this->getTable()->getColsNames();
-        $settersGettersMap = $this->getEntityMethods();
-
-        for ($x = 0 ; $x < $attrsCount ; $x++) {
-            $colName = $colsNames[$x];
-            $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
-            $getterName = $settersGettersMap['getters'][$x];
-            $this->_appendGetterMethod($entityAttrs[$x], $colName, $phpType, $getterName);
+        sort($colsNames, SORT_STRING);
+        
+        foreach ($entityAttrs as $colKey => $attrName) {
+            $colObj = $this->getTable()->getColByKey($colKey);
+            $getterName = $this->_colKeyToSetterOrGetter($colKey, 'g');
+            $this->_appendGetterMethod($attrName, $colObj->getName(), $colObj->getPHPType(), $getterName);
         }
 
-        for ($x = 0 ; $x < $attrsCount ; $x++) {
-            $colName = $colsNames[$x];
-            $setterName = $settersGettersMap['setters'][$x];
-            $phpType = $this->getTable()->getColByIndex($x)->getPHPType();
-            $this->_appendSetter($entityAttrs[$x], $colName, $phpType, $setterName, $colsTypes[$x]);
+        foreach ($entityAttrs as $colKey => $attrName) {
+            $setterName = $this->_colKeyToSetterOrGetter($colKey, 's');
+            $colObj = $this->getTable()->getColByKey($colKey);
+            $this->_appendSetter($attrName, $colObj->getName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
         }
         $this->_createMapFunction();
     }
@@ -490,11 +499,11 @@ class EntityMapper {
         $index = 0;
         $entityAttrs = $this->getAttribitesNames();
 
-        foreach ($entityAttrs as $attrName) {
-            $colObj = $this->getTable()->getColByIndex($index);
+        foreach ($entityAttrs as $colKey => $attrName) {
+            $colObj = $this->getTable()->getColByKey($colKey);
             $this->classStr .= ""
             ."    /**\n"
-            ."     * The attribute which is mapped to the column '".trim("`", $colObj->getName())."'.\n"
+            ."     * The attribute which is mapped to the column '".trim($colObj->getName(), "`")."'.\n"
             ."     * \n"
             ."     * @var ".$colObj->getPHPType()."\n"
             ."     **/\n"
@@ -596,19 +605,13 @@ class EntityMapper {
 
                 if ($x == 0 && ($ch == '\\' || ($ch >= '0' && $ch <= '9'))) {
                     return false;
-                } else {
-                    if ($ch == '\\' && $slashCount > 1) {
-                        return false;
-                    } else {
-                        if ($ch == '\\') {
-                            $slashCount++;
-                            continue;
-                        } else {
-                            if (!($ch == '_' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
-                                return false;
-                            }
-                        }
-                    }
+                } else if ($ch == '\\' && $slashCount > 1) {
+                    return false;
+                } else if ($ch == '\\') {
+                    $slashCount++;
+                    continue;
+                } else if (!($ch == '_' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
+                    return false;
                 }
                 $slashCount = 0;
             }
