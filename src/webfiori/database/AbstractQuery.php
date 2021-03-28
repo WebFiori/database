@@ -30,7 +30,7 @@ use webfiori\database\mysql\MySQLQuery;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.3
+ * @version 1.0.4
  */
 abstract class AbstractQuery {
     /**
@@ -1101,6 +1101,61 @@ abstract class AbstractQuery {
             $colName = $colObj->getName();
             $cleanedVals = $colObj->cleanValue($vals);
             $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+    }
+    /**
+     * Constructs a 'where is not null' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereNotNull($col, $join = 'and') {
+        $this->whereNull($col, $join, true);
+    }
+    /**
+     * Constructs a 'where is null' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'is null' condition will be set 
+     * to 'is not null'.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereNull($col, $join = 'and', $not = false) {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $this->getTable()->getSelect()->addWhereNull($colName, $join, $not);
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }

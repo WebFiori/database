@@ -101,14 +101,18 @@ class WhereExpression extends Expression {
         if ($this->getCondition() !== null) {
             $cond = new Condition($this->getCondition(), $condition, $joinOp);
             $this->condsChain = $cond;
-        } else if ( $condition instanceof Condition) {
-            $this->condsChain = $condition;
+        } else {
+            if ($condition instanceof Condition) {
+                $this->condsChain = $condition;
 
-            if (count($this->children) != 0) {
-                $this->setJoinCondition($joinOp);
+                if (count($this->children) != 0) {
+                    $this->setJoinCondition($joinOp);
+                }
+            } else {
+                if ($condition instanceof Expression) {
+                    $this->condsChain = new Condition($condition, null, $joinOp);
+                }
             }
-        } else if ($condition instanceof Expression) {
-            $this->condsChain = new Condition($condition, null, $joinOp);
         }
         $this->condsCount++;
     }

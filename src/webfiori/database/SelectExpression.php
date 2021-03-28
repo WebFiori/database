@@ -29,7 +29,7 @@ namespace webfiori\database;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
+ * @version 1.0.2
  */
 class SelectExpression extends Expression {
     /**
@@ -242,6 +242,32 @@ class SelectExpression extends Expression {
             $expr = new Expression($colName." in($valsStr)");
         }
 
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
+        }
+        $this->getWhereExpr()->addCondition($expr, $join);
+    }
+    /**
+     * Adds 'where is null' condition.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'in' condition will be set 
+     * to 'is not null'.
+     * 
+     * @since 1.0.2
+     */
+    public function addWhereNull($colName, $join = 'and', $not = false) {
+        if ($not === true) {
+            $expr = new Expression($colName." is not null");
+        } else {
+            $expr = new Expression($colName." is null");
+        }
         if ($this->whereExp === null) {
             $this->whereExp = new WhereExpression('');
         }
