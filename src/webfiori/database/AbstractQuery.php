@@ -983,7 +983,7 @@ abstract class AbstractQuery {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
-     * @return MySQLQuery The method will return the same instance at which the 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
      * @throws DatabaseException If one of the columns does not exist, the method 
@@ -1037,6 +1037,9 @@ abstract class AbstractQuery {
      * @param boolean $not If set to true, the 'between' condition will be set 
      * to 'not between'.
      * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
      * 
@@ -1063,6 +1066,7 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
+        return $this;
     }
     /**
      * Constructs a 'where in()' condition.
@@ -1078,6 +1082,9 @@ abstract class AbstractQuery {
      * 
      * @param boolean $not If set to true, the 'in' condition will be set 
      * to 'not in'.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
      * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
@@ -1104,6 +1111,8 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
+        
+        return $this;
     }
     /**
      * Constructs a 'where is not null' condition.
@@ -1115,13 +1124,16 @@ abstract class AbstractQuery {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
      * 
      * @since 1.0.4
      */
     public function whereNotNull($col, $join = 'and') {
-        $this->whereNull($col, $join, true);
+        return $this->whereNull($col, $join, true);
     }
     /**
      * Constructs a 'where is null' condition.
@@ -1135,6 +1147,9 @@ abstract class AbstractQuery {
      * 
      * @param boolean $not If set to true, the 'is null' condition will be set 
      * to 'is not null'.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
      * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
@@ -1159,6 +1174,8 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
+        
+        return $this;
     }
     /**
      * Constructs a 'where like' condition.
@@ -1176,6 +1193,9 @@ abstract class AbstractQuery {
      * 
      * @param boolean $not If set to true, the 'like' condition will be set 
      * to 'not like'.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
      * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
@@ -1203,6 +1223,8 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
+        
+        return $this;
     }
     /**
      * Constructs a 'where not between ' condition.
@@ -1218,13 +1240,16 @@ abstract class AbstractQuery {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
      * 
      * @since 1.0.3
      */
     public function whereNotBetween($col, $firstVal, $secVal, $joinCond = 'and') {
-        $this->whereBetween($col, $firstVal, $secVal, $joinCond, true);
+        return $this->whereBetween($col, $firstVal, $secVal, $joinCond, true);
     }
     /**
      * Constructs a 'where not in()' condition.
@@ -1238,13 +1263,16 @@ abstract class AbstractQuery {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
      * 
      * @since 1.0.3
      */
     public function whereNotIn($col, array $vals, $joinCond = 'and') {
-        $this->whereIn($col, $vals, $joinCond, true);
+        return $this->whereIn($col, $vals, $joinCond, true);
     }
     /**
      * Constructs a 'where like' condition.
@@ -1260,11 +1288,14 @@ abstract class AbstractQuery {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
      */
     public function whereNotLike($col, $val, $joinCond = 'and') {
-        $this->whereLike($col, $val, $joinCond, true);
+        return $this->whereLike($col, $val, $joinCond, true);
     }
     private function _getColsToSelect() {
         $thisTable = $this->getTable();
