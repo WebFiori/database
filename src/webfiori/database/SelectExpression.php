@@ -140,6 +140,63 @@ class SelectExpression extends Expression {
         $this->getWhereExpr()->addCondition($expr, $join);
     }
     /**
+     * Adds a 'left()' condition to the 'where' part of the select.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param int $charsCount The number of characters that will be taken from 
+     * the left of the column value.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have two values, '=' and '!='.
+     * 
+     * @param string $val The value at which the condition will be compared with.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @since 1.0.2
+     */
+    public function addLeft($colName, $charsCount, $cond, $val, $join = 'and') {
+        $this->addLeftOrRight($colName, $charsCount, $cond, $val, $join, true);
+    }
+    /**
+     * Adds a 'right()' condition to the 'where' part of the select.
+     * 
+     * @param string $colName The name of the column that the condition will be 
+     * based on as it appears in the database.
+     * 
+     * @param int $charsCount The number of characters that will be taken from 
+     * the right of the column value.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have two values, '=' and '!='.
+     * 
+     * @param string $val The value at which the condition will be compared with.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @since 1.0.2
+     */
+    public function addRight($colName, $charsCount, $cond, $val, $join = 'and') {
+        $this->addLeftOrRight($colName, $charsCount, $cond, $val, $join, false);
+    }
+    private function addLeftOrRight($colName, $charsCount, $cond, $val, $join = 'and', $left = true) {
+        $xCond = in_array($cond, ['=', '!=']) ? $cond : '=';
+        $func = $left === true ? 'left' : 'right';
+        $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' '.$val);
+        
+        if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
+        }
+        $this->getWhereExpr()->addCondition($expr, $join);
+        
+    }
+    /**
      * Adds a condition to the 'where' part of the select.
      * 
      * @param type $leftOpOrExp
