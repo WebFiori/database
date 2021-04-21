@@ -1205,4 +1205,36 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->execute();
         $this->assertTrue(true);
     }
+    /**
+     * @test
+     */
+    public function testLeft00() {
+        $this->expectException(DatabaseException::class);
+        $schema = new MySQLTestSchema();
+        $schema->table('userss_tasks')->whereLeft('details', '=', 'hello');
+    }
+    /**
+     * @test
+     */
+    public function testLeft01() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 2, '=', 'hello');
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 2) = 'hello'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testLeft02() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, '*', 'good');
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) = 'good'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testLeft03() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', 'good');
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) != 'good'", $schema->getLastQuery());
+    }
 }
