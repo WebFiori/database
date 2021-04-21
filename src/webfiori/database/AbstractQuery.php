@@ -1199,6 +1199,8 @@ abstract class AbstractQuery {
      * 
      * @throws DatabaseException If the table has no column with given key name, 
      * the method will throw an exception.
+     * 
+     * @since 1.0.4
      */
     public function whereLike($col, $val, $joinCond = 'and', $not = false) {
         $lastQType = $this->getLastQueryType();
@@ -1219,6 +1221,112 @@ abstract class AbstractQuery {
 
             if (gettype($cleanVal) == 'string') {
                 $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
+            }
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+        
+        return $this;
+    }
+    /**
+     * Adds a 'right()' condition to the 'where' part of the select.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on. Note that the column type must be a string type such as varchar or the 
+     * call to the method will be ignored.
+     * 
+     * @param int $charsCount The number of characters that will be taken from 
+     * the right of the column value.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have two values, '=' and '!='.
+     * 
+     * @param string $val The value at which the condition will be compared with.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $cleanVal = $colObj->cleanValue($val);
+
+            if (gettype($cleanVal) == 'string') {
+                $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
+            }
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+        
+        return $this;
+    }
+    /**
+     * Adds a 'left()' condition to the 'where' part of the select.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on. Note that the column type must be a string type such as varchar or the 
+     * call to the method will be ignored.
+     * 
+     * @param int $charsCount The number of characters that will be taken from 
+     * the left of the column value.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have two values, '=' and '!='.
+     * 
+     * @param string $val The value at which the condition will be compared with.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $cleanVal = $colObj->cleanValue($val);
+
+            if (gettype($cleanVal) == 'string') {
+                $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
             }
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
