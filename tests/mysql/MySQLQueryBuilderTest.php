@@ -1237,4 +1237,94 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', 'good');
         $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) != 'good'", $schema->getLastQuery());
     }
+    /**
+     * @test
+     */
+    public function testLeft04() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, 'in', 'good');
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) in('good')", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testLeft05() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, 'not in', ['good']);
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) not in('good')", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testLeft06() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, 'not in', ['good', 'bad']);
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) not in('good', 'bad')", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testLeft07() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The value must be of type string since the condition is \'=\'.');
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, '=', ['good', 'bad']);
+    }
+    /**
+     * @test
+     */
+    public function testRight01() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereRight('details', 2, '=', 'hello');
+        $this->assertEquals("select * from `users_tasks` where right(`users_tasks`.`details`, 2) = 'hello'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRight02() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereRight('details', 8, '*', 'good');
+        $this->assertEquals("select * from `users_tasks` where right(`users_tasks`.`details`, 8) = 'good'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRight03() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereRight('details', 8, '!=', 'good');
+        $this->assertEquals("select * from `users_tasks` where right(`users_tasks`.`details`, 8) != 'good'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRight04() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereRight('details', 8, 'in', 'good');
+        $this->assertEquals("select * from `users_tasks` where right(`users_tasks`.`details`, 8) in('good')", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRight05() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereRight('details', 8, 'not in', ['good']);
+        $this->assertEquals("select * from `users_tasks` where right(`users_tasks`.`details`, 8) not in('good')", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRight06() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereRight('details', 8, 'not in', ['good', 'bad']);
+        $this->assertEquals("select * from `users_tasks` where right(`users_tasks`.`details`, 8) not in('good', 'bad')", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRight07() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The value must be of type string since the condition is \'!=\'.');
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', ['good', 'bad']);
+    }
 }

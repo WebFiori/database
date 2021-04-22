@@ -1239,9 +1239,10 @@ abstract class AbstractQuery {
      * the right of the column value.
      * 
      * @param string $cond A condition at which the comparison will be based on. 
-     * can only have two values, '=' and '!='.
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
      * 
-     * @param string $val The value at which the condition will be compared with.
+     * @param string|array $val The value at which the condition will be compared with. 
+     * This also can be an array of values if the condition is 'in' or 'not in'.
      * 
      * @param string $joinCond An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
@@ -1292,9 +1293,10 @@ abstract class AbstractQuery {
      * the left of the column value.
      * 
      * @param string $cond A condition at which the comparison will be based on. 
-     * can only have two values, '=' and '!='.
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
      * 
-     * @param string $val The value at which the condition will be compared with.
+     * @param string|array $val The value at which the condition will be compared with. 
+     * This also can be an array of values if the condition is 'in' or 'not in'.
      * 
      * @param string $joinCond An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 

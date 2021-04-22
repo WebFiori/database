@@ -24,6 +24,8 @@
  */
 namespace webfiori\database;
 
+use InvalidArgumentException;
+
 /**
  * A class which is used to build the select expression of a select query.
  *
@@ -149,9 +151,10 @@ class SelectExpression extends Expression {
      * the left of the column value.
      * 
      * @param string $cond A condition at which the comparison will be based on. 
-     * can only have two values, '=' and '!='.
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
      * 
-     * @param string $val The value at which the condition will be compared with.
+     * @param string|array $val The value at which the condition will be compared with. 
+     * This also can be an array of values if the condition is 'in' or 'not in'.
      * 
      * @param string $join An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
@@ -172,9 +175,10 @@ class SelectExpression extends Expression {
      * the right of the column value.
      * 
      * @param string $cond A condition at which the comparison will be based on. 
-     * can only have two values, '=' and '!='.
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
      * 
-     * @param string $val The value at which the condition will be compared with.
+     * @param string|array $val The value at which the condition will be compared with. 
+     * This also can be an array of values if the condition is 'in' or 'not in'.
      * 
      * @param string $join An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
@@ -186,9 +190,22 @@ class SelectExpression extends Expression {
         $this->addLeftOrRight($colName, $charsCount, $cond, $val, $join, false);
     }
     private function addLeftOrRight($colName, $charsCount, $cond, $val, $join = 'and', $left = true) {
-        $xCond = in_array($cond, ['=', '!=']) ? $cond : '=';
+        $xCond = in_array($cond, ['=', '!=', 'in', 'not in']) ? $cond : '=';
         $func = $left === true ? 'left' : 'right';
-        $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' '.$val);
+        
+        if (gettype($val) == 'array' && ($xCond == '=' || $xCond == '!=')) {
+            throw new InvalidArgumentException('The value must be of type string since the condition is \''.$xCond.'\'.');
+        }
+        
+        if (($xCond == 'in' || $xCond == 'not in')) {
+            if (gettype($val) == 'array') {
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."('". implode("', '", $val)."')");
+            } else {
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".$val.")");
+            }
+        } else {
+            $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' '.$val);
+        }
         
         if ($this->whereExp === null) {
             $this->whereExp = new WhereExpression('');
