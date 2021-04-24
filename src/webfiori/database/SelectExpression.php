@@ -739,15 +739,16 @@ class SelectExpression extends Expression {
     public function select(array $colsOrExprs) {
         try {
             foreach ($colsOrExprs as $index => $colOrExprOrAliasOrArr) {
-                if (gettype($index) == 'integer') {
-                    $this->addColumn($colOrExprOrAliasOrArr);
+                if ($colOrExprOrAliasOrArr instanceof Expression) {
+                    $this->addExpression($colOrExprOrAliasOrArr);
                 } else {
-                    if ($colOrExprOrAliasOrArr instanceof Expression) {
-                        $this->addExpression($colOrExprOrAliasOrArr);
+                    if (gettype($index) == 'integer') {
+                        $this->addColumn($colOrExprOrAliasOrArr);
                     } else {
                         $this->addColumn($index, $colOrExprOrAliasOrArr);
                     }
                 }
+                
             }
         } catch (DatabaseException $ex) {
             throw new DatabaseException($ex->getMessage());
