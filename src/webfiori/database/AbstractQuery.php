@@ -874,7 +874,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         } else {
-            $expr = new Expression('count(*)');
+            $expr = new Expression('count(*) as '.$xAlias);
             $this->select([$expr]);
         }
     }
