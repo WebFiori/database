@@ -90,14 +90,14 @@ class SelectExpression extends Expression {
      * @param string $colKey The key of the column as specified when the column 
      * was added to associated table.
      * 
-     * @param string|null $alias An optional alias for the column.
+     * @param string|null $options An optional alias for the column.
      * 
      * @throws DatabaseException If column does not exist in the table that the 
      * select is based on.
      * 
      * @since 1.0
      */
-    public function addColumn($colKey, $alias = null) {
+    public function addColumn($colKey, $options = null) {
         if ($colKey != '*') {
             $colObj = $this->getTable()->getColByKey($colKey);
 
@@ -105,12 +105,30 @@ class SelectExpression extends Expression {
                 $tblName = $this->getTable()->getName();
                 throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
             }
+            $opArr = [
+                'obj' => $colObj,
+            ];
+            $this->_setAlias($colObj, $options, $opArr);
+            
+            if (isset($options['aggregate'])) {
+                $opArr['aggregate'] = $options['aggregate'];
+            }
+            $this->selectCols[$colKey] = $opArr;
+        }
+    }
+    private function _setAlias($colObj, $options, &$opArr) {
+        if (isset($options['alias'])) {
+            $alias = trim($options['alias']);
             $colObj->setAlias($alias);
-            $this->selectCols[$colKey] = $colObj;
+            $opArr['alias'] = $alias;
+        } else if (isset($options['as'])) {
+            $alias = trim($options['as']);
+            $colObj->setAlias($alias);
+            $opArr['as'] = $alias;
         }
     }
     public function addExpression(Expression $expr) {
-        $this->selectCols[hash('sha256', $expr->getValue())] = $expr;
+        $this->selectCols[hash('sha256', $expr->getValue())] = ['obj' => $expr];
     }
     /**
      * Adds a 'like' condition to the 'where' part of the select.
@@ -199,7 +217,7 @@ class SelectExpression extends Expression {
         
         if (($xCond == 'in' || $xCond == 'not in')) {
             if (gettype($val) == 'array') {
-                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."('". implode("', '", $val)."')");
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(". implode(", ", $val).")");
             } else {
                 $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".$val.")");
             }
@@ -396,9 +414,11 @@ class SelectExpression extends Expression {
             $thisTable = $this->getTable();
             $isJoinTable = $thisTable instanceof JoinTable ? true : false;
 
-            foreach ($cols as $colKey => $colObjOrExpr) {
-                if ($colObjOrExpr instanceof Column) {
-                    $colObjOrExpr->setWithTablePrefix(true);
+            foreach ($cols as $colKey => $optArr) {
+                $obj = $optArr['obj'];
+                
+                if ($obj instanceof Column) {
+                    $obj->setWithTablePrefix(true);
                     $addCol = true;
                     $resetOwner = false;
 
@@ -410,47 +430,56 @@ class SelectExpression extends Expression {
                             $addCol = !$existInLeft && !$existInRight;
 
                             if (!$existInLeft && !$existInRight) {
-                                $ownerName = $colObjOrExpr->getOwner()->getName();
+                                $ownerName = $obj->getOwner()->getName();
                                 $leftName = $thisTable->getLeft()->getName();
                                 $rightName = $thisTable->getRight()->getName();
                                 $tableName = $thisTable->getName();
 
                                 if ($ownerName != $leftName && $ownerName != $rightName && $tableName != $ownerName) {
-                                    $colObjOrExpr->setOwner($this->getTable());
+                                    $obj->setOwner($this->getTable());
                                 }
                             }
                         } else {
-                            $colObjOrExpr->setOwner($this->getTable());
+                            $obj->setOwner($this->getTable());
                         }
                     } else {
-                        if ($colObjOrExpr->getPrevOwner() !== null) {
-                            $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
+                        if ($obj->getPrevOwner() !== null) {
+                            $obj->setOwner($obj->getPrevOwner());
                             $resetOwner = true;
                         }
                     }
-
+                    
                     if ($addCol) {
-                        $alias = $colObjOrExpr->getAlias();
-                        $colName = $colObjOrExpr->getName();
-
-                        if ($alias !== null) {
-                            $selectArr[] = $colName.' as '.$alias;
-                        } else {
-                            $selectArr[] = $colName;
-                        }
+                        $this->_addColToSelectArr($selectArr, $obj, $optArr);
                     }
 
                     if ($resetOwner) {
-                        $colObjOrExpr->setOwner($colObjOrExpr->getPrevOwner());
+                        $obj->setOwner($obj->getPrevOwner());
                     }
                 } else {
-                    $selectArr[] = $colObjOrExpr->getValue();
+                    $selectArr[] = $obj->getValue();
                 }
             }
             $colsStr = implode(', ', $selectArr);
         }
 
         return $colsStr;
+    }
+    private function _addColToSelectArr(&$arr, $colObj, $selectArr) {
+        $alias = $colObj->getAlias();
+        $colName = $colObj->getName();
+
+        if (isset($selectArr['aggregate'])) {
+            $selectColStr = $selectArr['aggregate']."($colName)";
+        } else {
+            $selectColStr = $colName;
+        }
+
+
+        if ($alias !== null) {
+            $selectColStr .= ' as '.$alias;
+        }
+        $arr[] = $selectColStr;
     }
     /**
      * Returns a string that represents the group by part of the select.
@@ -709,14 +738,14 @@ class SelectExpression extends Expression {
      */
     public function select(array $colsOrExprs) {
         try {
-            foreach ($colsOrExprs as $index => $colOrExprOrAlias) {
-                if ($colOrExprOrAlias instanceof Expression) {
-                    $this->addExpression($colOrExprOrAlias);
+            foreach ($colsOrExprs as $index => $colOrExprOrAliasOrArr) {
+                if (gettype($index) == 'integer') {
+                    $this->addColumn($colOrExprOrAliasOrArr);
                 } else {
-                    if (gettype($index) == 'string') {
-                        $this->addColumn($index, $colOrExprOrAlias);
+                    if ($colOrExprOrAliasOrArr instanceof Expression) {
+                        $this->addExpression($colOrExprOrAliasOrArr);
                     } else {
-                        $this->addColumn($colOrExprOrAlias);
+                        $this->addColumn($index, $colOrExprOrAliasOrArr);
                     }
                 }
             }

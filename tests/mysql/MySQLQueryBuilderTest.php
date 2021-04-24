@@ -164,7 +164,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals('select * from `users`', $schema->getLastQuery());
         $bulder->select(['id','first-name','last-name']);
         $this->assertEquals('select `users`.`id`, `users`.`first_name`, `users`.`last_name` from `users`', $schema->getLastQuery());
-        $bulder->select(['id','first-name'=>'f_name','last-name'=>'l_name']);
+        $bulder->select(['id','first-name'=>[
+            'as' => 'f_name'
+        ],'last-name'=>[
+            'alias' => 'l_name'
+        ]]);
         $this->assertEquals('select `users`.`id`, `users`.`first_name` as `f_name`, `users`.`last_name` as `l_name` from `users`', $schema->getLastQuery());
         $bulder->orderBy(['id']);
         $this->assertEquals('select `users`.`id`, `users`.`first_name` as `f_name`, `users`.`last_name` as `l_name` from `users` order by `users`.`id`', $schema->getLastQuery());
@@ -439,7 +443,9 @@ class MySQLQueryBuilderTest extends TestCase {
     public function unionTest00() {
         $schema = new MySQLTestSchema();
         $schema->table('users')
-                ->select(['id' => 'user_id', 'first-name'])
+                ->select(['id' => [
+                    'alias' => 'user_id'
+                ], 'first-name'])
                 ->union($schema->table('users_privileges')->select());
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users`"
                 . "\nunion\n"
@@ -451,7 +457,9 @@ class MySQLQueryBuilderTest extends TestCase {
     public function unionTest01() {
         $schema = new MySQLTestSchema();
         $schema->table('users')
-                ->select(['id' => 'user_id', 'first-name'])
+                ->select(['id' => [
+                    'as' => 'user_id'
+                ], 'first-name'])
                 ->where('id', '!=', 44)
                 ->union($schema->table('users_privileges')->select());
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44"
@@ -464,7 +472,9 @@ class MySQLQueryBuilderTest extends TestCase {
     public function unionTest02() {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users');
-                $q->select(['id' => 'user_id', 'first-name'])
+                $q->select(['id' => [
+                    'alias' => 'user_id'
+                ], 'first-name'])
                 ->where('id', '!=', 44)
                 ->union($q->table('users_privileges')->select())
                 ->union($q->table('users_tasks')->select(), true);
@@ -977,7 +987,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "on(`users`.`id` = `users_privileges`.`id`)", $schema->getLastQuery());
         
         $queryBuilder->join(
-            $queryBuilder->table('users_tasks')->select(['task-id', 'created-on' => 'created'])
+            $queryBuilder->table('users_tasks')->select(['task-id', 'created-on' => [
+                'as' => 'created'
+            ]])
         )->on('id', 'user-id')->select(['id']);
         $this->assertEquals("select "
                 . "`T1`.`id`, "
@@ -1250,8 +1262,12 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testLeft05() {
         $schema = new MySQLTestSchema();
-        $schema->table('users_tasks')->select()->whereLeft('details', 8, 'not in', ['good']);
+        $q = $schema->getQueryGenerator();
+        $q->table('users_tasks')->select()
+                ->whereLeft('details', 8, 'not in', ['good']);
         $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) not in('good')", $schema->getLastQuery());
+        $q->andWhere('user-id', '=', 9);
+        $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) not in('good') and `users_tasks`.`user_id` = 9", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1269,6 +1285,17 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->expectExceptionMessage('The value must be of type string since the condition is \'=\'.');
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '=', ['good', 'bad']);
+    }
+    /**
+     * @test
+     */
+    public function testLeft08() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users_tasks')->select()->whereBetween('created-on', '2020-01-01', '2020-04-01');
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`created_on` between \'2020-01-01 00:00:00\' and \'2020-04-01 00:00:00\')', $q->getQuery());
+        $q->whereLeft('details', 5, '=', 'ok ok', 'or');
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`created_on` between \'2020-01-01 00:00:00\' and \'2020-04-01 00:00:00\') or left(`users_tasks`.`details`, 5) = \'ok ok\'', $q->getQuery());
     }
     /**
      * @test
@@ -1326,5 +1353,77 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->expectExceptionMessage('The value must be of type string since the condition is \'!=\'.');
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', ['good', 'bad']);
+    }
+    /**
+     * @test
+     */
+    public function testAggregate00() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->select([
+            'id' => [
+                'aggregate' => 'max'
+            ]
+        ]);
+        $this->assertEquals('select max(`users`.`id`) from `users`', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAggregate01() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->select([
+            'id' => [
+                'aggregate' => 'avg',
+                'as' => 'id_avg'
+            ]
+        ]);
+        $this->assertEquals('select avg(`users`.`id`) as `id_avg` from `users`', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAggregate02() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->selectMax('id');
+        $this->assertEquals('select max(`users`.`id`) as `max` from `users`', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAggregate03() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->selectMin('id');
+        $this->assertEquals('select min(`users`.`id`) as `min` from `users`', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAggregate04() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->selectAvg('id');
+        $this->assertEquals('select avg(`users`.`id`) as `avg` from `users`', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAggregate05() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->selectCount();
+        $this->assertEquals('select count(*) as `count` from `users`', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAggregate06() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->selectCount('id');
+        $this->assertEquals('select count(`users`.`id`) as `count` from `users`', $q->getQuery());
     }
 }

@@ -129,7 +129,7 @@ class ForeignKey {
             $name = 'key_name',
             $ownerTable = null,
             $sourceTable = null,
-            $cols = []) {
+            array $cols = []) {
         $this->sourceCols = [];
         $this->ownerCols = [];
 
@@ -145,10 +145,8 @@ class ForeignKey {
             $this->setKeyName('key_name');
         }
 
-        if (gettype($cols) == 'array') {
-            foreach ($cols as $k => $v) {
-                $this->addReference($k, $v);
-            }
+        foreach ($cols as $k => $v) {
+            $this->addReference($k, $v);
         }
     }
     /**
@@ -377,10 +375,8 @@ class ForeignKey {
 
         if (in_array($fix, self::CONDITIONS)) {
             $this->onDeleteCondition = $fix;
-        } else {
-            if ($val === null) {
-                $this->onDeleteCondition = null;
-            }
+        } else if ($val === null) {
+            $this->onDeleteCondition = null;
         }
     }
     /**
@@ -396,7 +392,7 @@ class ForeignKey {
 
         if (in_array($fix, self::CONDITIONS)) {
             $this->onUpdateCondition = $fix;
-        } elseif ($val == null) {
+        } else if ($val == null) {
             $this->onUpdateCondition = null;
         }
     }

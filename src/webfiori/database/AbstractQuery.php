@@ -783,6 +783,102 @@ abstract class AbstractQuery {
         return $this->join($query, 'right join');
     }
     /**
+     * Constructs a select query which can be used to find the average value 
+     * of a column.
+     * 
+     * @param string $colName The name of column key.
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value of the average. Default is 'avg'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectAvg($colName, $alias = 'avg') {
+        if ($colName !== null) {
+            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'avg';
+            
+            $this->select([
+                $colName => [
+                    'aggregate' => 'avg',
+                    'as' => $xAlias
+                ]
+            ]);
+        }
+    }
+    /**
+     * Constructs a select query which can be used to find the minimum value 
+     * of a column.
+     * 
+     * @param string $colName The name of column key.
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value. Default is 'min'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectMin($colName, $alias = 'min') {
+        if ($colName !== null) {
+            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'min';
+            
+            $this->select([
+                $colName => [
+                    'aggregate' => 'min',
+                    'as' => $xAlias
+                ]
+            ]);
+        }
+    }
+    /**
+     * Constructs a select query which can be used to find the minimum value 
+     * of a column.
+     * 
+     * @param string $colName The name of column key.
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value. Default is 'max'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectMax($colName, $alias = 'max') {
+        if ($colName !== null) {
+            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'max';
+            
+            $this->select([
+                $colName => [
+                    'aggregate' => 'max',
+                    'as' => $xAlias
+                ]
+            ]);
+        }
+    }
+    /**
+     * Constructs a select query which can be used to find the number of rows 
+     * of a result.
+     * 
+     * @param string $colName Optional name of column key. Default is null. 
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value. Default is 'count'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectCount($colName = null, $alias = 'count') {
+        $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'count';
+        if ($colName !== null) {
+            
+            
+            $this->select([
+                $colName => [
+                    'aggregate' => 'count',
+                    'as' => $xAlias
+                ]
+            ]);
+        } else {
+            $expr = new Expression('count(*)');
+            $this->select([$expr]);
+        }
+    }
+    /**
      * Constructs a select query based on associated table.
      * 
      * @param array $cols An array that contains the keys of the columns that 
@@ -1272,8 +1368,9 @@ abstract class AbstractQuery {
             $colObj->setWithTablePrefix(true);
             $colName = $colObj->getName();
             $cleanVal = $colObj->cleanValue($val);
-
-            if (gettype($cleanVal) == 'string') {
+            $cleanType = gettype($cleanVal);
+            
+            if ($cleanType == 'string' || $cleanType == 'array') {
                 $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
             }
         } else {
@@ -1326,8 +1423,9 @@ abstract class AbstractQuery {
             $colObj->setWithTablePrefix(true);
             $colName = $colObj->getName();
             $cleanVal = $colObj->cleanValue($val);
-
-            if (gettype($cleanVal) == 'string') {
+            $cleanType = gettype($cleanVal);
+            
+            if ($cleanType == 'string' || $cleanType == 'array') {
                 $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
             }
         } else {

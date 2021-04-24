@@ -305,4 +305,39 @@ class MySQLTableTest extends TestCase {
         $this->assertEquals('hello_fk', $obj->getKeyName());
         $this->assertEquals(0, $table->getForignKeysCount());
     }
+    public function testRemoveColFromRef00() {
+        $table = new MySQLTable('active_or_not');
+        $table->addColumns([
+            'user-id' => [
+                'size' => 15
+            ],
+            'username' => [
+                'size' => 50
+            ],
+            'is-active' => [
+                'type' => 'bool'
+            ]
+        ]);
+        $table2 = new MySQLTable('user_info');
+        $table2->addColumns([
+            'user-id' => [
+                'size' => 15
+            ],
+            'first-name' => [
+                'size' => '50'
+            ],
+            'last-name' => [
+                'size' => '50'
+            ]
+        ]);
+        $table2->addReference($table, [
+            'user-id',
+            'first-name' => 'username'
+            ], 'hello_fk');
+        $key = $table2->getForeignKey('hello_fk');
+        $this->assertEquals(2, count($key->getOwnerCols()));
+        $this->assertFalse($key->removeReference('username'));
+        $this->assertTrue($key->removeReference('first-name'));
+        $this->assertEquals(1, count($table2->getForeignKey('hello_fk')->getSourceCols()));
+    }
 }
