@@ -1415,7 +1415,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->getQueryGenerator();
         $q->table('users')->selectCount();
-        $this->assertEquals('select count(*) as `count` from `users`', $q->getQuery());
+        $this->assertEquals('select count(*) as count from `users`', $q->getQuery());
     }
     /**
      * @test
