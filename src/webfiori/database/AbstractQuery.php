@@ -882,8 +882,16 @@ abstract class AbstractQuery {
      * Constructs a select query based on associated table.
      * 
      * @param array $cols An array that contains the keys of the columns that 
-     * will be selected. To give an alias for a column, simply supply the alias 
-     * as a value for the key.
+     * will be selected. This also can be an array that holds objects of type 
+     * 'Expression'. Also, it can be an associative array of columns keys and 
+     * sub arrays. The sub arrays can have options for the columns that will be 
+     * selected. Supported options are:
+     * <ul>
+     * <li>'obj': An object of type column or an expression.</li>
+     * <li>'alias': An optional string which can act as an alias.</li>
+     * <li>'aggregate': Aggregate function to use in the column such as 
+     * 'avg' or 'max'.</li>
+     * </ul>
      * 
      * @return AbstractQuery The method will return the same instance at which the 
      * method is called on.
