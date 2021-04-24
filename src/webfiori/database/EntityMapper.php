@@ -175,31 +175,11 @@ class EntityMapper {
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            
             $retVal[$keyName] = $this->_colKeyToAttr($keyName);
         }
         ksort($retVal, SORT_STRING);
 
         return $retVal;
-    }
-    private function _colKeyToAttr($key) {
-        $split = explode('-', $key);
-        $attrName = '';
-        $index = 0;
-
-        foreach ($split as $namePart) {
-            if (strlen($namePart) == 1) {
-                $attrName .= strtolower($namePart);
-                $index++;
-            } else if ($index != 0) {
-                $firstChar = $namePart[0];
-                $attrName .= strtoupper($firstChar).substr($namePart, 1);
-            } else {
-                $index++;
-                $attrName .= strtolower($namePart);
-            }
-        }
-        return $attrName;
     }
     /**
      * Returns an associative array that contains the possible names 
@@ -226,7 +206,6 @@ class EntityMapper {
         ];
 
         foreach ($keys as $keyName) {
-            
             $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName, 'g');
             $retVal['setters'][] = $this->_colKeyToSetterOrGetter($keyName, 's');
         }
@@ -234,24 +213,6 @@ class EntityMapper {
         sort($retVal['setters'], SORT_STRING);
 
         return $retVal;
-    }
-    private function _colKeyToSetterOrGetter($key, $type = 'g') {
-        $split = explode('-', $key);
-        $methodName = '';
-
-        foreach ($split as $namePart) {
-            if (strlen($namePart) == 1) {
-                $methodName .= strtoupper($namePart);
-            } else {
-                $firstChar = $namePart[0];
-                $methodName .= strtoupper($firstChar).substr($namePart, 1);
-            }
-        }
-        if ($type == 'g') {
-            return 'get'.$methodName;
-        } else {
-            return 'set'.$methodName;
-        }
     }
     /**
      * Returns the name of the class that the table is mapped to.
@@ -477,11 +438,50 @@ class EntityMapper {
         }
         $this->classStr .= "    }\n";
     }
+    private function _colKeyToAttr($key) {
+        $split = explode('-', $key);
+        $attrName = '';
+        $index = 0;
+
+        foreach ($split as $namePart) {
+            if (strlen($namePart) == 1) {
+                $attrName .= strtolower($namePart);
+                $index++;
+            } else if ($index != 0) {
+                $firstChar = $namePart[0];
+                $attrName .= strtoupper($firstChar).substr($namePart, 1);
+            } else {
+                $index++;
+                $attrName .= strtolower($namePart);
+            }
+        }
+
+        return $attrName;
+    }
+    private function _colKeyToSetterOrGetter($key, $type = 'g') {
+        $split = explode('-', $key);
+        $methodName = '';
+
+        foreach ($split as $namePart) {
+            if (strlen($namePart) == 1) {
+                $methodName .= strtoupper($namePart);
+            } else {
+                $firstChar = $namePart[0];
+                $methodName .= strtoupper($firstChar).substr($namePart, 1);
+            }
+        }
+
+        if ($type == 'g') {
+            return 'get'.$methodName;
+        } else {
+            return 'set'.$methodName;
+        }
+    }
     private function _createEntityMethods() {
         $entityAttrs = $this->getAttribitesNames();
         $colsNames = $this->getTable()->getColsNames();
         sort($colsNames, SORT_STRING);
-        
+
         foreach ($entityAttrs as $colKey => $attrName) {
             $colObj = $this->getTable()->getColByKey($colKey);
             $getterName = $this->_colKeyToSetterOrGetter($colKey, 'g');

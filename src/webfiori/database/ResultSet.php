@@ -75,6 +75,7 @@ class ResultSet implements Countable, Iterator {
         if (gettype($this->getMappedRowsCount()) == 'array') {
             return $this->getMappedRowsCount();
         }
+
         return 0;
     }
 

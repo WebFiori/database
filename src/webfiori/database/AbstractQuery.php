@@ -783,102 +783,6 @@ abstract class AbstractQuery {
         return $this->join($query, 'right join');
     }
     /**
-     * Constructs a select query which can be used to find the average value 
-     * of a column.
-     * 
-     * @param string $colName The name of column key.
-     * 
-     * @param string $alias An optional alias for the column that will hold the 
-     * value of the average. Default is 'avg'.
-     * 
-     * @since 1.0.5
-     */
-    public function selectAvg($colName, $alias = 'avg') {
-        if ($colName !== null) {
-            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'avg';
-            
-            $this->select([
-                $colName => [
-                    'aggregate' => 'avg',
-                    'as' => $xAlias
-                ]
-            ]);
-        }
-    }
-    /**
-     * Constructs a select query which can be used to find the minimum value 
-     * of a column.
-     * 
-     * @param string $colName The name of column key.
-     * 
-     * @param string $alias An optional alias for the column that will hold the 
-     * value. Default is 'min'.
-     * 
-     * @since 1.0.5
-     */
-    public function selectMin($colName, $alias = 'min') {
-        if ($colName !== null) {
-            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'min';
-            
-            $this->select([
-                $colName => [
-                    'aggregate' => 'min',
-                    'as' => $xAlias
-                ]
-            ]);
-        }
-    }
-    /**
-     * Constructs a select query which can be used to find the minimum value 
-     * of a column.
-     * 
-     * @param string $colName The name of column key.
-     * 
-     * @param string $alias An optional alias for the column that will hold the 
-     * value. Default is 'max'.
-     * 
-     * @since 1.0.5
-     */
-    public function selectMax($colName, $alias = 'max') {
-        if ($colName !== null) {
-            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'max';
-            
-            $this->select([
-                $colName => [
-                    'aggregate' => 'max',
-                    'as' => $xAlias
-                ]
-            ]);
-        }
-    }
-    /**
-     * Constructs a select query which can be used to find the number of rows 
-     * of a result.
-     * 
-     * @param string $colName Optional name of column key. Default is null. 
-     * 
-     * @param string $alias An optional alias for the column that will hold the 
-     * value. Default is 'count'.
-     * 
-     * @since 1.0.5
-     */
-    public function selectCount($colName = null, $alias = 'count') {
-        $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'count';
-        if ($colName !== null) {
-            
-            
-            $this->select([
-                $colName => [
-                    'aggregate' => 'count',
-                    'as' => $xAlias
-                ]
-            ]);
-        } else {
-            $expr = new Expression('count(*) as '.$xAlias);
-            $this->select([$expr]);
-        }
-    }
-    /**
      * Constructs a select query based on associated table.
      * 
      * @param array $cols An array that contains the keys of the columns that 
@@ -926,6 +830,101 @@ abstract class AbstractQuery {
         }
 
         return $this;
+    }
+    /**
+     * Constructs a select query which can be used to find the average value 
+     * of a column.
+     * 
+     * @param string $colName The name of column key.
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value of the average. Default is 'avg'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectAvg($colName, $alias = 'avg') {
+        if ($colName !== null) {
+            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'avg';
+
+            $this->select([
+                $colName => [
+                    'aggregate' => 'avg',
+                    'as' => $xAlias
+                ]
+            ]);
+        }
+    }
+    /**
+     * Constructs a select query which can be used to find the number of rows 
+     * of a result.
+     * 
+     * @param string $colName Optional name of column key. Default is null. 
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value. Default is 'count'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectCount($colName = null, $alias = 'count') {
+        $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'count';
+
+        if ($colName !== null) {
+            $this->select([
+                $colName => [
+                    'aggregate' => 'count',
+                    'as' => $xAlias
+                ]
+            ]);
+        } else {
+            $expr = new Expression('count(*) as '.$xAlias);
+            $this->select([$expr]);
+        }
+    }
+    /**
+     * Constructs a select query which can be used to find the minimum value 
+     * of a column.
+     * 
+     * @param string $colName The name of column key.
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value. Default is 'max'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectMax($colName, $alias = 'max') {
+        if ($colName !== null) {
+            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'max';
+
+            $this->select([
+                $colName => [
+                    'aggregate' => 'max',
+                    'as' => $xAlias
+                ]
+            ]);
+        }
+    }
+    /**
+     * Constructs a select query which can be used to find the minimum value 
+     * of a column.
+     * 
+     * @param string $colName The name of column key.
+     * 
+     * @param string $alias An optional alias for the column that will hold the 
+     * value. Default is 'min'.
+     * 
+     * @since 1.0.5
+     */
+    public function selectMin($colName, $alias = 'min') {
+        if ($colName !== null) {
+            $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'min';
+
+            $this->select([
+                $colName => [
+                    'aggregate' => 'min',
+                    'as' => $xAlias
+                ]
+            ]);
+        }
     }
     /**
      * Sets the parameters which will be used in case the query will be prepared.
@@ -1170,6 +1169,7 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
+
         return $this;
     }
     /**
@@ -1215,16 +1215,26 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
-        
+
         return $this;
     }
     /**
-     * Constructs a 'where is not null' condition.
+     * Adds a 'left()' condition to the 'where' part of the select.
      * 
      * @param string $col The key of the column that the condition will be based 
-     * on.
+     * on. Note that the column type must be a string type such as varchar or the 
+     * call to the method will be ignored.
      * 
-     * @param string $join An optional string which could be used to join 
+     * @param int $charsCount The number of characters that will be taken from 
+     * the left of the column value.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
+     * 
+     * @param string|array $val The value at which the condition will be compared with. 
+     * This also can be an array of values if the condition is 'in' or 'not in'.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
@@ -1236,34 +1246,11 @@ abstract class AbstractQuery {
      * 
      * @since 1.0.4
      */
-    public function whereNotNull($col, $join = 'and') {
-        return $this->whereNull($col, $join, true);
-    }
-    /**
-     * Constructs a 'where is null' condition.
-     * 
-     * @param string $col The key of the column that the condition will be based 
-     * on.
-     * 
-     * @param string $join An optional string which could be used to join 
-     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
-     * default value.
-     * 
-     * @param boolean $not If set to true, the 'is null' condition will be set 
-     * to 'is not null'.
-     * 
-     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
-     */
-    public function whereNull($col, $join = 'and', $not = false) {
+    public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
         $tableName = $table->getName();
+
         if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
             $colObj = $table->getColByKey($col);
 
@@ -1274,11 +1261,16 @@ abstract class AbstractQuery {
             }
             $colObj->setWithTablePrefix(true);
             $colName = $colObj->getName();
-            $this->getTable()->getSelect()->addWhereNull($colName, $join, $not);
+            $cleanVal = $colObj->cleanValue($val);
+            $cleanType = gettype($cleanVal);
+
+            if ($cleanType == 'string' || $cleanType == 'array') {
+                $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
+            }
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
-        
+
         return $this;
     }
     /**
@@ -1329,117 +1321,7 @@ abstract class AbstractQuery {
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
-        
-        return $this;
-    }
-    /**
-     * Adds a 'right()' condition to the 'where' part of the select.
-     * 
-     * @param string $col The key of the column that the condition will be based 
-     * on. Note that the column type must be a string type such as varchar or the 
-     * call to the method will be ignored.
-     * 
-     * @param int $charsCount The number of characters that will be taken from 
-     * the right of the column value.
-     * 
-     * @param string $cond A condition at which the comparison will be based on. 
-     * can only have 4 values, '=', '!=', 'in' and 'not in'.
-     * 
-     * @param string|array $val The value at which the condition will be compared with. 
-     * This also can be an array of values if the condition is 'in' or 'not in'.
-     * 
-     * @param string $joinCond An optional string which could be used to join 
-     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
-     * default value.
-     * 
-     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
-     */
-    public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
 
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $cleanVal = $colObj->cleanValue($val);
-            $cleanType = gettype($cleanVal);
-            
-            if ($cleanType == 'string' || $cleanType == 'array') {
-                $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
-            }
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
-        
-        return $this;
-    }
-    /**
-     * Adds a 'left()' condition to the 'where' part of the select.
-     * 
-     * @param string $col The key of the column that the condition will be based 
-     * on. Note that the column type must be a string type such as varchar or the 
-     * call to the method will be ignored.
-     * 
-     * @param int $charsCount The number of characters that will be taken from 
-     * the left of the column value.
-     * 
-     * @param string $cond A condition at which the comparison will be based on. 
-     * can only have 4 values, '=', '!=', 'in' and 'not in'.
-     * 
-     * @param string|array $val The value at which the condition will be compared with. 
-     * This also can be an array of values if the condition is 'in' or 'not in'.
-     * 
-     * @param string $joinCond An optional string which could be used to join 
-     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
-     * default value.
-     * 
-     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
-     */
-    public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
-
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $cleanVal = $colObj->cleanValue($val);
-            $cleanType = gettype($cleanVal);
-            
-            if ($cleanType == 'string' || $cleanType == 'array') {
-                $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
-            }
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
-        
         return $this;
     }
     /**
@@ -1512,6 +1394,125 @@ abstract class AbstractQuery {
      */
     public function whereNotLike($col, $val, $joinCond = 'and') {
         return $this->whereLike($col, $val, $joinCond, true);
+    }
+    /**
+     * Constructs a 'where is not null' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereNotNull($col, $join = 'and') {
+        return $this->whereNull($col, $join, true);
+    }
+    /**
+     * Constructs a 'where is null' condition.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on.
+     * 
+     * @param string $join An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @param boolean $not If set to true, the 'is null' condition will be set 
+     * to 'is not null'.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereNull($col, $join = 'and', $not = false) {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $this->getTable()->getSelect()->addWhereNull($colName, $join, $not);
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+
+        return $this;
+    }
+    /**
+     * Adds a 'right()' condition to the 'where' part of the select.
+     * 
+     * @param string $col The key of the column that the condition will be based 
+     * on. Note that the column type must be a string type such as varchar or the 
+     * call to the method will be ignored.
+     * 
+     * @param int $charsCount The number of characters that will be taken from 
+     * the right of the column value.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
+     * 
+     * @param string|array $val The value at which the condition will be compared with. 
+     * This also can be an array of values if the condition is 'in' or 'not in'.
+     * 
+     * @param string $joinCond An optional string which could be used to join 
+     * more than one condition ('and' or 'or'). If not given, 'and' is used as 
+     * default value.
+     * 
+     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If the table has no column with given key name, 
+     * the method will throw an exception.
+     * 
+     * @since 1.0.4
+     */
+    public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+        $tableName = $table->getName();
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $colsKeys = $table->getColsKeys();
+                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
+                throw new DatabaseException($message);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+            $cleanVal = $colObj->cleanValue($val);
+            $cleanType = gettype($cleanVal);
+
+            if ($cleanType == 'string' || $cleanType == 'array') {
+                $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
+            }
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+
+        return $this;
     }
     private function _getColsToSelect() {
         $thisTable = $this->getTable();
