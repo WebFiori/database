@@ -729,7 +729,16 @@ class SelectExpression extends Expression {
     /**
      * Adds a set of columns or expressions to the select.
      * 
-     * @param array $colsOrExprs An array that contains columns and expressions.
+     * @param array $colsOrExprs An array that contains columns and expressions. 
+     * The array can be associative. If so, the indices must be columns names 
+     * and the values must me sub arrays that holds column options. Each sub 
+     * array can have the following indices: 
+     * <ul>
+     * <li>'obj': An object of type column or an expression.</li>
+     * <li>'alias': An optional string which can act as an alias.</li>
+     * <li>'aggregate': Aggregate function to use in the column such as 
+     * 'avg' or 'max'.</li>
+     * </ul>
      * 
      * @throws DatabaseException If column does not exist in the table that the 
      * select is based on.
@@ -738,14 +747,14 @@ class SelectExpression extends Expression {
      */
     public function select(array $colsOrExprs) {
         try {
-            foreach ($colsOrExprs as $index => $colOrExprOrAliasOrArr) {
-                if ($colOrExprOrAliasOrArr instanceof Expression) {
-                    $this->addExpression($colOrExprOrAliasOrArr);
+            foreach ($colsOrExprs as $index => $colArrOrExpr) {
+                if ($colArrOrExpr instanceof Expression) {
+                    $this->addExpression($colArrOrExpr);
                 } else {
                     if (gettype($index) == 'integer') {
-                        $this->addColumn($colOrExprOrAliasOrArr);
+                        $this->addColumn($colArrOrExpr);
                     } else {
-                        $this->addColumn($index, $colOrExprOrAliasOrArr);
+                        $this->addColumn($index, $colArrOrExpr);
                     }
                 }
                 
