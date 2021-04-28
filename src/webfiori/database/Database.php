@@ -245,10 +245,11 @@ class Database {
         if (!$conn->runQuery($this->getQueryGenerator())) {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }
+        $lastQueryType = $this->getQueryGenerator()->getLastQueryType();
         $this->clear();
         $resultSet = null;
-
-        if (in_array($this->getQueryGenerator()->getLastQueryType(), ['select', 'show', 'describe'])) {
+        
+        if (in_array($lastQueryType, ['select', 'show', 'describe'])) {
             $resultSet = $this->getLastResultSet();
         }
         $this->getQueryGenerator()->setQuery(null);
