@@ -334,6 +334,10 @@ abstract class AbstractQuery {
     /**
      * Execute the generated SQL query.
      * 
+     * @return ResultSet|null If the last executed query was a select, show or 
+     * describe query, the method will return an object of type 'ResultSet' that 
+     * holds fetched records. Other than that, the method will return null.
+     * 
      * @throws DatabaseException The method will throw an exception if one 
      * of 3 cases happens:
      * <ul>
@@ -346,7 +350,7 @@ abstract class AbstractQuery {
      */
     public function execute() {
         try {
-            $this->getSchema()->execute();
+            return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
             throw new DatabaseException($ex->getMessage());
         }
