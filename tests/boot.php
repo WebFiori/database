@@ -41,26 +41,26 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 }
 define('ROOT', $rootDir);
 fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'AbstractQuery.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Table.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'ForeignKey.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Column.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Connection.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'ConnectionInfo.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'DatabaseException.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Database.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Expression.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'Condition.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'EntityMapper.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'JoinTable.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'SelectExpression.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'AbstractQuery.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Table.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ForeignKey.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Column.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Connection.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ConnectionInfo.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'DatabaseException.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Database.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Expression.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Condition.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'EntityMapper.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'JoinTable.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'SelectExpression.php';
 
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLQuery.php';
-require_once $rootDir.'src'.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnection.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLQuery.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnection.php';
 
 require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
 
