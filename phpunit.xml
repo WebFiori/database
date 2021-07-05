@@ -4,7 +4,7 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
+            <directory suffix=".php">./webfiori</directory>
         </whitelist>
     </filter>
     <logging>
