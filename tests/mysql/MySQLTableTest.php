@@ -19,6 +19,125 @@ class MySQLTableTest extends TestCase {
     /**
      * @test
      */
+    public function testFK1() {
+        $table = new MySQLTable('users');
+        $table->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+            'username' => [
+                'type' => 'varchar',
+                'size' => 20,
+                'is-unique' => true
+            ],
+            'password' => [
+                'type' => 'varchar',
+                'size' => 256
+            ],
+            'created-on' => [
+                'type' => 'timestamp',
+                'default' => 'now()',
+            ],
+        ]);
+        
+        $table2 = new MySQLTable('t');
+        $table2->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+        ]);
+        $table2->addReference($table, ['user-id', 'email'], 'fk_ok', 'cascade', 'cascade');
+        $key = $table2->getForeignKey('fk_ok');
+        $this->assertEquals(2, count($key->getSourceCols()));
+        $this->assertEquals("create table if not exists `t` (\n"
+                . "    `user_id` int not null unique auto_increment,\n"
+                . "    `email` varchar(256) not null unique collate utf8mb4_unicode_520_ci,\n"
+                . "    constraint `t_pk` primary key (`user_id`),\n"
+                . "    constraint `fk_ok` foreign key (`user_id`, `email`) references `users` (`user_id`, `email`) on update cascade on delete cascade\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $table2->toSQL());
+    }
+    /**
+     * @test
+     */
+    public function testFK2() {
+        $table = new MySQLTable('users');
+        $table->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+            'username' => [
+                'type' => 'varchar',
+                'size' => 20,
+                'is-unique' => true
+            ],
+            'password' => [
+                'type' => 'varchar',
+                'size' => 256
+            ],
+            'created-on' => [
+                'type' => 'timestamp',
+                'default' => 'now()',
+            ],
+        ]);
+        
+        $table2 = new MySQLTable('t');
+        $table2->addColumns([
+            'user-id-super' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email-x' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+        ]);
+        $table2->addReference($table, [
+            'user-id-super' => 'user-id','email-x' =>  'email'], 'fk_ok', 'cascade', 'cascade');
+        $key = $table2->getForeignKey('fk_ok');
+        $this->assertEquals(2, count($key->getSourceCols()));
+        $this->assertEquals("create table if not exists `t` (\n"
+                . "    `user_id_super` int not null unique auto_increment,\n"
+                . "    `email_x` varchar(256) not null unique collate utf8mb4_unicode_520_ci,\n"
+                . "    constraint `t_pk` primary key (`user_id_super`),\n"
+                . "    constraint `fk_ok` foreign key (`user_id_super`, `email_x`) references `users` (`user_id`, `email`) on update cascade on delete cascade\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $table2->toSQL());
+    }
+    /**
+     * @test
+     */
     public function testAddColumn00() {
         $table = new MySQLTable();
         $this->assertTrue($table->addColumn('new-col', new MySQLColumn()));
