@@ -844,6 +844,9 @@ abstract class AbstractQuery {
      * @param string $alias An optional alias for the column that will hold the 
      * value of the average. Default is 'avg'.
      * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
+     * 
      * @since 1.0.5
      */
     public function selectAvg($colName, $alias = 'avg') {
@@ -857,6 +860,8 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
+        
+        return $this;
     }
     /**
      * Constructs a select query which can be used to find the number of rows 
@@ -866,6 +871,9 @@ abstract class AbstractQuery {
      * 
      * @param string $alias An optional alias for the column that will hold the 
      * value. Default is 'count'.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
      * 
      * @since 1.0.5
      */
@@ -883,6 +891,8 @@ abstract class AbstractQuery {
             $expr = new Expression('count(*) as '.$xAlias);
             $this->select([$expr]);
         }
+        
+        return $this;
     }
     /**
      * Constructs a select query which can be used to find the minimum value 
@@ -892,6 +902,9 @@ abstract class AbstractQuery {
      * 
      * @param string $alias An optional alias for the column that will hold the 
      * value. Default is 'max'.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
      * 
      * @since 1.0.5
      */
@@ -906,6 +919,8 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
+        
+        return $this;
     }
     /**
      * Constructs a select query which can be used to find the minimum value 
@@ -915,6 +930,9 @@ abstract class AbstractQuery {
      * 
      * @param string $alias An optional alias for the column that will hold the 
      * value. Default is 'min'.
+     * 
+     * @return AbstractQuery The method will return the same instance at which 
+     * the method is called on.
      * 
      * @since 1.0.5
      */
@@ -929,6 +947,8 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
+        
+        return $this;
     }
     /**
      * Sets the parameters which will be used in case the query will be prepared.
