@@ -599,6 +599,23 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' "
                 . "where `users_tasks`.`task_id` = 77 and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
     }
+     /**
+     * @test
+     */
+    public function testUpdate03() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users_tasks');
+        
+        $q->update([
+            'details' => null
+        ])->where('last-updated', '=', '2021-07-13');
+        $date = date('Y-m-d H:i:s');
+        $this->assertEquals("update `users_tasks` set `details` = null, "
+                . "`last_updated` = '$date' where `users_tasks`.`last_updated` = '2021-07-13 00:00:00'", $schema->getLastQuery());
+        $q->andWhere('user-id', '=', 6);
+        $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' "
+                . "where `users_tasks`.`last_updated` = '2021-07-13 00:00:00' and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
+    }
     /**
      * @test
      */
