@@ -418,7 +418,7 @@ class MySQLQuery extends AbstractQuery {
     /**
      * 
      * @param type $alterOpType
-     * @param type $colToAdd
+     * @param Column $colToAdd
      * @param type $location
      * @param type $tblName
      * @throws DatabaseException
@@ -427,7 +427,7 @@ class MySQLQuery extends AbstractQuery {
         $colObjAsStr = $colToAdd->asString();
 
         if ($alterOpType == 'modify') {
-            $stm = "alter table $tblName change column $colObjAsStr";
+            $stm = "alter table $tblName change column ".MySQLQuery::backtick($colToAdd->getName())." $colObjAsStr";
         } else {
             $stm = "alter table $tblName add $colObjAsStr";
         }

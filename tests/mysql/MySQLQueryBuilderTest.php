@@ -660,7 +660,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users_tasks');
         $q->modifyCol('details');
-        $this->assertEquals("alter table `users_tasks` change column `details` varchar(1500) not null collate utf8mb4_unicode_520_ci;", $schema->getLastQuery());
+        $this->assertEquals("alter table `users_tasks` change column `details` `details` varchar(1500) not null collate utf8mb4_unicode_520_ci;", $schema->getLastQuery());
     }
     /**
      * @test
@@ -669,7 +669,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users_tasks');
         $q->modifyCol('details', 'first');
-        $this->assertEquals("alter table `users_tasks` change column `details` varchar(1500) not null collate utf8mb4_unicode_520_ci first;", $schema->getLastQuery());
+        $this->assertEquals("alter table `users_tasks` change column `details` `details` varchar(1500) not null collate utf8mb4_unicode_520_ci first;", $schema->getLastQuery());
     }
     /**
      * @test
@@ -678,7 +678,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users_tasks');
         $q->modifyCol('details', 'user-id');
-        $this->assertEquals("alter table `users_tasks` change column `details` varchar(1500) not null collate utf8mb4_unicode_520_ci after `user_id`;", $schema->getLastQuery());
+        $this->assertEquals("alter table `users_tasks` change column `details` `details` varchar(1500) not null collate utf8mb4_unicode_520_ci after `user_id`;", $schema->getLastQuery());
     }
     /**
      * @test
