@@ -175,7 +175,7 @@ class MySQLConnection extends Connection {
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
             $table = $query->getTable();
 
-            if ($table !== null) {
+            if ($table !== null && $table instanceof MySQLTable) {
                 $collation = $query->getTable()->getCollation();
             } else {
                 $collation = 'utf8mb4_unicode_520_ci';
