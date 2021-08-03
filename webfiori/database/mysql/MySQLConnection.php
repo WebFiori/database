@@ -54,6 +54,9 @@ class MySQLConnection extends Connection {
      * @since 1.0.2 
      */
     private $sqlStm;
+    /**
+     * Close database connection.
+     */
     public function __destruct() {
         mysqli_close($this->link);
     }
