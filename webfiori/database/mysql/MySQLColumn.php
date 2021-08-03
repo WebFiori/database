@@ -224,6 +224,15 @@ class MySQLColumn extends Column {
             return $col;
         }
     }
+    /**
+     * Returns column alias.
+     * 
+     * Note that the method will add backticks around the alias.
+     * 
+     * @return string|null Name alias.
+     * 
+     * @since 1.0
+     */
     public function getAlias() {
         $alias = parent::getAlias();
 
@@ -308,6 +317,15 @@ class MySQLColumn extends Column {
     public function getMySQLVersion() {
         return $this->mySqlVersion;
     }
+    /**
+     * Returns the name of the column.
+     * 
+     * Note that the method will add backticks around the name.
+     * 
+     * @return string The name of the column.
+     * 
+     * @since 1.0
+     */
     public function getName() {
         return MySQLQuery::backtick(parent::getName());
     }

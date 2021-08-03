@@ -27,7 +27,7 @@ namespace webfiori\database;
 use Exception;
 /**
  * An exception which is thrown to indicate that an error which is related to 
- * database was occur.
+ * database happened.
  *
  * @author Ibrahim
  * 

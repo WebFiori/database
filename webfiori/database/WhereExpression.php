@@ -101,18 +101,14 @@ class WhereExpression extends Expression {
         if ($this->getCondition() !== null) {
             $cond = new Condition($this->getCondition(), $condition, $joinOp);
             $this->condsChain = $cond;
-        } else {
-            if ($condition instanceof Condition) {
-                $this->condsChain = $condition;
+        } else if ($condition instanceof Condition) {
+            $this->condsChain = $condition;
 
-                if (count($this->children) != 0) {
-                    $this->setJoinCondition($joinOp);
-                }
-            } else {
-                if ($condition instanceof Expression) {
-                    $this->condsChain = new Condition($condition, null, $joinOp);
-                }
+            if (count($this->children) != 0) {
+                $this->setJoinCondition($joinOp);
             }
+        } else if ($condition instanceof Expression) {
+            $this->condsChain = new Condition($condition, null, $joinOp);
         }
         $this->condsCount++;
     }
@@ -151,6 +147,14 @@ class WhereExpression extends Expression {
     public function getParent() {
         return $this->parentWhere;
     }
+    /**
+     * Returns the value of the expression.
+     * 
+     * @return string The method will return a string that represents the value 
+     * of the expression.
+     * 
+     * @since 1.0
+     */
     public function getValue() {
         $val = '';
 
@@ -169,12 +173,10 @@ class WhereExpression extends Expression {
                 } else {
                     $val .= $this->getCondition().'';
                 }
+            } else if (count($this->children) != 0 && $this->getParent() !== null && $this->getCondition() !== null) {
+                $val .= ' '.$this->getJoinCondition().' ('.$this->getCondition().')';
             } else {
-                if (count($this->children) != 0 && $this->getParent() !== null && $this->getCondition() !== null) {
-                    $val .= ' '.$this->getJoinCondition().' ('.$this->getCondition().')';
-                } else {
-                    $val .= ' '.$this->getJoinCondition().' '.$this->getCondition().'';
-                }
+                $val .= ' '.$this->getJoinCondition().' '.$this->getCondition().'';
             }
         }
 

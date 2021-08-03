@@ -193,6 +193,15 @@ class MySQLTable extends Table {
     public function getMySQLVersion() {
         return $this->mysqlVnum;
     }
+    /**
+     * Returns the name of the table.
+     * 
+     * Note that the method will add backticks around the name.
+     * 
+     * @return string The name of the table. Default return value is 'new_table'.
+     * 
+     * @since 1.0
+     */
     public function getName() {
         return MySQLQuery::backtick(parent::getName());
     }

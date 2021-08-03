@@ -257,8 +257,8 @@ class EntityMapper {
      * If this is the case, the method will return something like the following array:
      * <p>
      * <code>[<br/>
-     * 'setUserId'=>'id',<br/>
-     * 'setPassword'=>'user_pass'<br/>
+     * 'setUserId' =&gt; 'id',<br/>
+     * 'setPassword' =&gt; 'user_pass'<br/>
      * ]</code>
      * </p>
      * 

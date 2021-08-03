@@ -39,16 +39,29 @@ class ResultSet implements Countable, Iterator {
     private $mappingFunction;
     private $orgResultRows;
     private $resultRows;
-
-    public function __construct(array $resultArr, $mappingFunction = null) {
+    private $mapArgs;
+    /**
+     * Creates new instance of the class.
+     * 
+     * @param array $resultArr An array that holds original result set.
+     * 
+     * @param callable $mappingFunction A PHP function which is used to modify 
+     * original result set and shape it as needed. The method can have two 
+     * arguments, first one is the original data set and the second is an optional 
+     * array of arguments.
+     * 
+     * @param array $mapArgs An optional array of arguments to pass on to the 
+     * mapping function.
+     */
+    public function __construct(array $resultArr, $mappingFunction = null, array $mapArgs = []) {
         $this->orgResultRows = $resultArr;
         $this->resultRows = $resultArr;
-
+        $this->mapArgs = $mapArgs;
         if (!$this->setMappingFunction($mappingFunction)) {
             $this->setMappingFunction(function ($data)
             {
                 return $data;
-            });
+            }, $this->mapArgs);
         }
     }
     /**
@@ -127,7 +140,8 @@ class ResultSet implements Countable, Iterator {
         }
     }
     /**
-     * Returns an array which contains all records in the set.
+     * Returns an array which contains all original records in the set before 
+     * mapping.
      * 
      * @return array An array which contains all records in the set.
      * 
@@ -148,8 +162,9 @@ class ResultSet implements Countable, Iterator {
         return count($this->orgResultRows);
     }
     /**
+     * Return the key of the current record.
      * 
-     * @return int
+     * @return int|null Returns an integer on success, or null on failure.
      * 
      * @since 1.0
      */
@@ -157,12 +172,15 @@ class ResultSet implements Countable, Iterator {
         return $this->cursorPos;
     }
     /**
+     * Move forward to next record.
+     * 
      * @since 1.0
      */
     public function next() {
         $this->cursorPos++;
     }
     /**
+     * Rewind the Iterator to the first record.
      * 
      * @since 1.0
      */
@@ -186,8 +204,9 @@ class ResultSet implements Countable, Iterator {
      */
     public function setMappingFunction($callback, array $otherParams = []) {
         if (is_callable($callback)) {
+            $this->mapArgs = $otherParams;
             $this->mappingFunction = $callback;
-            $args = array_merge([$this->getRows()], $otherParams);
+            $args = array_merge([$this->getRows()], $this->mapArgs);
             $result = call_user_func_array($this->mappingFunction, $args);
 
             if (gettype($result) == 'array') {
@@ -200,8 +219,9 @@ class ResultSet implements Countable, Iterator {
         return false;
     }
     /**
+     * Checks if current position is valid in the iterator.
      * 
-     * @return boolean
+     * @return boolean Returns true on success or false on failure.
      * 
      * @since 1.0
      */

@@ -33,7 +33,7 @@ namespace webfiori\database;
  *
  * @author Ibrahim
  * 
- * @since 1.0.1
+ * @since 1.0.2
  */
 class Condition {
     /**
@@ -75,9 +75,9 @@ class Condition {
      * @since 1.0
      */
     public function __construct($leftOperand, $rightOperand, $condition) {
-        $this->leftOperand = $leftOperand;
-        $this->rightOperand = $rightOperand;
-        $this->condition = $condition;
+        $this->setLeftOperand($leftOperand);
+        $this->setRightOperand($rightOperand);
+        $this->setCondition($condition);
     }
     /**
      * Creates and returns a string that represents the condition.
@@ -106,6 +106,8 @@ class Condition {
     }
     /**
      * Checks if two conditions represent same condition.
+     * 
+     * Two conditions are equal if they have the same string representation.
      * 
      * @param Condition $cond The condition that will be checked with.
      * 
@@ -147,6 +149,21 @@ class Condition {
      */
     public function getRightOperand() {
         return $this->rightOperand;
+    }
+    /**
+     * Sets the value of the condition which is used to join left side operand 
+     * and right side operand.
+     * 
+     * @param string $cond A string such as '=', '!=', '&&' or any such value.
+     * 
+     * @since 1.0.2
+     */
+    public function setCondition($cond) {
+        $conditionT = trim($cond);
+        
+        if (strlen($conditionT) != 0) {
+            $this->condition = $conditionT;
+        }
     }
     /**
      * Sets the left hand side operand of the condition.

@@ -29,8 +29,11 @@ use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
 
 /**
- * A class which is used to represents the structure of the database.
- *
+ * A class which is used to represents the structure of the database 
+ * (database schema). 
+ * In addition to that, the class has methods which is used to build some of 
+ * the commonly used SQL queries such as 'create', 'insert' or 'update'.
+ * 
  * @author Ibrahim
  * 
  * @version 1.0.2
@@ -93,10 +96,15 @@ class Database {
         $this->queries = [];
     }
     /**
+     * Adds a database query to the set of queries at which they where executed.
      * 
-     * @param type $query
+     * This method is called internally by the library to add the query. The 
+     * developer does not have to call this method manually.
      * 
-     * @param type $type
+     * @param string $query SQL query as string.
+     * 
+     * @param string $type The type of the query such as 'select', 'update' or 
+     * 'delete'.
      * 
      * @since 1.0
      */
@@ -156,6 +164,7 @@ class Database {
         return $this->where($col, $cond, $val, 'and');
     }
     /**
+     * Rest all attributes of the class to original values.
      * 
      * @since 1.0
      */

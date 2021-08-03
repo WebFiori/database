@@ -116,6 +116,11 @@ class SelectExpression extends Expression {
             $this->selectCols[$colKey] = $opArr;
         }
     }
+    /**
+     * Adds an expression as a part of the select expression.
+     * 
+     * @param Expression $expr An object that represents the expression.
+     */
     public function addExpression(Expression $expr) {
         $this->selectCols[hash('sha256', $expr->getValue())] = ['obj' => $expr];
     }
@@ -220,13 +225,11 @@ class SelectExpression extends Expression {
             $this->whereExp->setParent($parentWhere);
 
             $this->whereExp = $parentWhere;
-        } else {
-            if ($this->whereExp === null) {
-                $this->whereExp = new WhereExpression('');
-            }
-            $condition = new Condition($leftOpOrExp, $rightOp, $cond);
-            $this->whereExp->addCondition($condition, $join);
+        } else if ($this->whereExp === null) {
+            $this->whereExp = new WhereExpression('');
         }
+        $condition = new Condition($leftOpOrExp, $rightOp, $cond);
+        $this->whereExp->addCondition($condition, $join);
     }
     /**
      * Adds a 'where between ' condition.
@@ -408,11 +411,9 @@ class SelectExpression extends Expression {
                         } else {
                             $obj->setOwner($this->getTable());
                         }
-                    } else {
-                        if ($obj->getPrevOwner() !== null) {
-                            $obj->setOwner($obj->getPrevOwner());
-                            $resetOwner = true;
-                        }
+                    } else if ($obj->getPrevOwner() !== null) {
+                        $obj->setOwner($obj->getPrevOwner());
+                        $resetOwner = true;
                     }
 
                     if ($addCol) {
@@ -562,22 +563,18 @@ class SelectExpression extends Expression {
                     $leftWhere->addCondition($this->whereExp->getCondition(), 'and');
                 }
                 $retVal = $leftWhere->getValue();
+            } else if ($rightWhere !== null) {
+                if ($this->whereExp !== null) {
+                    $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
+                }
+                $retVal = $rightWhere->getValue();
             } else {
-                if ($rightWhere !== null) {
-                    if ($this->whereExp !== null) {
-                        $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
-                    }
-                    $retVal = $rightWhere->getValue();
-                } else {
-                    if ($this->whereExp !== null) {
-                        $retVal = $this->whereExp->getValue();
-                    }
+                if ($this->whereExp !== null) {
+                    $retVal = $this->whereExp->getValue();
                 }
             }
-        } else {
-            if ($this->whereExp !== null) {
-                $retVal = $this->whereExp->getValue();
-            }
+        } else if ($this->whereExp !== null) {
+            $retVal = $this->whereExp->getValue();
         }
 
         if ($withGroupBy) {
@@ -658,10 +655,8 @@ class SelectExpression extends Expression {
 
             if ($orderType == 'd') {
                 $colArr['order'] = 'desc';
-            } else {
-                if ($orderType == 'a') {
-                    $colArr['order'] = 'asc';
-                }
+            } else if ($orderType == 'a') {
+                $colArr['order'] = 'asc';
             }
         }
         $this->orderByCols[$colKey] = $colArr;
@@ -700,12 +695,10 @@ class SelectExpression extends Expression {
             foreach ($colsOrExprs as $index => $colArrOrExpr) {
                 if ($colArrOrExpr instanceof Expression) {
                     $this->addExpression($colArrOrExpr);
+                } else if (gettype($index) == 'integer') {
+                    $this->addColumn($colArrOrExpr);
                 } else {
-                    if (gettype($index) == 'integer') {
-                        $this->addColumn($colArrOrExpr);
-                    } else {
-                        $this->addColumn($index, $colArrOrExpr);
-                    }
+                    $this->addColumn($index, $colArrOrExpr);
                 }
             }
         } catch (DatabaseException $ex) {

@@ -167,6 +167,12 @@ class JoinTable extends Table {
 
         return $colObj;
     }
+    /**
+     * Returns an indexed array that holds all columns of the joined tables.
+     * 
+     * @return array The method will return an array that holds objects of type 'Column'. The 
+     * columns are taken from left ant right table.
+     */
     public function getCols() {
         return array_merge($this->getLeft()->getCols(), $this->getRight()->getCols());
     }
@@ -272,6 +278,14 @@ class JoinTable extends Table {
     public function getRight() {
         return $this->right;
     }
+    /**
+     * Returns a string which represents the joined tables.
+     * 
+     * @param boolean $firstCall A boolean to indicate if the join is a nesting of 
+     * other joins or not. Default value is false.
+     * 
+     * @return string SQL statement that represents the join.
+     */
     public function toSQL($firstCall = false) {
         $leftTbl = $this->getLeft();
         $rightTbl = $this->getRight();

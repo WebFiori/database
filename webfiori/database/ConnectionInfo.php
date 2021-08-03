@@ -45,7 +45,12 @@ namespace webfiori\database;
  */
 class ConnectionInfo {
     /**
-     * An array that contains supported databases.
+     * An array that contains supported database drivers.
+     * 
+     * The array has the following values:
+     * <ul>
+     * <li>mysql</li>
+     * <ul>
      * 
      * @since 1.0
      */
