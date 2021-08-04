@@ -225,11 +225,13 @@ class SelectExpression extends Expression {
             $this->whereExp->setParent($parentWhere);
 
             $this->whereExp = $parentWhere;
-        } else if ($this->whereExp === null) {
-            $this->whereExp = new WhereExpression('');
+        } else {
+            if ($this->whereExp === null) {
+                $this->whereExp = new WhereExpression('');
+            }
+            $condition = new Condition($leftOpOrExp, $rightOp, $cond);
+            $this->whereExp->addCondition($condition, $join);
         }
-        $condition = new Condition($leftOpOrExp, $rightOp, $cond);
-        $this->whereExp->addCondition($condition, $join);
     }
     /**
      * Adds a 'where between ' condition.
@@ -411,9 +413,11 @@ class SelectExpression extends Expression {
                         } else {
                             $obj->setOwner($this->getTable());
                         }
-                    } else if ($obj->getPrevOwner() !== null) {
-                        $obj->setOwner($obj->getPrevOwner());
-                        $resetOwner = true;
+                    } else {
+                        if ($obj->getPrevOwner() !== null) {
+                            $obj->setOwner($obj->getPrevOwner());
+                            $resetOwner = true;
+                        }
                     }
 
                     if ($addCol) {
@@ -563,18 +567,22 @@ class SelectExpression extends Expression {
                     $leftWhere->addCondition($this->whereExp->getCondition(), 'and');
                 }
                 $retVal = $leftWhere->getValue();
-            } else if ($rightWhere !== null) {
-                if ($this->whereExp !== null) {
-                    $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
-                }
-                $retVal = $rightWhere->getValue();
             } else {
-                if ($this->whereExp !== null) {
-                    $retVal = $this->whereExp->getValue();
+                if ($rightWhere !== null) {
+                    if ($this->whereExp !== null) {
+                        $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
+                    }
+                    $retVal = $rightWhere->getValue();
+                } else {
+                    if ($this->whereExp !== null) {
+                        $retVal = $this->whereExp->getValue();
+                    }
                 }
             }
-        } else if ($this->whereExp !== null) {
-            $retVal = $this->whereExp->getValue();
+        } else {
+            if ($this->whereExp !== null) {
+                $retVal = $this->whereExp->getValue();
+            }
         }
 
         if ($withGroupBy) {
@@ -695,10 +703,12 @@ class SelectExpression extends Expression {
             foreach ($colsOrExprs as $index => $colArrOrExpr) {
                 if ($colArrOrExpr instanceof Expression) {
                     $this->addExpression($colArrOrExpr);
-                } else if (gettype($index) == 'integer') {
-                    $this->addColumn($colArrOrExpr);
                 } else {
-                    $this->addColumn($index, $colArrOrExpr);
+                    if (gettype($index) == 'integer') {
+                        $this->addColumn($colArrOrExpr);
+                    } else {
+                        $this->addColumn($index, $colArrOrExpr);
+                    }
                 }
             }
         } catch (DatabaseException $ex) {
