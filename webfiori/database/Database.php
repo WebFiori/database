@@ -94,6 +94,7 @@ class Database {
     public function __construct(ConnectionInfo $connectionInfo = null) {
         $this->setConnectionInfo($connectionInfo);
         $this->queries = [];
+        $this->tablesArr = [];
     }
     /**
      * Adds a database query to the set of queries at which they where executed.
@@ -568,10 +569,14 @@ class Database {
      * 
      * @param string $query A string that represents the query.
      * 
+     * @return Database The method will return the same instance at which the 
+     * method is called on.
+     * 
      * @since 1.0.2
      */
     public function setQuery($query) {
         $this->getQueryGenerator()->setQuery($query);
+        return $this;
     }
     /**
      * Select one of the tables which exist on the schema and use it to build
