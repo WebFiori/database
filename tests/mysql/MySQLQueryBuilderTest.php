@@ -8,11 +8,6 @@
 
 namespace webfiori\database\tests;
 use PHPUnit\Framework\TestCase;
-use webfiori\database\Database;
-use webfiori\database\mysql\MySQLTable;
-use webfiori\database\mysql\MySQLColumn;
-use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\AbstractQuery;
 use webfiori\database\tests\MySQLTestSchema;
 use webfiori\database\DatabaseException;
 use webfiori\database\mysql\MySQLConnection;
@@ -483,6 +478,76 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "select * from `users_privileges`"
                 . "\nunion all\n"
                 . "select * from `users_tasks`", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testReplace00() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users');
+        $q->replace([
+            'id' => 8,
+            'first-name' => 'Ibrahim',
+            'last-name' => 'BinAlshikh'
+        ]);
+        $this->assertEquals("replace into `users` (`id`, `first_name`, `last_name`) values (8, 'Ibrahim', 'BinAlshikh');", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testReplace01() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users');
+        $q->replace([
+            'cols' => [
+                'id','first-name','last-name'
+            ],
+            'values' => [
+                [8,'Ibrahim','BinAlshikh'],
+                [9,'Web','DB']
+            ],
+                
+        ]);
+        $this->assertEquals("replace into `users`\n(`id`, `first_name`, `last_name`)\nvalues\n"
+                . "(8, 'Ibrahim', 'BinAlshikh'),\n"
+                . "(9, 'Web', 'DB');", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testReplace02() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->replace([
+            'user-id' => 6,
+            'details' => 'OK task'
+        ]);
+        $this->assertEquals("replace into `users_tasks` "
+                . "(`user_id`, `details`, `created_on`, `is_finished`) "
+                . "values (6, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
+        $q->replace([
+            'user-id' => 6,
+            'details' => 'OK task',
+            'created-on' => '2020-10-16 00:00:00',
+            'is-finished' => true
+        ]);
+        $this->assertEquals("replace into `users_tasks` "
+                . "(`user_id`, `details`, `created_on`, `is_finished`) "
+                . "values (6, 'OK task', '2020-10-16 00:00:00', b'1');", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testReplace05() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->replace([
+            'user-id' => null,
+            'details' => 'OK task'
+        ]);
+        $this->assertEquals("replace into `users_tasks` "
+                . "(`user_id`, `details`, `created_on`, `is_finished`) "
+                . "values (null, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
     }
     /**
      * @test

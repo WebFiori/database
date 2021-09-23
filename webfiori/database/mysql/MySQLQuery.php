@@ -34,7 +34,7 @@ use webfiori\database\DatabaseException;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
+ * @version 1.0.2
  */
 class MySQLQuery extends AbstractQuery {
     /**
@@ -351,6 +351,48 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
+     * Constructs a query which can be used to replace a record (insert or update if 
+     * exist).
+     * 
+     * @param array $colsAndVals An associative array. The indices are columns 
+     * keys and the value of each index is the value of the column. This also
+     * can be one big indexed array of sub associative arrays. This approach can 
+     * be used to build multiple replace queries.
+     * 
+     * @return MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0.2
+     */
+    public function replace(array $colsAndVals) {
+        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
+            $colsArr = [];
+            $tblName = $this->getTable()->getName();
+
+            foreach ($colsAndVals['cols'] as $colKey) {
+                $colObj = $this->getTable()->getColByKey($colKey);
+
+                if (!($colObj instanceof MySQLColumn)) {
+                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+                }
+                $colObj->setWithTablePrefix(false);
+                $colsArr[] = $colObj->getName();
+            }
+            $colsStr = '('.implode(', ', $colsArr).')';
+            $suberValsArr = [];
+
+            foreach ($colsAndVals['values'] as $valsArr) {
+                $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
+            }
+            $valsStr = implode(",\n", $suberValsArr);
+            $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
+        } else {
+            $this->setQuery($this->_createInsertStm($colsAndVals, true));
+        }
+
+        return $this;
+    }
+    /**
      * Sets the property that is used to check if the query represents an insert 
      * or an update of a blob datatype.
      * 
@@ -455,7 +497,7 @@ class MySQLQuery extends AbstractQuery {
         }
         $this->setQuery($stm.';');
     }
-    private function _createInsertStm($colsAndVals) {
+    private function _createInsertStm($colsAndVals, $replace = false) {
         $tblName = $this->getTable()->getName();
 
         $colsArr = [];
@@ -534,7 +576,11 @@ class MySQLQuery extends AbstractQuery {
         $cols = '('.implode(', ', $colsArr).')';
         $vals = '('.implode(', ', $valsArr).')';
 
-        return "insert into $tblName $cols values $vals;";
+        if ($replace === true) {
+            return "replace into $tblName $cols values $vals;";
+        } else {
+            return "insert into $tblName $cols values $vals;";
+        }
     }
     /**
      * Build a string that holds the values that will be inserted.

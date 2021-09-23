@@ -584,7 +584,7 @@ class Database {
      * 
      * @param string $tblName The name of the table.
      * 
-     * @return AbstractQuery The method will return an instance of the class 
+     * @return AbstractQuery|MySQLQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
      * @since 1.0
