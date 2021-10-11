@@ -85,19 +85,6 @@ abstract class Connection {
         }
     }
     /**
-     * Bind parameters to SQL query.
-     * 
-     * The implementation of this method should bind a prepared statement to 
-     * a set parameters.
-     * 
-     * @param array $params An array that holds the values. The developer can 
-     * decide the structure of the array based on how he will bind the 
-     * arguments.
-     * 
-     * @since 1.0.1
-     */
-    public abstract function bind(array $params);
-    /**
      * Connect to RDBMS.
      * 
      * The developer must implement this method in a way it establishes a connection 
@@ -171,9 +158,13 @@ abstract class Connection {
      * then the developer can bind parameters values using the 
      * method mysqli_stmt::bind_param().
      * 
+     * @param array $queryParams An optional array of parameters to bind with the 
+     * prepared query. The structure of the array will depend on the type of 
+     * database engine that will be used.
+     * 
      * @since 1.0.1
      */
-    public abstract function prepare();
+    public abstract function prepare(array $queryParams = []);
     /**
      * Sets the last query and execute it.
      * 
