@@ -24,12 +24,15 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLColumn;
+use webfiori\database\mysql\MySQLColumn;
+
 /**
  * A class that can be used to represents database tables.
  *
  * @author Ibrahim
  * 
- * @since 1.0.1
+ * @since 1.0.2
  */
 abstract class Table {
     /**
@@ -118,8 +121,8 @@ abstract class Table {
      */
     public function addColumn($key, Column $colObj) {
         $trimmidKey = trim($key);
-
-        if (!$this->hasColumn(trim($colObj->getName(),'`')) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
+        $colName = $colObj->getNormalName();
+        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
             $colObj->setOwner($this);
             $this->colsArr[$trimmidKey] = $colObj;
 
@@ -408,6 +411,22 @@ abstract class Table {
         return $this->name;
     }
     /**
+     * Returns the name of the table.
+     * 
+     * @return string The name of the table. Default return value is 'new_table'.
+     * 
+     * @since 1.0
+     */
+    public final function getNormalName() {
+        $owner = $this->getOwner();
+
+        if ($owner !== null && $this->isNameWithDbPrefix()) {
+            return $owner->getName().'.'.$this->name;
+        }
+
+        return $this->name;
+    }
+    /**
      * Returns the old name of the column.
      * 
      * Note that the old name will be set only if the method 
@@ -482,7 +501,7 @@ abstract class Table {
     public function getPrimaryKeyName() {
         $val = $this->isNameWithDbPrefix();
         $this->setWithDbPrefix(false);
-        $keyName = trim($this->getName(), '`');
+        $keyName = $this->getNormalName();
         $this->setWithDbPrefix($val);
 
         return $keyName.'_pk';
@@ -499,13 +518,34 @@ abstract class Table {
         return $this->selectExpr;
     }
     /**
+     * Returns an array that holds all the columns which are set to be unique.
+     * 
+     * @return array An array that holds objects of type 'MSSQLColumn'.
+     * 
+     * @since 1.0.2
+     */
+    public function getUniqueCols() {
+        $retVal = [];
+        
+        foreach ($this->getCols() as $colObj) {
+            
+            if ($colObj->isUnique()) {
+                $retVal[] = $colObj;
+            }
+        }
+        
+        return $retVal;
+    }
+    /**
      * 
      * @param string $colName
      * @return boolean
      */
     public function hasColumn($colName) {
+        $name = '';
         foreach ($this->colsArr as $colObj) {
-            if (trim($colObj->getName(), '`') == $colName) {
+            $name = $colObj->getNormalName();
+            if ($name == $colName) {
                 return true;
             }
         }
