@@ -64,6 +64,11 @@ require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnec
 
 require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
 
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLColumn.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLTable.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLQuery.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLConnection.php';
+
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\tests\MySQLTestSchema;
