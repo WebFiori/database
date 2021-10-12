@@ -286,7 +286,7 @@ class MySQLColumn extends Column {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
 
                 if ($dt == 'decimal' || $dt == 'float' || $dt == 'double') {
-                    $retVal = floatval($defaultVal);
+                    $retVal = floatval($retVal);
                 }
             } else if ($dt == 'timestamp' || $dt == 'datetime') {
                 if (!($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
