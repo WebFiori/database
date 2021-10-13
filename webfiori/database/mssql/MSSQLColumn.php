@@ -11,6 +11,15 @@ use webfiori\database\Column;
  */
 class MSSQLColumn extends Column {
     /**
+     * A boolean which can be set to true in order to auto-update any 
+     * date datatype column..
+     * 
+     * @var boolean 
+     * 
+     * @since 1.0
+     */
+    private $isAutoUpdate;
+    /**
      * Creates new instance of the class.
      * 
      * @param string $name The unique name of the column.
@@ -131,8 +140,37 @@ class MSSQLColumn extends Column {
         }
     }
     /**
+     * Sets the value of the property 'isAutoUpdate'.
      * 
-     * @param MySQLColumn $col
+     * It is used in case the user want to update the date of a column 
+     * that has the type 'datetime' or 'timestamp' automatically if a record is updated. 
+     * This method has no effect for other datatypes.
+     * 
+     * @param boolean $bool If true is passed, then the value of the column will 
+     * be updated in case an update query is constructed. 
+     * 
+     * @since 1.0
+     */
+    public function setAutoUpdate($bool) {
+        if ($this->getDatatype() == 'datetime2') {
+            $this->isAutoUpdate = $bool === true;
+        }
+    }
+    /**
+     * Returns the value of the property 'isAutoUpdate'.
+     * 
+     * @return boolean If the column type is 'datetime' or 'timestamp' and the 
+     * column is set to auto update in case of update query, the method will 
+     * return true. Default return value is valse.
+     * 
+     * @since 1.0
+     */
+    public function isAutoUpdate() {
+        return $this->isAutoUpdate;
+    }
+    /**
+     * 
+     * @param MSSQLColumn $col
      * @param array $options
      */
     private static function _extraAttrsCheck(&$col, $options) {
@@ -258,7 +296,7 @@ class MSSQLColumn extends Column {
                 || $colDataType == 'binary' || $colDataType == 'varbinary') {
             $retVal .= $colDataTypeSq.'('.$this->getSize().') ';
         } else if ($colDataType == 'boolean') {
-            $retVal .= '[bit](1) ';
+            $retVal .= '[bit] ';
         } else if ($colDataType == 'decimal') {
             if ($this->getSize() != 0) {
                 $retVal .= $colDataTypeSq.'('.$this->getSize().','.$this->getScale().') ';
