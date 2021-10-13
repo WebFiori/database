@@ -123,7 +123,7 @@ class MSSQLTableTest extends TestCase {
                 . "    constraint fk_ok foreign key ([user_id], [email]) references [users] ([user_id], [email]) on update cascade on delete cascade,\n"
                 . "    constraint AK_t unique (email)\n"
                 . ")\n"
-                . "go\n", $table2->toSQL());
+                . "", $table2->toSQL());
     }
     /**
      * @test
@@ -182,7 +182,7 @@ class MSSQLTableTest extends TestCase {
                 . "    constraint fk_ok foreign key ([user_id_super], [email_x]) references [users] ([user_id], [email]) on update cascade on delete cascade,\n"
                 . "    constraint AK_t unique (email_x)\n"
                 . ")\n"
-                . "go\n", $table2->toSQL());
+                . "", $table2->toSQL());
     }
     /**
      * 
