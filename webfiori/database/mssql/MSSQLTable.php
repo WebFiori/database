@@ -87,7 +87,6 @@ class MSSQLTable extends Table {
             $queryStr .= ",\n".$un;
         }
         $queryStr .= "\n)\n";
-        $queryStr .= "go\n";
         return $queryStr;
     }
     private function _createTableColumns() {
