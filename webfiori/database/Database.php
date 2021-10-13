@@ -27,6 +27,7 @@ namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mssql\MSSQLQuery;
 
 /**
  * A class which is used to represents the structure of the database 
@@ -126,7 +127,7 @@ class Database {
      * @since 1.0
      */
     public function addTable(Table $table) {
-        $trimmedName = trim($table->getName(),'`');
+        $trimmedName = $table->getNormalName();
 
         if (!$this->hasTable($trimmedName)) {
             $table->setOwner($this);
@@ -558,6 +559,9 @@ class Database {
 
         if ($driver == 'mysql') {
             $this->queryGenerator = new MySQLQuery();
+            $this->queryGenerator->setSchema($this);
+        } else if ($driver == 'mssql') {
+            $this->queryGenerator = new MSSQLQuery();
             $this->queryGenerator->setSchema($this);
         } else {
             throw new DatabaseException('Driver not supported: "'.$driver.'".');
