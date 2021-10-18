@@ -134,6 +134,10 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @depends testSetConnection00
      */
     public function testCreateTable($schema) {
+        if (PHP_MAJOR_VERSION == 5) {
+            $this->markTestSkipped('PHP 5 has no MSSQL driver in selected setup.');
+            return;
+        }
         $schema->table('users')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
@@ -695,12 +699,16 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @return MSSQLTestSchema Description
      */
     public function testSetConnection00() {
-        $connInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost');
-        $conn = new MSSQLConnection($connInfo);
-        $schema = new MSSQLTestSchema();
-        $schema->setConnection($conn);
-        $this->assertTrue(true);
-        return $schema;
+        if (PHP_MAJOR_VERSION == 5) {
+            $this->markTestSkipped('PHP 5 has no MSSQL driver in selected setup.');
+        } else {
+            $connInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost');
+            $conn = new MSSQLConnection($connInfo);
+            $schema = new MSSQLTestSchema();
+            $schema->setConnection($conn);
+            $this->assertTrue(true);
+            return $schema;
+        }
     }
     /**
      * @test

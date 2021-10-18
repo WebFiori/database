@@ -11,8 +11,11 @@
         <log type="coverage-clover" target="clover.xml"/>
     </logging>
     <testsuites>
-        <testsuite name="Tests">
-            <directory>./tests</directory>
+        <testsuite name="MySQL Tests">
+            <directory>./tests/mysql</directory>
+        </testsuite>
+        <testsuite name="MSSQL Tests">
+            <directory>./tests/mssql</directory>
         </testsuite>
     </testsuites>
 </phpunit>

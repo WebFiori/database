@@ -103,26 +103,28 @@ register_shutdown_function(function()
         echo "An exception is thrown.\n";
         echo $ex->getMessage()."\n";
     }
-    
-    echo "Dropping test tables from MSSQL Server...\n";
-    try{
-        $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost');
-        $mssqlConn = new MSSQLConnection($mssqlConnInfo);
-        $mssqlSchema = new MSSQLTestSchema();
-        $mssqlSchema->setConnection($mssqlConn);
-        foreach ($tablesToDrop as $tblName) {
-            try{
-                $mssqlSchema->table($tblName)->drop();
-                echo $mssqlSchema->getLastQuery()."\n";
-                $mssqlSchema->execute();
-            } catch (Exception $ex) {
-                echo $ex->getMessage()."\n";
+    if (PHP_MAJOR_VERSION == 5) {
+       echo ('PHP 5 has no MSSQL driver in selected setup.');
+    } else {
+        echo "Dropping test tables from MSSQL Server...\n";
+        try{
+            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost');
+            $mssqlConn = new MSSQLConnection($mssqlConnInfo);
+            $mssqlSchema = new MSSQLTestSchema();
+            $mssqlSchema->setConnection($mssqlConn);
+            foreach ($tablesToDrop as $tblName) {
+                try{
+                    $mssqlSchema->table($tblName)->drop();
+                    echo $mssqlSchema->getLastQuery()."\n";
+                    $mssqlSchema->execute();
+                } catch (Exception $ex) {
+                    echo $ex->getMessage()."\n";
+                }
             }
+        } catch (\Exception $ex) {
+            echo "An exception is thrown.\n";
+            echo $ex->getMessage()."\n";
         }
-    } catch (\Exception $ex) {
-        echo "An exception is thrown.\n";
-        echo $ex->getMessage()."\n";
     }
-    
     echo "Finished .\n";
 });
