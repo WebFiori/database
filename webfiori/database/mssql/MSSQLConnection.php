@@ -4,6 +4,7 @@ namespace webfiori\database\mssql;
 use webfiori\database\Connection;
 use webfiori\database\AbstractQuery;
 use webfiori\database\ResultSet;
+use webfiori\database\ConnectionInfo;
 /**
  * A class that represents a connection to MSSQL server.
  * 
@@ -17,6 +18,20 @@ use webfiori\database\ResultSet;
 class MSSQLConnection extends Connection {
     private $link;
     private $sqlState;
+    /**
+     * Creates new instance of the class.
+     * 
+     * @param ConnectionInfo $connInfo An object that contains database connection 
+     * information.
+     * 
+     * @throws DatabaseException If the connection to the database fails, the method 
+     * will throw an exception.
+     * 
+     * @since 1.0
+     */
+    public function __construct(ConnectionInfo $connInfo) {
+        parent::__construct($connInfo);
+    }
     /**
      * Close database connection.
      * 
@@ -53,7 +68,11 @@ class MSSQLConnection extends Connection {
             'CharacterSet'=>'UTF-8',
             'ReturnDatesAsStrings' => true
         ];
-        $servName = $connInfo->getHost().', '. $connInfo->getPort();
+        if ($connObj->getPort() != 1433) {
+            $servName = $connObj->getHost().', '. $connObj->getPort();
+        } else {
+            $servName = $connObj->getHost();
+        }
         $this->link = sqlsrv_connect($servName, array_merge($connInfo, $connObj->getExtars()));
         if ($this->link) {
             return true;
@@ -73,10 +92,15 @@ class MSSQLConnection extends Connection {
         return $this->sqlState;
     }
     /**
+     * Prepares SQL statement for execution.
      * 
-     * @param array $params
+     * @param array $params An array that holds query parameters. The parameters 
+     * can have similar structure to the ones which are used by the 
+     * function 'sqlsrv_prepare'.
      * 
-     * @return boolean|resource
+     * @return boolean|resource If the statement is prepared, the method will return 
+     * a resource that can be used to run the query. If it fails, the 
+     * method will return false.
      * 
      * @since 1.0
      */
