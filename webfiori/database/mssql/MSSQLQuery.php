@@ -2,6 +2,7 @@
 namespace webfiori\database\mssql;
 
 use webfiori\database\AbstractQuery;
+use webfiori\database\Column;
 /**
  * A class which is used to build MSSQL queries.
  *
@@ -37,12 +38,56 @@ class MSSQLQuery extends AbstractQuery {
             return implode('.', $arr);
         }
     }
+    /**
+     * Build a query which can be used to add a column to associated table.
+     * 
+     * @param string $colKey The key of the column taken from the table.
+     * 
+     * @param string $location [NOT USED]
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
     public function addCol($colKey, $location = null) {
-        
+        $tblName = $this->getTable()->getName();
+        $colToAdd = $this->getTable()->getColByKey($colKey);
+
+        if (!($colToAdd instanceof Column)) {
+            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+        } 
+        $this->setQuery('alter table '.$tblName.' add '.$colToAdd->asString());
+
         return $this;
     }
-
+    /**
+     * Constructs a query that can be used to add a primary key to the active table.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
     public function addPrimaryKey($pkName, array $pkCols) {
+        $tableObj = $this->getTable();
+        $trimmedPkName = trim($pkName);
+        $keyCols = [];
+
+        foreach ($pkCols as $colKey) {
+            $col = $tableObj->getColByKey($colKey);
+
+            if ($col instanceof MSSQLColumn) {
+                $keyCols[] = $col->getName();
+            }
+        }
+        $stm = 'alter table '.$tableObj->getName().' add constraint '.$trimmedPkName.' '
+                .'primary key clustered ('.implode(', ', $keyCols).');';
+        $this->setQuery($stm);
+
         return $this;
     }
     /**
@@ -60,12 +105,47 @@ class MSSQLQuery extends AbstractQuery {
         
         return $this;
     }
-
+    /**
+     * Constructs a query which can be used to drop a column from associated 
+     * table.
+     * 
+     * @param string $colKey The name of column key taken from the table.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @since 1.0
+     */
     public function dropCol($colKey) {
+        $tblName = $this->getTable()->getName();
+        $colObj = $this->getTable()->getColByKey($colKey);
+
+        if (!($colObj instanceof MySQLColumn)) {
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+        $withTick = $colObj->getName();
+        $stm = "alter table $tblName drop column $withTick;";
+        $this->setQuery($stm);
+
         return $this;
     }
-
+    /**
+     * Build a query which is used to drop primary key of linked table.
+     * 
+     * @param string $pkName The name of the primary key.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
     public function dropPrimaryKey($pkName = null) {
+        $tableName = $this->getTable()->getName();
+        $query = 'alter table '.$tableName.' drop constraint '.$pkName.'';
+        $this->setQuery($query);
         return $this;
     }
 
@@ -178,7 +258,7 @@ class MSSQLQuery extends AbstractQuery {
                     $colsArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
 
-                    if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                    if (($type == 'datetime2') && ($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
                         $valsArr[] = "'".date('Y-m-d H:i:s')."'";
                     } else {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
@@ -266,7 +346,7 @@ class MSSQLQuery extends AbstractQuery {
                 if ($defaultVal !== null) {
                     $type = $colObj->getDatatype();
 
-                    if (($type == 'datetime') && ($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
+                    if (($type == 'datetime2') && ($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
                         $valsArr[] = "'".date('Y-m-d H:i:s')."'";
                     } else {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
@@ -277,11 +357,65 @@ class MSSQLQuery extends AbstractQuery {
 
         return '('.implode(', ', $valsArr).')';
     }
+    /**
+     * Build a query which can be used to modify a column in associated table.
+     * 
+     * @param string $colKey The key of the column taken from the table.
+     * 
+     * @param string $location [NOT USED]
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
     public function modifyCol($colKey, $location = null) {
+        $tblName = $this->getTable()->getName();
+        $colObj = $this->getTable()->getColByKey($colKey);
+
+        if (!($colObj instanceof MySQLColumn)) {
+            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+        }
+
+        $this->_alterColStm('modify', $colObj, $location, $tblName);
+
         return $this;
     }
-
+    /**
+     * Constructs a query which can be used to modify the name of 
+     * a column.
+     * 
+     * @param string $colKey Column key.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException The method will throw an exception if 
+     * the table has no column with given key or the name of the 
+     * specified column was not changed.
+     * 
+     * @since 1.0
+     */
     public function renameCol($colKey) {
+        $colObj = $this->getTable()->getColByKey($colKey);
+        $tblName = $this->getTable()->getNormalName();
+
+        if (!$colObj instanceof Column) {
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+
+        if ($colObj->getOldName() == null) {
+            throw new DatabaseException('Cannot build the query. Old column name is null.');
+        }
+
+        $oldName = $colObj->getOldName();
+        $newName = $colObj->getNormalName();
+
+        $this->setQuery("exec sp_rename '".$tblName.".".$oldName."', '".$newName."', 'COLUMN'");
+
         return $this;
     }
 
