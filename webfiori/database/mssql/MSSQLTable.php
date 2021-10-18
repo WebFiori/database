@@ -1,5 +1,6 @@
 <?php
 namespace webfiori\database\mssql;
+
 use webfiori\database\Table;
 /**
  * A class that represents MSSQL table.
@@ -20,121 +21,6 @@ class MSSQLTable extends Table {
      */
     public function __construct($name = 'new_table') {
         parent::__construct($name);
-    }
-    /**
-     * Sets the name of the unique constraint.
-     * 
-     * @param string $name The name of the unique constraint. Must be non-empty
-     * string.
-     * 
-     * @since 1.0
-     */
-    public function setUniqueConstraintName($name) {
-        $trimmed = trim($name);
-        if (strlen($trimmed) != 0) {
-            $this->uniqueConstName = $trimmed;
-        }
-    }
-    /**
-     * Returns the name of the unique constraint.
-     * 
-     * @return string The name of the unique constraint. If it is not set, 
-     * the method will return the name of the table prefixed with the 
-     * string 'AF_' as constraint name.
-     * 
-     * @since 1.0
-     */
-    public function getUniqueConstraintName() {
-        if (strlen($this->uniqueConstName) == 0) {
-            return 'AK_'.$this->getNormalName();
-        }
-        return $this->uniqueConstName;
-    }
-    /**
-     * Returns the name of the table.
-     * 
-     * Note that the method will add square brackets around the name.
-     * 
-     * @return string The name of the table. Default return value is 'new_table'.
-     * 
-     * @since 1.0
-     */
-    public function getName() {
-        return MSSQLQuery::squareBr(parent::getName());
-    }
-    /**
-     * Returns SQL query which can be used to create the table.
-     * 
-     * @return string A string that represents SQL query which can be used 
-     * to create the table.
-     * 
-     * @since 1.0
-     */
-    public function toSQL() {
-        $queryStr = "if not exists (select * from sysobjects where name='".$this->getNormalName()."' and xtype='U')\n";
-        $queryStr .= 'create table '.$this->getName()." (\n";
-        $queryStr .= $this->_createTableColumns();
-        $pk = $this->_createPK();
-        if (strlen($pk) != 0) {
-            $queryStr .= ",\n".$pk;
-        }
-        $fk = $this->_createFK();
-        if (strlen($fk) != 0) {
-            $queryStr .= ",\n".$fk;
-        }
-        $un = $this->_createUnique();
-        if (strlen($un) != 0) {
-            $queryStr .= ",\n".$un;
-        }
-        $queryStr .= "\n)\n";
-        return $queryStr;
-    }
-    private function _createTableColumns() {
-        $cols = $this->getCols();
-        $queryStr = '';
-        $count = count($cols);
-        $index = 0;
-
-        foreach ($cols as $colObj) {
-            
-            if ($index + 1 == $count) {
-                $queryStr .= '    '.$colObj->asString();
-            } else {
-                $queryStr .= '    '.$colObj->asString().",\n";
-            }
-            $index++;
-        }
-
-        return $queryStr;
-    }
-    private function _createFK() {
-
-        foreach ($this->getForignKeys() as $fkObj) {
-            $sourceCols = [];
-
-            foreach ($fkObj->getSourceCols() as $colObj) {
-                $sourceCols[] = ''.$colObj->getName().'';
-            }
-            $targetCols = [];
-
-            foreach ($fkObj->getOwnerCols() as $colObj) {
-                $targetCols[] = ''.$colObj->getName().'';
-            }
-            $fkConstraint = "    constraint ".$fkObj->getKeyName().' '
-                    .'foreign key ('.implode(', ', $targetCols).') '
-                    .'references '.$fkObj->getSourceName().' ('.implode(', ', $sourceCols).')';
-
-            if ($fkObj->getOnUpdate() !== null) {
-                $fkConstraint .= ' on update '.$fkObj->getOnUpdate();
-            }
-
-            if ($fkObj->getOnDelete() !== null) {
-                $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
-            }
-            return $fkConstraint;
-        }
-
-        return '';
     }
     /**
      * Adds multiple columns at once.
@@ -190,21 +76,108 @@ class MSSQLTable extends Table {
         }
         parent::addColumns($arrToAdd);
     }
-    private function _createUnique() {
-        $uniqueCols = $this->getUniqueCols();
-        if (count($uniqueCols) != 0) {
-            $queryStr = "    constraint ".$this->getUniqueConstraintName().' unique (';
-            $uCols = [];
-
-            foreach ($uniqueCols as $colObj) {
-                $uCols[] = $colObj->getNormalName();
-            }
-            $queryStr .= implode(", ", $uCols);
-            $queryStr .= ")";
-            return $queryStr;
-        } else {
-            return '';
+    /**
+     * Returns the name of the table.
+     * 
+     * Note that the method will add square brackets around the name.
+     * 
+     * @return string The name of the table. Default return value is 'new_table'.
+     * 
+     * @since 1.0
+     */
+    public function getName() {
+        return MSSQLQuery::squareBr(parent::getName());
+    }
+    /**
+     * Returns the name of the unique constraint.
+     * 
+     * @return string The name of the unique constraint. If it is not set, 
+     * the method will return the name of the table prefixed with the 
+     * string 'AF_' as constraint name.
+     * 
+     * @since 1.0
+     */
+    public function getUniqueConstraintName() {
+        if (strlen($this->uniqueConstName) == 0) {
+            return 'AK_'.$this->getNormalName();
         }
+
+        return $this->uniqueConstName;
+    }
+    /**
+     * Sets the name of the unique constraint.
+     * 
+     * @param string $name The name of the unique constraint. Must be non-empty
+     * string.
+     * 
+     * @since 1.0
+     */
+    public function setUniqueConstraintName($name) {
+        $trimmed = trim($name);
+
+        if (strlen($trimmed) != 0) {
+            $this->uniqueConstName = $trimmed;
+        }
+    }
+    /**
+     * Returns SQL query which can be used to create the table.
+     * 
+     * @return string A string that represents SQL query which can be used 
+     * to create the table.
+     * 
+     * @since 1.0
+     */
+    public function toSQL() {
+        $queryStr = "if not exists (select * from sysobjects where name='".$this->getNormalName()."' and xtype='U')\n";
+        $queryStr .= 'create table '.$this->getName()." (\n";
+        $queryStr .= $this->_createTableColumns();
+        $pk = $this->_createPK();
+
+        if (strlen($pk) != 0) {
+            $queryStr .= ",\n".$pk;
+        }
+        $fk = $this->_createFK();
+
+        if (strlen($fk) != 0) {
+            $queryStr .= ",\n".$fk;
+        }
+        $un = $this->_createUnique();
+
+        if (strlen($un) != 0) {
+            $queryStr .= ",\n".$un;
+        }
+        $queryStr .= "\n)\n";
+
+        return $queryStr;
+    }
+    private function _createFK() {
+        foreach ($this->getForignKeys() as $fkObj) {
+            $sourceCols = [];
+
+            foreach ($fkObj->getSourceCols() as $colObj) {
+                $sourceCols[] = ''.$colObj->getName().'';
+            }
+            $targetCols = [];
+
+            foreach ($fkObj->getOwnerCols() as $colObj) {
+                $targetCols[] = ''.$colObj->getName().'';
+            }
+            $fkConstraint = "    constraint ".$fkObj->getKeyName().' '
+                    .'foreign key ('.implode(', ', $targetCols).') '
+                    .'references '.$fkObj->getSourceName().' ('.implode(', ', $sourceCols).')';
+
+            if ($fkObj->getOnUpdate() !== null) {
+                $fkConstraint .= ' on update '.$fkObj->getOnUpdate();
+            }
+
+            if ($fkObj->getOnDelete() !== null) {
+                $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
+            }
+
+            return $fkConstraint;
+        }
+
+        return '';
     }
     private function _createPK() {
         if ($this->getPrimaryKeyColsCount() != 0) {
@@ -216,6 +189,42 @@ class MSSQLTable extends Table {
             }
             $queryStr .= implode(", ", $pkCols);
             $queryStr .= ") on [PRIMARY]";
+
+            return $queryStr;
+        } else {
+            return '';
+        }
+    }
+    private function _createTableColumns() {
+        $cols = $this->getCols();
+        $queryStr = '';
+        $count = count($cols);
+        $index = 0;
+
+        foreach ($cols as $colObj) {
+            if ($index + 1 == $count) {
+                $queryStr .= '    '.$colObj->asString();
+            } else {
+                $queryStr .= '    '.$colObj->asString().",\n";
+            }
+            $index++;
+        }
+
+        return $queryStr;
+    }
+    private function _createUnique() {
+        $uniqueCols = $this->getUniqueCols();
+
+        if (count($uniqueCols) != 0) {
+            $queryStr = "    constraint ".$this->getUniqueConstraintName().' unique (';
+            $uCols = [];
+
+            foreach ($uniqueCols as $colObj) {
+                $uCols[] = $colObj->getNormalName();
+            }
+            $queryStr .= implode(", ", $uCols);
+            $queryStr .= ")";
+
             return $queryStr;
         } else {
             return '';

@@ -145,6 +145,7 @@ class MySQLConnection extends Connection {
                     $type = isset($subArr['type']) ? $subArr['type'] : 's';
                     $sqlStm->bind_param("$type", $value);
                 }
+
                 return $sqlStm;
             }
         }
@@ -190,7 +191,7 @@ class MySQLConnection extends Connection {
     }
     private function _bindAndExc() {
         $stm = $this->prepare($this->getLastQuery()->getParams());
-        
+
         return $stm->execute();
     }
     private function _insertQuery() {

@@ -1,10 +1,10 @@
 <?php
 namespace webfiori\database\mssql;
 
-use webfiori\database\Connection;
 use webfiori\database\AbstractQuery;
-use webfiori\database\ResultSet;
+use webfiori\database\Connection;
 use webfiori\database\ConnectionInfo;
+use webfiori\database\ResultSet;
 /**
  * A class that represents a connection to MSSQL server.
  * 
@@ -40,11 +40,6 @@ class MSSQLConnection extends Connection {
     public function __destruct() {
         sqlsrv_close($this->link);
     }
-    private function _bindAndExc() {
-        $stm = $this->prepare($this->getLastQuery()->getParams());
-        
-        return $stm->execute();
-    }
     /**
      * Connect to MSSQL database.
      * 
@@ -57,6 +52,7 @@ class MSSQLConnection extends Connection {
         if (!function_exists('sqlsrv_connect')) {
             $this->setErrCode(-1);
             $this->setErrMessage('Microsoft SQL Server driver is missing.');
+
             return false;
         }
         ini_set('mssql.charset', 'UTF-8');
@@ -65,20 +61,22 @@ class MSSQLConnection extends Connection {
             'UID' => $connObj->getUsername(),
             'PWD' => $connObj->getPassword(),
             'Database' => $connObj->getDBName(),
-            'CharacterSet'=>'UTF-8',
+            'CharacterSet' => 'UTF-8',
             'ReturnDatesAsStrings' => true
         ];
+
         if ($connObj->getPort() != 1433) {
-            $servName = $connObj->getHost().', '. $connObj->getPort();
+            $servName = $connObj->getHost().', '.$connObj->getPort();
         } else {
             $servName = $connObj->getHost();
         }
         $this->link = sqlsrv_connect($servName, array_merge($connInfo, $connObj->getExtars()));
+
         if ($this->link) {
             return true;
         }
         $this->_setErr();
-        
+
         return false;
     }
     /**
@@ -106,10 +104,13 @@ class MSSQLConnection extends Connection {
      */
     public function prepare($params = []) {
         $stm = sqlsrv_prepare($this->link, $this->getLastQuery()->getQuery(), $params);
+
         if (!$stm) {
             $this->_setErr();
+
             return false;
         }
+
         return $stm;
     }
     /**
@@ -125,23 +126,48 @@ class MSSQLConnection extends Connection {
      */
     public function runQuery(AbstractQuery $query = null) {
         $this->setLastQuery($query);
-        
+
         $qType = $query->getLastQueryType();
 
         if ($qType == 'insert' || $qType == 'update') {
             return $this->_insertQuery();
-        } else if ($qType == 'select' || $qType == 'show'|| $qType == 'describe') {
-            return $this->_selectQuery();
         } else {
-            return $this->_otherQuery();
+            if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
+                return $this->_selectQuery();
+            } else {
+                return $this->_otherQuery();
+            }
         }
+    }
+    private function _bindAndExc() {
+        $stm = $this->prepare($this->getLastQuery()->getParams());
+
+        return $stm->execute();
+    }
+    private function _insertQuery() {
+        if ($this->getLastQuery()->isPrepareBeforeExec()) {
+            $r = $this->_bindAndExc();
+        } else {
+            $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
+        }
+
+        if (!is_resource($r)) {
+            $this->_setErr();
+
+            return false;
+        }
+
+        return true;
     }
     private function _otherQuery() {
         $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
-        if(!is_resource($r)){ 
+
+        if (!is_resource($r)) {
             $this->_setErr();
+
             return false;
         }
+
         return true;
     }
     private function _selectQuery() {
@@ -150,29 +176,21 @@ class MSSQLConnection extends Connection {
         } else {
             $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
         }
-        if(is_resource($r)){
+
+        if (is_resource($r)) {
             $data = [];
-            while($row = sqlsrv_fetch_array($r,SQLSRV_FETCH_ASSOC)){
+
+            while ($row = sqlsrv_fetch_array($r,SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }
             $this->setResultSet(new ResultSet($data));
+
             return true;
         } else {
             $this->_setErr();
+
             return false;
         }
-    }
-    private function _insertQuery() {
-        if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->_bindAndExc();
-        } else {
-            $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
-        }
-        if(!is_resource($r)){ 
-            $this->_setErr();
-            return false;
-        }
-        return true;
     }
     private function _setErr() {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);

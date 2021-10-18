@@ -36,10 +36,10 @@ use Iterator;
  */
 class ResultSet implements Countable, Iterator {
     private $cursorPos;
+    private $mapArgs;
     private $mappingFunction;
     private $orgResultRows;
     private $resultRows;
-    private $mapArgs;
     /**
      * Creates new instance of the class.
      * 
@@ -57,6 +57,7 @@ class ResultSet implements Countable, Iterator {
         $this->orgResultRows = $resultArr;
         $this->resultRows = $resultArr;
         $this->mapArgs = $mapArgs;
+
         if (!$this->setMappingFunction($mappingFunction)) {
             $this->setMappingFunction(function ($data)
             {

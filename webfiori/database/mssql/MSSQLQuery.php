@@ -12,33 +12,6 @@ use webfiori\database\Column;
  */
 class MSSQLQuery extends AbstractQuery {
     /**
-     * Adds a square brackets around a string.
-     * 
-     * @param string $str This can be the name of a column in a table or the name 
-     * of a table.
-     * 
-     * @return string|null The method will return a string surrounded by square 
-     * brackets. 
-     * If empty string is given, the method will return null.
-     * 
-     * @since 1.0
-     */
-    public static function squareBr($str) {
-        $trimmed = trim($str);
-
-        if (strlen($trimmed) != 0) {
-            $exp = explode('.', $trimmed);
-
-            $arr = [];
-
-            foreach ($exp as $xStr) {
-                $arr[] = '['.trim(trim($xStr, '['),']').']';
-            }
-
-            return implode('.', $arr);
-        }
-    }
-    /**
      * Build a query which can be used to add a column to associated table.
      * 
      * @param string $colKey The key of the column taken from the table.
@@ -102,7 +75,7 @@ class MSSQLQuery extends AbstractQuery {
     public function delete() {
         $tblName = $this->getTable()->getName();
         $this->setQuery("delete from $tblName");
-        
+
         return $this;
     }
     /**
@@ -146,6 +119,7 @@ class MSSQLQuery extends AbstractQuery {
         $tableName = $this->getTable()->getName();
         $query = 'alter table '.$tableName.' drop constraint '.$pkName.'';
         $this->setQuery($query);
+
         return $this;
     }
 
@@ -187,6 +161,145 @@ class MSSQLQuery extends AbstractQuery {
         } else {
             $this->setQuery($this->_createInsertStm($colsAndVals));
         }
+
+        return $this;
+    }
+    /**
+     * Build a query which can be used to modify a column in associated table.
+     * 
+     * @param string $colKey The key of the column taken from the table.
+     * 
+     * @param string $location [NOT USED]
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @since 1.0
+     */
+    public function modifyCol($colKey, $location = null) {
+        $tblName = $this->getTable()->getName();
+        $colObj = $this->getTable()->getColByKey($colKey);
+
+        if (!($colObj instanceof MySQLColumn)) {
+            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+        }
+
+        $this->_alterColStm('modify', $colObj, $location, $tblName);
+
+        return $this;
+    }
+    /**
+     * Constructs a query which can be used to modify the name of 
+     * a column.
+     * 
+     * @param string $colKey Column key.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException The method will throw an exception if 
+     * the table has no column with given key or the name of the 
+     * specified column was not changed.
+     * 
+     * @since 1.0
+     */
+    public function renameCol($colKey) {
+        $colObj = $this->getTable()->getColByKey($colKey);
+        $tblName = $this->getTable()->getNormalName();
+
+        if (!$colObj instanceof Column) {
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+
+        if ($colObj->getOldName() == null) {
+            throw new DatabaseException('Cannot build the query. Old column name is null.');
+        }
+
+        $oldName = $colObj->getOldName();
+        $newName = $colObj->getNormalName();
+
+        $this->setQuery("exec sp_rename '".$tblName.".".$oldName."', '".$newName."', 'COLUMN'");
+
+        return $this;
+    }
+    /**
+     * Adds a square brackets around a string.
+     * 
+     * @param string $str This can be the name of a column in a table or the name 
+     * of a table.
+     * 
+     * @return string|null The method will return a string surrounded by square 
+     * brackets. 
+     * If empty string is given, the method will return null.
+     * 
+     * @since 1.0
+     */
+    public static function squareBr($str) {
+        $trimmed = trim($str);
+
+        if (strlen($trimmed) != 0) {
+            $exp = explode('.', $trimmed);
+
+            $arr = [];
+
+            foreach ($exp as $xStr) {
+                $arr[] = '['.trim(trim($xStr, '['),']').']';
+            }
+
+            return implode('.', $arr);
+        }
+    }
+
+    /**
+     * Constructs an update query.
+     * 
+     * @param array $newColsVals An associative array. The indices of the array 
+     * are columns keys and the values are the new values for the columns.
+     * 
+     * @return MSSQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If one of the columns does not exist, the method 
+     * will throw an exception.
+     * 
+     * @since 1.0
+     */
+    public function update(array $newColsVals) {
+        $updateArr = [];
+        $colsWithVals = [];
+        $tblName = $this->getTable()->getName();
+
+        foreach ($newColsVals as $colKey => $newVal) {
+            $colObj = $this->getTable()->getColByKey($colKey);
+
+            if (!$colObj instanceof MSSQLColumn) {
+                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+            }
+            $colName = $colObj->getName();
+
+            if ($newVal === null) {
+                $updateArr[] = "$colName = null";
+            } else {
+                $valClean = $colObj->cleanValue($newVal);
+                $updateArr[] = "$colName = $valClean";
+            }
+            $colsWithVals[] = $colKey;
+        }
+
+        foreach ($this->getTable()->getColsKeys() as $key) {
+            if (!in_array($key, $colsWithVals)) {
+                $colObj = $this->getTable()->getColByKey($key);
+
+                if (($colObj->getDatatype() == 'datetime2') && $colObj->isAutoUpdate()) {
+                    $updateArr[] = $colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                }
+            }
+        }
+        $query = "update $tblName set ".implode(', ', $updateArr);
+        $this->setQuery($query);
 
         return $this;
     }
@@ -268,7 +381,7 @@ class MSSQLQuery extends AbstractQuery {
         }
         $cols = '('.implode(', ', $colsArr).')';
         $vals = '('.implode(', ', $valsArr).')';
-        
+
         return "insert into $tblName $cols values $vals;";
     }
     /**
@@ -357,117 +470,4 @@ class MSSQLQuery extends AbstractQuery {
 
         return '('.implode(', ', $valsArr).')';
     }
-    /**
-     * Build a query which can be used to modify a column in associated table.
-     * 
-     * @param string $colKey The key of the column taken from the table.
-     * 
-     * @param string $location [NOT USED]
-     * 
-     * @throws DatabaseException If no column which has the given key, the method 
-     * will throw an exception.
-     * 
-     * @return MSSQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @since 1.0
-     */
-    public function modifyCol($colKey, $location = null) {
-        $tblName = $this->getTable()->getName();
-        $colObj = $this->getTable()->getColByKey($colKey);
-
-        if (!($colObj instanceof MySQLColumn)) {
-            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
-        }
-
-        $this->_alterColStm('modify', $colObj, $location, $tblName);
-
-        return $this;
-    }
-    /**
-     * Constructs a query which can be used to modify the name of 
-     * a column.
-     * 
-     * @param string $colKey Column key.
-     * 
-     * @return MSSQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException The method will throw an exception if 
-     * the table has no column with given key or the name of the 
-     * specified column was not changed.
-     * 
-     * @since 1.0
-     */
-    public function renameCol($colKey) {
-        $colObj = $this->getTable()->getColByKey($colKey);
-        $tblName = $this->getTable()->getNormalName();
-
-        if (!$colObj instanceof Column) {
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
-        }
-
-        if ($colObj->getOldName() == null) {
-            throw new DatabaseException('Cannot build the query. Old column name is null.');
-        }
-
-        $oldName = $colObj->getOldName();
-        $newName = $colObj->getNormalName();
-
-        $this->setQuery("exec sp_rename '".$tblName.".".$oldName."', '".$newName."', 'COLUMN'");
-
-        return $this;
-    }
-
-    /**
-     * Constructs an update query.
-     * 
-     * @param array $newColsVals An associative array. The indices of the array 
-     * are columns keys and the values are the new values for the columns.
-     * 
-     * @return MSSQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If one of the columns does not exist, the method 
-     * will throw an exception.
-     * 
-     * @since 1.0
-     */
-    public function update(array $newColsVals) {
-        $updateArr = [];
-        $colsWithVals = [];
-        $tblName = $this->getTable()->getName();
-
-        foreach ($newColsVals as $colKey => $newVal) {
-            $colObj = $this->getTable()->getColByKey($colKey);
-
-            if (!$colObj instanceof MSSQLColumn) {
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
-            }
-            $colName = $colObj->getName();
-
-            if ($newVal === null) {
-                $updateArr[] = "$colName = null";
-            } else {
-                $valClean = $colObj->cleanValue($newVal);
-                $updateArr[] = "$colName = $valClean";
-            }
-            $colsWithVals[] = $colKey;
-        }
-
-        foreach ($this->getTable()->getColsKeys() as $key) {
-            if (!in_array($key, $colsWithVals)) {
-                $colObj = $this->getTable()->getColByKey($key);
-
-                if (($colObj->getDatatype() == 'datetime2') && $colObj->isAutoUpdate()) {
-                    $updateArr[] = $colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
-                }
-            }
-        }
-        $query = "update $tblName set ".implode(', ', $updateArr);
-        $this->setQuery($query);
-
-        return $this;
-    }
-
 }

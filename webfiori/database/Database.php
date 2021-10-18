@@ -25,9 +25,9 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\mssql\MSSQLQuery;
 
 /**
  * A class which is used to represents the structure of the database 
@@ -259,7 +259,7 @@ class Database {
         $lastQueryType = $this->getQueryGenerator()->getLastQueryType();
         $this->clear();
         $resultSet = null;
-        
+
         if (in_array($lastQueryType, ['select', 'show', 'describe'])) {
             $resultSet = $this->getLastResultSet();
         }
@@ -580,6 +580,7 @@ class Database {
      */
     public function setQuery($query) {
         $this->getQueryGenerator()->setQuery($query);
+
         return $this;
     }
     /**

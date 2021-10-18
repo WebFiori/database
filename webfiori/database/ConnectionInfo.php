@@ -148,7 +148,7 @@ class ConnectionInfo {
         $this->setUsername($user);
         $this->setPassword($pass);
         $this->setDBName($dbname);
-        
+
         if ($host === null) {
             $this->setHost('localhost');
         } else {
@@ -163,7 +163,7 @@ class ConnectionInfo {
         } else {
             $this->setPort($port);
         }
-        
+
 
         if (!isset($extras['connection-name']) || (isset($extras['connection-name']) && !$this->setName($extras['connection-name']))) {
             $this->setName('New_Connection');

@@ -25,7 +25,6 @@
 namespace webfiori\database;
 
 use webfiori\database\mssql\MSSQLColumn;
-use webfiori\database\mysql\MySQLColumn;
 
 /**
  * A class that can be used to represents database tables.
@@ -122,6 +121,7 @@ abstract class Table {
     public function addColumn($key, Column $colObj) {
         $trimmidKey = trim($key);
         $colName = $colObj->getNormalName();
+
         if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
             $colObj->setOwner($this);
             $this->colsArr[$trimmidKey] = $colObj;
@@ -526,14 +526,13 @@ abstract class Table {
      */
     public function getUniqueCols() {
         $retVal = [];
-        
+
         foreach ($this->getCols() as $colObj) {
-            
             if ($colObj->isUnique()) {
                 $retVal[] = $colObj;
             }
         }
-        
+
         return $retVal;
     }
     /**
@@ -543,8 +542,10 @@ abstract class Table {
      */
     public function hasColumn($colName) {
         $name = '';
+
         foreach ($this->colsArr as $colObj) {
             $name = $colObj->getNormalName();
+
             if ($name == $colName) {
                 return true;
             }

@@ -860,7 +860,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
-        
+
         return $this;
     }
     /**
@@ -891,7 +891,7 @@ abstract class AbstractQuery {
             $expr = new Expression('count(*) as '.$xAlias);
             $this->select([$expr]);
         }
-        
+
         return $this;
     }
     /**
@@ -919,7 +919,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
-        
+
         return $this;
     }
     /**
@@ -947,7 +947,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
-        
+
         return $this;
     }
     /**

@@ -160,7 +160,7 @@ class Condition {
      */
     public function setCondition($cond) {
         $conditionT = trim($cond);
-        
+
         if (strlen($conditionT) != 0) {
             $this->condition = $conditionT;
         }
