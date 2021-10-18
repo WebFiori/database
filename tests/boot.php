@@ -77,39 +77,39 @@ use webfiori\database\mssql\MSSQLConnection;
 use mssql\MSSQLTestSchema;
 register_shutdown_function(function()
 {
+    $tablesToDrop = [
+        'users_privileges',
+        'users_tasks',
+        'profile_pics',
+        'users',
+    ];
     echo "Dropping test tables from MySQL Server...\n";
     try {
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $conn = new MySQLConnection($connInfo);
         $mysqlSchema = new MySQLTestSchema();
         $mysqlSchema->setConnection($conn);
-
-        $tablesToDrop = [
-            'users_privileges',
-            'users_tasks',
-            'profile_pics',
-            'users',
-        ];
+        foreach ($tablesToDrop as $tblName) {
+            try{
+                $mysqlSchema->table($tblName)->drop();
+                echo $mysqlSchema->getLastQuery()."\n";
+                $mysqlSchema->execute();
+            } catch (Exception $ex) {
+                echo $ex->getMessage()."\n";
+            }
+        }
+        
     } catch (Exception $ex) {
+        echo "An exception is thrown.\n";
         echo $ex->getMessage()."\n";
     }
     
-    foreach ($tablesToDrop as $tblName) {
-        try{
-            $mysqlSchema->table($tblName)->drop();
-            echo $mysqlSchema->getLastQuery()."\n";
-            $mysqlSchema->execute();
-        } catch (Exception $ex) {
-            echo $ex->getMessage()."\n";
-        }
-    }
     echo "Dropping test tables from MSSQL Server...\n";
     try{
-        $mssqlConnInfo = new ConnectionInfo('mssql', 'sa', 1234567890, 'testing_db', 'localhost\SQLEXPRESS');
+        $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost\\SQLEXPRESS');
         $mssqlConn = new MSSQLConnection($mssqlConnInfo);
         $mssqlSchema = new MSSQLTestSchema();
         $mssqlSchema->setConnection($mssqlConn);
-
         foreach ($tablesToDrop as $tblName) {
             try{
                 $mssqlSchema->table($tblName)->drop();
@@ -119,7 +119,8 @@ register_shutdown_function(function()
                 echo $ex->getMessage()."\n";
             }
         }
-    } catch (Exception $ex) {
+    } catch (\Exception $ex) {
+        echo "An exception is thrown.\n";
         echo $ex->getMessage()."\n";
     }
     
