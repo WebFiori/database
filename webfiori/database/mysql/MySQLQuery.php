@@ -88,7 +88,7 @@ class MySQLQuery extends AbstractQuery {
         $keyCols = [];
 
         foreach ($pkCols as $colKey) {
-            $col = $this->getTable()->getColByKey($colKey);
+            $col = $tableObj->getColByKey($colKey);
 
             if ($col instanceof MySQLColumn) {
                 $keyCols[] = $col->getName();
