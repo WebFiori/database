@@ -45,7 +45,13 @@ jobs:
           while ! mysqladmin ping --host=127.0.0.1 --password=123456 --silent; do
             sleep 1
           done
-              
+          
+      - name: Install MSSQL Server
+        uses: 280780363/sqlserver-action@v1.0
+        with:
+          accept eula: Y 
+          sa password: 1234567890
+    
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
       
