@@ -46,6 +46,12 @@ jobs:
             sleep 1
           done
           
+      - name: Install MSSQL Server
+        uses: 280780363/sqlserver-action@v1.0
+        with:
+          accept eula: Y 
+          sa password: 1234567890
+          
       - name: Execute Tests
         run: phpunit
       
