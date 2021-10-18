@@ -276,17 +276,6 @@ class MSSQLTableTest extends TestCase {
     }
     /**
      * @test
-     * @param MySQLTable $table
-     * @depends testPrimaryKey01
-     */
-    public function testPrimaryKey02($table) {
-        $table->removeColByKey('id-col');
-        $this->assertTrue($table->getColByKey('id-col-2')->isUnique());
-
-        return $table;
-    }
-    /**
-     * @test
      */
     public function testRemoveColFromRef00() {
         $table = new MSSQLTable('active_or_not');
