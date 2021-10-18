@@ -260,6 +260,22 @@ class MSSQLTableTest extends TestCase {
     }
     /**
      * @test
+     * @param MSSQLTable $table
+     * @depends testPrimaryKey00
+     */
+    public function testPrimaryKey01($table) {
+        $table->addColumns([
+            'id-col-2'=>[
+                'is-primary' => true
+            ]
+        ]);
+        $this->assertFalse($table->getColByKey('id-col')->isUnique());
+        $this->assertFalse($table->getColByKey('id-col-2')->isUnique());
+        $this->assertEquals(2, $table->getPrimaryKeyColsCount());
+        return $table;
+    }
+    /**
+     * @test
      * @param MySQLTable $table
      * @depends testPrimaryKey01
      */
