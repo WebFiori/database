@@ -102,7 +102,7 @@ class MSSQLConnection extends Connection {
      * 
      * @since 1.0
      */
-    public function prepare($params = []) {
+    public function prepare(array $params = []) {
         $stm = sqlsrv_prepare($this->link, $this->getLastQuery()->getQuery(), $params);
 
         if (!$stm) {
