@@ -11,7 +11,7 @@ use webfiori\database\mssql\MSSQLTable;
  */
 class MSSQLTestSchema extends Database {
     public function __construct() {
-        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost\SQLEXPRESS'));
+        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost'));
         
         $table00 = new MSSQLTable('users');
         $table00->addColumns([

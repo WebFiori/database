@@ -695,7 +695,7 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @return MSSQLTestSchema Description
      */
     public function testSetConnection00() {
-        $connInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost\\SQLEXPRESS');
+        $connInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost');
         $conn = new MSSQLConnection($connInfo);
         $schema = new MSSQLTestSchema();
         $schema->setConnection($conn);
