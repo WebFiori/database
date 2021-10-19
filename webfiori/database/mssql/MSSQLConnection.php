@@ -65,11 +65,11 @@ class MSSQLConnection extends Connection {
             'ReturnDatesAsStrings' => true
         ];
 
-        if ($connObj->getPort() != 1433) {
+        //if ($connObj->getPort() != 1433) {
             $servName = $connObj->getHost().', '.$connObj->getPort();
-        } else {
-            $servName = $connObj->getHost();
-        }
+        //} else {
+            //$servName = $connObj->getHost();
+        //}
         $this->link = sqlsrv_connect($servName, array_merge($connInfo, $connObj->getExtars()));
 
         if ($this->link) {
