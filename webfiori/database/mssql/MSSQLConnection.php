@@ -57,19 +57,25 @@ class MSSQLConnection extends Connection {
         }
         ini_set('mssql.charset', 'UTF-8');
         $connObj = $this->getConnectionInfo();
-        $connInfo = [
-            'UID' => $connObj->getUsername(),
-            'PWD' => $connObj->getPassword(),
-            'Database' => $connObj->getDBName(),
-            'CharacterSet' => 'UTF-8',
-            'ReturnDatesAsStrings' => true
-        ];
+        
+        if ($connObj->getUsername() === null) {
+            $connInfo = [
+                'Database' => $connObj->getDBName(),
+                'CharacterSet' => 'UTF-8',
+                'ReturnDatesAsStrings' => true
+            ];
+        } else {
+            $connInfo = [
+                'UID' => $connObj->getUsername(),
+                'PWD' => $connObj->getPassword(),
+                'Database' => $connObj->getDBName(),
+                'CharacterSet' => 'UTF-8',
+                'ReturnDatesAsStrings' => true
+            ];
+        }
+        
 
-        //if ($connObj->getPort() != 1433) {
-            $servName = $connObj->getHost().', '.$connObj->getPort();
-        //} else {
-            //$servName = $connObj->getHost();
-        //}
+        $servName = $connObj->getHost().", ".$connObj->getPort();
         $this->link = sqlsrv_connect($servName, array_merge($connInfo, $connObj->getExtars()));
 
         if ($this->link) {
