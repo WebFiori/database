@@ -41,7 +41,7 @@ namespace webfiori\database;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class ConnectionInfo {
     /**
@@ -50,12 +50,14 @@ class ConnectionInfo {
      * The array has the following values:
      * <ul>
      * <li>mysql</li>
+     * <li>mssql</li>
      * <ul>
      * 
      * @since 1.0
      */
     const SUPPORTED_DATABASES = [
-        'mysql'
+        'mysql',
+        'mssql'
     ];
     /**
      * A string that represents the name of the connection.
@@ -121,7 +123,7 @@ class ConnectionInfo {
      * Creates new instance of the class.
      * 
      * @param string $databaseType Name of the database at which the connection 
-     * is for.
+     * is for. Can be 'mysql' or 'mssql'.
      * 
      * @param string $user The username of the user that will be used to access 
      * the database.
@@ -130,11 +132,10 @@ class ConnectionInfo {
      * 
      * @param string $dbname The name of the database.
      * 
-     * @param string $host The address of database host. Default value is 
-     * 'localhost'.
+     * @param string $host The address of database host or server name.
      * 
      * @param int $port Port number that will be used to access database server. 
-     * Default is 3306.
+     * In case of 'mysql', default is 3306. In case of 'mssql', default is 1433.
      * 
      * @param array $extras An array that can have extra information at which the 
      * connection might need.
@@ -143,12 +144,26 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function __construct($databaseType, $user, $pass, $dbname, $host = 'localhost', $port = 3306, array $extras = []) {
+    public function __construct($databaseType, $user, $pass, $dbname, $host = 'localhost', $port = null, array $extras = []) {
         $this->setUsername($user);
         $this->setPassword($pass);
         $this->setDBName($dbname);
-        $this->setHost($host);
-        $this->setPort($port);
+
+        if ($host === null) {
+            $this->setHost('localhost');
+        } else {
+            $this->setHost($host);
+        }
+        if ($port === null) {
+            if ($databaseType == 'mysql') {
+                $this->setPort(3306);
+            } else if ($databaseType == 'mssql') {
+                $this->setPort(1433);
+            }
+        } else {
+            $this->setPort($port);
+        }
+
 
         if (!isset($extras['connection-name']) || (isset($extras['connection-name']) && !$this->setName($extras['connection-name']))) {
             $this->setName('New_Connection');

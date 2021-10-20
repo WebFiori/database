@@ -64,27 +64,67 @@ require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnec
 
 require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
 
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLColumn.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLTable.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLQuery.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLConnection.php';
+
+require_once $rootDir.'tests'.$DS.'mssql'.$DS.'MSSQLTestSchema.php';
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\tests\MySQLTestSchema;
-
+use webfiori\database\mssql\MSSQLConnection;
+use mssql\MSSQLTestSchema;
 register_shutdown_function(function()
 {
-    echo "Dropping test tables...\n";
-    $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
-    $conn = new MySQLConnection($connInfo);
-    $mysqlSchema = new MySQLTestSchema();
-    $mysqlSchema->setConnection($conn);
-
-    
-    try{
-        $mysqlSchema->table('users_privileges')->drop()->execute();
-        $mysqlSchema->table('users_tasks')->drop()->execute();
-        $mysqlSchema->table('profile_pics')->drop()->execute();
-        $mysqlSchema->table('users')->drop()->execute();
+    $tablesToDrop = [
+        'users_privileges',
+        'users_tasks',
+        'profile_pics',
+        'users',
+    ];
+    echo "Dropping test tables from MySQL Server...\n";
+    try {
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $conn = new MySQLConnection($connInfo);
+        $mysqlSchema = new MySQLTestSchema();
+        $mysqlSchema->setConnection($conn);
+        foreach ($tablesToDrop as $tblName) {
+            try{
+                $mysqlSchema->table($tblName)->drop();
+                echo $mysqlSchema->getLastQuery()."\n";
+                $mysqlSchema->execute();
+            } catch (Exception $ex) {
+                echo $ex->getMessage()."\n";
+            }
+        }
+        
     } catch (Exception $ex) {
+        echo "An exception is thrown.\n";
         echo $ex->getMessage()."\n";
     }
-    
+    if (PHP_MAJOR_VERSION == 5) {
+       echo ('PHP 5 has no MSSQL driver in selected setup.');
+    } else {
+        echo "Dropping test tables from MSSQL Server...\n";
+        try{
+            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost');
+            $mssqlConn = new MSSQLConnection($mssqlConnInfo);
+            $mssqlSchema = new MSSQLTestSchema();
+            $mssqlSchema->setConnection($mssqlConn);
+            foreach ($tablesToDrop as $tblName) {
+                try{
+                    $mssqlSchema->table($tblName)->drop();
+                    echo $mssqlSchema->getLastQuery()."\n";
+                    $mssqlSchema->execute();
+                } catch (Exception $ex) {
+                    echo $ex->getMessage()."\n";
+                }
+            }
+        } catch (\Exception $ex) {
+            echo "An exception is thrown.\n";
+            echo $ex->getMessage()."\n";
+        }
+    }
     echo "Finished .\n";
 });

@@ -261,14 +261,20 @@ abstract class AbstractQuery {
         return $this;
     }
     /**
-     * Removes a record from the active table.
+     * Constructs a query which can be used to remove a record from the associated 
+     * table.
      * 
-     * @return AbstractQuery The method should return the same instance at which 
-     * the method is called on.
+     * @return MSSQLQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
      * 
      * @since 1.0
      */
-    public abstract function delete();
+    public function delete() {
+        $tblName = $this->getTable()->getName();
+        $this->setQuery("delete from $tblName");
+
+        return $this;
+    }
     /**
      * Constructs a query which will drop a database table when executed.
      * 
@@ -284,17 +290,32 @@ abstract class AbstractQuery {
         return $this;
     }
     /**
-     * Constructs a query that can be used to drop a column.
+     * Constructs a query which can be used to drop a column from associated 
+     * table.
      * 
-     * @param string $colKey The name of column key as specified when the column 
-     * was added to the table.
+     * @param string $colKey The name of column key taken from the table.
      * 
-     * @return AbstractQuery The method should return the same instance at which 
-     * the method is called on.
+     * @return MSSQLQuery|MySQLQuery The method will return the same instance at which the 
+     * method is called on.
+     * 
+     * @throws DatabaseException If no column which has the given key, the method 
+     * will throw an exception.
      * 
      * @since 1.0
      */
-    public abstract function dropCol($colKey);
+    public function dropCol($colKey) {
+        $tblName = $this->getTable()->getName();
+        $colObj = $this->getTable()->getColByKey($colKey);
+
+        if (!($colObj instanceof MySQLColumn)) {
+            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        }
+        $withTick = $colObj->getName();
+        $stm = "alter table $tblName drop column $withTick;";
+        $this->setQuery($stm);
+
+        return $this;
+    }
     /**
      * Constructs a query that can be used to drop foreign key constraint.
      * 
@@ -860,7 +881,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
-        
+
         return $this;
     }
     /**
@@ -891,7 +912,7 @@ abstract class AbstractQuery {
             $expr = new Expression('count(*) as '.$xAlias);
             $this->select([$expr]);
         }
-        
+
         return $this;
     }
     /**
@@ -919,7 +940,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
-        
+
         return $this;
     }
     /**
@@ -947,7 +968,7 @@ abstract class AbstractQuery {
                 ]
             ]);
         }
-        
+
         return $this;
     }
     /**

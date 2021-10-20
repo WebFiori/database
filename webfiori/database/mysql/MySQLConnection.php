@@ -61,34 +61,6 @@ class MySQLConnection extends Connection {
         mysqli_close($this->link);
     }
     /**
-     * Bind parameters to MySQL query.
-     * 
-     * @param array $params An array that holds sub associative arrays that holds 
-     * values. Each sub array must have two indices:
-     * <ul>
-     * <li><b>value</b>: The value to bind.</li>
-     * <li><b>type</b>: The type of the value as a character. can be one of 4 values: 
-     * <ul>
-     * <li>i: corresponding variable has type integer</li>
-     * <li>d: corresponding variable has type double</li>
-     * <li>s: corresponding variable has type string</li>
-     * <li>b: corresponding variable is a blob and will be sent in packets</li>
-     * </ul>
-     * </li>
-     * <ul>
-     * 
-     * @since 1.0.2
-     */
-    public function bind(array $params) {
-        if (gettype($this->sqlStm) == 'object') {
-            foreach ($params as $subArr) {
-                $value = isset($subArr['value']) ? $subArr['value'] : null;
-                $type = isset($subArr['type']) ? $subArr['type'] : 's';
-                $this->sqlStm->bind_param("$type", $value);
-            }
-        }
-    }
-    /**
      * Connect to MySQL database.
      * 
      * @return boolean If the connection was established, the method will return 
@@ -139,22 +111,42 @@ class MySQLConnection extends Connection {
         return $this->link;
     }
     /**
-     * Prepare SQL statement.
+     * Prepare and bind SQL statement.
      * 
-     * @return boolean If the statement was successfully prepared, the method 
+     * @param array $queryParams An array that holds sub associative arrays that holds 
+     * values. Each sub array must have two indices:
+     * <ul>
+     * <li><b>value</b>: The value to bind.</li>
+     * <li><b>type</b>: The type of the value as a character. can be one of 4 values: 
+     * <ul>
+     * <li>i: corresponding variable has type integer</li>
+     * <li>d: corresponding variable has type double</li>
+     * <li>s: corresponding variable has type string</li>
+     * <li>b: corresponding variable is a blob and will be sent in packets</li>
+     * </ul>
+     * </li>
+     * <ul>
+     * 
+     * @return boolean|mysqli_stmt If the statement was successfully prepared, the method 
      * will return true. If an error happens, the method will return false.
      * 
      * @since 1.0.2
      */
-    public function prepare() {
+    public function prepare(array $queryParams = []) {
         $queryObj = $this->getLastQuery();
 
         if ($queryObj !== null) {
             $queryStr = $queryObj->getQuery();
-            $this->sqlStm = mysqli_prepare($this->link, $queryStr);
+            $sqlStm = mysqli_prepare($this->link, $queryStr);
 
-            if (gettype($this->sqlStm) == 'object') {
-                return true;
+            if (gettype($sqlStm) == 'object') {
+                foreach ($queryParams as $subArr) {
+                    $value = isset($subArr['value']) ? $subArr['value'] : null;
+                    $type = isset($subArr['type']) ? $subArr['type'] : 's';
+                    $sqlStm->bind_param("$type", $value);
+                }
+
+                return $sqlStm;
             }
         }
 
@@ -198,10 +190,9 @@ class MySQLConnection extends Connection {
         }
     }
     private function _bindAndExc() {
-        $this->prepare();
-        $this->bind($this->getLastQuery()->getParams());
+        $stm = $this->prepare($this->getLastQuery()->getParams());
 
-        return $this->sqlStm->execute();
+        return $stm->execute();
     }
     private function _insertQuery() {
         $query = $this->getLastQuery();
