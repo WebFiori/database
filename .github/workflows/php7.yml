@@ -46,8 +46,11 @@ jobs:
             sleep 1
           done
           
+      - name: Install MSSQL Server
+        run: docker run -d -p 1433:1433 -e ACCEPT_EULA=Y -e SA_PASSWORD=1234567890 -e "MSSQL_PID=Express" mcr.microsoft.com/mssql/server:2017-latest && sleep 20
+      
       - name: Wait For MSSQL
-        run: sqlservr --accept-eula & (echo "awaiting server bootup" && sleep 15 && echo "lets try to logon"  && sqlcmd -S localhost -U SA -P '1234567890')
+        run: sqlservr --accept-eula & (echo "awaiting server bootup" && sleep 15 && echo "lets try to logon"  && sqlcmd -S 127.0.0.1 -U SA -P '1234567890')
         
       - name: Create Database
         run: sqlcmd -S 127.0.0.1 -U SA -P '1234567890' -Q "create database testing_db"
