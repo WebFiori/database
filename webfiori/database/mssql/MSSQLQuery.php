@@ -64,48 +64,6 @@ class MSSQLQuery extends AbstractQuery {
         return $this;
     }
     /**
-     * Constructs a query which can be used to remove a record from the associated 
-     * table.
-     * 
-     * @return MSSQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @since 1.0
-     */
-    public function delete() {
-        $tblName = $this->getTable()->getName();
-        $this->setQuery("delete from $tblName");
-
-        return $this;
-    }
-    /**
-     * Constructs a query which can be used to drop a column from associated 
-     * table.
-     * 
-     * @param string $colKey The name of column key taken from the table.
-     * 
-     * @return MSSQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If no column which has the given key, the method 
-     * will throw an exception.
-     * 
-     * @since 1.0
-     */
-    public function dropCol($colKey) {
-        $tblName = $this->getTable()->getName();
-        $colObj = $this->getTable()->getColByKey($colKey);
-
-        if (!($colObj instanceof MySQLColumn)) {
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
-        }
-        $withTick = $colObj->getName();
-        $stm = "alter table $tblName drop column $withTick;";
-        $this->setQuery($stm);
-
-        return $this;
-    }
-    /**
      * Build a query which is used to drop primary key of linked table.
      * 
      * @param string $pkName The name of the primary key.
