@@ -16,6 +16,8 @@
         </testsuite>
         <testsuite name="MSSQL Tests">
             <directory>./tests/mssql</directory>
+            <exclude>./tests/mssql/MSSQLQueryBuilderTest.php</exclude>
+            <exclude>./tests/mssql/MSSQLTestSchema</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
