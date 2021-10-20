@@ -4,7 +4,20 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./webfiori</directory>
+            <directory suffix=".php">./webfiori/database/mysql</directory>
+            <directory suffix=".php">./webfiori/database/AbstractQuery.php</directory>
+            <directory suffix=".php">./webfiori/database/Column.php</directory>
+            <directory suffix=".php">./webfiori/database/Condition.php</directory>
+            <directory suffix=".php">./webfiori/database/Connection.php</directory>
+            <directory suffix=".php">./webfiori/database/Database.php</directory>
+            <directory suffix=".php">./webfiori/database/EntityMapper.php</directory>
+            <directory suffix=".php">./webfiori/database/Expression.php</directory>
+            <directory suffix=".php">./webfiori/database/ForeignKey.php</directory>
+            <directory suffix=".php">./webfiori/database/JoinTable.php</directory>
+            <directory suffix=".php">./webfiori/database/ResultSet.php</directory>
+            <directory suffix=".php">./webfiori/database/SelectExpression.php</directory>
+            <directory suffix=".php">./webfiori/database/Table.php</directory>
+            <directory suffix=".php">./webfiori/database/WhereExpression.php</directory>
         </whitelist>
     </filter>
     <logging>
