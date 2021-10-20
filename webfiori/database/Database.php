@@ -25,6 +25,7 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
 
@@ -126,7 +127,7 @@ class Database {
      * @since 1.0
      */
     public function addTable(Table $table) {
-        $trimmedName = trim($table->getName(),'`');
+        $trimmedName = $table->getNormalName();
 
         if (!$this->hasTable($trimmedName)) {
             $table->setOwner($this);
@@ -258,7 +259,7 @@ class Database {
         $lastQueryType = $this->getQueryGenerator()->getLastQueryType();
         $this->clear();
         $resultSet = null;
-        
+
         if (in_array($lastQueryType, ['select', 'show', 'describe'])) {
             $resultSet = $this->getLastResultSet();
         }
@@ -559,6 +560,9 @@ class Database {
         if ($driver == 'mysql') {
             $this->queryGenerator = new MySQLQuery();
             $this->queryGenerator->setSchema($this);
+        } else if ($driver == 'mssql') {
+            $this->queryGenerator = new MSSQLQuery();
+            $this->queryGenerator->setSchema($this);
         } else {
             throw new DatabaseException('Driver not supported: "'.$driver.'".');
         }
@@ -576,6 +580,7 @@ class Database {
      */
     public function setQuery($query) {
         $this->getQueryGenerator()->setQuery($query);
+
         return $this;
     }
     /**

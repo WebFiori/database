@@ -280,6 +280,23 @@ abstract class Column {
         return $this->name;
     }
     /**
+     * 
+     * Returns the name of the column.
+     * 
+     * @return string The name of the column.
+     * 
+     * @since 1.0
+     */
+    public final function getNormalName() {
+        $ownerTable = $this->getOwner();
+
+        if ($ownerTable !== null && $this->isNameWithTablePrefix()) {
+            return $ownerTable->getNormalName().'.'.$this->name;
+        }
+
+        return $this->name;
+    }
+    /**
      * Returns the old name of the column.
      * 
      * Note that the old name will be set only if the method 
@@ -470,6 +487,8 @@ abstract class Column {
     /**
      * Sets the type of column data.
      * 
+     * Note that calling this method will set default value to null.
+     * 
      * @param string $type The type of column data.
      * 
      * @throws DatabaseException The method will throw an exception if the given 
@@ -488,6 +507,7 @@ abstract class Column {
             $this->setIsNull(false);
         }
         $this->datatype = $trimmed;
+        $this->setDefault(null);
     }
     /**
      * Sets the default value for the column to use in case of insert.
