@@ -28,6 +28,7 @@ namespace webfiori\database;
 use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mssql\MSSQLConnection;
 
 /**
  * A class which is used to represents the structure of the database 
@@ -284,11 +285,18 @@ class Database {
     public function getConnection() {
         if ($this->connection === null) {
             $driver = $this->getConnectionInfo()->getDatabaseType();
-
+            $connInfo = $this->getConnectionInfo();
+            
             if ($driver == 'mysql') {
                 try {
-                    $connInfo = $this->getConnectionInfo();
                     $conn = new MySQLConnection($connInfo);
+                    $this->setConnection($conn);
+                } catch (DatabaseException $ex) {
+                    throw new DatabaseException($ex->getMessage(), $ex->getCode());
+                }
+            } else if ($driver == 'mssql') {
+                try {
+                    $conn = new MSSQLConnection($connInfo);
                     $this->setConnection($conn);
                 } catch (DatabaseException $ex) {
                     throw new DatabaseException($ex->getMessage(), $ex->getCode());
