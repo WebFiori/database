@@ -38,7 +38,6 @@ class MSSQLColumn extends Column {
             'int',
             'varchar',
             'nvarchar',
-            'char',
             'nchar',
             'binary',
             'varbinary',
