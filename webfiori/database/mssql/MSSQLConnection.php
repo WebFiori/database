@@ -77,7 +77,9 @@ class MSSQLConnection extends Connection {
         //Needs more debugging
         //If port is added on localhost, it always fail
         $servName = $connObj->getHost();//.", ".$connObj->getPort();
-        $this->link = sqlsrv_connect($servName, array_merge($connInfo, $connObj->getExtars()));
+        $extras = $connObj->getExtars();
+        unset($extras['connection-name']);
+        $this->link = sqlsrv_connect($servName, array_merge($connInfo, $extras));
 
         if ($this->link) {
             return true;
