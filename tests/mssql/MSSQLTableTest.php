@@ -56,6 +56,7 @@ class MSSQLTableTest extends TestCase {
     public function testConstructor01() {
         $table = new MSSQLTable('valid_name');
         $this->assertEquals('[valid_name]',$table->getName());
+        $this->assertEquals('valid_name',$table->getNormalName());
     }
     /**
      * @test
