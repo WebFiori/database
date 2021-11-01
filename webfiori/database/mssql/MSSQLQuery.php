@@ -284,7 +284,6 @@ class MSSQLQuery extends AbstractQuery {
                         set_error_handler(function ()
                         {
                         });
-                        $this->setIsBlobInsertOrUpdate(true);
 
                         if (file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
@@ -371,7 +370,6 @@ class MSSQLQuery extends AbstractQuery {
                         set_error_handler(function ()
                         {
                         });
-                        $this->setIsBlobInsertOrUpdate(true);
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
