@@ -366,7 +366,7 @@ class MSSQLQuery extends AbstractQuery {
                 if ($val !== null) {
                     $cleanedVal = $column->cleanValue($val);
 
-                    if ($type == 'binary') {
+                    if ($type == 'binary' || $type == 'varbinary') {
                         $fixedPath = str_replace('\\', '/', $val);
                         set_error_handler(function ()
                         {
@@ -382,18 +382,30 @@ class MSSQLQuery extends AbstractQuery {
 
                                 if ($fileContent !== false) {
                                     $data = '\''.addslashes($fileContent).'\'';
-                                    $valsArr[] = $data;
+                                    if ($this->getTable() instanceof MSSQLTable) {
+                                        $valsArr[] = '0x'.bin2hex($data);
+                                    } else {
+                                        $valsArr[] = $data;
+                                    }
                                 } else {
                                     $valsArr[] = 'null';
                                 }
                                 fclose($file);
                             } else {
                                 $data = '\''.addslashes($val).'\'';
-                                $valsArr[] = $data;
+                                if ($this->getTable() instanceof MSSQLTable) {
+                                    $valsArr[] = '0x'.bin2hex($data);
+                                } else {
+                                    $valsArr[] = $data;
+                                }
                             }
                         } else {
                             $data = '\''.addslashes($cleanedVal).'\'';
-                            $valsArr[] = $data;
+                            if ($this->getTable() instanceof MSSQLTable) {
+                                $valsArr[] = '0x'.bin2hex($data);
+                            } else {
+                                $valsArr[] = $data;
+                            }
                         }
                         restore_error_handler();
                     } else {
