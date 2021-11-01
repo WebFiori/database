@@ -279,7 +279,7 @@ class MSSQLQuery extends AbstractQuery {
                 if ($val !== null) {
                     $cleanedVal = $column->cleanValue($val);
 
-                    if ($type == 'binary') {
+                    if ($type == 'binary' || $type == 'varbinary') {
                         $fixedPath = str_replace('\\', '/', $val);
                         set_error_handler(function ()
                         {
@@ -294,18 +294,18 @@ class MSSQLQuery extends AbstractQuery {
                                 $fileContent = fread($file, filesize($fixedPath));
 
                                 if ($fileContent !== false) {
-                                    $data = '\''.addslashes($fileContent).'\'';
+                                    $data = '0x'.bin2hex($fileContent);
                                     $valsArr[] = $data;
                                 } else {
                                     $valsArr[] = 'null';
                                 }
                                 fclose($file);
                             } else {
-                                $data = '\''.addslashes($val).'\'';
+                                $data = '0x'.bin2hex($fileContent);
                                 $valsArr[] = $data;
                             }
                         } else {
-                            $data = '\''.addslashes($cleanedVal).'\'';
+                            $data = '0x'.bin2hex($cleanedVal);
                             $valsArr[] = $data;
                         }
                         restore_error_handler();
@@ -381,31 +381,19 @@ class MSSQLQuery extends AbstractQuery {
                                 $fileContent = fread($file, filesize($fixedPath));
 
                                 if ($fileContent !== false) {
-                                    $data = '\''.addslashes($fileContent).'\'';
-                                    if ($this->getTable() instanceof MSSQLTable) {
-                                        $valsArr[] = '0x'.bin2hex($data);
-                                    } else {
-                                        $valsArr[] = $data;
-                                    }
+                                    $data = '0x'.bin2hex($fileContent);
+                                    $valsArr[] = $data;
                                 } else {
                                     $valsArr[] = 'null';
                                 }
                                 fclose($file);
                             } else {
-                                $data = '\''.addslashes($val).'\'';
-                                if ($this->getTable() instanceof MSSQLTable) {
-                                    $valsArr[] = '0x'.bin2hex($data);
-                                } else {
-                                    $valsArr[] = $data;
-                                }
-                            }
-                        } else {
-                            $data = '\''.addslashes($cleanedVal).'\'';
-                            if ($this->getTable() instanceof MSSQLTable) {
-                                $valsArr[] = '0x'.bin2hex($data);
-                            } else {
+                                $data = '0x'.bin2hex($fileContent);
                                 $valsArr[] = $data;
                             }
+                        } else {
+                            $data = '0x'.bin2hex($cleanedVal);
+                            $valsArr[] = $data;
                         }
                         restore_error_handler();
                     } else {
