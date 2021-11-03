@@ -804,7 +804,7 @@ class MySQLQueryBuilderTest extends TestCase {
             'last-name' => 'BinAlshikh',
             'age' => 28
         ])->execute();
-        $schema->select()->execute();
+        $schema->table('users')->select()->execute();
         $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
         return $schema;
     }
@@ -815,10 +815,10 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testDropRecord00($schema) {
         $row = $schema->getLastResultSet()->getRows()[0];
-        $schema->delete()->where('id', '=', $row['id']);
+        $schema->table('users')->delete()->where('id', '=', $row['id']);
         $this->assertEquals('delete from `users` where `users`.`id` = '.$row['id'], $schema->getLastQuery());
         $schema->execute();
-        $schema->select()->execute();
+        $schema->table('users')->select()->execute();
         $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
         return $schema;
     }
@@ -829,7 +829,7 @@ class MySQLQueryBuilderTest extends TestCase {
      * @depends testDropRecord00
      */
     public function testInsert04($schema) {
-        $schema->insert([
+        $schema->table('users')->insert([
             'cols' => [
                 'id','first-name','last-name','age'
             ],
@@ -842,7 +842,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "(100, 'Ali', 'Hassan', 16),\n"
                 . "(101, 'Dabi', 'Jona', 19);", $schema->getLastQuery());
         $schema->execute();
-        $schema->select()->execute();
+        $schema->table('users')->select()->execute();
         $resultSet = $schema->getLastResultSet();
         $this->assertEquals(2, $resultSet->getRowsCount());
         $this->assertEquals(2, $resultSet->getMappedRowsCount());
@@ -856,7 +856,7 @@ class MySQLQueryBuilderTest extends TestCase {
             ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
             ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
         ], $resultSet->getMappedRows());
-        $schema->insert([
+        $schema->table('users')->insert([
             'cols' => [
                 'id','first-name','last-name','age'
             ],
@@ -865,7 +865,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 [103,'Ibrahim','Ali',27]
             ]
         ])->execute();
-        $schema->select()->execute();
+        $schema->table('users')->select()->execute();
         $resultSet = $schema->getLastResultSet();
         foreach ($resultSet as $row) {
             if ($row['id'] == 100) {
