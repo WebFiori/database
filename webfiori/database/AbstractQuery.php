@@ -792,6 +792,7 @@ abstract class AbstractQuery {
         $this->lastQueryType = '';
         $this->limit = -1;
         $this->offset = -1;
+        $this->associatedTbl = null;
     }
     /**
      * Perform a right join query.
