@@ -1044,6 +1044,9 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function setTable(Table $table) {
+        if ($table !== null) {
+            $table->getSelect()->clear();
+        }
         $this->associatedTbl = $table;
     }
     /**
