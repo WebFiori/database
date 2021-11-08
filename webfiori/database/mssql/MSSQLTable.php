@@ -151,7 +151,11 @@ class MSSQLTable extends Table {
         return $queryStr;
     }
     private function _createFK() {
+        $comma = '';
+        $fkConstraint = '';
+        
         foreach ($this->getForignKeys() as $fkObj) {
+            $fkConstraint .= $comma;
             $sourceCols = [];
 
             foreach ($fkObj->getSourceCols() as $colObj) {
@@ -162,7 +166,7 @@ class MSSQLTable extends Table {
             foreach ($fkObj->getOwnerCols() as $colObj) {
                 $targetCols[] = ''.$colObj->getName().'';
             }
-            $fkConstraint = "    constraint ".$fkObj->getKeyName().' '
+            $fkConstraint .= "    constraint ".$fkObj->getKeyName().' '
                     .'foreign key ('.implode(', ', $targetCols).') '
                     .'references '.$fkObj->getSourceName().' ('.implode(', ', $sourceCols).')';
 
@@ -173,11 +177,10 @@ class MSSQLTable extends Table {
             if ($fkObj->getOnDelete() !== null) {
                 $fkConstraint .= ' on delete '.$fkObj->getOnDelete();
             }
-
-            return $fkConstraint;
+            $comma = ",\n";
         }
 
-        return '';
+        return $fkConstraint;
     }
     private function _createPK() {
         if ($this->getPrimaryKeyColsCount() != 0) {
