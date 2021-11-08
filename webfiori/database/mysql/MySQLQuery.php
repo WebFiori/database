@@ -142,33 +142,6 @@ class MySQLQuery extends AbstractQuery {
         return $this;
     }
     /**
-     * Constructs a query which can be used to drop a column from associated 
-     * table.
-     * 
-     * @param string $colKey The name of column key taken from the table.
-     * 
-     * @return MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @throws DatabaseException If no column which has the given key, the method 
-     * will throw an exception.
-     * 
-     * @since 1.0
-     */
-    public function dropCol($colKey) {
-        $tblName = $this->getTable()->getName();
-        $colObj = $this->getTable()->getColByKey($colKey);
-
-        if (!($colObj instanceof MySQLColumn)) {
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
-        }
-        $withTick = $colObj->getName();
-        $stm = "alter table $tblName drop $withTick;";
-        $this->setQuery($stm);
-
-        return $this;
-    }
-    /**
      * Constructs a query that can be used to drop foreign key constraint.
      * 
      * @param string $keyName The name of the key.
@@ -255,7 +228,7 @@ class MySQLQuery extends AbstractQuery {
             $suberValsArr = [];
 
             foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
+                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
             }
             $valsStr = implode(",\n", $suberValsArr);
             $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
@@ -382,7 +355,7 @@ class MySQLQuery extends AbstractQuery {
             $suberValsArr = [];
 
             foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
+                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
             }
             $valsStr = implode(",\n", $suberValsArr);
             $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
@@ -500,79 +473,11 @@ class MySQLQuery extends AbstractQuery {
     private function _createInsertStm($colsAndVals, $replace = false) {
         $tblName = $this->getTable()->getName();
 
-        $colsArr = [];
-        $valsArr = [];
-        $columnsWithVals = [];
+        $data = $this->_insertHelper(array_keys($colsAndVals), $colsAndVals);
 
-        foreach ($colsAndVals as $colIndex => $val) {
-            $column = $this->getTable()->getColByKey($colIndex);
-
-            if ($column instanceof MySQLColumn) {
-                $columnsWithVals[] = $colIndex;
-                $colsArr[] = $column->getName();
-                $type = $column->getDatatype();
-
-                if ($val !== null) {
-                    $cleanedVal = $column->cleanValue($val);
-
-                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
-                        $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(null);
-                        $this->setIsBlobInsertOrUpdate(true);
-
-                        if (file_exists($fixedPath)) {
-                            $file = fopen($fixedPath, 'r');
-                            $data = '';
-
-                            if ($file !== false) {
-                                $fileContent = fread($file, filesize($fixedPath));
-
-                                if ($fileContent !== false) {
-                                    $data = '\''.addslashes($fileContent).'\'';
-                                    $valsArr[] = $data;
-                                } else {
-                                    $valsArr[] = 'null';
-                                }
-                                fclose($file);
-                            } else {
-                                $data = '\''.addslashes($val).'\'';
-                                $valsArr[] = $data;
-                            }
-                        } else {
-                            $data = '\''.addslashes($cleanedVal).'\'';
-                            $valsArr[] = $data;
-                        }
-                        restore_error_handler();
-                    } else {
-                        $valsArr[] = $cleanedVal;
-                    }
-                } else {
-                    $valsArr[] = 'null';
-                }
-            } else {
-                throw new DatabaseException("The table '$tblName' has no column with name '$colIndex'.");
-            }
-        }
-
-        foreach ($this->getTable()->getColsKeys() as $key) {
-            if (!in_array($key, $columnsWithVals)) {
-                $colObj = $this->getTable()->getColByKey($key);
-                $defaultVal = $colObj->getDefault();
-
-                if ($defaultVal !== null) {
-                    $colsArr[] = $colObj->getName();
-                    $type = $colObj->getDatatype();
-
-                    if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
-                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
-                    } else {
-                        $valsArr[] = $colObj->cleanValue($defaultVal);
-                    }
-                }
-            }
-        }
-        $cols = '('.implode(', ', $colsArr).')';
-        $vals = '('.implode(', ', $valsArr).')';
+        
+        $cols = '('.$data['cols'].')';
+        $vals = '('.$data['vals'].')';
 
         if ($replace === true) {
             return "replace into $tblName $cols values $vals;";
@@ -583,14 +488,23 @@ class MySQLQuery extends AbstractQuery {
     /**
      * Build a string that holds the values that will be inserted.
      * 
-     * @param array $colsKeysArr
-     * @param array $valuesToInsert
-     * @return type
+     * @param array $colsKeysArr An array that holds the keys of the 
+     * columns of the record that will be inserted.
+     * 
+     * @param array $valuesToInsert An array that holds the values that will be 
+     * inserted.
+     * 
+     * @return array The method will return an associative array with two indices. 
+     * The index 'vals' will contain a string which represents the 
+     * 'values' part of the query and 'cols' which holds the names of columns 
+     * names as string.
+     * 
      * @throws DatabaseException
      */
     private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
         $valsArr = [];
         $columnsWithVals = [];
+        $colsNamesArr = [];
         $valIndex = 0;
 
         foreach ($colsKeysArr as $colKey) {
@@ -598,6 +512,7 @@ class MySQLQuery extends AbstractQuery {
 
             if ($column instanceof MySQLColumn) {
                 $columnsWithVals[] = $colKey;
+                $colsNamesArr[] = $column->getName();
                 $type = $column->getDatatype();
                 $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : null;
 
@@ -651,6 +566,7 @@ class MySQLQuery extends AbstractQuery {
                 $defaultVal = $colObj->getDefault();
 
                 if ($defaultVal !== null) {
+                    $colsNamesArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
 
                     if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
@@ -662,6 +578,9 @@ class MySQLQuery extends AbstractQuery {
             }
         }
 
-        return '('.implode(', ', $valsArr).')';
+        return [
+            'cols' => implode(', ', $colsNamesArr),
+            'vals' => implode(', ', $valsArr)
+        ];
     }
 }
