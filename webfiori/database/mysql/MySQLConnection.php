@@ -78,9 +78,7 @@ class MySQLConnection extends Connection {
         $pass = $connInfo->getPassword();
         $dbName = $connInfo->getDBName();
 
-        set_error_handler(function()
-        {
-        });
+        set_error_handler(null);
         $this->link = mysqli_connect($host, $user, $pass, null, $port);
         restore_error_handler();
 

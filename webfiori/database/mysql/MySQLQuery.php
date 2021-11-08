@@ -517,9 +517,7 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(function ()
-                        {
-                        });
+                        set_error_handler(null);
                         $this->setIsBlobInsertOrUpdate(true);
 
                         if (file_exists($fixedPath)) {
@@ -608,9 +606,7 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(function ()
-                        {
-                        });
+                        set_error_handler(null);
                         $this->setIsBlobInsertOrUpdate(true);
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {

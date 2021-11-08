@@ -281,9 +281,7 @@ class MSSQLQuery extends AbstractQuery {
 
                     if ($type == 'binary' || $type == 'varbinary') {
                         $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(function ()
-                        {
-                        });
+                        set_error_handler(null);
 
                         if (file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
@@ -367,9 +365,7 @@ class MSSQLQuery extends AbstractQuery {
 
                     if ($type == 'binary' || $type == 'varbinary') {
                         $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(function ()
-                        {
-                        });
+                        set_error_handler(null);
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');

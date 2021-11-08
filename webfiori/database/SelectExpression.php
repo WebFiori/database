@@ -750,7 +750,7 @@ class SelectExpression extends Expression {
             throw new InvalidArgumentException('The value must be of type string since the condition is \''.$xCond.'\'.');
         }
 
-        if (($xCond == 'in' || $xCond == 'not in')) {
+        if ($xCond == 'in' || $xCond == 'not in') {
             if (gettype($val) == 'array') {
                 $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".implode(", ", $val).")");
             } else {

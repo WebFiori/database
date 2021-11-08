@@ -536,17 +536,20 @@ abstract class Table {
         return $retVal;
     }
     /**
+     * Checks if the table has a column which has specific name.
      * 
-     * @param string $colName
-     * @return boolean
+     * @param string $colName The name of the column as it appears in database.
+     * 
+     * @return boolean If the table has such column, the method will return true. 
+     * other than that, the method will return false.
      */
     public function hasColumn($colName) {
-        $name = '';
+        $normalColName = '';
 
         foreach ($this->colsArr as $colObj) {
-            $name = $colObj->getNormalName();
+            $normalColName = $colObj->getNormalName();
 
-            if ($name == $colName) {
+            if ($normalColName == $colName) {
                 return true;
             }
         }
