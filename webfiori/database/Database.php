@@ -29,7 +29,7 @@ use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
 use webfiori\database\mssql\MSSQLConnection;
-
+use webfiori\database\DatabaseException;
 /**
  * A class which is used to represents the structure of the database 
  * (database schema). 
