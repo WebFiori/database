@@ -185,6 +185,80 @@ class MSSQLTableTest extends TestCase {
                 . ")\n"
                 . "", $table2->toSQL());
     }
+    public function testFk3() {
+        $t1 = new MSSQLTable('users');
+        $t1->addColumns([
+            'id' => [
+                'type' => 'int',
+                'primary' => true
+            ],
+            'name' => [
+                'type' => 'nvarchar',
+                'size' => 128,
+                'unique' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'unique' => true
+            ]
+        ]);
+        $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
+                . "create table [users] (\n"
+                . "    [id] [int] not null,\n"
+                . "    [name] [nvarchar](128) not null,\n"
+                . "    [email] [varchar](256) not null,\n"
+                . "    constraint users_pk primary key clustered([id]) on [PRIMARY],\n"
+                . "    constraint AK_users unique (name, email)\n"
+                . ")\n", $t1->toSQL());
+        $t2 = new MSSQLTable('locations');
+        $t2->addColumns([
+            'id' => [
+                'type' => 'int',
+                'primary' => true
+            ],
+            'name' => [
+                'type' => 'nvarchar',
+                'size' => 128
+            ],
+            'added-by' => [
+                'type' => 'int'
+            ]
+        ]);
+        $t2->addReference($t1, [
+            'added-by' => 'id'
+        ], 'added_by_fk');
+        $this->assertEquals("if not exists (select * from sysobjects where name='locations' and xtype='U')\n"
+                . "create table [locations] (\n"
+                . "    [id] [int] not null,\n"
+                . "    [name] [nvarchar](128) not null,\n"
+                . "    [added_by] [int] not null,\n"
+                . "    constraint locations_pk primary key clustered([id]) on [PRIMARY],\n"
+                . "    constraint added_by_fk foreign key ([added_by]) references [users] ([id]) on update set null on delete set null\n"
+                . ")\n", $t2->toSQL());
+        $t3 = new MSSQLTable('user_location');
+        $t3->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'primary' => true
+            ],
+            'location' => [
+                'type' => 'int',
+                'primary' => true
+            ]
+        ]);
+        $t3->addReference($t1, ['user-id' => 'id'], 'user_loc_fk');
+        $t3->addReference($t2, ['location' => 'id'], 'loc_fk');
+        $this->assertEquals(2, $t3->getForignKeysCount());
+        $this->assertEquals("if not exists (select * from sysobjects where name='user_location' and xtype='U')\n"
+                . "create table [user_location] (\n"
+                . "    [user_id] [int] not null,\n"
+                . "    [location] [int] not null,\n"
+                . "    constraint user_location_pk primary key clustered([user_id], [location]) on [PRIMARY],\n"
+                . "    constraint user_loc_fk foreign key ([user_id]) references [users] ([id]) on update set null on delete set null,\n"
+                . "    constraint loc_fk foreign key ([location]) references [locations] ([id]) on update set null on delete set null\n"
+                . ")\n", $t3->toSQL());
+    }
     /**
      * 
      * @test
