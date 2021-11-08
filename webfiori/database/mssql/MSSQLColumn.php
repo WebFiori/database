@@ -2,6 +2,8 @@
 namespace webfiori\database\mssql;
 
 use webfiori\database\Column;
+use webfiori\database\DateTimeValidator;
+use webfiori\database\ColumnFactory;
 /**
  * A class that represents a column in MSSQL table.
  *
@@ -127,23 +129,8 @@ class MSSQLColumn extends Column {
      */
     public static function createColObj($options) {
         if (isset($options['name'])) {
-            if (isset($options['datatype'])) {
-                $datatype = $options['datatype'];
-            } else {
-                if (isset($options['type'])) {
-                    $datatype = $options['type'];
-                } else {
-                    $datatype = 'nvarchar';
-                }
-            }
-            $col = new MSSQLColumn($options['name'], $datatype);
-            $size = isset($options['size']) ? intval($options['size']) : 1;
-            $col->setSize($size);
-
-            self::_primaryCheck($col, $options);
-            self::_extraAttrsCheck($col, $options);
-
-            return $col;
+            
+            return ColumnFactory::create('mssql', $options['name'], $options);
         }
     }
     /**
@@ -186,26 +173,18 @@ class MSSQLColumn extends Column {
                     $dt == 'char' || $dt == 'nchar'
                     ) {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
-            } else {
-                if ($dt == 'datetime2') {
-                    if (!($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
-                        $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
-                    } else {
-                        $retVal = $defaultVal;
-                    }
+            } else if ($dt == 'datetime2') {
+                if (!($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
+                    $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
                 } else {
-                    if ($dt == 'int') {
-                        $retVal = intval($defaultVal);
-                    } else {
-                        if ($dt == 'boolean') {
-                            return $defaultVal === 1 || $defaultVal === true;
-                        } else {
-                            if ($dt == 'float' || $dt == 'decimal' || $dt == 'money') {
-                                $retVal = floatval($defaultVal);
-                            }
-                        }
-                    }
+                    $retVal = $defaultVal;
                 }
+            } else if ($dt == 'int') {
+                $retVal = intval($defaultVal);
+            } else if ($dt == 'boolean') {
+                return $defaultVal === 1 || $defaultVal === true;
+            } else if ($dt == 'float' || $dt == 'decimal' || $dt == 'money') {
+                $retVal = floatval($defaultVal);
             }
 
             return $retVal;
@@ -250,16 +229,16 @@ class MSSQLColumn extends Column {
 
         if ($colType == 'int' || $colType == 'bit') {
             return 'int'.$isNullStr;
+        } else if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
+            return 'double'.$isNullStr;
+        } else if ($colType == 'boolean') {
+            return 'boolean'.$isNullStr;
+        } else if ($colType == 'varchar' || $colType == 'nvarchar'
+                || $colType == 'datetime2' || $colType == 'char'
+                || $colType == 'nchar' || $colType == 'binary' || $colType == 'varbinary') {
+            return 'string'.$isNullStr;
         } else {
-            if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
-                return 'double'.$isNullStr;
-            } else {
-                if ($colType == 'boolean') {
-                    return 'boolean'.$isNullStr;
-                } else {
-                    return 'string'.$isNullStr;
-                }
-            }
+            return parent::getPHPType().$isNullStr;
         }
     }
     /**
@@ -407,18 +386,12 @@ class MSSQLColumn extends Column {
 
         if ($trimmed == 'current_timestamp') {
             $cleanedVal = 'current_timestamp';
-        } else {
-            if ($trimmed == 'now()') {
-                $cleanedVal = 'now()';
-            } else {
-                if ($this->_validateDateAndTime($trimmed)) {
-                    $cleanedVal = '\''.$trimmed.'\'';
-                } else {
-                    if ($this->_validateDate($trimmed)) {
-                        $cleanedVal = '\''.$trimmed.' 00:00:00\'';
-                    }
-                }
-            }
+        } else if ($trimmed == 'now()') {
+            $cleanedVal = 'now()';
+        } else if (DateTimeValidator::isValidDateTime($trimmed)) {
+            $cleanedVal = '\''.$trimmed.'\'';
+        } else if (DateTimeValidator::isValidDate($trimmed)) {
+            $cleanedVal = '\''.$trimmed.' 00:00:00\'';
         }
 
         return $cleanedVal;
@@ -448,40 +421,7 @@ class MSSQLColumn extends Column {
             }
         }
     }
-    /**
-     * 
-     * @param MSSQLColumn $col
-     * @param array $options
-     */
-    private static function _extraAttrsCheck(&$col, $options) {
-        $scale = isset($options['scale']) ? intval($options['scale']) : 2;
-        $col->setScale($scale);
-
-        if (isset($options['default'])) {
-            $col->setDefault($options['default']);
-        }
-
-        if (isset($options['is-unique'])) {
-            $col->setIsUnique($options['is-unique']);
-        }
-
-        //the 'not null' or 'null' must be specified or it will cause query 
-        //or it will cause query error.
-        $isNull = isset($options['is-null']) ? $options['is-null'] : false;
-        $col->setIsNull($isNull);
-
-        if (isset($options['auto-update'])) {
-            $col->setAutoUpdate($options['auto-update']);
-        }
-
-        if (isset($options['comment'])) {
-            $col->setComment($options['comment']);
-        }
-
-        if (isset($options['validator'])) {
-            $col->setCustomFilter($options['validator']);
-        }
-    }
+    
 
     private function _firstColPart() {
         $retVal = MSSQLQuery::squareBr($this->getName()).' ';
@@ -518,75 +458,5 @@ class MSSQLColumn extends Column {
         } else {
             return 'null ';
         }
-    }
-    /**
-     * 
-     * @param MSSQLColumn $col
-     * @param array $options
-     */
-    private static function _primaryCheck(&$col, $options) {
-        $isPrimary = isset($options['primary']) ? $options['primary'] : false;
-
-        if (!$isPrimary) {
-            $isPrimary = isset($options['is-primary']) ? $options['is-primary'] : false;
-        }
-        $col->setIsPrimary($isPrimary);
-    }
-    /**
-     * 
-     * @param type $date
-     */
-    private function _validateDate($date) {
-        if (strlen($date) == 10) {
-            $split = explode('-', $date);
-
-            if (count($split) == 3) {
-                $year = intval($split[0]);
-                $month = intval($split[1]);
-                $day = intval($split[2]);
-
-                return $year > 1969 && $month > 0 && $month < 13 && $day > 0 && $day < 32;
-            }
-        }
-
-        return false;
-    }
-    /**
-     * Checks if a date-time string is valid or not.
-     * @param string $date A date string in the format 'YYYY-MM-DD HH:MM:SS'.
-     * @return boolean If the string represents correct date and time, the 
-     * method will return true. False if it is not valid.
-     */
-    private function _validateDateAndTime($date) {
-        $trimmed = trim($date);
-
-        if (strlen($trimmed) == 19) {
-            $dateAndTime = explode(' ', $trimmed);
-
-            if (count($dateAndTime) == 2) {
-                return $this->_validateDate($dateAndTime[0]) && $this->_validateTime($dateAndTime[1]);
-            }
-        }
-
-        return false;
-    }
-    /**
-     * 
-     * @param type $time
-     */
-    private function _validateTime($time) {
-        if (strlen($time) == 8) {
-            $split = explode(':', $time);
-
-            if (count($split) == 3) {
-                $hours = intval($split[0]);
-                $minutes = intval($split[1]);
-                $sec = intval($split[2]);
-
-                return $hours >= 0 && $hours <= 23 && $minutes >= 0 && $minutes < 60 && $sec >= 0 && $sec < 60;
-            }
-        }
-
-        return false;
     }
 }

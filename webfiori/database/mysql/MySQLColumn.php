@@ -26,6 +26,8 @@ namespace webfiori\database\mysql;
 
 use webfiori\database\Column;
 use webfiori\database\DatabaseException;
+use webfiori\database\DateTimeValidator;
+use webfiori\database\ColumnFactory;
 
 /**
  * A class that represents a column in MySQL table.
@@ -207,21 +209,8 @@ class MySQLColumn extends Column {
      */
     public static function createColObj($options) {
         if (isset($options['name'])) {
-            if (isset($options['datatype'])) {
-                $datatype = $options['datatype'];
-            } else  if (isset($options['type'])) {
-                $datatype = $options['type'];
-            } else {
-                $datatype = 'varchar';
-            }
-            $col = new MySQLColumn($options['name'], $datatype);
-            $size = isset($options['size']) ? intval($options['size']) : 1;
-            $col->setSize($size);
-
-            self::_primaryCheck($col, $options);
-            self::_extraAttrsCheck($col, $options);
-
-            return $col;
+            
+            return ColumnFactory::create('mysql', $options['name'], $options);
         }
     }
     /**
@@ -358,8 +347,12 @@ class MySQLColumn extends Column {
             return 'double'.$isNullStr;
         } else  if ($colType == 'boolean' || $colType == 'bool') {
             return 'boolean'.$isNullStr;
-        } else {
+        } else if ($colType == 'varchar' || $colType == 'datetime'
+                || $colType == 'timestamp' || $colType == 'blob'
+                || $colType == 'mediumblob') {
             return 'string'.$isNullStr;
+        } else {
+            return parent::getPHPType().$isNullStr;
         }
     }
     /**
@@ -680,9 +673,9 @@ class MySQLColumn extends Column {
             $cleanedVal = 'current_timestamp';
         } else if ($trimmed == 'now()') {
             $cleanedVal = 'now()';
-        } else if ($this->_validateDateAndTime($trimmed)) {
+        } else if (DateTimeValidator::isValidDateTime($trimmed)) {
             $cleanedVal = '\''.$trimmed.'\'';
-        } else if ($this->_validateDate($trimmed)) {
+        } else if (DateTimeValidator::isValidDate($trimmed)) {
             $cleanedVal = '\''.$trimmed.' 00:00:00\'';
         }
 
@@ -710,40 +703,7 @@ class MySQLColumn extends Column {
             }
         }
     }
-    /**
-     * 
-     * @param MySQLColumn $col
-     * @param array $options
-     */
-    private static function _extraAttrsCheck(&$col, $options) {
-        $scale = isset($options['scale']) ? intval($options['scale']) : 2;
-        $col->setScale($scale);
-
-        if (isset($options['default'])) {
-            $col->setDefault($options['default']);
-        }
-
-        if (isset($options['is-unique'])) {
-            $col->setIsUnique($options['is-unique']);
-        }
-
-        //the 'not null' or 'null' must be specified or it will cause query 
-        //or it will cause query error.
-        $isNull = isset($options['is-null']) ? $options['is-null'] : false;
-        $col->setIsNull($isNull);
-
-        if (isset($options['auto-update'])) {
-            $col->setAutoUpdate($options['auto-update']);
-        }
-
-        if (isset($options['comment'])) {
-            $col->setComment($options['comment']);
-        }
-
-        if (isset($options['validator'])) {
-            $col->setCustomFilter($options['validator']);
-        }
-    }
+    
     private function _firstColPart() {
         $retVal = $this->getName().' ';
         $colDataType = $this->getDatatype();
@@ -795,24 +755,6 @@ class MySQLColumn extends Column {
             return 'null ';
         }
     }
-    /**
-     * 
-     * @param MySQLColumn $col
-     * @param array $options
-     */
-    private static function _primaryCheck(&$col, $options) {
-        $isPrimary = isset($options['primary']) ? $options['primary'] : false;
-
-        if (!$isPrimary) {
-            $isPrimary = isset($options['is-primary']) ? $options['is-primary'] : false;
-        }
-        $col->setIsPrimary($isPrimary);
-
-        if ($isPrimary && isset($options['auto-inc'])) {
-            $col->setIsAutoInc($options['auto-inc']);
-            $col->setIsNull(true);
-        }
-    }
     private function _textTypeSize($size) {
         if ($size > 0) {
             parent::setSize($size);
@@ -822,63 +764,6 @@ class MySQLColumn extends Column {
             }
 
             return true;
-        }
-
-        return false;
-    }
-    /**
-     * 
-     * @param type $date
-     */
-    private function _validateDate($date) {
-        if (strlen($date) == 10) {
-            $split = explode('-', $date);
-
-            if (count($split) == 3) {
-                $year = intval($split[0]);
-                $month = intval($split[1]);
-                $day = intval($split[2]);
-
-                return $year > 1969 && $month > 0 && $month < 13 && $day > 0 && $day < 32;
-            }
-        }
-
-        return false;
-    }
-    /**
-     * Checks if a date-time string is valid or not.
-     * @param string $date A date string in the format 'YYYY-MM-DD HH:MM:SS'.
-     * @return boolean If the string represents correct date and time, the 
-     * method will return true. False if it is not valid.
-     */
-    private function _validateDateAndTime($date) {
-        $trimmed = trim($date);
-
-        if (strlen($trimmed) == 19) {
-            $dateAndTime = explode(' ', $trimmed);
-
-            if (count($dateAndTime) == 2) {
-                return $this->_validateDate($dateAndTime[0]) && $this->_validateTime($dateAndTime[1]);
-            }
-        }
-
-        return false;
-    }
-    /**
-     * 
-     * @param type $time
-     */
-    private function _validateTime($time) {
-        if (strlen($time) == 8) {
-            $split = explode(':', $time);
-
-            if (count($split) == 3) {
-                $hours = intval($split[0]);
-                $minutes = intval($split[1]);
-                $sec = intval($split[2]);
-
-                return $hours >= 0 && $hours <= 23 && $minutes >= 0 && $minutes < 60 && $sec >= 0 && $sec < 60;
-            }
         }
 
         return false;
