@@ -41,6 +41,7 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 }
 define('ROOT', $rootDir);
 fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
+
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'AbstractQuery.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Table.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ForeignKey.php';
@@ -56,6 +57,8 @@ require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'JoinTable.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'SelectExpression.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'DateTimeValidator.php';
+require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ColumnFactory.php';
 
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
