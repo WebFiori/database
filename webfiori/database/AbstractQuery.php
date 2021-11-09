@@ -307,7 +307,7 @@ abstract class AbstractQuery {
         $tblName = $this->getTable()->getName();
         $colObj = $this->getTable()->getColByKey($colKey);
 
-        if (!($colObj instanceof MySQLColumn)) {
+        if (!($colObj instanceof Column)) {
             throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
         }
         $withTick = $colObj->getName();
