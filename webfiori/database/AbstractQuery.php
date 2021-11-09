@@ -1198,10 +1198,25 @@ abstract class AbstractQuery {
      * @since 1.0.3
      */
     public function whereBetween($col, $firstVal, $secondVal, $joinCond = 'and', $not = false) {
+        $this->_addWhere([
+            'col-key' => $col,
+            'first-value' => $firstVal,
+            'second-value' => $secondVal,
+            'join-cond' => $joinCond,
+            'not' => $not,
+            'func' => 'between'
+        ]);
+
+        return $this;
+    }
+    private function _addWhere($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
         $tableName = $table->getName();
-
+        $col = $options['col-key'];
+        $joinCond = $options['join-cond'];
+        $not = isset($options['not']) ? $options['not'] : false;
+        
         if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
             $colObj = $table->getColByKey($col);
 
@@ -1212,14 +1227,45 @@ abstract class AbstractQuery {
             }
             $colObj->setWithTablePrefix(true);
             $colName = $colObj->getName();
-            $firstCleanVal = $colObj->cleanValue($firstVal);
-            $secCleanVal = $colObj->cleanValue($secondVal);
-            $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
+            
+            if ($options['func'] == 'between') {
+                $firstCleanVal = $colObj->cleanValue($options['first-value']);
+                $secCleanVal = $colObj->cleanValue($options['second-value']);
+                $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
+            } else if ($options['func'] == 'in') {
+                $cleanedVals = $colObj->cleanValue($options['values']);
+                $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+            } else if ($options['func'] == 'left') {
+                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanType = gettype($cleanVal);
+                $charsCount = $options['count'];
+                $cond = $options['condition'];
+                
+                if ($cleanType == 'string' || $cleanType == 'array') {
+                    $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
+                }
+            } else if ($options['func'] == 'like') {
+                
+                $cleanVal = $colObj->cleanValue($options['value']);
+
+                if (gettype($cleanVal) == 'string') {
+                    $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
+                }
+            } else if ($options['func'] == 'null') {
+                $this->getTable()->getSelect()->addWhereNull($colName, $joinCond, $not);
+            } else if ($options['func'] == 'right') {
+                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanType = gettype($cleanVal);
+                $charsCount = $options['count'];
+                $cond = $options['condition'];
+                
+                if ($cleanType == 'string' || $cleanType == 'array') {
+                    $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
+                }
+            }
         } else {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
-
-        return $this;
     }
     /**
      * Constructs a 'where in()' condition.
@@ -1245,25 +1291,13 @@ abstract class AbstractQuery {
      * @since 1.0.3
      */
     public function whereIn($col, array $vals, $joinCond = 'and', $not = false) {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
-
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $cleanedVals = $colObj->cleanValue($vals);
-            $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
+        $this->_addWhere([
+            'col-key' => $col,
+            'values' => $vals,
+            'join-cond' => $joinCond,
+            'not' => $not,
+            'func' => 'in'
+        ]);
 
         return $this;
     }
@@ -1296,29 +1330,14 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
-
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $cleanVal = $colObj->cleanValue($val);
-            $cleanType = gettype($cleanVal);
-
-            if ($cleanType == 'string' || $cleanType == 'array') {
-                $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
-            }
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
+        $this->_addWhere([
+            'col-key' => $col,
+            'join-cond' => $joinCond,
+            'func' => 'left',
+            'count' => $charsCount,
+            'value' => $val,
+            'condition' => $cond
+        ]);
 
         return $this;
     }
@@ -1348,28 +1367,13 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereLike($col, $val, $joinCond = 'and', $not = false) {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
-
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $cleanVal = $colObj->cleanValue($val);
-
-            if (gettype($cleanVal) == 'string') {
-                $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
-            }
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
+        $this->_addWhere([
+            'col-key' => $col,
+            'join-cond' => $joinCond,
+            'func' => 'like',
+            'value' => $val,
+            'not' => $not
+        ]);
 
         return $this;
     }
@@ -1487,24 +1491,12 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereNull($col, $join = 'and', $not = false) {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
-
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $this->getTable()->getSelect()->addWhereNull($colName, $join, $not);
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
+        $this->_addWhere([
+            'col-key' => $col,
+            'join-cond' => $join,
+            'not' => $not,
+            'func' => 'null'
+        ]);
 
         return $this;
     }
@@ -1537,29 +1529,14 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        $tableName = $table->getName();
-
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            $cleanVal = $colObj->cleanValue($val);
-            $cleanType = gettype($cleanVal);
-
-            if ($cleanType == 'string' || $cleanType == 'array') {
-                $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
-            }
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
+        $this->_addWhere([
+            'col-key' => $col,
+            'join-cond' => $joinCond,
+            'func' => 'right',
+            'count' => $charsCount,
+            'value' => $val,
+            'condition' => $cond
+        ]);
 
         return $this;
     }

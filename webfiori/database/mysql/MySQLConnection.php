@@ -135,16 +135,16 @@ class MySQLConnection extends Connection {
 
         if ($queryObj !== null) {
             $queryStr = $queryObj->getQuery();
-            $sqlStm = mysqli_prepare($this->link, $queryStr);
+            $sqlStatement = mysqli_prepare($this->link, $queryStr);
 
-            if (gettype($sqlStm) == 'object') {
+            if (gettype($sqlStatement) == 'object') {
                 foreach ($queryParams as $subArr) {
                     $value = isset($subArr['value']) ? $subArr['value'] : null;
                     $type = isset($subArr['type']) ? $subArr['type'] : 's';
-                    $sqlStm->bind_param("$type", $value);
+                    $sqlStatement->bind_param("$type", $value);
                 }
 
-                return $sqlStm;
+                return $sqlStatement;
             }
         }
 
