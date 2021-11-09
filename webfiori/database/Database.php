@@ -403,7 +403,7 @@ class Database {
      * @since 1.0
      */
     public function getTable($tblName) {
-        $trimmed = trim($tblName, '`');
+        $trimmed = trim($tblName);
 
         if (!isset($this->tablesArr[$trimmed])) {
             throw new DatabaseException('No such table: "'.$trimmed.'".');
