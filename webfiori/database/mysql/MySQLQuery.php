@@ -211,6 +211,11 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function insert(array $colsAndVals) {
+        $this->insertHelper($colsAndVals);
+
+        return $this;
+    }
+    private function insertHelper(array $colsAndVals, $isReplace = false) {
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $colsArr = [];
             $tblName = $this->getTable()->getName();
@@ -231,12 +236,14 @@ class MySQLQuery extends AbstractQuery {
                 $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
             }
             $valsStr = implode(",\n", $suberValsArr);
-            $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
+            if ($isReplace) {
+                $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
+            } else {
+                $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
+            }
         } else {
-            $this->setQuery($this->_createInsertStm($colsAndVals));
+            $this->setQuery($this->_createInsertStm($colsAndVals, $isReplace));
         }
-
-        return $this;
     }
     /**
      * Checks if the query represents a blob insert or update.
@@ -338,30 +345,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0.2
      */
     public function replace(array $colsAndVals) {
-        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $colsArr = [];
-            $tblName = $this->getTable()->getName();
-
-            foreach ($colsAndVals['cols'] as $colKey) {
-                $colObj = $this->getTable()->getColByKey($colKey);
-
-                if (!($colObj instanceof MySQLColumn)) {
-                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
-                }
-                $colObj->setWithTablePrefix(false);
-                $colsArr[] = $colObj->getName();
-            }
-            $colsStr = '('.implode(', ', $colsArr).')';
-            $suberValsArr = [];
-
-            foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
-            }
-            $valsStr = implode(",\n", $suberValsArr);
-            $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
-        } else {
-            $this->setQuery($this->_createInsertStm($colsAndVals, true));
-        }
+        $this->insertHelper($colsAndVals, true);
 
         return $this;
     }
