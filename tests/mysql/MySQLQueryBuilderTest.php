@@ -939,9 +939,9 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testDropCol00() {
         $schema = new MySQLTestSchema();
         $schema->table('users')->dropCol('id');
-        $this->assertEquals('alter table `users` drop `id`;', $schema->getLastQuery());
+        $this->assertEquals('alter table `users` drop column `id`;', $schema->getLastQuery());
         $schema->table('users')->dropCol('first-name ');
-        $this->assertEquals('alter table `users` drop `first_name`;', $schema->getLastQuery());
+        $this->assertEquals('alter table `users` drop column `first_name`;', $schema->getLastQuery());
     }
     /**
      * @test
