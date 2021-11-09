@@ -3,6 +3,7 @@ namespace webfiori\database\mssql;
 
 use webfiori\database\AbstractQuery;
 use webfiori\database\Column;
+use webfiori\database\DatabaseException;
 /**
  * A class which is used to build MSSQL queries.
  *
@@ -95,9 +96,11 @@ class MSSQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function insert(array $colsAndVals) {
+        $tblName = $this->getTable()->getName();
+        
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $colsArr = [];
-            $tblName = $this->getTable()->getName();
+            
 
             foreach ($colsAndVals['cols'] as $colKey) {
                 $colObj = $this->getTable()->getColByKey($colKey);
@@ -112,12 +115,15 @@ class MSSQLQuery extends AbstractQuery {
             $suberValsArr = [];
 
             foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = $this->_insertHelper($colsAndVals['cols'], $valsArr);
+                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
             }
             $valsStr = implode(",\n", $suberValsArr);
             $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
         } else {
-            $this->setQuery($this->_createInsertStm($colsAndVals));
+            $data = $this->_insertHelper(array_keys($colsAndVals), $colsAndVals);
+            $cols = '('. $data['cols'].')';
+            $vals = '('. $data['vals'].')';
+            $this->setQuery("insert into $tblName $cols values $vals;");
         }
 
         return $this;
@@ -261,84 +267,6 @@ class MSSQLQuery extends AbstractQuery {
 
         return $this;
     }
-    private function _createInsertStm($colsAndVals) {
-        $tblName = $this->getTable()->getName();
-
-        $colsArr = [];
-        $valsArr = [];
-        $columnsWithVals = [];
-
-        foreach ($colsAndVals as $colIndex => $val) {
-            $column = $this->getTable()->getColByKey($colIndex);
-
-            if ($column instanceof MSSQLColumn) {
-                $columnsWithVals[] = $colIndex;
-                $colsArr[] = $column->getName();
-                $type = $column->getDatatype();
-
-                if ($val !== null) {
-                    $cleanedVal = $column->cleanValue($val);
-
-                    if ($type == 'binary' || $type == 'varbinary') {
-                        $fixedPath = str_replace('\\', '/', $val);
-                        set_error_handler(null);
-
-                        if (file_exists($fixedPath)) {
-                            $file = fopen($fixedPath, 'r');
-                            $data = '';
-
-                            if ($file !== false) {
-                                $fileContent = fread($file, filesize($fixedPath));
-
-                                if ($fileContent !== false) {
-                                    $data = '0x'.bin2hex($fileContent);
-                                    $valsArr[] = $data;
-                                } else {
-                                    $valsArr[] = 'null';
-                                }
-                                fclose($file);
-                            } else {
-                                $data = '0x'.bin2hex($fileContent);
-                                $valsArr[] = $data;
-                            }
-                        } else {
-                            $data = '0x'.bin2hex($cleanedVal);
-                            $valsArr[] = $data;
-                        }
-                        restore_error_handler();
-                    } else {
-                        $valsArr[] = $cleanedVal;
-                    }
-                } else {
-                    $valsArr[] = 'null';
-                }
-            } else {
-                throw new DatabaseException("The table '$tblName' has no column with name '$colIndex'.");
-            }
-        }
-
-        foreach ($this->getTable()->getColsKeys() as $key) {
-            if (!in_array($key, $columnsWithVals)) {
-                $colObj = $this->getTable()->getColByKey($key);
-                $defaultVal = $colObj->getDefault();
-
-                if ($defaultVal !== null) {
-                    $colsArr[] = $colObj->getName();
-                    $type = $colObj->getDatatype();
-
-                    if (($type == 'datetime2') && ($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
-                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
-                    } else {
-                        $valsArr[] = $colObj->cleanValue($defaultVal);
-                    }
-                }
-            }
-        }
-        $cols = '('.implode(', ', $colsArr).')';
-        $vals = '('.implode(', ', $valsArr).')';
-
-        return "insert into $tblName $cols values $vals;";
-    }
     /**
      * Build a string that holds the values that will be inserted.
      * 
@@ -350,6 +278,7 @@ class MSSQLQuery extends AbstractQuery {
     private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
         $valsArr = [];
         $columnsWithVals = [];
+        $colsNamesArr = [];
         $valIndex = 0;
 
         foreach ($colsKeysArr as $colKey) {
@@ -357,15 +286,24 @@ class MSSQLQuery extends AbstractQuery {
 
             if ($column instanceof MSSQLColumn) {
                 $columnsWithVals[] = $colKey;
+                $colsNamesArr[] = $column->getName();
                 $type = $column->getDatatype();
-                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : null;
+                
+                if (isset($valuesToInsert[$colKey])) {
+                    $val = $valuesToInsert[$colKey];
+                } else if (isset ($valuesToInsert[$valIndex])) {
+                    $val = $valuesToInsert[$valIndex];
+                } else {
+                    $val = null;
+                }
 
                 if ($val !== null) {
                     $cleanedVal = $column->cleanValue($val);
 
-                    if ($type == 'binary' || $type == 'varbinary') {
+                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         $fixedPath = str_replace('\\', '/', $val);
                         set_error_handler(null);
+                        $this->setIsBlobInsertOrUpdate(true);
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');
@@ -375,18 +313,18 @@ class MSSQLQuery extends AbstractQuery {
                                 $fileContent = fread($file, filesize($fixedPath));
 
                                 if ($fileContent !== false) {
-                                    $data = '0x'.bin2hex($fileContent);
+                                    $data = '\''.addslashes($fileContent).'\'';
                                     $valsArr[] = $data;
                                 } else {
                                     $valsArr[] = 'null';
                                 }
                                 fclose($file);
                             } else {
-                                $data = '0x'.bin2hex($fileContent);
+                                $data = '\''.addslashes($val).'\'';
                                 $valsArr[] = $data;
                             }
                         } else {
-                            $data = '0x'.bin2hex($cleanedVal);
+                            $data = '\''.addslashes($cleanedVal).'\'';
                             $valsArr[] = $data;
                         }
                         restore_error_handler();
@@ -409,10 +347,17 @@ class MSSQLQuery extends AbstractQuery {
                 $defaultVal = $colObj->getDefault();
 
                 if ($defaultVal !== null) {
+                    $colsNamesArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
 
-                    if (($type == 'datetime2') && ($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
-                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
+                    if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {
+                        if ($type == 'datetime2') {
+                            $valsArr[] = "'".date('Y-m-d H:i:s')."'";
+                        } else if ($type == 'time') {
+                            $valsArr[] = "'".date('H:i:s')."'";
+                        } else if ($type == 'date') {
+                            $valsArr[] = "'".date('Y-m-d')."'";
+                        }
                     } else {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
                     }
@@ -420,6 +365,9 @@ class MSSQLQuery extends AbstractQuery {
             }
         }
 
-        return '('.implode(', ', $valsArr).')';
+        return [
+            'cols' => implode(', ', $colsNamesArr),
+            'vals' => implode(', ', $valsArr)
+        ];
     }
 }
