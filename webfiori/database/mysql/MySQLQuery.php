@@ -514,7 +514,14 @@ class MySQLQuery extends AbstractQuery {
                 $columnsWithVals[] = $colKey;
                 $colsNamesArr[] = $column->getName();
                 $type = $column->getDatatype();
-                $val = isset($valuesToInsert[$valIndex]) ? $valuesToInsert[$valIndex] : null;
+                
+                if (isset($valuesToInsert[$colKey])) {
+                    $val = $valuesToInsert[$colKey];
+                } else if (isset ($valuesToInsert[$valIndex])) {
+                    $val = $valuesToInsert[$valIndex];
+                } else {
+                    $val = null;
+                }
 
                 if ($val !== null) {
                     $cleanedVal = $column->cleanValue($val);
