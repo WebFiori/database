@@ -173,7 +173,7 @@ class MSSQLColumn extends Column {
                     $dt == 'char' || $dt == 'nchar'
                     ) {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
-            } else if ($dt == 'datetime2') {
+            } else if ($dt == 'datetime2' || $dt == 'date') {
                 if (!($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
                     $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
                 } else {
@@ -234,7 +234,7 @@ class MSSQLColumn extends Column {
         } else if ($colType == 'boolean') {
             return 'boolean'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'nvarchar'
-                || $colType == 'datetime2' || $colType == 'char'
+                || $colType == 'datetime2' || $colType == 'char' || $colType == 'date'
                 || $colType == 'nchar' || $colType == 'binary' || $colType == 'varbinary') {
             return 'string'.$isNullStr;
         } else {
@@ -266,7 +266,7 @@ class MSSQLColumn extends Column {
      * @since 1.0
      */
     public function setAutoUpdate($bool) {
-        if ($this->getDatatype() == 'datetime2') {
+        if ($this->getDatatype() == 'datetime2' || $this->getDatatype() == 'date') {
             $this->isAutoUpdate = $bool === true;
         }
     }
@@ -292,7 +292,7 @@ class MSSQLColumn extends Column {
         parent::setDefault($this->cleanValue($default));
         $type = $this->getDatatype();
 
-        if (($type == 'datetime2') && strlen($this->getDefault()) == 0 && $this->getDefault() !== null) {
+        if (($type == 'datetime2' || $type == 'date') && strlen($this->getDefault()) == 0 && $this->getDefault() !== null) {
             parent::setDefault(null);
         }
     }
@@ -357,7 +357,7 @@ class MSSQLColumn extends Column {
             // Think about multi-byte strings
             // At minimum, just sanitize the value using default filter
                         } else {
-                            if ($colDatatype == 'datetime2') {
+                            if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
                                 if ($val != 'now' && $val != 'current_timestamp') {
                                     $cleanedVal = $this->_dateCleanUp($val);
                                 } else {
@@ -384,10 +384,8 @@ class MSSQLColumn extends Column {
         $trimmed = strtolower(trim($val));
         $cleanedVal = '';
 
-        if ($trimmed == 'current_timestamp') {
-            $cleanedVal = 'current_timestamp';
-        } else if ($trimmed == 'now()') {
-            $cleanedVal = 'now()';
+        if ($trimmed == 'current_timestamp' || $trimmed == 'now()' || $trimmed == 'now') {
+            $cleanedVal = 'getdate()';
         } else if (DateTimeValidator::isValidDateTime($trimmed)) {
             $cleanedVal = '\''.$trimmed.'\'';
         } else if (DateTimeValidator::isValidDate($trimmed)) {
