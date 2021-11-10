@@ -7,7 +7,7 @@ use InvalidArgumentException;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class EntityMapper {
     /**
@@ -58,6 +58,14 @@ class EntityMapper {
      */
     private $table;
     /**
+     * An array that holds extra attributes which can be added to the entity.
+     * 
+     * @var array
+     * 
+     * @since 1.0
+     */
+    private $extraAttrs;
+    /**
      * Creates new instance of the class.
      * 
      * @param Table $tableObj The table that will be mapped to an entity.
@@ -97,6 +105,51 @@ class EntityMapper {
         }
 
         $this->setUseJsonI(false);
+        $this->extraAttrs = [];
+    }
+    /**
+     * Adds extra class attribute to the entity that will be created.
+     * 
+     * @param string $attrName The name of the attribute. A valid attribute name
+     * must follow following conditions:
+     * <ul>
+     * <li>Must be non-empty string.</li>
+     * <li>First letter must be non-number.</li>
+     * <li>It must not contain $.</li>
+     * </ul>
+     * 
+     * @return boolean If the attribute is added, the method will return
+     * true. Other than that, the method will return false.
+     * 
+     * @since 1.0.1
+     */
+    public function addAttribute($attrName) {
+        $trimmed = trim($attrName);
+        
+        if (strlen($trimmed) == 0) {
+            return false;
+        }
+        if ($trimmed[0] <= '9' && $trimmed[0] >= '0') {
+            return false;
+        }
+        if (strpos(' ', $trimmed) === false || strpos('$', $trimmed) === false) {
+            if (!in_array($trimmed, $this->extraAttrs)) {
+                $this->extraAttrs[] = $trimmed;
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * Returns an array that holds the names of the extra attributes which are 
+     * defined by the user.
+     * 
+     * @return array an indexed array of attributes names,
+     * 
+     * @since 1.0.1
+     */
+    public function getAttributes() {
+        return $this->extraAttrs;
     }
     /**
      * Creates the class that the table records will be mapped to.
@@ -177,6 +230,11 @@ class EntityMapper {
         foreach ($keys as $keyName) {
             $retVal[$keyName] = $this->_colKeyToAttr($keyName);
         }
+        
+        foreach ($this->getAttributes() as $attrName) {
+            //The @ only used to show user defined attributes.
+            $retVal[$attrName.'@'] = $attrName;
+        }
         ksort($retVal, SORT_STRING);
 
         return $retVal;
@@ -208,6 +266,12 @@ class EntityMapper {
         foreach ($keys as $keyName) {
             $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName, 'g');
             $retVal['setters'][] = $this->_colKeyToSetterOrGetter($keyName, 's');
+        }
+        foreach ($this->getAttributes() as $attrName) {
+            $firstLetter = $attrName[0];
+            $xattr = substr($attrName, 1);
+            $retVal['getters'][] = 'get'. strtoupper($firstLetter).$xattr;
+            $retVal['setters'][] = 'set'. strtoupper($firstLetter).$xattr;;
         }
         sort($retVal['getters'], SORT_STRING);
         sort($retVal['setters'], SORT_STRING);
@@ -409,30 +473,39 @@ class EntityMapper {
         $this->classStr .= ""
         ."    /**\n"
         ."     * Returns the value of the attribute '".$attrName."'.\n"
-        ."     * \n"
-        ."     * The value of the attribute is mapped to the column which has\n"
-        ."     * the name '".$colName."'.\n"
-        ."     * \n"
-        ."     * @return ".$phpType." The value of the attribute.\n"
-        ."     **/\n"
-        .'    public function '.$getterName."() {\n"
-        .'        return $this->'.$attrName.";\n"
-        ."    }\n";
+        ."     * \n";
+        if ($colName === null) {
+            $this->classStr .= "     * @return ".$phpType." The value of the attribute.\n"
+            ."     **/\n";
+        } else {
+            $this->classStr .= "     * The value of the attribute is mapped to the column which has\n"
+            ."     * the name '".$colName."'.\n"
+            ."     * \n"
+            ."     * @return ".$phpType." The value of the attribute.\n"
+            ."     **/\n";
+        }
+        $this->classStr .= '    public function '.$getterName."() {\n"
+            .'        return $this->'.$attrName.";\n"
+            ."    }\n";
     }
     private function _appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
         $this->classStr .= ""
             ."    /**\n"
             ."     * Sets the value of the attribute '".$attrName."'.\n"
-            ."     * \n"
-            ."     * The value of the attribute is mapped to the column which has\n"
+            ."     * \n";
+        if ($colName !== null) {
+            $this->classStr .=
+             "     * The value of the attribute is mapped to the column which has\n"
             ."     * the name '".$colName."'.\n"
-            ."     * \n"
+                    . "     * \n";
+        }
+        $this->classStr .= ""
             ."     * @param \$$attrName ".$phpType." The new value of the attribute.\n"
             ."     **/\n"
             .'    public function '.$setterName.'($'.$attrName.") {\n";
 
         if ($colDatatype == 'boolean' || $colDatatype == 'bool') {
-            $this->classStr .= '        $this->'.$attrName.' = $'.$attrName." === true || $".$attrName." == 'Y';\n";
+            $this->classStr .= '        $this->'.$attrName.' = $'.$attrName." === true || $".$attrName." == 'Y' || $".$attrName." == 1;\n";
         } else {
             $this->classStr .= '        $this->'.$attrName.' = $'.$attrName.";\n";
         }
@@ -484,14 +557,26 @@ class EntityMapper {
 
         foreach ($entityAttrs as $colKey => $attrName) {
             $colObj = $this->getTable()->getColByKey($colKey);
-            $getterName = $this->_colKeyToSetterOrGetter($colKey, 'g');
-            $this->_appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
+            if ($colObj !== null) {
+                $getterName = $this->_colKeyToSetterOrGetter($colKey, 'g');
+                $this->_appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
+            } else {
+                $firstLetter = $attrName[0];
+                $xattrName = substr($attrName, 1);
+                $this->_appendGetterMethod($attrName, null, 'mixed', 'get'. strtoupper($firstLetter).$xattrName);
+            }
         }
 
         foreach ($entityAttrs as $colKey => $attrName) {
-            $setterName = $this->_colKeyToSetterOrGetter($colKey, 's');
             $colObj = $this->getTable()->getColByKey($colKey);
-            $this->_appendSetter($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
+            if ($colObj !== null) {
+                $setterName = $this->_colKeyToSetterOrGetter($colKey, 's');
+                $this->_appendSetter($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
+            } else {
+                $firstLetter = $attrName[0];
+                $xattrName = substr($attrName, 1);
+                $this->_appendSetter($attrName, null, 'mixed', 'set'. strtoupper($firstLetter).$xattrName, null);
+            }
         }
         $this->_createMapFunction();
     }
@@ -501,13 +586,23 @@ class EntityMapper {
 
         foreach ($entityAttrs as $colKey => $attrName) {
             $colObj = $this->getTable()->getColByKey($colKey);
-            $this->classStr .= ""
-            ."    /**\n"
-            ."     * The attribute which is mapped to the column '".$colObj->getNormalName()."'.\n"
-            ."     * \n"
-            ."     * @var ".$colObj->getPHPType()."\n"
-            ."     **/\n"
-            ."    private $".$attrName.";\n";
+            if ($colObj !== null) {
+                $this->classStr .= ""
+                ."    /**\n"
+                ."     * The attribute which is mapped to the column '".$colObj->getNormalName()."'.\n"
+                ."     * \n"
+                ."     * @var ".$colObj->getPHPType()."\n"
+                ."     **/\n"
+                ."    private $".$attrName.";\n";
+            } else {
+                $this->classStr .= ""
+                ."    /**\n"
+                ."     * A custom attribute.\n"
+                ."     * \n"
+                ."     * @var mixed\n"
+                ."     **/\n"
+                ."    private $".$attrName.";\n";
+            }
             $index++;
         }
     }
