@@ -44,6 +44,26 @@ class EntityMapperTest extends TestCase {
             'setLastName' => 'last_name',
             'setAge' => 'age',
         ], $entityMapper->getSettersMap());
+        
+        $entityMapper->addAttribute('extraAttribute');
+        $this->assertEquals([
+            'setters' => [
+                'setAge',
+                'setExtraAttribute',
+                'setFirstName',
+                'setId',
+                'setLastName',
+                
+            ],
+            'getters' => [
+                'getAge',
+                'getExtraAttribute',
+                'getFirstName',
+                'getId',
+                'getLastName',
+                
+            ]
+        ], $entityMapper->getEntityMethods());
         $this->assertTrue($entityMapper->create());
     }
 }
