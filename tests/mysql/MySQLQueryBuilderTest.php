@@ -298,6 +298,25 @@ class MySQLQueryBuilderTest extends TestCase {
      * @test
      * 
      */
+    public function testSelectWithWhere012() {
+        $schema = new MySQLTestSchema();
+        $q = $schema->table('users')->select();
+        //4
+        $q->where(
+            //2 Expr (id = 7)
+            $q->where(
+                //1 Cond id = 7
+                $q->where('id', '=', null)
+            //3 Expr (id = 7) and id = 8
+            )->where('id', '!=', null)
+        );
+        // Expr(Expr(Cond) Cond)
+        $this->assertEquals('select * from [users] where [users].[id] is null and [users].[id] is not null', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     * 
+     */
     public function testSelectWithWhere009() {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users')->select();

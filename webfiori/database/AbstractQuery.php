@@ -647,7 +647,7 @@ abstract class AbstractQuery {
      * @param string $rightCol The name of the column key which exist in the right table.
      * 
      * @param string $cond A condition which is used to join a new 'on' condition 
-     * with existing one.
+     * with existing one. The value of this attribute can be only 'and' or 'or'.
      * 
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.

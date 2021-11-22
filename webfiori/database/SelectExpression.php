@@ -226,11 +226,15 @@ class SelectExpression extends Expression {
 
             $this->whereExp = $parentWhere;
         } else {
-            if ($this->whereExp === null) {
-                $this->whereExp = new WhereExpression('');
+            if ($rightOp === null) {
+                $this->addWhereNull($leftOpOrExp, $join, $cond == '=' ? false : true);
+            } else {
+                if ($this->whereExp === null) {
+                    $this->whereExp = new WhereExpression('');
+                }
+                $condition = new Condition($leftOpOrExp, $rightOp, $cond);
+                $this->whereExp->addCondition($condition, $join);
             }
-            $condition = new Condition($leftOpOrExp, $rightOp, $cond);
-            $this->whereExp->addCondition($condition, $join);
         }
     }
     /**
