@@ -311,7 +311,7 @@ class MySQLQueryBuilderTest extends TestCase {
             )->where('id', '!=', null)
         );
         // Expr(Expr(Cond) Cond)
-        $this->assertEquals('select * from [users] where [users].[id] is null and [users].[id] is not null', $schema->getLastQuery());
+        $this->assertEquals('select * from `users` where `users`.`id` is null and `users`.`id` is not null', $schema->getLastQuery());
     }
     /**
      * @test
