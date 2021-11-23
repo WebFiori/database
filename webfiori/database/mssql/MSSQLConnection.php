@@ -205,7 +205,7 @@ class MSSQLConnection extends Connection {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);
         $lastErr = $allErrs[count($allErrs) - 1];
         
-        if (!str_contains($lastErr['message'], 'The statement has been terminated')) {
+        if (strpos($lastErr['message'], 'The statement has been terminated') === false) {
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
             $this->setErrCode($lastErr['code']);
