@@ -511,7 +511,8 @@ class MySQLQuery extends AbstractQuery {
                     $cleanedVal = $column->cleanValue($val);
 
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
-                        $fixedPath = str_replace('\\', '/', $val);
+                        //chr(0) to remove null bytes in path.
+                        $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
                         set_error_handler(null);
                         $this->setIsBlobInsertOrUpdate(true);
 
