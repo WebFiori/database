@@ -301,7 +301,8 @@ class MSSQLQuery extends AbstractQuery {
                     $cleanedVal = $column->cleanValue($val);
 
                     if ($type == 'binary' || $type == 'varbinary') {
-                        $fixedPath = str_replace('\\', '/', $val);
+                        //chr(0) to remove null bytes in path.
+                        $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
                         set_error_handler(null);
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {

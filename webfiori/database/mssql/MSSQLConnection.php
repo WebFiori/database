@@ -204,8 +204,11 @@ class MSSQLConnection extends Connection {
     private function _setErr() {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);
         $lastErr = $allErrs[count($allErrs) - 1];
-        $this->sqlState = $lastErr['SQLSTATE'];
-        $this->setErrMessage($lastErr['message']);
-        $this->setErrCode($lastErr['code']);
+        
+        if (strpos($lastErr['message'], 'The statement has been terminated') === false) {
+            $this->sqlState = $lastErr['SQLSTATE'];
+            $this->setErrMessage($lastErr['message']);
+            $this->setErrCode($lastErr['code']);
+        }
     }
 }
