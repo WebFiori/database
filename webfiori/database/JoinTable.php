@@ -84,15 +84,28 @@ class JoinTable extends Table {
         $this->joinType = $joinType;
         $this->left = $left;
         $this->right = $right;
-        $leftWheres = $left->getSelect()->getWhereExpr();
-
-        if ($leftWheres !== null) {
-            $this->getSelect()->addWhereCondition($leftWheres->getCondition());
+        
+        $this->_addCols(true);
+        $this->_addCols(false);
+        
+    }
+    private function _addCols($left = true) {
+        $prefix = $left === true ? 'left' : 'right';
+        
+        if ($left) {
+            $cols = $this->getLeft()->getCols();
+        } else {
+            $cols = $this->getRight()->getCols();
         }
-        $rightWheres = $right->getSelect()->getWhereExpr();
-
-        if ($rightWheres !== null) {
-            $this->getSelect()->addWhereCondition($rightWheres->getCondition());
+        
+        foreach ($cols as $colKey => $colObj) {
+            if ($this->hasColumnWithKey($colKey)) {
+                $colKey = $prefix.'-'.$colKey;
+            }
+            if ($this->hasColumn($colObj->getNormalName())) {
+                $colObj->setName($prefix.'_'.$colObj->getNormalName());
+            }
+            $this->addColumn($colKey, $colObj);
         }
     }
     /**
@@ -222,6 +235,10 @@ class JoinTable extends Table {
     /**
      * Returns a string which represents the join condition of the two tables.
      * 
+     * The format of the string will be similar to the following: 
+     * "`left_table` join_type `right_table` [on(join_cond)]".
+     * The join condition will be included only if specified.
+     * 
      * @return string
      * 
      * @since 1.0
@@ -306,9 +323,9 @@ class JoinTable extends Table {
         if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
             $colsToSelect = "$leftSelectCols, $rightSelectCols";
         } else if (strlen($leftSelectCols) != 0) {
-            $colsToSelect = $leftSelectCols;
+            $colsToSelect = $leftSelectCols.', '.$rightTbl->getName().'.*';
         } else if (strlen($rightSelectCols) != 0) {
-            $colsToSelect = $rightSelectCols;
+            $colsToSelect = $leftTbl->getName().'.*, '.$rightSelectCols;
         } else {
             $colsToSelect = "*";
         }
