@@ -25,6 +25,7 @@
 namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mssql\MSSQLQuery;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -244,6 +245,10 @@ abstract class AbstractQuery {
             $copy->schema = $this->schema;
 
             return $copy;
+        } else if ($driver == 'mssql') {
+            $copy = new MSSQLQuery();
+            $copy->associatedTbl = $this->associatedTbl;
+            $copy->schema = $this->schema;
         }
     }
     /**
