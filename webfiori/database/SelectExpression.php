@@ -398,7 +398,7 @@ class SelectExpression extends Expression {
                     $resetOwner = false;
 
                     if ($isJoinTable) {
-                        if (!$thisTable->getLeft() instanceof JoinTable) {
+                        if (!($thisTable->getLeft() instanceof JoinTable)) {
                             $existInLeft = $thisTable->getLeft()->getSelect()->hasCol($colKey);
                             $existInRight = $thisTable->getRight()->getSelect()->hasCol($colKey);
 
