@@ -567,10 +567,10 @@ abstract class AbstractQuery {
 
         $alias = $leftTable->getName();
 
-        if ($leftTable instanceof JoinTable) {
-            $nameAsInt = intval(substr($alias, 1));
-            $alias = 'T'.(++$nameAsInt);
-        }
+
+        $nameAsInt = intval(substr($alias, 1));
+        $alias = 'T'.(++$nameAsInt);
+        
 
 
         $joinTable = new JoinTable($leftTable, $rightTable, $joinType, $alias);
@@ -666,21 +666,14 @@ abstract class AbstractQuery {
             $leftCol = $table->getLeft()->getColByKey($leftCol);
 
             if ($leftCol instanceof Column) {
-                $leftCol->setWithTablePrefix(true);
-
-                if ($table->getLeft() instanceof JoinTable) {
-                    $leftCol->setOwner($table);
-                    $leftColName = $leftCol->getName();
-                    $leftCol->setOwner($leftCol->getPrevOwner());
-                } else {
-                    $leftColName = $leftCol->getName();
-                }
+                $leftCol->setWithTablePrefix(false);
+                $leftColName = $leftCol->getPrevOwner()->getName().'.'.$leftCol->getOldName();
 
                 $rightCol = $table->getRight()->getColByKey($rightCol);
 
                 if ($rightCol instanceof Column) {
-                    $rightCol->setWithTablePrefix(true);
-                    $rightColName = $rightCol->getName();
+                    $rightCol->setWithTablePrefix(false);
+                    $rightColName = $rightCol->getPrevOwner()->getName().'.'.$rightCol->getOldName();
                     $cond = new Condition($leftColName, $rightColName, $cond);
                     $table->addJoinCondition($cond, $joinWith);
                 } else {
@@ -838,27 +831,8 @@ abstract class AbstractQuery {
         $select->clear();
         $select->select($cols);
         $selectVal = $select->getValue();
-        $thisTable = $this->getTable();
-        $thisCols = $thisTable->getSelect()->getColsStr();
-
-        if ($thisTable instanceof JoinTable) {
-            $columnsToSelect = $this->_getColsToSelect();
-
-            $tableSQL = $this->getTable()->toSQL(true);
-
-            if (strlen($columnsToSelect) == 0) {
-                $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
-                $this->setQuery($selectVal.$tableSQL);
-            } else if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
-                $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
-            } else if (strlen($columnsToSelect) != 0) {
-                $this->setQuery("select $columnsToSelect from ".$tableSQL);
-            } else {
-                $this->setQuery("select $thisCols from ".$tableSQL);
-            }
-        } else {
-            $this->setQuery($selectVal);
-        }
+        
+        $this->setQuery($selectVal);
 
         return $this;
     }
