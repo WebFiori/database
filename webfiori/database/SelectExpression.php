@@ -524,12 +524,22 @@ class SelectExpression extends Expression {
      */
     public function getValue() {
         $colsStr = $this->getColsStr();
+        $table = $this->getTable();
+        
+        if ($table instanceof JoinTable) {
+            if (strlen($colsStr) == 0) {
+                return "select * from (".$table->getJoin().") as ".$table->getName();
+            }
 
-        if (strlen($colsStr) == 0) {
-            return "select * from ".$this->getTable()->getName();
+            return "select $colsStr from (".$table->getJoin().") as ".$table->getName();
+        } else {
+            if (strlen($colsStr) == 0) {
+                return "select * from ".$table->getName();
+            }
+
+            return "select $colsStr from ".$table->getName();
         }
-
-        return "select $colsStr from ".$this->getTable()->getName();
+        
     }
     /**
      * 
