@@ -399,27 +399,21 @@ class SelectExpression extends Expression {
 
                     if ($isJoinTable) {
                         if (!($thisTable->getLeft() instanceof JoinTable)) {
-                            $existInLeft = $thisTable->getLeft()->getSelect()->hasCol($colKey);
-                            $existInRight = $thisTable->getRight()->getSelect()->hasCol($colKey);
+                            
+                            $ownerName = $obj->getOwner()->getName();
+                            $leftName = $thisTable->getLeft()->getName();
+                            $rightName = $thisTable->getRight()->getName();
+                            $tableName = $thisTable->getName();
 
-                            $addCol = !$existInLeft && !$existInRight;
-
-                            if (!$existInLeft && !$existInRight) {
-                                $ownerName = $obj->getOwner()->getName();
-                                $leftName = $thisTable->getLeft()->getName();
-                                $rightName = $thisTable->getRight()->getName();
-                                $tableName = $thisTable->getName();
-
-                                if ($ownerName != $leftName && $ownerName != $rightName && $tableName != $ownerName) {
-                                    $obj->setOwner($this->getTable());
-                                }
+                            if ($ownerName != $leftName && $ownerName != $rightName && $tableName != $ownerName) {
+                                //$obj->setOwner($this->getTable());
                             }
                         } else {
-                            $obj->setOwner($this->getTable());
+                            //$obj->setOwner($this->getTable());
                         }
                     } else {
                         if ($obj->getPrevOwner() !== null) {
-                            $obj->setOwner($obj->getPrevOwner());
+                            //$obj->setOwner($obj->getPrevOwner());
                             $resetOwner = true;
                         }
                     }
@@ -527,11 +521,14 @@ class SelectExpression extends Expression {
         $table = $this->getTable();
         
         if ($table instanceof JoinTable) {
+            $joinWhere = $this->_getJoinWhere($table);
+            $joinCols = $this->_getJoinCols($table);
+            
             if (strlen($colsStr) == 0) {
-                return "select * from (".$table->getJoin().") as ".$table->getName();
+                return "select * from ($joinCols".$table->getJoin()."$joinWhere) as ".$table->getName();
             }
 
-            return "select $colsStr from (".$table->getJoin().") as ".$table->getName();
+            return "select $colsStr from ($joinCols".$table->getJoin()."$joinWhere) as ".$table->getName();
         } else {
             if (strlen($colsStr) == 0) {
                 return "select * from ".$table->getName();
@@ -541,6 +538,36 @@ class SelectExpression extends Expression {
         }
         
     }
+    private function _getJoinCols(JoinTable $joinTable) {
+        $leftCols = $joinTable->getLeft()->getSelect()->getColsStr();
+        $rightCols = $joinTable->getRight()->getSelect()->getColsStr();
+        
+        if ($leftCols == '*' && $rightCols == '*') {
+            return "select * from ";
+        } else if ($leftCols != '*' && $rightCols == '*') {
+            return "select $leftCols, ".$joinTable->getRight()->getName().'.* from ';
+        } else if ($leftCols == '*' && $rightCols != '*') {
+            return "select ".$joinTable->getLeft()->getName().".*, $rightCols from";
+        } else {
+            return 'select * from ';
+        }
+    }
+    private function _getJoinWhere(JoinTable $joinTable) {
+        // remove the string ' where '
+        $leftWhere = substr($joinTable->getLeft()->getSelect()->getWhereStr(true, false), 7);
+        $rightWhere = substr($joinTable->getRight()->getSelect()->getWhereStr(true, false), 7);
+
+        if (strlen($leftWhere) != 0 && strlen($rightWhere) != 0) {
+            return " where $leftWhere and $rightWhere";
+        } else if (strlen($leftWhere) != 0 && strlen($rightWhere) == 0) {
+            return " where $leftWhere";
+        } else if (strlen($leftWhere) == 0 && strlen($rightWhere) != 0) {
+            return " where $rightWhere";
+        } else {
+            return '';
+        }
+    }
+
     /**
      * 
      * @return WhereExpression|null
@@ -568,35 +595,9 @@ class SelectExpression extends Expression {
         $orderBy = '';
         $groupBy = '';
 
-        if ($thisTable instanceof JoinTable) {
-            $leftWhere = $thisTable->getLeft()->getSelect()->getWhereExpr();
-            $rightWhere = $thisTable->getRight()->getSelect()->getWhereExpr();
-
-            if ($leftWhere !== null) {
-                if ($rightWhere !== null) {
-                    $leftWhere->addCondition($leftWhere->getCondition(), 'and');
-                }
-
-                if ($this->whereExp !== null) {
-                    $leftWhere->addCondition($this->whereExp->getCondition(), 'and');
-                }
-                $retVal = $leftWhere->getValue();
-            } else {
-                if ($rightWhere !== null) {
-                    if ($this->whereExp !== null) {
-                        $rightWhere->addCondition($this->whereExp->getCondition(), 'and');
-                    }
-                    $retVal = $rightWhere->getValue();
-                } else {
-                    if ($this->whereExp !== null) {
-                        $retVal = $this->whereExp->getValue();
-                    }
-                }
-            }
-        } else {
-            if ($this->whereExp !== null) {
-                $retVal = $this->whereExp->getValue();
-            }
+        
+        if ($this->whereExp !== null) {
+            $retVal = $this->whereExp->getValue();
         }
 
         if ($withGroupBy) {
