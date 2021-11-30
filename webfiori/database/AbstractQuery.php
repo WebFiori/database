@@ -1143,7 +1143,7 @@ abstract class AbstractQuery {
                 $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
-                $this->getTable()->getSelect()->addWhere($colName, $cleanVal, $cond, $joinCond);
+                $table->getSelect()->addWhere($colName, $cleanVal, $cond, $joinCond);
             } else {
                 throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
             }
