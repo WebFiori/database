@@ -110,6 +110,7 @@ class JoinTable extends Table {
             if ($this->hasColumnWithKey($colKey)) {
                 $colKey = $prefix.'-'.$colKey;
             }
+            $colObj->setWithTablePrefix(false);
             if ($this->hasColumn($colObj->getNormalName())) {
                 $colObj->setName($prefix.'_'.$colObj->getNormalName());
             }
