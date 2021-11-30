@@ -311,10 +311,6 @@ class MySQLQuery extends AbstractQuery {
             throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
         }
 
-        if ($colObj->getOldName() == null) {
-            throw new DatabaseException('Cannot build the query. Old column name is null.');
-        }
-
         $split = explode('.', $colObj->getMySQLVersion());
         $oldName = $colObj->getOldName();
         $newName = $colObj->getName();
