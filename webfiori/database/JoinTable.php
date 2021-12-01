@@ -24,6 +24,10 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mssql\MSSQLQuery;
+use webfiori\database\mysql\MySQLTable;
+use webfiori\database\mssql\MSSQLTable;
 /**
  * A class that represents two joined tables.
  *
@@ -90,10 +94,14 @@ class JoinTable extends Table {
         $this->setOwner($this->getLeft()->getOwner());
     }
     public function getName() {
-        if ($this->getLeft() instanceof mysql\MySQLTable) {
-            return mysql\MySQLQuery::backtick($this->getNormalName());
-        } else if ($this->getLeft() instanceof mssql\MSSQLTable) {
-            return mssql\MSSQLQuery::squareBr($this->getNormalName());
+        $left = $this->getLeft();
+        while ($left instanceof JoinTable) {
+            $left = $left->getLeft();
+        }
+        if ($left instanceof MySQLTable) {
+            return MySQLQuery::backtick($this->getNormalName());
+        } else if ($left instanceof MSSQLTable) {
+            return MSSQLQuery::squareBr($this->getNormalName());
         }
         return parent::getName();
     }
@@ -159,9 +167,15 @@ class JoinTable extends Table {
      * @since 1.0
      */
     public function getJoin() {
-        $retVal = $this->getLeft()->getName()
+        if ($this->getLeft() instanceof JoinTable) {
+            $retVal = ' '.$this->getJoinType()
+                .' '.$this->getRight()->getName();
+        } else {
+            $retVal = $this->getLeft()->getName()
                 .' '.$this->getJoinType()
                 .' '.$this->getRight()->getName();
+        }
+        
 
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';
