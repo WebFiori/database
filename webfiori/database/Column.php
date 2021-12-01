@@ -157,13 +157,6 @@ abstract class Column {
      */
     private $supportedTypes;
     private $withTablePrefix;
-    public function clone(Column $col) {
-        if ($col instanceof mysql\MySQLColumn) {
-            
-        } else if ($col instanceof mssql\MSSQLColumn) {
-            
-        }
-    }
     /**
      * Creates new instance of the class.
      * 
