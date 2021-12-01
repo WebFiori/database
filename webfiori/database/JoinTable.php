@@ -134,6 +134,7 @@ class JoinTable extends Table {
         $copyCol->setOwner($column->getOwner());
         $copyCol->setCustomFilter($column->getCustomCleaner());
         $copyCol->setIsNull($column->isNull());
+        $copyCol->setAlias($column->getAlias());
         
         return $copyCol;
     }
