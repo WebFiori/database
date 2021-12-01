@@ -114,8 +114,20 @@ class JoinTable extends Table {
             if ($this->hasColumn($colObj->getNormalName())) {
                 $colObj->setName($prefix.'_'.$colObj->getNormalName());
             }
-            $this->addColumn($colKey, $colObj);
+            $this->addColumn($colKey, $this->copyCol($colObj));
         }
+    }
+    private function copyCol(Column $column) {
+        if ($column instanceof mysql\MySQLColumn) {
+            $copyCol = new mysql\MySQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        } else {
+            $copyCol = new mssql\MSSQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        }
+        $copyCol->setOwner($column->getOwner());
+        $copyCol->setCustomFilter($column->getCustomCleaner());
+        $copyCol->setIsNull($column->isNull());
+        
+        return $copyCol;
     }
     /**
      * Adds a condition which could be used to join the two tables.
