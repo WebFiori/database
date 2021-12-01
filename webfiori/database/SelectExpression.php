@@ -539,17 +539,23 @@ class SelectExpression extends Expression {
         
     }
     private function _getJoinCols(JoinTable $joinTable) {
+        $leftTable = $joinTable->getLeft();
+        
+        if ($leftTable instanceof JoinTable) {
+            return $leftTable->getSelect()->getValue();
+        } 
+        
         $leftCols = $joinTable->getLeft()->getSelect()->getColsStr();
         $rightCols = $joinTable->getRight()->getSelect()->getColsStr();
         
         if ($leftCols == '*' && $rightCols == '*') {
             return "select * from ";
         } else if ($leftCols != '*' && $rightCols == '*') {
-            return "select $leftCols, ".$joinTable->getRight()->getName().'.* from ';
+            return "select $leftCols, ".$joinTable->getRight()->getName().".* from ";
         } else if ($leftCols == '*' && $rightCols != '*') {
-            return "select ".$joinTable->getLeft()->getName().".*, $rightCols from";
+            return "select ".$joinTable->getLeft()->getName().".*, $rightCols from ";
         } else {
-            return 'select * from ';
+            return "select * from ";
         }
     }
     private function _getJoinWhere(JoinTable $joinTable) {
