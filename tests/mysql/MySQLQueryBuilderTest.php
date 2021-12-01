@@ -1059,18 +1059,22 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-//    public function testJoin05() {
-//        $schema = new MySQLTestSchema();
-//        $queryBuilder = $schema->getQueryGenerator();
-//        $queryBuilder->table('users')->join(
-//            $queryBuilder->table('users_privileges')
-//        )->on('id', 'id')->join(
-//            $queryBuilder->table('users_tasks')
-//        )->on('id', 'user-id')->select();
-//        $this->assertEquals("select * from (select * from `users` join `users_privileges` "
-//                . "on(`users`.`id` = `users_privileges`.`id`)) "
-//                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
-//    }
+    public function testJoin05() {
+        $str = 'T0';
+
+        $schema = new MySQLTestSchema();
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->join(
+            $queryBuilder->table('users_privileges')
+        )->on('id', 'id')->join(
+            $queryBuilder->table('users_tasks')
+        )->on('id', 'user-id')->select();
+        $this->assertEquals(""
+                . "select * from (select * from ("
+                . "select * from `users` join `users_privileges` "
+                . "on(`users`.`id` = `users_privileges`.`id`)) "
+                . "as `T1` join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as `T2`", $schema->getLastQuery());
+    }
     /**
      * @test
      */
