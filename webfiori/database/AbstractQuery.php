@@ -249,6 +249,8 @@ abstract class AbstractQuery {
             $copy = new MSSQLQuery();
             $copy->associatedTbl = $this->associatedTbl;
             $copy->schema = $this->schema;
+            
+            return $copy;
         }
     }
     /**
@@ -565,10 +567,10 @@ abstract class AbstractQuery {
         $leftTable = $this->getPrevQuery()->getTable();
         $rightTable = $query->getTable();
 
-        $alias = $leftTable->getName();
+        $alias = $leftTable->getNormalName();
 
 
-        $nameAsInt = intval(substr($alias, 1));
+        $nameAsInt = intval(substr($alias, -1));
         $alias = 'T'.(++$nameAsInt);
         
 
