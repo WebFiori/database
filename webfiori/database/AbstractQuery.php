@@ -667,13 +667,13 @@ abstract class AbstractQuery {
 
             if ($leftCol instanceof Column) {
                 $leftCol->setWithTablePrefix(false);
-                $leftColName = $leftCol->getPrevOwner()->getName().'.'.$leftCol->getOldName();
+                $leftColName = $leftCol->getOwner()->getName().'.'.$leftCol->getOldName();
 
                 $rightCol = $table->getRight()->getColByKey($rightCol);
 
                 if ($rightCol instanceof Column) {
                     $rightCol->setWithTablePrefix(false);
-                    $rightColName = $rightCol->getPrevOwner()->getName().'.'.$rightCol->getOldName();
+                    $rightColName = $rightCol->getOwner()->getName().'.'.$rightCol->getOldName();
                     $cond = new Condition($leftColName, $rightColName, $cond);
                     $table->addJoinCondition($cond, $joinWith);
                 } else {
