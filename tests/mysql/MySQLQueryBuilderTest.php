@@ -1163,8 +1163,16 @@ class MySQLQueryBuilderTest extends TestCase {
             $queryBuilder->table('users_privileges')
         )->on('id', 'id')->select();
         
-        $this->assertEquals("select * from (select `users`.`id` as `user_id`, `users_privileges`.* from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as `T1`", $schema->getLastQuery());
-        //$schema->execute();
+        $this->assertEquals("select * from ("
+                . "select `users`.`id` as `user_id`, `users_privileges`.* from `users` "
+                . "join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as `T1`", $schema->getLastQuery());
+        $queryBuilder->join($queryBuilder->table('profile_pics'))->on('id', 'user-id')->select(); 
+        
+        $this->assertEquals("select * from (select * from ("
+                . "select `users`.`id` as `user_id`, `users_privileges`.* from `users` "
+                . "join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as `T1` "
+                . "join `profile_pics` on(`T1`.`user_id` = `profile_pics`.`user_id`)) as `T2`",$queryBuilder->getQuery());
+    //$schema->execute();
         
     }
     /**
