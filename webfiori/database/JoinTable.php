@@ -119,8 +119,12 @@ class JoinTable extends Table {
                 $colKey = $prefix.'-'.$colKey;
             }
             $colObj->setWithTablePrefix(false);
-            if ($this->hasColumn($colObj->getNormalName())) {
-                $colObj->setName($prefix.'_'.$colObj->getNormalName());
+            if ($colObj->getOwner() instanceof JoinTable && $colObj->getAlias() !== null) {
+                $colObj->setName($colObj->getAlias());
+            } else {
+                if ($this->hasColumn($colObj->getNormalName())) {
+                    $colObj->setAlias($prefix.'_'.$colObj->getNormalName());
+                }
             }
             $this->addColumn($colKey, $this->copyCol($colObj));
         }
