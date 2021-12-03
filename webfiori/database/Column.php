@@ -301,6 +301,7 @@ abstract class Column {
      * 
      * Note that the old name will be set only if the method 
      * Column::setName() is called more than once in the same instance.
+     * If no old name is set, the method will return current name.
      * 
      * @return string|null The method will return a string that represents the 
      * old name if it is set. Null if not.
@@ -308,6 +309,9 @@ abstract class Column {
      * @since 1.0.1
      */
     public function getOldName() {
+        if ($this->oldName === null) {
+            return $this->getName();
+        }
         return $this->oldName;
     }
     /**
@@ -584,7 +588,13 @@ abstract class Column {
      */
     public function setName($name) {
         $this->oldName = $this->getName();
-        $this->name = trim($name);
+        if ($this instanceof MySQLColumn) {
+            $this->name = trim($name, '`');
+        } else if ($this instanceof MSSQLColumn) {
+            $this->name = trim(trim($name, '['), ']');
+        } else {
+            $this->name = trim($name);
+        }
     }
     /**
      * Sets or unset the owner table of the column.

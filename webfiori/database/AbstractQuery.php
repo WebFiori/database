@@ -25,6 +25,7 @@
 namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mssql\MSSQLQuery;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -243,6 +244,12 @@ abstract class AbstractQuery {
             $copy->associatedTbl = $this->associatedTbl;
             $copy->schema = $this->schema;
 
+            return $copy;
+        } else if ($driver == 'mssql') {
+            $copy = new MSSQLQuery();
+            $copy->associatedTbl = $this->associatedTbl;
+            $copy->schema = $this->schema;
+            
             return $copy;
         }
     }
@@ -560,12 +567,12 @@ abstract class AbstractQuery {
         $leftTable = $this->getPrevQuery()->getTable();
         $rightTable = $query->getTable();
 
-        $alias = $leftTable->getName();
+        $alias = $leftTable->getNormalName();
 
-        if ($leftTable instanceof JoinTable) {
-            $nameAsInt = intval(substr($alias, 1));
-            $alias = 'T'.(++$nameAsInt);
-        }
+
+        $nameAsInt = intval(substr($alias, -1));
+        $alias = 'T'.(++$nameAsInt);
+        
 
 
         $joinTable = new JoinTable($leftTable, $rightTable, $joinType, $alias);
@@ -661,21 +668,17 @@ abstract class AbstractQuery {
             $leftCol = $table->getLeft()->getColByKey($leftCol);
 
             if ($leftCol instanceof Column) {
-                $leftCol->setWithTablePrefix(true);
-
-                if ($table->getLeft() instanceof JoinTable) {
-                    $leftCol->setOwner($table);
-                    $leftColName = $leftCol->getName();
-                    $leftCol->setOwner($leftCol->getPrevOwner());
-                } else {
-                    $leftColName = $leftCol->getName();
+                $leftCol->setWithTablePrefix(false);
+                if ($leftCol->getOwner() instanceof JoinTable && $leftCol->getAlias() !== null) {
+                    $leftCol->setName($leftCol->getAlias());
                 }
-
+                $leftColName = $leftCol->getOwner()->getName().'.'.$leftCol->getOldName();
+                
                 $rightCol = $table->getRight()->getColByKey($rightCol);
 
                 if ($rightCol instanceof Column) {
-                    $rightCol->setWithTablePrefix(true);
-                    $rightColName = $rightCol->getName();
+                    $rightCol->setWithTablePrefix(false);
+                    $rightColName = $rightCol->getOwner()->getName().'.'.$rightCol->getOldName();
                     $cond = new Condition($leftColName, $rightColName, $cond);
                     $table->addJoinCondition($cond, $joinWith);
                 } else {
@@ -833,27 +836,8 @@ abstract class AbstractQuery {
         $select->clear();
         $select->select($cols);
         $selectVal = $select->getValue();
-        $thisTable = $this->getTable();
-        $thisCols = $thisTable->getSelect()->getColsStr();
-
-        if ($thisTable instanceof JoinTable) {
-            $columnsToSelect = $this->_getColsToSelect();
-
-            $tableSQL = $this->getTable()->toSQL(true);
-
-            if (strlen($columnsToSelect) == 0) {
-                $selectVal = substr($selectVal, 0, strlen($selectVal) - strlen($this->getTable()->getName()));
-                $this->setQuery($selectVal.$tableSQL);
-            } else if ($thisTable->getLeft() instanceof JoinTable && strlen($columnsToSelect) == 0) {
-                $this->setQuery("select $columnsToSelect from $tableSQL as Temp");
-            } else if (strlen($columnsToSelect) != 0) {
-                $this->setQuery("select $columnsToSelect from ".$tableSQL);
-            } else {
-                $this->setQuery("select $thisCols from ".$tableSQL);
-            }
-        } else {
-            $this->setQuery($selectVal);
-        }
+        
+        $this->setQuery($selectVal);
 
         return $this;
     }
@@ -1164,7 +1148,7 @@ abstract class AbstractQuery {
                 $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
-                $this->getTable()->getSelect()->addWhere($colName, $cleanVal, $cond, $joinCond);
+                $table->getSelect()->addWhere($colName, $cleanVal, $cond, $joinCond);
             } else {
                 throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
             }

@@ -24,6 +24,10 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mssql\MSSQLQuery;
+use webfiori\database\mysql\MySQLTable;
+use webfiori\database\mssql\MSSQLTable;
 /**
  * A class that represents two joined tables.
  *
@@ -84,16 +88,59 @@ class JoinTable extends Table {
         $this->joinType = $joinType;
         $this->left = $left;
         $this->right = $right;
-        $leftWheres = $left->getSelect()->getWhereExpr();
-
-        if ($leftWheres !== null) {
-            $this->getSelect()->addWhereCondition($leftWheres->getCondition());
+        
+        $this->_addCols(true);
+        $this->_addCols(false);
+        $this->setOwner($this->getLeft()->getOwner());
+    }
+    public function getName() {
+        $left = $this->getLeft();
+        while ($left instanceof JoinTable) {
+            $left = $left->getLeft();
         }
-        $rightWheres = $right->getSelect()->getWhereExpr();
-
-        if ($rightWheres !== null) {
-            $this->getSelect()->addWhereCondition($rightWheres->getCondition());
+        if ($left instanceof MySQLTable) {
+            return MySQLQuery::backtick($this->getNormalName());
+        } else if ($left instanceof MSSQLTable) {
+            return MSSQLQuery::squareBr($this->getNormalName());
         }
+        return parent::getName();
+    }
+    private function _addCols($left = true) {
+        $prefix = $left === true ? 'left' : 'right';
+        
+        if ($left) {
+            $cols = $this->getLeft()->getCols();
+        } else {
+            $cols = $this->getRight()->getCols();
+        }
+        
+        foreach ($cols as $colKey => $colObj) {
+            if ($this->hasColumnWithKey($colKey)) {
+                $colKey = $prefix.'-'.$colKey;
+            }
+            $colObj->setWithTablePrefix(false);
+            if ($colObj->getOwner() instanceof JoinTable && $colObj->getAlias() !== null) {
+                $colObj->setName($colObj->getAlias());
+            } else {
+                if ($this->hasColumn($colObj->getNormalName())) {
+                    $colObj->setAlias($prefix.'_'.$colObj->getNormalName());
+                }
+            }
+            $this->addColumn($colKey, $this->copyCol($colObj));
+        }
+    }
+    private function copyCol(Column $column) {
+        if ($column instanceof mysql\MySQLColumn) {
+            $copyCol = new mysql\MySQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        } else {
+            $copyCol = new mssql\MSSQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        }
+        $copyCol->setOwner($column->getOwner());
+        $copyCol->setCustomFilter($column->getCustomCleaner());
+        $copyCol->setIsNull($column->isNull());
+        $copyCol->setAlias($column->getAlias());
+        
+        return $copyCol;
     }
     /**
      * Adds a condition which could be used to join the two tables.
@@ -114,122 +161,26 @@ class JoinTable extends Table {
         }
     }
     /**
-     * Returns a column given its key name.
-     * 
-     * The method will first check for such column in the left table. If 
-     * not found in the left, the method will check the right table.
-     * 
-     * @param string $key The name of column key.
-     * 
-     * @return Column|null If a column which has the given key exist on the table, 
-     * the method will return it as an object. Other than that, the method will return 
-     * null.
-     * 
-     * @since 1.0
-     */
-    public function getColByKey($key) {
-        $colObj = $this->getLeft()->getColByKey($key);
-
-        if ($colObj === null) {
-            $colObj = $this->getRight()->getColByKey($key);
-        }
-
-        if ($colObj !== null) {
-            $colObj->setWithTablePrefix(true);
-        }
-
-        return $colObj;
-    }
-    /**
-     * Returns a column given its actual name.
-     * 
-     * The method will first check for such column in the left table. If 
-     * not found in the left, the method will check the right table.
-     * 
-     * @param string $name The name of column as it appears in the database.
-     * 
-     * @return Column|null If a column which has the given name exist on the table, 
-     * the method will return it as an object. Other than that, the method will return 
-     * null.
-     * 
-     * @since 1.0
-     */
-    public function getColByName($name) {
-        $colObj = $this->getLeft()->getColByName($name);
-
-        if ($colObj === null) {
-            $colObj = $this->getRight()->getColByName($name);
-        }
-
-        if ($colObj !== null) {
-            $colObj->setWithTablePrefix(true);
-        }
-
-        return $colObj;
-    }
-    /**
-     * Returns an indexed array that holds all columns of the joined tables.
-     * 
-     * @return array The method will return an array that holds objects of type 'Column'. The 
-     * columns are taken from left ant right table.
-     */
-    public function getCols() {
-        return array_merge($this->getLeft()->getCols(), $this->getRight()->getCols());
-    }
-    /**
-     * Returns the number of columns in the combined table.
-     * 
-     * @return int Number of columns in the combined table.
-     * 
-     * @since 1.0
-     */
-    public function getColsCount() {
-        return count($this->getColsNames());
-    }
-    /**
-     * Returns an array that contains data types of table columns.
-     * 
-     * @return array An indexed array that contains columns data types. Each 
-     * index will corresponds to the index of the column in the table.
-     * 
-     * @since 1.0
-     */
-    public function getColsDatatypes() {
-        return array_merge($this->getLeft()->getColsDatatypes(), $this->getRight()->getColsDatatypes());
-    }
-    /**
-     * Returns an indexed array that contains the names of columns keys.
-     * 
-     * @return array An indexed array that contains the names of columns keys.
-     * 
-     * @since 1.0
-     */
-    public function getColsKeys() {
-        return array_merge($this->getLeft()->getColsKeys(), $this->getRight()->getColsKeys());
-    }
-    /**
-     * Returns an array that contains all columns names as they will appear in 
-     * the database.
-     * 
-     * @return array An array that contains all columns names as they will appear in 
-     * the database.
-     * 
-     * @since 1.0
-     */
-    public function getColsNames() {
-        return array_merge($this->getLeft()->getColsNames(), $this->getRight()->getColsNames());
-    }
-    /**
      * Returns a string which represents the join condition of the two tables.
+     * 
+     * The format of the string will be similar to the following: 
+     * "`left_table` join_type `right_table` [on(join_cond)]".
+     * The join condition will be included only if specified.
      * 
      * @return string
      * 
      * @since 1.0
      */
     public function getJoin() {
-        $retVal = $this->getLeft()->getName()
+        if ($this->getLeft() instanceof JoinTable) {
+            $retVal = ' '.$this->getJoinType()
+                .' '.$this->getRight()->getName();
+        } else {
+            $retVal = $this->getLeft()->getName()
                 .' '.$this->getJoinType()
                 .' '.$this->getRight()->getName();
+        }
+        
 
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';
@@ -278,116 +229,9 @@ class JoinTable extends Table {
     public function getRight() {
         return $this->right;
     }
-    /**
-     * Returns a string which represents the joined tables.
-     * 
-     * @param boolean $firstCall A boolean to indicate if the join is a nesting of 
-     * other joins or not. Default value is false.
-     * 
-     * @return string SQL statement that represents the join.
-     */
-    public function toSQL($firstCall = false) {
-        $leftTbl = $this->getLeft();
-        $rightTbl = $this->getRight();
-        $where = $this->getSelect()->getWhereStr();
-        $retVal = '';
 
-        $rightSelectCols = $rightTbl->getSelect()->getColsStr();
-
-        if ($rightSelectCols == '*') {
-            $rightSelectCols = '';
-        }
-        $leftSelectCols = $leftTbl->getSelect()->getColsStr();
-
-        if ($leftSelectCols == '*') {
-            $leftSelectCols = '';
-        }
-
-        if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
-            $colsToSelect = "$leftSelectCols, $rightSelectCols";
-        } else if (strlen($leftSelectCols) != 0) {
-            $colsToSelect = $leftSelectCols;
-        } else if (strlen($rightSelectCols) != 0) {
-            $colsToSelect = $rightSelectCols;
-        } else {
-            $colsToSelect = "*";
-        }
+    public function toSQL() {
         
-        if ($leftTbl instanceof JoinTable) {
-            $retVal = $this->_toSQLHelper($leftTbl, $rightTbl, $leftSelectCols, $rightSelectCols, $where);
-        } else if ($firstCall) {
-            $retVal = $this->getJoin();
-        } else {
-            $retVal = 'select '.$colsToSelect.' from '.$this->getJoin();
-        }
-
-        return $retVal;
     }
-    private function _getColsToSelect($leftTbl, $leftSelectCols, $rightSelectCols, $where) {
-        $xleftTbl = $leftTbl->getLeft();
-        $xrightTbl = $leftTbl->getRight();
-        $xwhere = $leftTbl->getSelect()->getWhereStr();
 
-        $xrightSelectCols = $xrightTbl->getSelect()->getColsStr();
-
-        if ($xrightSelectCols != '*') {
-            $rightSelectCols = $xrightSelectCols;
-        }
-
-        if (!($xleftTbl instanceof JoinTable)) {
-            $xleftSelectCols = $xleftTbl->getSelect()->getColsStr();
-
-            if ($xleftSelectCols != '*' && strlen($leftSelectCols) == 0) {
-                $leftSelectCols = $xleftSelectCols;
-            }
-        }
- 
-        if (strlen($xwhere) != 0) {
-            $where = $xwhere;
-        }
-
-        if (strlen($rightSelectCols) != 0 && strlen($leftSelectCols) != 0) {
-            $colsToSelect = "$leftSelectCols, $rightSelectCols";
-        } else if (strlen($leftSelectCols) != 0) {
-            $colsToSelect = $leftSelectCols;
-        } else if (strlen($rightSelectCols) != 0) {
-            $colsToSelect = $rightSelectCols;
-        } else {
-            $colsToSelect = "*";
-        }
-
-        return $colsToSelect;
-    }
-    private function _toSQLHelper($leftTbl, $rightTbl, $leftSelectCols, $rightSelectCols, $where) {
-        $colsToSelect = $this->_getColsToSelect($leftTbl, $leftSelectCols, $rightSelectCols, $where);
-        $leftAsSQL = $leftTbl->toSQL();
-        $xleftTbl = $leftTbl->getLeft();
-        $retVal = '';
-
-        if ($colsToSelect == '*') {
-            if ($xleftTbl instanceof JoinTable) {
-                $retVal .= '(select * from '.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-            } else {
-                $retVal .= '('.$leftAsSQL."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-            }
-
-            if ($this->getJoinCondition() !== null) {
-                $retVal .= ' on('.$this->getJoinCondition().')';
-            }
-        } else if ($xleftTbl instanceof JoinTable) {
-            $retVal .= "(select $colsToSelect from $leftAsSQL$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-
-            if ($this->getJoinCondition() !== null) {
-                $retVal .= ' on('.$this->getJoinCondition().')';
-            }
-        } else {
-            $retVal .= "(select $colsToSelect from ".$leftTbl->getJoin()."$where) as ".$this->getName().' '.$this->getJoinType().' '.$rightTbl->getName();
-
-            if ($this->getJoinCondition() !== null) {
-                $retVal .= ' on('.$this->getJoinCondition().')';
-            }
-        }
-
-        return $retVal;
-    }
 }

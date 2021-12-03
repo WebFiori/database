@@ -978,9 +978,9 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join($queryBuilder->table('users_privileges'))->select();
-        $this->assertEquals("select * from `users` join `users_privileges`", $schema->getLastQuery());
+        $this->assertEquals("select * from (select * from `users` join `users_privileges`) as `T1`", $schema->getLastQuery());
         $queryBuilder->on('id', 'id')->select();
-        $this->assertEquals("select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)", $schema->getLastQuery());
+        $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as `T1`", $schema->getLastQuery());
         //$schema->execute();
         
     }
@@ -993,8 +993,8 @@ class MySQLQueryBuilderTest extends TestCase {
         $queryBuilder->table('users')->join(
                 $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
                 )->on('id', 'id')->select();
-        $this->assertEquals("select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
-                . "where `users_privileges`.`id` = 3", $schema->getLastQuery());
+        $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
+                . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1003,10 +1003,10 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->select()->where('id', '=', 88)->join(
-                $queryBuilder->table('users_privileges')
-                )->on('id', 'id')->select();
-        $this->assertEquals("select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
-                . "where `users`.`id` = 88", $schema->getLastQuery());
+            $queryBuilder->table('users_privileges')
+        )->on('id', 'id')->select();
+        $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
+                . "where `users`.`id` = 88) as `T1`", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1017,8 +1017,8 @@ class MySQLQueryBuilderTest extends TestCase {
         $queryBuilder->table('users')->join(
                 $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
                 )->on('id', 'id')->select();
-        $this->assertEquals("select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
-                . "where `users_privileges`.`id` = 3", $schema->getLastQuery());
+        $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
+                . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1027,20 +1027,41 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
-                $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
-                )->on('id', 'id')->select([
-                    'id','first-name','last-name','can-edit-price','can-do-anything'
-                ]);
-        $this->assertEquals("select `users`.`id`, `users`.`first_name`, "
-                . "`users`.`last_name`, `users_privileges`.`can_edit_price`, "
-                . "`users_privileges`.`can_do_anything` "
+            $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
+        )->on('id', 'id')->select([
+            'id','first-name','last-name','can-edit-price','can-do-anything'
+        ]);
+        $this->assertEquals(""
+                . "select `T1`.`id`, "
+                . "`T1`.`first_name`, "
+                . "`T1`.`last_name`, "
+                . "`T1`.`can_edit_price`, "
+                . "`T1`.`can_do_anything` from ("
+                . "select * "
                 . "from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
-                . "where `users_privileges`.`id` = 3", $schema->getLastQuery());
+                . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
+        
+        $queryBuilder->table('users')->select(['id'])->join(
+            $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
+        )->on('id', 'id')->select([
+            'id','first-name','last-name','can-edit-price','can-do-anything'
+        ]);
+        $this->assertEquals(""
+                . "select `T1`.`id`, "
+                . "`T1`.`first_name`, "
+                . "`T1`.`last_name`, "
+                . "`T1`.`can_edit_price`, "
+                . "`T1`.`can_do_anything` from ("
+                . "select `users`.`id`, `users_privileges`.* "
+                . "from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
+                . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
     }
     /**
      * @test
      */
     public function testJoin05() {
+        $str = 'T0';
+
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
@@ -1048,9 +1069,11 @@ class MySQLQueryBuilderTest extends TestCase {
         )->on('id', 'id')->join(
             $queryBuilder->table('users_tasks')
         )->on('id', 'user-id')->select();
-        $this->assertEquals("select * from (select * from `users` join `users_privileges` "
+        $this->assertEquals(""
+                . "select * from (select * from ("
+                . "select * from `users` join `users_privileges` "
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "as `T1` join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as `T2`", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1063,12 +1086,12 @@ class MySQLQueryBuilderTest extends TestCase {
         )->on('id', 'id')->join(
             $queryBuilder->table('users_tasks')
         )->on('id', 'user-id')->select();
-        $this->assertEquals("select * from ("
-                . "select "
+        $this->assertEquals("select * from (select * from ("
+                . "select `users`.*, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` from `users` join `users_privileges` "
                 . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "as `T1` join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as `T2`", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1078,66 +1101,79 @@ class MySQLQueryBuilderTest extends TestCase {
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
             $queryBuilder->table('users_privileges')->select(['can-edit-price','can-change-username'])
-        )->on('id', 'id')->select(['id']);
-        
-        $this->assertEquals("select "
-                . "`users`.`id`, "
+        )->on('id', 'id')->select([
+                'id'
+        ]);
+//        
+        $this->assertEquals("select `T1`.`id` from (select "
+                . "`users`.*, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
-                . "on(`users`.`id` = `users_privileges`.`id`)", $schema->getLastQuery());
+                . "on(`users`.`id` = `users_privileges`.`id`)) as `T1`", $schema->getLastQuery());
         
         $queryBuilder->join(
             $queryBuilder->table('users_tasks')->select(['task-id', 'created-on' => [
                 'as' => 'created'
             ]])
-        )->on('id', 'user-id')->select(['id']);
-        $this->assertEquals("select "
-                . "`T1`.`id`, "
-                . "`users_tasks`.`task_id`, "
-                . "`users_tasks`.`created_on` as `created` "
-                . "from ("
-                . "select "
-                . "`users`.`id`, "
+        )->on('id', 'user-id')->select([
+                'id'
+        ]);
+        $this->assertEquals("select `T2`.`id` from (select `T1`.`id` from (select "
+                . "`users`.*, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
-                . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)", $schema->getLastQuery());
+                . "on(`users`.`id` = `users_privileges`.`id`)) as `T1` join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as `T2`", $schema->getLastQuery());
         
         $queryBuilder->join($queryBuilder->table('profile_pics'))->on('id', 'user-id')->select();
         
         $this->assertEquals("select * from ("
-                . "select "
-                . "`T1`.`id`, "
-                . "`users_tasks`.`task_id`, "
-                . "`users_tasks`.`created_on` as `created` "
-                . "from ("
-                . "select "
-                . "`users`.`id`, "
+                . "select `T2`.`id` from (select `T1`.`id` from (select "
+                . "`users`.*, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
-                . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as T2 "
-                . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)", $schema->getLastQuery());
+                . "on(`users`.`id` = `users_privileges`.`id`)) as `T1` join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as `T2` "
+                . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)) as `T3`", $schema->getLastQuery());
         
         $queryBuilder->join($queryBuilder->table('users'))->on('id', 'id')->select();
         
         $this->assertEquals("select * from (select * from ("
-                . "select "
-                . "`T1`.`id`, "
-                . "`users_tasks`.`task_id`, "
-                . "`users_tasks`.`created_on` as `created` "
-                . "from ("
-                . "select "
-                . "`users`.`id`, "
+                . "select `T2`.`id` from (select `T1`.`id` from (select "
+                . "`users`.*, "
                 . "`users_privileges`.`can_edit_price`, "
                 . "`users_privileges`.`can_change_username` "
                 . "from `users` join `users_privileges` "
-                . "on(`users`.`id` = `users_privileges`.`id`)) "
-                . "as T1 join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as T2 "
-                . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)) as T3 join `users` on(`T3`.`id` = `users`.`id`)", $schema->getLastQuery());
+                . "on(`users`.`id` = `users_privileges`.`id`)) as `T1` join `users_tasks` on(`T1`.`id` = `users_tasks`.`user_id`)) as `T2` "
+                . "join `profile_pics` on(`T2`.`id` = `profile_pics`.`user_id`)) as `T3` join `users` on(`T3`.`id` = `users`.`id`)) as `T4`", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testJoin08() {
+        $schema = new MySQLTestSchema();
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')
+                ->select([
+            'id' => [
+                'alias' => 'user_id'
+            ]
+        ])->join(
+            $queryBuilder->table('users_privileges')
+        )->on('id', 'id')->select();
+        
+        $this->assertEquals("select * from ("
+                . "select `users`.`id` as `user_id`, `users_privileges`.* from `users` "
+                . "join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as `T1`", $schema->getLastQuery());
+        $queryBuilder->join($queryBuilder->table('profile_pics'))->on('id', 'user-id')->select(); 
+        
+        $this->assertEquals("select * from (select * from ("
+                . "select `users`.`id` as `user_id`, `users_privileges`.* from `users` "
+                . "join `users_privileges` on(`users`.`id` = `users_privileges`.`id`)) as `T1` "
+                . "join `profile_pics` on(`T1`.`user_id` = `profile_pics`.`user_id`)) as `T2`",$queryBuilder->getQuery());
+    //$schema->execute();
+        
     }
     /**
      * @test
@@ -1163,10 +1199,9 @@ class MySQLQueryBuilderTest extends TestCase {
      * @test
      */
     public function renameColTest02() {
-        $this->expectException(DatabaseException::class);
-        $this->expectExceptionMessage('Cannot build the query. Old column name is null.');
         $schema = new MySQLTestSchema();
         $schema->table('users')->renameCol('id');
+        $this->assertEquals('alter table `users` rename column `id` to `id`;', $schema->getLastQuery());
     }
     /**
      * @test
