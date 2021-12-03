@@ -669,8 +669,11 @@ abstract class AbstractQuery {
 
             if ($leftCol instanceof Column) {
                 $leftCol->setWithTablePrefix(false);
+                if ($leftCol->getOwner() instanceof JoinTable && $leftCol->getAlias() !== null) {
+                    $leftCol->setName($leftCol->getAlias());
+                }
                 $leftColName = $leftCol->getOwner()->getName().'.'.$leftCol->getOldName();
-
+                
                 $rightCol = $table->getRight()->getColByKey($rightCol);
 
                 if ($rightCol instanceof Column) {
