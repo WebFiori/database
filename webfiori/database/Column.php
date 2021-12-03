@@ -588,7 +588,13 @@ abstract class Column {
      */
     public function setName($name) {
         $this->oldName = $this->getName();
-        $this->name = trim($name);
+        if ($this instanceof MySQLColumn) {
+            $this->name = trim($name, '`');
+        } else if ($this instanceof MSSQLColumn) {
+            $this->name = trim(trim($name, '['), ']');
+        } else {
+            $this->name = trim($name);
+        }
     }
     /**
      * Sets or unset the owner table of the column.
