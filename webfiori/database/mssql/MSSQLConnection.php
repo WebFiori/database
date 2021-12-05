@@ -209,6 +209,11 @@ class MSSQLConnection extends Connection {
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
             $this->setErrCode($lastErr['code']);
+        } else {
+            $lastErr = $allErrs[count($allErrs) - 2];
+            $this->sqlState = $lastErr['SQLSTATE'];
+            $this->setErrMessage($lastErr['message']);
+            $this->setErrCode($lastErr['code']);
         }
     }
 }
