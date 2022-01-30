@@ -161,7 +161,7 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals('[my_col]', $colObj->getName());
         $this->assertEquals('nvarchar', $colObj->getDatatype());
         $this->assertEquals(1, $colObj->getSize());
-        $this->assertEquals("'Hello Ibrahim'", $colObj->cleanValue('Ibrahim'));
+        $this->assertEquals("N'Hello Ibrahim'", $colObj->cleanValue('Ibrahim'));
     }
     /**
      * @test
