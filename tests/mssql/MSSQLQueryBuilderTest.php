@@ -114,7 +114,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [created_on] [datetime2] not null default getdate(),\n"
                 . "    [last_updated] [datetime2] null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
-                . "    [details] [nvarchar](1500) not null,\n"
+                . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
                 . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
                 . ")\n"
@@ -210,7 +210,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ->orWhere(
                 $q->orWhere('first-name', '=', 'Ibrahim')
                 ->andWhere('last-name', '=', 'BinAlshikh'));
-        $this->assertEquals("delete from [users] where ([users].[first_name] = 'Ibrahim' and [users].[last_name] = 'BinAlshikh')", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where ([users].[first_name] = N'Ibrahim' and [users].[last_name] = N'BinAlshikh')", $schema->getLastQuery());
     }
     public function testDelete03() {
         $schema = new MSSQLTestSchema();
@@ -242,7 +242,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh'
         ]);
-        $this->assertEquals("insert into [users] ([id], [first_name], [last_name]) values (8, 'Ibrahim', 'BinAlshikh');", $schema->getLastQuery());
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name]) values (8, N'Ibrahim', N'BinAlshikh');", $schema->getLastQuery());
     }
     /**
      * @test
@@ -261,8 +261,8 @@ class MSSQLQueryBuilderTest extends TestCase{
                 
         ]);
         $this->assertEquals("insert into [users]\n([id], [first_name], [last_name])\nvalues\n"
-                . "(8, 'Ibrahim', 'BinAlshikh'),\n"
-                . "(9, 'Web', 'DB');", $schema->getLastQuery());
+                . "(8, N'Ibrahim', N'BinAlshikh'),\n"
+                . "(9, N'Web', N'DB');", $schema->getLastQuery());
     }
     /**
      * @test
@@ -395,7 +395,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLike01() {
         $schema = new MSSQLTestSchema();
         $schema->table('users')->select()->whereLike('first-name', '%Ibra%');
-        $this->assertEquals("select * from [users] where [users].[first_name] like '%Ibra%'", $schema->getLastQuery()); 
+        $this->assertEquals("select * from [users] where [users].[first_name] like N'%Ibra%'", $schema->getLastQuery()); 
     }
     /**
      * @test
@@ -403,7 +403,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLike02() {
         $schema = new MSSQLTestSchema();
         $schema->table('users')->select()->whereNotLike('first-name', '%Ibra%');
-        $this->assertEquals("select * from [users] where [users].[first_name] not like '%Ibra%'", $schema->getLastQuery()); 
+        $this->assertEquals("select * from [users] where [users].[first_name] not like N'%Ibra%'", $schema->getLastQuery()); 
     }
     /**
      * @test
@@ -494,7 +494,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         );
         $this->assertEquals('select * from [users] where [users].[id] = 7', $schema->getLastQuery());
         $schema->orWhere('first-name', '=', 'Ibrahim');
-        $this->assertEquals('select * from [users] where [users].[id] = 7 or [users].[first_name] = \'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = 7 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
         $schema->clear();
     }
     
@@ -511,7 +511,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         );
         $this->assertEquals('select * from [users] where [users].[id] = 7', $schema->getLastQuery());
         $schema->orWhere('first-name', '=', 'Ibrahim');
-        $this->assertEquals('select * from [users] where [users].[id] = 7 or [users].[first_name] = \'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = 7 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
         $schema->clear();
     }
     
@@ -535,7 +535,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         '((id = 7) and f_n = ibrahim)';
         $this->assertEquals('select * from [users] '
                 . 'where (([users].[id] = 7 or [users].[id] = 8) '
-                . 'or ([users].[first_name] = \'Ibrahim\' and [users].[last_name] = \'BinAlshikh\'))', $schema->getLastQuery());
+                . 'or ([users].[first_name] = N\'Ibrahim\' and [users].[last_name] = N\'BinAlshikh\'))', $schema->getLastQuery());
     }
     /**
      * @test
@@ -553,7 +553,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->orWhere('first-name', '=', 'Ibrahim');
         
         $this->assertEquals('select * from [users] where [users].[id] = 7 '
-                . 'and [users].[id] = 8 or [users].[id] = 88 or [users].[first_name] = \'Ibrahim\'', $schema->getLastQuery());
+                . 'and [users].[id] = 8 or [users].[id] = 88 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
     }
     /**
      * @test
@@ -573,7 +573,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         // (id = 7) and f_n = Ibrahim
         $this->assertEquals('select * from [users] '
                 . 'where [users].[id] = 7 '
-                . 'or [users].[first_name] = \'Ibrahim\' and [users].[last_name] = \'BinAlshikh\'', $schema->getLastQuery());
+                . 'or [users].[first_name] = N\'Ibrahim\' and [users].[last_name] = N\'BinAlshikh\'', $schema->getLastQuery());
     }
     /**
      * @test
@@ -631,7 +631,7 @@ class MSSQLQueryBuilderTest extends TestCase{
              ->where('id', '=', 100)
              ->where('first-name', '=', 44)
         );
-        $this->assertEquals('select * from [users] where ([users].[id] = 7 and ([users].[id] = 8 and [users].[id] = 100 and [users].[first_name] = \'44\'))', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where ([users].[id] = 7 and ([users].[id] = 8 and [users].[id] = 100 and [users].[first_name] = N\'44\'))', $schema->getLastQuery());
     }
     
     /**
@@ -651,7 +651,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         );
         $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8', $schema->getLastQuery());
         $schema->orWhere('first-name', '=', 'Ibrahim');
-        $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8 or [users].[first_name] = \'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
     }
     /**
      * @test
@@ -670,7 +670,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . '[users].[id] != 9 or '
                 . '[users].[id] = 10 and '
                 . '[users].[id] = 30 and '
-                . '[users].[first_name] != \'Ibr\'', $schema->getLastQuery());
+                . '[users].[first_name] != N\'Ibr\'', $schema->getLastQuery());
     }
     /**
      * @test
@@ -689,7 +689,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . '[users].[id] != 9 or '
                 . '[users].[id] = 10 and '
                 . '[users].[id] = 30 and '
-                . '[users].[first_name] != \'Ibr\')', $schema->getLastQuery());
+                . '[users].[first_name] != N\'Ibr\')', $schema->getLastQuery());
     }
     /**
      * @test
@@ -708,7 +708,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . '[users].[id] != 9 or '
                 . '[users].[id] = 10 and '
                 . '[users].[id] = 30 and '
-                . '[users].[first_name] != \'Ibr\')', $schema->getLastQuery());
+                . '[users].[first_name] != N\'Ibr\')', $schema->getLastQuery());
     }
     
 

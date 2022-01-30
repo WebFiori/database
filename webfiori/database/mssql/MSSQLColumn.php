@@ -375,6 +375,10 @@ class MSSQLColumn extends Column {
 
         if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar')) {
+            
+            if ($colDatatype == 'nchar' || $colDatatype == 'nvarchar') {
+                return "N'".$retVal."'";
+            }
             return "'".$retVal."'";
         }
 
