@@ -1044,7 +1044,13 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public function table($tblName) {
-        $tableObj = $this->getSchema()->getTable($tblName);
+        $tableObj = $this->checkIsClass($tblName);
+        
+        if ($tableObj === null) {
+            $tableObj = $this->getSchema()->getTable($tblName);
+        } else {
+            $this->getSchema()->addTable($tableObj);
+        }
         $this->prevQueryObj = $this->copyQuery();
 
         if (strlen($this->query) != 0) {
@@ -1056,6 +1062,21 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    private function checkIsClass($str) {
+        if (class_exists($str)) {
+            try {
+                $clazz = new $str();
+                if ($clazz instanceof Table) {
+                    return $clazz;
+                }
+            } catch (Exception $ex) {
+
+            } catch (\ErrorException $ex) {
+                
+            }
+        }
+    }
+
     /**
      * Constructs a query which will truncate a database table when executed.
      * 
