@@ -73,6 +73,8 @@ require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLQuery.
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLConnection.php';
 
 require_once $rootDir.'tests'.$DS.'mssql'.$DS.'MSSQLTestSchema.php';
+require_once $rootDir.'tests'.$DS.'HelloTable.php';
+
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\tests\MySQLTestSchema;
