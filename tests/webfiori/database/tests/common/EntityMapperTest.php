@@ -10,6 +10,9 @@ use webfiori\database\tests\mysql\MySQLTestSchema;
  * @author Ibrahim
  */
 class EntityMapperTest extends TestCase {
+    /**
+     * @test
+     */
     public function test00() {
         $schema = new MySQLTestSchema();
         $entityMapper = new EntityMapper($schema->getTable('users'), 'UserClass');
