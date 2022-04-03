@@ -1,8 +1,8 @@
 <?php
-namespace webfiori\database\tests;
+namespace webfiori\database\tests\common;
 use PHPUnit\Framework\TestCase;
 use webfiori\database\EntityMapper;
-use webfiori\database\tests\MySQLTestSchema;
+use webfiori\database\tests\mysql\MySQLTestSchema;
 
 /**
  * Description of EntityMapperTest

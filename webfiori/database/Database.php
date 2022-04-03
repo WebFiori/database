@@ -250,10 +250,6 @@ class Database {
     public function execute() {
         $conn = $this->getConnection();
 
-        if (!$conn instanceof Connection) {
-            throw new DatabaseException('No active database connection.');
-        }
-
         if (!$conn->runQuery($this->getQueryGenerator())) {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }

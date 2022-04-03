@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\database\tests;
+namespace webfiori\database\tests\common;
 use PHPUnit\Framework\TestCase;
 use webfiori\database\Expression;
 

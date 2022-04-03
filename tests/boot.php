@@ -65,21 +65,21 @@ require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLQuery.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnection.php';
 
-require_once $rootDir.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
 
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLColumn.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLTable.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLQuery.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLConnection.php';
 
-require_once $rootDir.'tests'.$DS.'mssql'.$DS.'MSSQLTestSchema.php';
-require_once $rootDir.'tests'.$DS.'HelloTable.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'mssql'.$DS.'MSSQLTestSchema.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'common'.$DS.'HelloTable.php';
 
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mysql\MySQLConnection;
-use webfiori\database\tests\MySQLTestSchema;
+use webfiori\database\tests\mysql\MySQLTestSchema;
 use webfiori\database\mssql\MSSQLConnection;
-use mssql\MSSQLTestSchema;
+use webfiori\database\tests\mssql\MSSQLTestSchema;
 register_shutdown_function(function()
 {
     $tablesToDrop = [

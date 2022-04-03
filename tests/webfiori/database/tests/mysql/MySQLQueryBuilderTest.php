@@ -1,14 +1,8 @@
 <?php
+namespace webfiori\database\tests\mysql;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-namespace webfiori\database\tests;
 use PHPUnit\Framework\TestCase;
-use webfiori\database\tests\MySQLTestSchema;
+use webfiori\database\tests\mysql\MySQLTestSchema;
 use webfiori\database\DatabaseException;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\ConnectionInfo;
@@ -38,6 +32,12 @@ class MySQLQueryBuilderTest extends TestCase {
 //        $c3 = $s3->getConnection();
 //        $this->assertTrue(true);
 //    }
+    public function test00() {
+        $schema = new MySQLTestSchema();
+        $schema->setConnection(new MySQLConnection(
+                new ConnectionInfo('mysql', 'me', 123456, 'testing_db', 'localhost', 3307)
+        ));
+    }
     public function testCreateTables() {
         $schema = new MySQLTestSchema();
         $schema->createTables();
