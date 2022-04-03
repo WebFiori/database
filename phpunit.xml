@@ -31,9 +31,9 @@
             <directory>./tests/webfiori/database/tests/mysql</directory>
         </testsuite>
         <testsuite name="MSSQL Tests">
-            <directory>./tests/mssql</directory>
-            <exclude>./tests/mssql/MSSQLQueryBuilderTest.php</exclude>
-            <exclude>./tests/mssql/MSSQLTestSchema.php</exclude>
+            <directory>./tests/webfiori/database/tests/mssql</directory>
+            <exclude>./tests/webfiori/database/tests/mssql/MSSQLQueryBuilderTest.php</exclude>
+            <exclude>./tests/webfiori/database/tests/mssql/MSSQLTestSchema.php</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
