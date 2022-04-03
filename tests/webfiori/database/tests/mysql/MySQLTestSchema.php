@@ -1,5 +1,6 @@
 <?php
-namespace webfiori\database\tests;
+namespace webfiori\database\tests\mysql;
+
 use webfiori\database\mysql\MySQLTable;
 use webfiori\database\Database;
 use webfiori\database\mysql\MySQLConnection;

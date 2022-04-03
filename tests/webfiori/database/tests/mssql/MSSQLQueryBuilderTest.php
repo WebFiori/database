@@ -1,9 +1,9 @@
 <?php
 
-namespace mssql;
+namespace webfiori\database\tests\mssql;
 
 use PHPUnit\Framework\TestCase;
-use mssql\MSSQLTestSchema;
+use webfiori\database\tests\mssql\MSSQLTestSchema;
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mssql\MSSQLConnection;
 use webfiori\database\DatabaseException;

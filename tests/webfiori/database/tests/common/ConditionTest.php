@@ -1,6 +1,6 @@
 <?php
 
-namespace webfiori\database\tests;
+namespace webfiori\database\tests\common;
 use webfiori\database\Condition;
 use PHPUnit\Framework\TestCase;
 /**

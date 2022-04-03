@@ -1,6 +1,6 @@
 <?php
 
-namespace webfiori\database\tests;
+namespace webfiori\database\tests\common;
 
 use webfiori\database\mysql\MySQLTable;
 use webfiori\database\mysql\MySQLColumn;

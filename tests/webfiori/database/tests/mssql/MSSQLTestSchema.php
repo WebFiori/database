@@ -1,5 +1,5 @@
 <?php
-namespace mssql;
+namespace webfiori\database\tests\mssql;
 
 use webfiori\database\Database;
 use webfiori\database\ConnectionInfo;

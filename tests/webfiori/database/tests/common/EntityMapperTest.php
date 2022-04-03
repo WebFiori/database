@@ -1,8 +1,8 @@
 <?php
-namespace webfiori\database\tests;
+namespace webfiori\database\tests\common;
 use PHPUnit\Framework\TestCase;
 use webfiori\database\EntityMapper;
-use webfiori\database\tests\MySQLTestSchema;
+use webfiori\database\tests\mysql\MySQLTestSchema;
 
 /**
  * Description of EntityMapperTest
@@ -10,6 +10,9 @@ use webfiori\database\tests\MySQLTestSchema;
  * @author Ibrahim
  */
 class EntityMapperTest extends TestCase {
+    /**
+     * @test
+     */
     public function test00() {
         $schema = new MySQLTestSchema();
         $entityMapper = new EntityMapper($schema->getTable('users'), 'UserClass');
