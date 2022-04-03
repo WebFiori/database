@@ -21,6 +21,7 @@ class SchemaTest extends TestCase{
     public function test00() {
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
+        $this->assertEquals('testing_db', $s->getName());
         $table = new MySQLTable('hello');
         $table->addColumn('user-id', new MySQLColumn('user_id', 'int', 11));
         $this->assertEquals('int',$table->getColByKey('user-id')->getDatatype());
@@ -108,5 +109,77 @@ class SchemaTest extends TestCase{
         $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 40",$s->getLastQuery());
         $s->page(5, 40);
         $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 200",$s->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function test02() {
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $s = new Database($connInfo);
+        
+        $s->table(HelloTable::class);
+        $this->assertFalse($s->addTable(new HelloTable()));
+    }
+    /**
+     * @test
+     */
+    public function test03() {
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $s = new Database($connInfo);
+        
+        $s->table(HelloTable::class);
+        $s->delete();
+        $this->assertEquals("delete from `hello`", $s->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function test04() {
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $s = new Database($connInfo);
+        
+        $s->table(HelloTable::class);
+        $s->drop();
+        $this->assertEquals("drop table `hello`;", $s->getLastQuery());
+        $s->select();
+        $this->assertEquals("select * from `hello`", $s->getLastQuery());
+        $s->limit(50);
+        $s->offset(20);
+        $this->assertEquals("select * from `hello` limit 50 offset 20", $s->getLastQuery());
+        
+        $s->insert([
+            'user-id' => 33,
+            'username' => 'Ibrahim',
+            'pass' => 'rand_pass'
+        ]);
+        $this->assertEquals('insert into `hello` (`user_id`, `username`, `password`) '
+                . "values (33, 'Ibrahim', 'rand_pass');", $s->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function test05() {
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $s = new Database($connInfo);
+        $this->assertEquals([
+            'message' => '',
+            'code' => 0
+        ], $s->getLastError());
+    }
+    /**
+     * @test
+     */
+    public function test06() {
+        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $s = new Database($connInfo);
+        try {
+            $s->table(HelloTable::class)->drop()->execute();
+        } catch (\Exception $ex) {
+            $this->assertEquals([
+                'message' => "Unknown table 'testing_db.hello'",
+                'code' => 1051
+            ], $s->getLastError());
+        }
+        
     }
 }
