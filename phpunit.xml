@@ -25,15 +25,15 @@
     </logging>
     <testsuites>
         <testsuite name="Common Tests">
-            <directory>./tests/webfiori/database/common</directory>
+            <directory>./tests/webfiori/database/tests/common</directory>
         </testsuite>
         <testsuite name="MySQL Tests">
-            <directory>./tests/webfiori/database/mysql</directory>
+            <directory>./tests/webfiori/database/tests/mysql</directory>
         </testsuite>
         <testsuite name="MSSQL Tests">
-            <directory>./tests/webfiori/database/mssql</directory>
-            <exclude>./tests/mssql/MSSQLQueryBuilderTest.php</exclude>
-            <exclude>./tests/mssql/MSSQLTestSchema</exclude>
+            <directory>./tests/webfiori/database/tests/mssql</directory>
+            <exclude>./tests/webfiori/database/tests/mssql/MSSQLQueryBuilderTest.php</exclude>
+            <exclude>./tests/webfiori/database/tests/mssql/MSSQLTestSchema</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
