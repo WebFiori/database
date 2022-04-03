@@ -33,7 +33,7 @@
         <testsuite name="MSSQL Tests">
             <directory>./tests/webfiori/database/tests/mssql</directory>
             <exclude>./tests/webfiori/database/tests/mssql/MSSQLQueryBuilderTest.php</exclude>
-            <exclude>./tests/webfiori/database/tests/mssql/MSSQLTestSchema</exclude>
+            <exclude>./tests/webfiori/database/tests/mssql/MSSQLTestSchema.php</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
