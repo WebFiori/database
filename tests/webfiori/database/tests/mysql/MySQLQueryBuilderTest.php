@@ -32,12 +32,6 @@ class MySQLQueryBuilderTest extends TestCase {
 //        $c3 = $s3->getConnection();
 //        $this->assertTrue(true);
 //    }
-    public function test00() {
-        $schema = new MySQLTestSchema();
-        $schema->setConnection(new MySQLConnection(
-                new ConnectionInfo('mysql', 'me', 123456, 'testing_db', 'localhost', 3307)
-        ));
-    }
     public function testCreateTables() {
         $schema = new MySQLTestSchema();
         $schema->createTables();
