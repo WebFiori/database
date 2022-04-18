@@ -721,7 +721,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         if (PHP_MAJOR_VERSION == 5) {
             $this->markTestSkipped('PHP 5 has no MSSQL driver in selected setup.');
         } else {
-            $connInfo = new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost\SQLEXPRESS');
+            $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost');
             $conn = new MSSQLConnection($connInfo);
             $schema = new MSSQLTestSchema();
             $schema->setConnection($conn);

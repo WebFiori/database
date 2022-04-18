@@ -1350,10 +1350,39 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
+    public function testTableNotExist00() {
+        $schema = new MySQLTestSchema();
+        $this->assertFalse($schema->hasTable('userss_tasks'));
+        $schema->table('userss_tasks');
+        $this->assertTrue($schema->hasTable('userss_tasks'));
+        return $schema;
+    }
+    /**
+     * @test
+     * @depends testTableNotExist00
+     */
+    public function testTableNotExist01(MySQLTestSchema $s) {
+        $s->select(['id']);
+        $this->assertEquals('select `userss_tasks`.`id` from `userss_tasks`', $s->getLastQuery());
+        return $s;
+    }
+    /**
+     * @test
+     * @depends testTableNotExist01
+     */
+    public function testTableNotExist0(MySQLTestSchema $s) {
+        $s->getQueryGenerator()->groupBy('username')->orderBy([
+            'email'
+        ]);
+        $this->assertEquals('select `userss_tasks`.`id` from `userss_tasks` group by `userss_tasks`.`username` order by `userss_tasks`.`email`', $s->getLastQuery());
+    }
+    /**
+     * @test
+     */
     public function testLeft00() {
         $this->expectException(DatabaseException::class);
         $schema = new MySQLTestSchema();
-        $schema->table('userss_tasks')->whereLeft('details', '=', 'hello');
+        $schema->table('userss_tasks')->whereLeft('details', 3, '=', 'hello');
     }
     /**
      * @test

@@ -102,8 +102,10 @@ class SelectExpression extends Expression {
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj === null) {
-                $tblName = $this->getTable()->getName();
-                throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+                $this->getTable()->addColumns([
+                    $colKey => []
+                ]);
+                $colObj = $this->getTable()->getColByKey($colKey);
             }
             $opArr = [
                 'obj' => $colObj,
@@ -636,8 +638,10 @@ class SelectExpression extends Expression {
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if ($colObj === null) {
-            $tblName = $this->getTable()->getName();
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+            $this->getTable()->addColumns([
+                $colKey => []
+            ]);
+            $colObj = $this->getTable()->getColByKey($colKey);
         }
         $this->groupByCols[$colKey] = $colObj;
     }
@@ -672,8 +676,10 @@ class SelectExpression extends Expression {
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if ($colObj === null) {
-            $tblName = $this->getTable()->getName();
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+            $this->getTable()->addColumns([
+                $colKey => []
+            ]);
+            $colObj = $this->getTable()->getColByKey($colKey);
         }
         $colArr = [
             'col' => $colObj
@@ -720,20 +726,16 @@ class SelectExpression extends Expression {
      * @since 1.0
      */
     public function select(array $colsOrExprs) {
-        try {
-            foreach ($colsOrExprs as $index => $colArrOrExpr) {
-                if ($colArrOrExpr instanceof Expression) {
-                    $this->addExpression($colArrOrExpr);
+        foreach ($colsOrExprs as $index => $colArrOrExpr) {
+            if ($colArrOrExpr instanceof Expression) {
+                $this->addExpression($colArrOrExpr);
+            } else {
+                if (gettype($index) == 'integer') {
+                    $this->addColumn($colArrOrExpr);
                 } else {
-                    if (gettype($index) == 'integer') {
-                        $this->addColumn($colArrOrExpr);
-                    } else {
-                        $this->addColumn($index, $colArrOrExpr);
-                    }
+                    $this->addColumn($index, $colArrOrExpr);
                 }
             }
-        } catch (DatabaseException $ex) {
-            throw new DatabaseException($ex->getMessage());
         }
     }
     private function _addColToSelectArr(&$arr, $colObj, $selectArr) {
