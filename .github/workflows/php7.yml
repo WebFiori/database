@@ -13,8 +13,9 @@ jobs:
       sql.data:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: 1234567890
+          SA_PASSWORD: 1234567890@Eu
           ACCEPT_EULA: Y
+          MSSQL_PID: Express
         ports:
           - "1433:1433"
     strategy: 
