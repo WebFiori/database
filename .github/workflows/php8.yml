@@ -56,7 +56,7 @@ jobs:
           done
           
       - name: Setup MSSQL
-        run: ls /opt/mssql
+        run: sqlcmd -S localhost -U SA -Q 'select @@VERSION'
       
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
