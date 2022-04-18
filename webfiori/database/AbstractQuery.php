@@ -26,6 +26,8 @@ namespace webfiori\database;
 
 use webfiori\database\mysql\MySQLQuery;
 use webfiori\database\mssql\MSSQLQuery;
+use webfiori\database\mysql\MySQLTable;
+use webfiori\database\mssql\MSSQLTable;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -1047,9 +1049,11 @@ abstract class AbstractQuery {
         
         if ($tableObj === null) {
             $tableObj = $this->getSchema()->getTable($tblName);
-        } else {
-            $this->getSchema()->addTable($tableObj);
+            if ($tableObj === null) {
+                $tableObj = $this->createTableObj($tblName);
+            }
         }
+        $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
 
         if (strlen($this->query) != 0) {
@@ -1060,6 +1064,20 @@ abstract class AbstractQuery {
         $this->setTable($tableObj);
 
         return $this;
+    }
+    /**
+     * 
+     * @param type $name
+     * @return MySQLTable|MSSQLTable
+     */
+    private function createTableObj($name) {
+        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
+        if ($dbType == 'mysql') {
+            $tableObj = new MySQLTable($name);
+        } else if ($dbType == 'mssql') {
+            $tableObj = new MSSQLTable($name);
+        }
+        return $tableObj;
     }
     private function checkIsClass($str) {
         if (class_exists($str)) {
