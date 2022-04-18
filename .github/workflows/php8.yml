@@ -8,7 +8,15 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
+    services:
+      sql.data:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: test123@ol
+          ACCEPT_EULA: Y
+        ports:
+          - "1433:1433"
     strategy: 
       fail-fast: true
       matrix: 
