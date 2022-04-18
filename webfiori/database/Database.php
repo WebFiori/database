@@ -391,10 +391,9 @@ class Database {
      * 
      * @param string $tblName The name of the table.
      * 
-     * @return Table the table.
+     * @return Table|null If a table which has the given name is exist, it will
+     * be returned as an object. Other than that, null is returned.
      * 
-     * @throws DatabaseException The method will throw an exception if no table 
-     * was found which has the given name.
      * 
      * @since 1.0
      */
@@ -402,7 +401,7 @@ class Database {
         $trimmed = trim($tblName);
 
         if (!isset($this->tablesArr[$trimmed])) {
-            throw new DatabaseException('No such table: "'.$trimmed.'".');
+            return null;
         }
 
         return $this->tablesArr[$trimmed];
