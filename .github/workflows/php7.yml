@@ -55,6 +55,9 @@ jobs:
             sleep 1
           done
           
+      - name: Setup MSSQL
+        run: sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+          
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
       
