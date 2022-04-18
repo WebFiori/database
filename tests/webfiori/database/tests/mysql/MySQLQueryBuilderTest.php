@@ -1353,7 +1353,7 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testLeft00() {
         $this->expectException(DatabaseException::class);
         $schema = new MySQLTestSchema();
-        $schema->table('userss_tasks')->whereLeft('details', '=', 'hello');
+        $schema->table('userss_tasks')->whereLeft('details', 3, '=', 'hello');
     }
     /**
      * @test
