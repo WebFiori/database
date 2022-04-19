@@ -439,7 +439,7 @@ abstract class Column {
      * @since 1.0
      */
     public function setAlias($alias) {
-        $trimmed = trim($alias);
+        $trimmed = trim($alias.'');
 
         if (strlen($trimmed) != 0) {
             $this->alias = $trimmed;
