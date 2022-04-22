@@ -173,6 +173,7 @@ class ResultSet implements Countable, Iterator {
     public function key() {
         return $this->cursorPos;
     }
+    #[\ReturnTypeWillChange]
     /**
      * Move forward to next record.
      * 
@@ -181,6 +182,7 @@ class ResultSet implements Countable, Iterator {
     public function next() {
         $this->cursorPos++;
     }
+    #[\ReturnTypeWillChange]
     /**
      * Rewind the Iterator to the first record.
      * 
