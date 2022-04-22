@@ -183,12 +183,18 @@ class MySQLConnection extends Connection {
         }
         $qType = $query->getLastQueryType();
 
-        if ($qType == 'insert' || $qType == 'update') {
-            return $this->_insertQuery();
-        } else if ($qType == 'select' || $qType == 'show'|| $qType == 'describe') {
-            return $this->_selectQuery();
-        } else {
-            return $this->_otherQuery();
+        try {
+            if ($qType == 'insert' || $qType == 'update') {
+                return $this->_insertQuery();
+            } else if ($qType == 'select' || $qType == 'show'|| $qType == 'describe') {
+                return $this->_selectQuery();
+            } else {
+                return $this->_otherQuery();
+            }
+        } catch (\Exception $ex) {
+            $this->setErrCode($ex->getCode());
+            $this->setErrMessage($ex->getMessage());
+            throw new DatabaseException($ex->getMessage(), $ex->getCode());
         }
     }
     private function _bindAndExc() {
