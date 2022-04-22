@@ -85,14 +85,14 @@ class ResultSet implements Countable, Iterator {
      * 
      * @since 1.0
      */
-    public function count() {
+    public function count() : int {
         if (gettype($this->getMappedRowsCount()) == 'array') {
             return $this->getMappedRowsCount();
         }
 
         return 0;
     }
-
+    #[\ReturnTypeWillChange]
     /**
      * Returns the element which exist at current cursor location in the 
      * mapped result.
@@ -133,7 +133,7 @@ class ResultSet implements Countable, Iterator {
      * 
      * @since 1.0
      */
-    public function getMappedRowsCount() {
+    public function getMappedRowsCount() : int {
         if (gettype($this->resultRows) == 'array') {
             return count($this->getMappedRows());
         } else {
@@ -159,9 +159,10 @@ class ResultSet implements Countable, Iterator {
      * 
      * @since 1.0
      */
-    public function getRowsCount() {
+    public function getRowsCount() : int {
         return count($this->orgResultRows);
     }
+    #[\ReturnTypeWillChange]
     /**
      * Return the key of the current record.
      * 
@@ -226,7 +227,7 @@ class ResultSet implements Countable, Iterator {
      * 
      * @since 1.0
      */
-    public function valid() {
+    public function valid() : bool {
         return $this->key() < $this->count();
     }
 }
