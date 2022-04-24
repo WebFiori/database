@@ -30,7 +30,7 @@ Database abstraction layer of WebFiori framework.
 |<a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207.4/badge.svg?branch=main"></a>|
 |<a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.0/badge.svg?branch=main"></a>|
 |<a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.1/badge.svg?branch=main"></a>|
-|(dev)<br><a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.2/badge.svg?branch=dev"></a>|
+|<a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.2/badge.svg?branch=dev"></a><br>(dev)|
 
 ## Supported Databases
 - MySQL
