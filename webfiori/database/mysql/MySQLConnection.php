@@ -83,7 +83,12 @@ class MySQLConnection extends Connection {
             throw new DatabaseException('mysqli extension is missing.');
         }
         set_error_handler(function() {});
-        $this->link = mysqli_connect($host, $user, $pass, null, $port);
+        try {
+            $this->link = mysqli_connect($host, $user, $pass, null, $port);
+        } catch (\Exception $ex) {
+            $this->setErrCode($ex->getCode());
+            $this->setErrMessage($ex->getCode());
+        }
         restore_error_handler();
 
         if ($this->link instanceof mysqli) {
