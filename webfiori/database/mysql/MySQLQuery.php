@@ -112,7 +112,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public static function backtick($str) {
-        $trimmed = trim($str);
+        $trimmed = trim($str.'');
 
         if (strlen($trimmed) != 0) {
             $exp = explode('.', $trimmed);

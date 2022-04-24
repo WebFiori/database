@@ -98,11 +98,10 @@ class MSSQLTable extends Table {
      * @since 1.0
      */
     public function getUniqueConstraintName() {
-        if (strlen($this->uniqueConstName) == 0) {
-            return 'AK_'.$this->getNormalName();
+        if ($this->uniqueConstName === null) {
+            $this->uniqueConstName = $this->getNormalName();
         }
-
-        return $this->uniqueConstName;
+        return 'AK_'.$this->getNormalName();
     }
     /**
      * Sets the name of the unique constraint.

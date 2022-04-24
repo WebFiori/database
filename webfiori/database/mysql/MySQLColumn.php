@@ -441,7 +441,7 @@ class MySQLColumn extends Column {
         parent::setDefault($this->cleanValue($default));
         $type = $this->getDatatype();
 
-        if (($type == 'datetime' || $type == 'timestamp') && strlen($this->getDefault()) == 0 && $this->getDefault() !== null) {
+        if (($type == 'datetime' || $type == 'timestamp') && $this->getDefault() !== null && strlen($this->getDefault()) == 0) {
             parent::setDefault(null);
         }
     }

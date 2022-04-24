@@ -292,7 +292,7 @@ class MSSQLColumn extends Column {
         parent::setDefault($this->cleanValue($default));
         $type = $this->getDatatype();
 
-        if (($type == 'datetime2' || $type == 'date') && strlen($this->getDefault()) == 0 && $this->getDefault() !== null) {
+        if (($type == 'datetime2' || $type == 'date') && $this->getDefault() !== null && strlen($this->getDefault()) == 0) {
             parent::setDefault(null);
         }
     }
