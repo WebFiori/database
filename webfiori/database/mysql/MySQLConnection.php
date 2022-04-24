@@ -199,7 +199,7 @@ class MySQLConnection extends Connection {
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
             $this->setErrMessage($ex->getMessage());
-            throw new DatabaseException($ex->getMessage(), $ex->getCode());
+            throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode());
         }
     }
     private function _bindAndExc() {
