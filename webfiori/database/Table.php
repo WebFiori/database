@@ -656,6 +656,9 @@ abstract class Table {
 
         if (strlen($trimmed) > 0) {
             $this->oldName = $this->getName();
+            if (strlen($this->oldName) == 0) {
+                $this->oldName = null;
+            }
             $this->name = $trimmed;
 
             return true;
