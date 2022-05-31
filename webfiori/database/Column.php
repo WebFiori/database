@@ -169,13 +169,13 @@ abstract class Column {
         $this->isNull = false;
         $this->isPrimary = false;
         $this->isUnique = false;
+        $this->size = 1;
+        $this->scale = 0;
         $this->supportedTypes = ['char'];
         $this->setDatatype('char');
         $this->setWithTablePrefix(false);
         $this->setName($name);
         
-        $this->setSize(1);
-        $this->scale = 0;
         
         $this->columnIndex = -1;
         $this->cleanupFunc = function ($val, $cleanedVal)
@@ -441,8 +441,8 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setAlias(string $alias) {
-        $trimmed = trim($alias);
+    public function setAlias($alias) {
+        $trimmed = trim($alias.'');
 
         if (strlen($trimmed) != 0) {
             $this->alias = $trimmed;
