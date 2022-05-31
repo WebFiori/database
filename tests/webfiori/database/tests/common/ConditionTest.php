@@ -40,4 +40,32 @@ class ConditionTest extends TestCase{
         $condition1 = new Condition('A', 'B', '=');
         $this->assertFalse($condition1->equals($condition0));
     }
+    /**
+     * @test
+     */
+    public function testToString00() {
+        $condition0 = new Condition('B', 'A', '=');
+        $this->assertEquals('B = A', $condition0.'');
+    }
+    /**
+     * @test
+     */
+    public function testToString01() {
+        $condition0 = new Condition(null, null, '=');
+        $this->assertEquals('', $condition0.'');
+    }
+    /**
+     * @test
+     */
+    public function testToString02() {
+        $condition0 = new Condition('A', null, '=');
+        $this->assertEquals('A', $condition0.'');
+    }
+    /**
+     * @test
+     */
+    public function testToString03() {
+        $condition0 = new Condition(null, 'B', '=');
+        $this->assertEquals('B', $condition0.'');
+    }
 }
