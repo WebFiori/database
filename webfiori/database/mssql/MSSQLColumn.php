@@ -36,6 +36,7 @@ class MSSQLColumn extends Column {
      */
     public function __construct(string $name = 'col', string $datatype = 'nvarchar', int $size = 1) {
         parent::__construct($name);
+        $this->isAutoUpdate = false;
         $this->setSupportedTypes([
             'int',
             'varchar',
