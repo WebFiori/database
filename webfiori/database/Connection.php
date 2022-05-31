@@ -96,7 +96,7 @@ abstract class Connection {
      * 
      * @since 1.0
      */
-    public abstract function connect();
+    public abstract function connect() : bool;
     /**
      * Returns an object that contains database connection information.
      * 
@@ -104,7 +104,7 @@ abstract class Connection {
      * 
      * @since 1.0
      */
-    public function getConnectionInfo() {
+    public function getConnectionInfo() : ConnectionInfo {
         return $this->connParams;
     }
     /**
@@ -124,7 +124,7 @@ abstract class Connection {
      * 
      * @since 1.0
      */
-    public function getLastErrMessage() {
+    public function getLastErrMessage() : string {
         return $this->lastErrMsg;
     }
     /**
@@ -194,7 +194,7 @@ abstract class Connection {
      * 
      * @since 1.0
      */
-    public function setErrMessage($message) {
+    public function setErrMessage(string $message) {
         $this->lastErrMsg = $message;
     }
     /**

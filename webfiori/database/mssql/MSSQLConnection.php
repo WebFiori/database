@@ -48,7 +48,7 @@ class MSSQLConnection extends Connection {
      * 
      * @since 1.0
      */
-    public function connect() {
+    public function connect() : bool {
         if (!function_exists('sqlsrv_connect')) {
             $this->setErrCode(-1);
             $this->setErrMessage('Microsoft SQL Server driver is missing.');

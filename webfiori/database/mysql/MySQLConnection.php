@@ -69,7 +69,7 @@ class MySQLConnection extends Connection {
      * 
      * @since 1.0
      */
-    public function connect() {
+    public function connect() : bool {
         $test = false;
         $connInfo = $this->getConnectionInfo();
 

@@ -93,7 +93,7 @@ class JoinTable extends Table {
         $this->_addCols(false);
         $this->setOwner($this->getLeft()->getOwner());
     }
-    public function getName() {
+    public function getName() : string {
         $left = $this->getLeft();
         while ($left instanceof JoinTable) {
             $left = $left->getLeft();
