@@ -34,7 +34,7 @@ class MSSQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function __construct($name = 'col', $datatype = 'nvarchar', $size = 1) {
+    public function __construct(string $name = 'col', string $datatype = 'nvarchar', int $size = 1) {
         parent::__construct($name);
         $this->setSupportedTypes([
             'int',
@@ -50,7 +50,8 @@ class MSSQLColumn extends Column {
             'bit',
             'decimal',
             'float',
-            'boolean'
+            'boolean',
+            'bool'
         ]);
         $this->setDatatype($datatype);
 
@@ -65,7 +66,7 @@ class MSSQLColumn extends Column {
 
         return trim($retVal);
     }
-    public function asString() {
+    public function asString() : string {
         return $this->__toString();
     }
 
@@ -127,7 +128,7 @@ class MSSQLColumn extends Column {
      * @return MSSQLColumn|null The method will return an object of type 'MySQLColumn' 
      * if created. If the index 'name' is not set, the method will return null.
      */
-    public static function createColObj($options) {
+    public static function createColObj(array $options) {
         if (isset($options['name'])) {
             
             return ColumnFactory::create('mssql', $options['name'], $options);
@@ -201,7 +202,7 @@ class MSSQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         return MSSQLQuery::squareBr(parent::getName());
     }
     /**
@@ -218,7 +219,7 @@ class MSSQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function getPHPType() {
+    public function getPHPType() : string {
         $colType = $this->getDatatype();
 
         if ($colType == 'boolean') {
@@ -231,8 +232,8 @@ class MSSQLColumn extends Column {
             return 'int'.$isNullStr;
         } else if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
             return 'double'.$isNullStr;
-        } else if ($colType == 'boolean') {
-            return 'boolean'.$isNullStr;
+        } else if ($colType == 'boolean' || $colType == 'bool') {
+            return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'nvarchar'
                 || $colType == 'datetime2' || $colType == 'char' || $colType == 'date'
                 || $colType == 'nchar' || $colType == 'binary' || $colType == 'varbinary') {
@@ -250,7 +251,7 @@ class MSSQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function isAutoUpdate() {
+    public function isAutoUpdate() : bool {
         return $this->isAutoUpdate;
     }
     /**
@@ -265,9 +266,9 @@ class MSSQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setAutoUpdate($bool) {
+    public function setAutoUpdate(bool $bool) {
         if ($this->getDatatype() == 'datetime2' || $this->getDatatype() == 'date') {
-            $this->isAutoUpdate = $bool === true;
+            $this->isAutoUpdate = $bool;
         }
     }
     /**
@@ -316,7 +317,7 @@ class MSSQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setScale($val) {
+    public function setScale(int $val) : bool {
         $type = $this->getDatatype();
 
         if ($type == 'decimal') {
