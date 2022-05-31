@@ -215,6 +215,7 @@ class MSSQLQuery extends AbstractQuery {
 
             return implode('.', $arr);
         }
+        return '';
     }
 
     /**
