@@ -107,7 +107,7 @@ class MySQLQuery extends AbstractQuery {
      * of a table.
      * 
      * @return string|null The method will return a string surounded by backticks. 
-     * If empty string is given, the method will return null.
+     * If empty string is given, the method will return empty string.
      * 
      * @since 1.0
      */
@@ -125,6 +125,7 @@ class MySQLQuery extends AbstractQuery {
 
             return implode('.', $arr);
         }
+        return '';
     }
     /**
      * Constructs a query which can be used to remove a record from the associated 
