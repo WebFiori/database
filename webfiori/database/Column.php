@@ -164,16 +164,19 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function __construct($name) {
-        $this->setName($name);
+    public function __construct(string $name) {
+        $this->name = '';
+        $this->isNull = false;
+        $this->isPrimary = false;
+        $this->isUnique = false;
         $this->supportedTypes = ['char'];
         $this->setDatatype('char');
+        $this->setWithTablePrefix(false);
+        $this->setName($name);
+        
         $this->setSize(1);
         $this->scale = 0;
-        $this->setIsPrimary(false);
-        $this->setIsNull(false);
-        $this->setIsUnique(false);
-        $this->setWithTablePrefix(false);
+        
         $this->columnIndex = -1;
         $this->cleanupFunc = function ($val, $cleanedVal)
         {
@@ -191,7 +194,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public abstract function asString();
+    public abstract function asString() : string ;
     /**
      * Filters and cleans column value before using it in a query.
      * 
@@ -238,7 +241,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getDatatype() {
+    public function getDatatype() : string {
         return $this->datatype;
     }
     /**
@@ -259,7 +262,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getIndex() {
+    public function getIndex() : int {
         return $this->columnIndex;
     }
     /**
@@ -270,14 +273,14 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         $ownerTable = $this->getOwner();
 
         if ($ownerTable !== null && $this->isNameWithTablePrefix()) {
             return $ownerTable->getName().'.'.$this->name;
         }
 
-        return $this->name;
+        return $this->name !== null ? $this->name : '';
     }
     /**
      * 
@@ -287,7 +290,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public final function getNormalName() {
+    public final function getNormalName() : string {
         $ownerTable = $this->getOwner();
 
         if ($ownerTable !== null && $this->isNameWithTablePrefix()) {
@@ -337,7 +340,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getPHPType() {
+    public function getPHPType() : string {
         if ($this->getDatatype() == 'char') {
             return 'string';
         }
@@ -366,7 +369,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getScale() {
+    public function getScale() : int {
         return $this->scale;
     }
     /**
@@ -376,7 +379,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getSize() {
+    public function getSize() : int {
         return $this->size;
     }
     /**
@@ -386,7 +389,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function getSupportedTypes() {
+    public function getSupportedTypes() : array {
         return $this->supportedTypes;
     }
     /**
@@ -396,7 +399,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function isNameWithTablePrefix() {
+    public function isNameWithTablePrefix() : bool {
         return $this->withTablePrefix;
     }
     /**
@@ -407,7 +410,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function isNull() {
+    public function isNull() : bool {
         return $this->isNull;
     }
     /**
@@ -418,7 +421,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function isPrimary() {
+    public function isPrimary() : bool {
         return $this->isPrimary;
     }
     /**
@@ -428,7 +431,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function isUnique() {
+    public function isUnique() : bool {
         return $this->isUnique;
     }
     /**
@@ -438,8 +441,8 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setAlias($alias) {
-        $trimmed = trim($alias.'');
+    public function setAlias(string $alias) {
+        $trimmed = trim($alias);
 
         if (strlen($trimmed) != 0) {
             $this->alias = $trimmed;
@@ -454,7 +457,7 @@ abstract class Column {
      * @since 1.0
      */
     public function setComment($comment) {
-        $trimmed = trim((string)$comment);
+        $trimmed = trim($comment);
 
         if (strlen($trimmed) != 0) {
             $this->comment = $trimmed;
@@ -500,7 +503,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setDatatype($type) {
+    public function setDatatype(string $type) {
         $trimmed = strtolower(trim($type));
 
         if (!in_array($trimmed, $this->getSupportedTypes())) {
@@ -539,7 +542,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setIsNull($bool) {
+    public function setIsNull(bool $bool) {
         $colDatatype = $this->getDatatype();
 
         if (!($colDatatype == 'bool' || $colDatatype == 'boolean') && !$this->isPrimary()) {
@@ -560,13 +563,12 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setIsPrimary($bool) {
-        $isPr = $bool === true;
+    public function setIsPrimary(bool $bool) {
 
-        if ($isPr) {
+        if ($bool) {
             $this->setIsNull(false);
         }
-        $this->isPrimary = $isPr;
+        $this->isPrimary = $bool;
     }
     /**
      * Sets the value of the property $isUnique.
@@ -576,8 +578,8 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setIsUnique($bool) {
-        $this->isUnique = $bool === true;
+    public function setIsUnique(bool $bool) {
+        $this->isUnique = $bool;
     }
     /**
      * Sets the name of the column.
@@ -586,8 +588,11 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setName($name) {
+    public function setName(string $name) {
         $this->oldName = $this->getName();
+        if (strlen($this->oldName) == 0) {
+            $this->oldName = null;
+        }
         if ($this instanceof MySQLColumn) {
             $this->name = trim($name, '`');
         } else if ($this instanceof MSSQLColumn) {
@@ -628,7 +633,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setScale($scale) {
+    public function setScale(int $scale) : bool {
         if ($scale >= 0) {
             $this->scale = $scale;
 
@@ -648,7 +653,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setSize($size) {
+    public function setSize(int $size) : bool {
         if ($size > 0) {
             $this->size = $size;
 
@@ -686,7 +691,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setWithTablePrefix($withDbPrefix) {
-        $this->withTablePrefix = $withDbPrefix === true;
+    public function setWithTablePrefix(bool $withDbPrefix) {
+        $this->withTablePrefix = $withDbPrefix;
     }
 }
