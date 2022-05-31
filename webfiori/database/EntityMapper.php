@@ -74,7 +74,6 @@ class EntityMapper {
      * created in.
      * 
      * @param string $path The directory at which the entity will be created in. 
-     * the default value is the constant __DIR__. 
      * 
      * @param string $namespace The namespace at which the entity will belongs 
      * to. If invalid is given, 'webfiori\database\entity' is used as default value.
@@ -84,11 +83,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function __construct($tableObj, $className, $path = __DIR__, $namespace = 'webfiori\\database\\entity') {
-        if (!($tableObj instanceof Table)) {
-            throw new InvalidArgumentException('Provided parameter is not an '
-                    ."object of type 'webfiori\database\\Table'");
-        }
+    public function __construct(Table $tableObj, string $className, string $path = __DIR__, string $namespace = 'webfiori\\database\\entity') {
 
         $this->table = $tableObj;
 
@@ -123,7 +118,7 @@ class EntityMapper {
      * 
      * @since 1.0.1
      */
-    public function addAttribute($attrName) {
+    public function addAttribute(string $attrName) {
         $trimmed = trim($attrName);
         
         if (strlen($trimmed) == 0) {
@@ -132,7 +127,8 @@ class EntityMapper {
         if ($trimmed[0] <= '9' && $trimmed[0] >= '0') {
             return false;
         }
-        if (strpos(' ', $trimmed) === false || strpos('$', $trimmed) === false) {
+        
+        if (strpos($trimmed, ' ') === false && strpos($trimmed, '$') === false) {
             if (!in_array($trimmed, $this->extraAttrs)) {
                 $this->extraAttrs[] = $trimmed;
                 return true;
@@ -148,7 +144,7 @@ class EntityMapper {
      * 
      * @since 1.0.1
      */
-    public function getAttributes() {
+    public function getAttributes() : array {
         return $this->extraAttrs;
     }
     /**
@@ -159,7 +155,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function create() {
+    public function create() : bool {
         $this->classStr = '';
         $file = fopen($this->getAbsolutePath(), 'w+');
         $retVal = false;
@@ -206,7 +202,7 @@ class EntityMapper {
      * @since 1.0
      * 
      */
-    public function getAbsolutePath() {
+    public function getAbsolutePath() : string {
         return $this->getPath().DIRECTORY_SEPARATOR.$this->getEntityName().'.php';
     }
     /**
@@ -223,7 +219,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getAttribitesNames() {
+    public function getAttribitesNames() : array {
         $keys = $this->getTable()->getColsKeys();
         $retVal = [];
 
@@ -256,7 +252,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getEntityMethods() {
+    public function getEntityMethods() : array {
         $keys = $this->getTable()->getColsKeys();
         $retVal = [
             'setters' => [],
@@ -286,7 +282,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getEntityName() {
+    public function getEntityName() : string {
         return $this->entityName;
     }
     /**
@@ -297,7 +293,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getNamespace() {
+    public function getNamespace() : string {
         return $this->entityNamespace;
     }
     /**
@@ -308,7 +304,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getPath() {
+    public function getPath() : string {
         return $this->entityPath;
     }
     /**
@@ -332,7 +328,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getSettersMap() {
+    public function getSettersMap() : array {
         $keys = $this->getTable()->getColsKeys();
         $retVal = [];
 
@@ -351,7 +347,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function getTable() {
+    public function getTable() : Table {
         return $this->table;
     }
     /**
@@ -367,7 +363,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function mapToMethodName($colKey, $type = 'g') {
+    public function mapToMethodName(string $colKey, $type = 'g') {
         $trimmed = trim($colKey);
 
         if (strlen($trimmed) !== 0) {
@@ -402,7 +398,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function setEntityName($name) {
+    public function setEntityName(string $name) : bool {
         $trimmed = trim($name);
 
         if ($this->_isValidClassName($trimmed)) {
@@ -423,7 +419,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function setNamespace($ns) {
+    public function setNamespace(string $ns) : bool {
         $trimmed = trim($ns);
 
         if ($this->_isValidNs($trimmed)) {
@@ -445,7 +441,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function setPath($path) {
+    public function setPath(string $path) : bool {
         if (is_dir($path)) {
             $this->entityPath = $path;
 
@@ -466,7 +462,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function setUseJsonI($bool) {
+    public function setUseJsonI(bool $bool) {
         $this->implJsonI = $bool === true;
     }
     private function _appendGetterMethod($attrName, $colName, $phpType, $getterName) {
