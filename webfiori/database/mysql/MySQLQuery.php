@@ -107,7 +107,7 @@ class MySQLQuery extends AbstractQuery {
      * of a table.
      * 
      * @return string|null The method will return a string surounded by backticks. 
-     * If empty string is given, the method will return null.
+     * If empty string is given, the method will return empty string.
      * 
      * @since 1.0
      */
@@ -125,6 +125,7 @@ class MySQLQuery extends AbstractQuery {
 
             return implode('.', $arr);
         }
+        return '';
     }
     /**
      * Constructs a query which can be used to remove a record from the associated 
@@ -509,7 +510,9 @@ class MySQLQuery extends AbstractQuery {
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         //chr(0) to remove null bytes in path.
                         $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
-                        set_error_handler(null);
+                        set_error_handler(function($no, $message) {
+                            throw new DatabaseException($message, $no);
+                        });
                         $this->setIsBlobInsertOrUpdate(true);
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {

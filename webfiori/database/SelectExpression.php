@@ -212,13 +212,20 @@ class SelectExpression extends Expression {
     /**
      * Adds a condition to the 'where' part of the select.
      * 
-     * @param type $leftOpOrExp
+     * @param mixed $leftOpOrExp The left hand side operand of the condition.
+     * This can be a simple string, an object of type
+     * AbstractQuery which represents a sub-query or an expression.
      * 
-     * @param type $rightOp
+     * @param mixed $rightOp The right hand side operand of the condition. If null
+     * is given, the where exprestion will add 'is null' or 'is not null'
+     * condition
      * 
-     * @param type $cond
+     * @param string|null $cond The condition which is used to join left operand
+     * and right operand.
      * 
-     * @param string $join
+     * @param string $join If the where expression already has conditions,
+     * this one is used to join the newly added one with existing one. This
+     * one can have only two values, 'and' or 'or'. Default is 'and'.
      * 
      * @since 1.0
      */
@@ -278,17 +285,6 @@ class SelectExpression extends Expression {
             $this->whereExp = new WhereExpression('');
         }
         $this->getWhereExpr()->addCondition($expr, $join);
-    }
-    /**
-     * 
-     * @param Condition $cond
-     * @param type $join
-     */
-    public function addWhereCondition(Condition $cond, $join = 'and') {
-        if ($this->whereExp === null) {
-            $this->whereExp = new WhereExpression();
-        }
-        $this->whereExp->addCondition($cond, $join);
     }
     /**
      * Adds a 'where in()' condition.
@@ -609,8 +605,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function getWhereStr(bool $withGroupBy = true, bool $withOrderBy = true) {
-        $thisTable = $this->getTable();
+    public function getWhereStr(bool $withGroupBy = true, bool $withOrderBy = true) : string {
         $retVal = '';
         $orderBy = '';
         $groupBy = '';

@@ -69,4 +69,23 @@ class EntityMapperTest extends TestCase {
         ], $entityMapper->getEntityMethods());
         $this->assertTrue($entityMapper->create());
     }
+    /**
+     * @test
+     */
+    public function test01() {
+        $schema = new MySQLTestSchema();
+        $entityMapper = new EntityMapper($schema->getTable('users'), '', '', '');
+        $this->assertEquals('NewEntity', $entityMapper->getEntityName());
+        $this->assertEquals('webfiori\\database\\entity', $entityMapper->getNamespace());
+        $this->assertFalse($entityMapper->addAttribute(''));
+        $this->assertFalse($entityMapper->addAttribute('0cool'));
+        $this->assertFalse($entityMapper->addAttribute('not valid'));
+        $this->assertFalse($entityMapper->addAttribute('also$not_valid'));
+        $this->assertTrue($entityMapper->addAttribute('validName'));
+        $this->assertFalse($entityMapper->addAttribute('validName  '));
+        $this->assertFalse($entityMapper->setEntityName('0Invalid'));
+        $this->assertFalse($entityMapper->setEntityName('Invalid Class Name'));
+        $this->assertTrue($entityMapper->setEntityName('ValidName'));
+        $this->assertFalse($entityMapper->setEntityName('Invalid%Name'));
+    }
 }

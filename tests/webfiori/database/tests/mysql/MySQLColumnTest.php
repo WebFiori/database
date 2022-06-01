@@ -730,18 +730,18 @@ class MySQLColumnTest extends TestCase {
      */
     public function testGetPHPType01() {
         $colObj = new MySQLColumn('col', 'bool');
-        $this->assertEquals('boolean', $colObj->getPHPType());
+        $this->assertEquals('bool', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('boolean', $colObj->getPHPType());
+        $this->assertEquals('bool', $colObj->getPHPType());
     }
     /**
      * @test
      */
     public function testGetPHPType02() {
         $colObj = new MySQLColumn('col', 'boolean');
-        $this->assertEquals('boolean', $colObj->getPHPType());
+        $this->assertEquals('bool', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('boolean', $colObj->getPHPType());
+        $this->assertEquals('bool', $colObj->getPHPType());
     }
     /**
      * @test

@@ -202,7 +202,7 @@ class MySQLTable extends Table {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         return MySQLQuery::backtick(parent::getName());
     }
     /**

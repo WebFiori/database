@@ -126,9 +126,9 @@ class ForeignKey {
      * columns in the source columns. 
      */
     public function __construct(
-            $name = 'key_name',
-            $ownerTable = null,
-            $sourceTable = null,
+            string $name = 'key_name',
+            Table $ownerTable = null,
+            Table $sourceTable = null,
             array $cols = []) {
         $this->sourceCols = [];
         $this->ownerCols = [];
@@ -140,10 +140,8 @@ class ForeignKey {
         if ($ownerTable instanceof Table) {
             $this->setOwner($ownerTable);
         }
-
-        if ($this->setKeyName($name) !== true) {
-            $this->setKeyName('key_name');
-        }
+        $this->keyName = 'key_name';
+        $this->setKeyName($name);
 
         foreach ($cols as $k => $v) {
             $this->addReference($k, $v);
@@ -168,7 +166,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function addReference($ownerColName,$sourceColName = null) {
+    public function addReference(string $ownerColName, string $sourceColName = null) : bool {
         if ($this->_addReferenceHelper()) {
             $ownerColName = trim($ownerColName);
             $sourceColName = $sourceColName === null ? $ownerColName : trim($sourceColName);
@@ -199,7 +197,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function getKeyName() {
+    public function getKeyName() : string {
         return $this->keyName;
     }
     /**
@@ -250,7 +248,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function getOwnerCols() {
+    public function getOwnerCols() : array {
         return $this->ownerCols;
     }
     /**
@@ -277,7 +275,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function getSourceCols() {
+    public function getSourceCols() : array {
         return $this->sourceCols;
     }
 
@@ -291,7 +289,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function getSourceName() {
+    public function getSourceName() : string {
         $source = $this->getSource();
 
         if ($source !== null) {
@@ -351,7 +349,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function setKeyName($name) {
+    public function setKeyName(string $name) : bool {
         $trim = trim($name);
 
         if ($this->validateAttr($trim)) {
@@ -370,7 +368,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function setOnDelete($val) {
+    public function setOnDelete(string $val) {
         $fix = strtolower(trim($val));
 
         if (in_array($fix, self::CONDITIONS)) {
@@ -387,7 +385,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function setOnUpdate($val) {
+    public function setOnUpdate(string $val) {
         $fix = strtolower(trim($val));
 
         if (in_array($fix, self::CONDITIONS)) {
@@ -406,11 +404,9 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function setOwner($table) {
-        if ($table instanceof Table) {
-            $this->ownerTableObj = $table;
-            $this->ownerCols = [];
-        }
+    public function setOwner(Table $table) {
+        $this->ownerTableObj = $table;
+        $this->ownerCols = [];
     }
     /**
      * Sets the source table that will be referenced.
@@ -422,11 +418,9 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function setSource($table) {
-        if ($table instanceof Table) {
-            $this->sourceTableObj = $table;
-            $this->sourceCols = [];
-        }
+    public function setSource(Table $table) {
+        $this->sourceTableObj = $table;
+        $this->sourceCols = [];
     }
     private function _addReferenceHelper() {
         if ($this->getOwner() !== null) {

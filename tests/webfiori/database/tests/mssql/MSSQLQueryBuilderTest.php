@@ -7,6 +7,7 @@ use webfiori\database\tests\mssql\MSSQLTestSchema;
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mssql\MSSQLConnection;
 use webfiori\database\DatabaseException;
+use webfiori\database\Expression;
 /**
  * Description of MSSQLQueryBuilderTest
  *
@@ -859,4 +860,12 @@ class MSSQLQueryBuilderTest extends TestCase{
     /**
      * @test
      */
+    public function testAfreggate07() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('reports_list')
+                ->select(['function', new Expression('count(*) as count')])
+                ->orderBy(['count'])
+                ->groupBy('function');
+        $this->assertEquals('select [reports_list].[function], count(*) as count from [reports_list] group by [reports_list].[function] order by [reports_list].[count]', $schema->getLastQuery());
+    }
 }

@@ -215,6 +215,7 @@ class MSSQLQuery extends AbstractQuery {
 
             return implode('.', $arr);
         }
+        return '';
     }
 
     /**
@@ -303,7 +304,9 @@ class MSSQLQuery extends AbstractQuery {
                     if ($type == 'binary' || $type == 'varbinary') {
                         //chr(0) to remove null bytes in path.
                         $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
-                        set_error_handler(null);
+                        set_error_handler(function (int $no, string $message) {
+                            throw new DatabaseException($message, $no);
+                        });
 
                         if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
                             $file = fopen($fixedPath, 'r');

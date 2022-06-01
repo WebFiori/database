@@ -79,7 +79,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function __construct($name = 'col', $datatype = 'varchar', $size = 1) {
+    public function __construct(string $name = 'col', string $datatype = 'varchar',int $size = 1) {
         parent::__construct($name);
         $this->setSupportedTypes([
             'int',
@@ -105,6 +105,7 @@ class MySQLColumn extends Column {
             $this->setSize(1);
         }
         $this->isAutoUpdate = false;
+        $this->isAutoInc = false;
         $this->setMySQLVersion('8.0');
     }
     /**
@@ -140,7 +141,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function asString() {
+    public function asString() : string {
         return $this.'';
     }
     /**
@@ -207,7 +208,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public static function createColObj($options) {
+    public static function createColObj(array $options) {
         if (isset($options['name'])) {
             
             return ColumnFactory::create('mysql', $options['name'], $options);
@@ -240,7 +241,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function getCollation() {
+    public function getCollation() : string {
         $split = explode('.', $this->getMySQLVersion());
 
         if (isset($split[0]) && intval($split[0]) <= 5 && isset($split[1]) && intval($split[1]) <= 5) {
@@ -303,7 +304,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function getMySQLVersion() {
+    public function getMySQLVersion() : string {
         return $this->mySqlVersion;
     }
     /**
@@ -315,7 +316,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         return MySQLQuery::backtick(parent::getName());
     }
     /**
@@ -332,7 +333,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function getPHPType() {
+    public function getPHPType() : string {
         $colType = $this->getDatatype();
 
         if ($colType == 'bool' || $colType == 'boolean') {
@@ -346,7 +347,7 @@ class MySQLColumn extends Column {
         } else  if ($colType == 'decimal' || $colType == 'double' || $colType == 'float') {
             return 'double'.$isNullStr;
         } else  if ($colType == 'boolean' || $colType == 'bool') {
-            return 'boolean'.$isNullStr;
+            return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'datetime'
                 || $colType == 'timestamp' || $colType == 'blob'
                 || $colType == 'mediumblob') {
@@ -362,7 +363,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function isAutoInc() {
+    public function isAutoInc() : bool {
         return $this->isAutoInc;
     }
     /**
@@ -374,7 +375,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function isAutoUpdate() {
+    public function isAutoUpdate() : bool {
         return $this->isAutoUpdate;
     }
     /**
@@ -389,7 +390,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setAutoUpdate($bool) {
+    public function setAutoUpdate(bool $bool) {
         if ($this->getDatatype() == 'datetime' || $this->getDatatype() == 'timestamp') {
             $this->isAutoUpdate = $bool === true;
         }
@@ -404,7 +405,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setDatatype($type) {
+    public function setDatatype(string $type) {
         try {
             parent::setDatatype($type);
         } catch (DatabaseException $ex) {
@@ -458,7 +459,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setIsAutoInc($bool) {
+    public function setIsAutoInc(bool $bool) {
         if ($this->isPrimary() && gettype($bool) == 'boolean' && $this->getDatatype() == 'int') {
             $this->isAutoInc = $bool;
 
@@ -478,7 +479,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setIsPrimary($bool) {
+    public function setIsPrimary(bool $bool) {
         if ($this->getDatatype() != 'boolean' && $this->getDatatype() != 'bool') {
             parent::setIsPrimary($bool);
 
@@ -502,7 +503,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setMySQLVersion($vNum) {
+    public function setMySQLVersion(string $vNum) {
         if (strlen($vNum) > 0) {
             $split = explode('.', $vNum);
 
@@ -554,7 +555,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setScale($val) {
+    public function setScale(int $val) : bool {
         $type = $this->getDatatype();
 
         if ($type == 'decimal' || $type == 'float' || $type == 'double') {
@@ -589,7 +590,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setSize($size) {
+    public function setSize(int $size) : bool {
         $type = $this->getDatatype();
         $retVal = false;
 

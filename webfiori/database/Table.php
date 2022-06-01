@@ -106,7 +106,8 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function __construct($name = 'new_table') {
+    public function __construct(string $name = 'new_table') {
+        $this->name = '';
         if (!$this->setName($name)) {
             $this->name = 'new_table';
         }
@@ -401,7 +402,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         $owner = $this->getOwner();
 
         if ($owner !== null && $this->isNameWithDbPrefix()) {
@@ -656,6 +657,9 @@ abstract class Table {
 
         if (strlen($trimmed) > 0) {
             $this->oldName = $this->getName();
+            if (strlen($this->oldName) == 0) {
+                $this->oldName = null;
+            }
             $this->name = $trimmed;
 
             return true;

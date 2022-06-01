@@ -69,7 +69,7 @@ class MySQLConnection extends Connection {
      * 
      * @since 1.0
      */
-    public function connect() {
+    public function connect() : bool {
         $test = false;
         $connInfo = $this->getConnectionInfo();
 
@@ -82,7 +82,9 @@ class MySQLConnection extends Connection {
         if (!function_exists('mysqli_connect')) {
             throw new DatabaseException('mysqli extension is missing.');
         }
-        set_error_handler(function() {});
+        set_error_handler(function($no, $message) {
+            throw new DatabaseException($message, $no);
+        });
         try {
             $this->link = mysqli_connect($host, $user, $pass, null, $port);
         } catch (\Exception $ex) {
