@@ -47,7 +47,7 @@ class Expression {
      * 
      * @since 1.0
      */
-    public function __construct($val) {
+    public function __construct(string $val) {
         $this->expr = $val.'';
     }
     /**
@@ -73,7 +73,7 @@ class Expression {
      * 
      * @since 1.0
      */
-    public function equals(Expression $exp) {
+    public function equals(Expression $exp) : bool {
         return $this.'' == $exp.'';
     }
     /**
@@ -84,7 +84,7 @@ class Expression {
      * 
      * @since 1.0
      */
-    public function getValue() {
+    public function getValue() : string {
         return $this->expr;
     }
     /**
@@ -94,7 +94,7 @@ class Expression {
      * 
      * @since 1.0
      */
-    public function setVal($val) {
+    public function setVal(string $val) {
         $this->expr = $val;
     }
 }
