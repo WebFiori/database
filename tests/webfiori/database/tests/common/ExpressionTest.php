@@ -63,7 +63,7 @@ class ExpressionTest extends TestCase {
     /**
      * @test
      */
-    public function testSelectExpression0() {
+    public function testSelectExpression00() {
         $t = new MySQLTable();
         $t->addColumns([
             'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
@@ -126,5 +126,70 @@ class ExpressionTest extends TestCase {
         $this->assertEquals(' order by `new_table`.`col_0`, `new_table`.`col_1` desc', $expression->getOrderBy());
         $expression->orderBy('col-2', 'a');
         $this->assertEquals(' order by `new_table`.`col_0`, `new_table`.`col_1` desc, `new_table`.`col_2` asc', $expression->getOrderBy());
+    }
+    /**
+     * @test
+     */
+    public function testSelectExpression01() {
+        $t = new MySQLTable();
+        $t->addColumns([
+            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
+        ]);
+        $expression = new SelectExpression($t);
+        $expression->addColumn('not-exist');
+        $this->assertEquals(1, $expression->getColsCount());
+        $this->assertEquals('select `new_table`.`not_exist` from `new_table`', $expression->getValue());
+    }
+    /**
+     * @test
+     */
+    public function testSelectExpression02() {
+        $t = new MySQLTable();
+        $t->addColumns([
+            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
+        ]);
+        $expression = new SelectExpression($t);
+        $expression->orderBy('not-exist-1');
+        $expression->groupBy('not-exist-2');
+        $this->assertEquals(' order by `new_table`.`not_exist_1`', $expression->getOrderBy());
+        $this->assertEquals(' group by `new_table`.`not_exist_2`', $expression->getGroupBy());
+    }
+    /**
+     * @test
+     */
+    public function testSelectExpression03() {
+        $t = new MySQLTable();
+        $t->addColumns([
+            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
+        ]);
+        $expression = new SelectExpression($t);
+        $expression->addWhere('col-1', 'col-2', '=');
+        $this->assertEquals(' where col-1 = col-2', $expression->getWhereStr());
+        $expression->addWhere('A', 'B', '!=', 'super');
+        $this->assertEquals(' where col-1 = col-2 and A != B', $expression->getWhereStr());
+    }
+    /**
+     * @test
+     */
+    public function testSelectExpression04() {
+        $t = new MySQLTable();
+        $t->addColumns([
+            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
+        ]);
+        $expression = new SelectExpression($t);
+        $expression->addWhere('col-1', null, '=');
+        $this->assertEquals(' where col-1 is null', $expression->getWhereStr());
+    }
+    /**
+     * @test
+     */
+    public function testSelectExpression05() {
+        $t = new MySQLTable();
+        $t->addColumns([
+            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
+        ]);
+        $expression = new SelectExpression($t);
+        $expression->addWhere('col-1', null, '!=');
+        $this->assertEquals(' where col-1 is not null', $expression->getWhereStr());
     }
 }
