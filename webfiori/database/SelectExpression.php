@@ -90,7 +90,13 @@ class SelectExpression extends Expression {
      * @param string $colKey The key of the column as specified when the column 
      * was added to associated table.
      * 
-     * @param string|null $options An optional alias for the column.
+     * @param array $options An array that holds options to customize the
+     * column. Supported options are:
+     * <ul>
+     * <li>alias: Give the column an alias.</li>
+     * <li>as: Same as 'alias'.</li>
+     * <li>aggregate: The name of SQL aggregate function such as 'max' or 'avg'. </li>
+     * </ul>
      * 
      * @throws DatabaseException If column does not exist in the table that the 
      * select is based on.
@@ -360,7 +366,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function colsCount() {
+    public function getColsCount() {
         return count($this->getSelectCols());
     }
     /**
@@ -383,7 +389,7 @@ class SelectExpression extends Expression {
      * @since 1.0
      */
     public function getColsStr() {
-        if (count($this->selectCols) == 0) {
+        if ($this->getColsCount() == 0) {
             $colsStr = '*';
         } else {
             $selectArr = [];
@@ -492,9 +498,13 @@ class SelectExpression extends Expression {
      * Returns an associative array of the columns that holds all select expression 
      * columns.
      * 
+     * The returned array will hold the columns that will be included in the
+     * select expression alongside the options for each column. The indices of
+     * the returned array are columns keys and the values are sub-associative
+     * arrays with column options.
+     * 
      * @return array An associative array of the columns that holds all select expression 
-     * columns. The indices will be columns keys and the values are objects of 
-     * type 'Column' or 'Expression'.
+     * columns.
      * 
      * @since 1.0
      */
@@ -518,7 +528,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function getValue() {
+    public function getValue() : string {
         $colsStr = $this->getColsStr();
         $table = $this->getTable();
         
@@ -577,8 +587,10 @@ class SelectExpression extends Expression {
     }
 
     /**
+     * Returns the where expression which is associated with the select.
      * 
-     * @return WhereExpression|null
+     * @return WhereExpression|null If the select has where part, it will
+     * be returned as an object. Other than that, null is returned.
      */
     public function getWhereExpr() {
         return $this->whereExp;
@@ -587,17 +599,17 @@ class SelectExpression extends Expression {
      * Returns a string that represents the 'where' part of the select in addition 
      * to the 'order by' and 'group by'.
      * 
-     * @param boolean $withOrderBy If set to true, the 'order by' part of the 
+     * @param boolean $withGroupBy If set to true, the 'order by' part of the 
      * 'where' will be included. Default is 'true'.
      * 
-     * @param boolean $withGroupBy If set to true, the 'order by' part of the 
+     * @param boolean $withOrderBy If set to true, the 'order by' part of the 
      * 'where' will be included. Default is 'true'.
      * 
      * @return string
      * 
      * @since 1.0
      */
-    public function getWhereStr($withGroupBy = true, $withOrderBy = true) {
+    public function getWhereStr(bool $withGroupBy = true, bool $withOrderBy = true) {
         $thisTable = $this->getTable();
         $retVal = '';
         $orderBy = '';
@@ -634,7 +646,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function groupBy($colKey) {
+    public function groupBy(string $colKey) {
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if ($colObj === null) {
@@ -656,7 +668,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function hasCol($colKey) {
+    public function isInSelect(string $colKey) : bool {
         $trimmed = trim($colKey);
 
         return isset($this->getSelectCols()[$trimmed]);
@@ -672,7 +684,7 @@ class SelectExpression extends Expression {
      * ascending or 'd' for descending.
      * @throws DatabaseException
      */
-    public function orderBy($colKey, $orderType = null) {
+    public function orderBy(string $colKey, $orderType = null) {
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if ($colObj === null) {
@@ -703,7 +715,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function removeCol($colKey) {
+    public function removeCol(string $colKey) {
         unset($this->selectCols[$colKey]);
     }
     /**
