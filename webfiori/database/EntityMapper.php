@@ -654,7 +654,7 @@ class EntityMapper {
             ."     * \n"
             ."     * @return Json An object of type 'Json'.\n"
             ."     */\n"
-            ."    public function toJSON() {\n"
+            ."    public function toJSON() : Json {\n"
             ."        \$json = new Json([\n"
             ."$arrayStr\n"
             ."        ]);\n"
