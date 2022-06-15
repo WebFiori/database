@@ -127,11 +127,12 @@ class WhereExpression extends Expression {
      * Returns the condition at which the expression will use to combine with children 
      * expressions.
      * 
-     * @return string  A string such as 'and' or 'or'. Default return value is ''.
+     * @return string  A string such as 'and' or 'or'. Default return value is
+     * empty string.
      * 
      * @since 1.0
      */
-    public function getJoinCondition() {
+    public function getJoinCondition() : string {
         return $this->joinCond;
     }
     /**
@@ -155,7 +156,7 @@ class WhereExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function getValue() {
+    public function getValue() : string {
         $val = '';
 
         foreach ($this->children as $chWhere) {
@@ -190,7 +191,7 @@ class WhereExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function setJoinCondition($cond) {
+    public function setJoinCondition(string $cond) {
         $this->joinCond = $cond;
     }
     /**
