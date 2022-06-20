@@ -770,7 +770,7 @@ abstract class AbstractQuery {
     public function page($num, $itemsCount) {
         if ($num > 0 && $itemsCount > 0) {
             $this->limit($itemsCount);
-            $this->offset($num * $itemsCount);
+            $this->offset(($num - 1) * $itemsCount);
         }
 
         return $this;
