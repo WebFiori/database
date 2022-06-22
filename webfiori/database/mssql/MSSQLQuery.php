@@ -81,7 +81,23 @@ class MSSQLQuery extends AbstractQuery {
 
         return $this;
     }
+    /**
+     * Returns the generated SQL query.
+     * 
+     * @return string Returns the generated query as string.
+     * 
+     * @since 1.0
+     */
+    public function getQuery() {
+        $query = parent::getQuery();
+         if ($this->getLastQueryType() == 'select' && $this->getLimit() > 0) {
+            $query .= ' offset '.($this->getOffset() == -1 ? 0 : $this->getOffset()).' rows';
+       
+            $query .= ' fetch next '.$this->getLimit().' rows only';
+        }
 
+        return $query;
+    }
     /**
      * Constructs a query which can be used to add new record.
      * 
