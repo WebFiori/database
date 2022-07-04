@@ -62,9 +62,9 @@ class SchemaTest extends TestCase{
                 )->where('username', '!=', 'Ibrahim', 'and');
         $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim'",$s->getLastQuery());
         $s->page(1, 40);
-        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 40",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40",$s->getLastQuery());
         $s->page(5, 40);
-        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 200",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 160",$s->getLastQuery());
     }
     
     /**
@@ -106,9 +106,9 @@ class SchemaTest extends TestCase{
                 )->where('username', '!=', 'Ibrahim', 'and');
         $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim'",$s->getLastQuery());
         $s->page(1, 40);
-        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 40",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40",$s->getLastQuery());
         $s->page(5, 40);
-        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 200",$s->getLastQuery());
+        $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim' limit 40 offset 160",$s->getLastQuery());
     }
     /**
      * @test
