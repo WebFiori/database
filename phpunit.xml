@@ -18,6 +18,7 @@
             <directory suffix=".php">./webfiori/database/SelectExpression.php</directory>
             <directory suffix=".php">./webfiori/database/Table.php</directory>
             <directory suffix=".php">./webfiori/database/WhereExpression.php</directory>
+            <directory suffix=".php">./webfiori/database/RecordMapper.php</directory>
         </whitelist>
     </filter>
     <logging>
