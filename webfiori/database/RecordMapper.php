@@ -45,7 +45,7 @@ class RecordMapper {
      * @return type
      */
     public function addSetterMap(string $colName, $methodName = null) {
-        $trimmedColName = trim($colName);
+        $trimmedColName = trim(trim(trim(trim($colName, '`'), ']'), '['));
         if (strlen($trimmedColName) == 0) {
             return;
         }
