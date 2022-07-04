@@ -17,7 +17,7 @@ class EntityMapperTest extends TestCase {
         $schema = new MySQLTestSchema();
         $entityMapper = new EntityMapper($schema->getTable('users'), 'UserClass');
         $entityMapper->setPath(__DIR__);
-        $entityMapper->setUseJsonI(false);
+        $entityMapper->setUseJsonI(true);
         $this->assertEquals('UserClass', $entityMapper->getEntityName());
         $this->assertEquals('webfiori\\database\\entity\\UserClass', $entityMapper->getEntityName(true));
         $this->assertEquals([
@@ -86,6 +86,17 @@ class EntityMapperTest extends TestCase {
             'setLastName' => 'last_name',
             'setAge' => 'age'
         ], $recordsMapper->getSettrsMap());
+        $obj = $recordsMapper->map([
+            'id' => 55,
+            'first_name' => 'Ibrahim',
+            'last_name' => 'BinAlshikh',
+            'age' => 28
+        ]);
+        $this->assertTrue($obj instanceof \webfiori\database\entity\UserClass);
+        $this->assertEquals(55, $obj->getId());
+        $this->assertEquals('Ibrahim', $obj->getFirstName());
+        $this->assertEquals('BinAlshikh', $obj->getLastName());
+        $this->assertEquals(28, $obj->getAge());
     }
     /**
      * @test
