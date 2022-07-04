@@ -278,12 +278,18 @@ class EntityMapper {
     /**
      * Returns the name of the class that the table is mapped to.
      * 
+     * @param bool $withNs If set to true, the name of the class will
+     * be returned with its namespace.
+     * 
      * @return string The method will return a string that represents the 
      * name of the class that the table is mapped to.
      * 
      * @since 1.0
      */
-    public function getEntityName() : string {
+    public function getEntityName(bool $withNs = false) : string {
+        if ($withNs) {
+            return $this->getNamespace().'\\'.$this->entityName;
+        }
         return $this->entityName;
     }
     /**
@@ -315,7 +321,7 @@ class EntityMapper {
      * @return RecordMapper
      */
     public function getRecordMapper() : RecordMapper {
-        $mapper = new RecordMapper($this->getEntityName(), $this->getTable()->getColsNames());
+        $mapper = new RecordMapper($this->getEntityName(true), $this->getTable()->getColsNames());
         return $mapper;
     }
     /**
