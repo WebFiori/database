@@ -5,3 +5,4 @@ clover.xml
 tests/mysql/UserEntity.php
 vendor/*
 tests/webfiori/database/tests/common/UserClass.php
+composer.lock
