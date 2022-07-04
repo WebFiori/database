@@ -55,6 +55,14 @@ require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'mss
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'common'.$DS.'HelloTable.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'User.php';
 
+$jsonLibPath = $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json';
+require_once $jsonLibPath.$DS.'JsonI.php';
+require_once $jsonLibPath.$DS.'Json.php';
+require_once $jsonLibPath.$DS.'JsonConverter.php';
+require_once $jsonLibPath.$DS.'CaseConverter.php';
+require_once $jsonLibPath.$DS.'JsonTypes.php';
+require_once $jsonLibPath.$DS.'Property.php';
+
 use webfiori\database\ConnectionInfo;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\tests\mysql\MySQLTestSchema;
