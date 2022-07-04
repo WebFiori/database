@@ -6,5 +6,12 @@
         "Database","PHP","Query Builder","Library","MySQL"
     ],
     "license": "MIT",
-    "require": {}
+    "require": {
+        "webfiori/jsonx":"*"
+    },
+    "autoload" :{
+        "psr-4":{
+            "webfiori\\database\\":"webfiori\\database"
+        }
+    }
 }
