@@ -168,6 +168,7 @@ class EntityMapper {
 
             if ($this->implJsonI) {
                 $this->classStr .= ""
+                ."use webfiori\database\RecordMapper;\n"
                 ."use webfiori\json\Json;\n"
                 ."use webfiori\json\JsonI;\n"
                 ."\n";
@@ -277,12 +278,18 @@ class EntityMapper {
     /**
      * Returns the name of the class that the table is mapped to.
      * 
+     * @param bool $withNs If set to true, the name of the class will
+     * be returned with its namespace.
+     * 
      * @return string The method will return a string that represents the 
      * name of the class that the table is mapped to.
      * 
      * @since 1.0
      */
-    public function getEntityName() : string {
+    public function getEntityName(bool $withNs = false) : string {
+        if ($withNs) {
+            return $this->getNamespace().'\\'.$this->entityName;
+        }
         return $this->entityName;
     }
     /**
@@ -306,6 +313,16 @@ class EntityMapper {
      */
     public function getPath() : string {
         return $this->entityPath;
+    }
+    /**
+     * Returns an object which can be used as a mapper for the records of the
+     * table and the entity that will be created using the class.
+     * 
+     * @return RecordMapper
+     */
+    public function getRecordMapper() : RecordMapper {
+        $mapper = new RecordMapper($this->getEntityName(true), $this->getTable()->getColsNames());
+        return $mapper;
     }
     /**
      * Returns an associative array that maps possible entity methods names with 
@@ -579,7 +596,13 @@ class EntityMapper {
     private function _createEntityVariables() {
         $index = 0;
         $entityAttrs = $this->getAttribitesNames();
-
+        $this->classStr .= ""
+                ."    /**\n"
+                ."     * A mapper which is used to map a record to an instance of the class.\n"
+                ."     * \n"
+                ."     * @var RecordMapper\n"
+                ."     **/\n"
+                ."    private static \$RecordMapper;\n";
         foreach ($entityAttrs as $colKey => $attrName) {
             $colObj = $this->getTable()->getColByKey($colKey);
             if ($colObj !== null) {
@@ -604,27 +627,21 @@ class EntityMapper {
     }
     private function _createMapFunction() {
         $tableName = $this->getTable()->getNormalName();
+        $className = $this->getEntityName();
         $docStr = "    /**\n"
                 ."     * Maps a record which is taken from the table $tableName to an instance of the class.\n"
                 ."     * \n"
                 ."     * @param array \$record An associative array that represents the\n"
-                ."     * record. The array should have the following indices:\n"
-                ."     * <ul>\n";
-        $className = $this->getEntityName();
-        $mapMethodStr = "    public static function map(array \$record) {\n"
-                ."        \$instance = new $className();\n";
-
-        foreach ($this->getSettersMap() as $methodName => $colName) {
-            $mapMethodStr .= "        \$instance->$methodName(\$record['$colName']);\n";
-            $docStr .= "     * <li>$colName</li>\n";
-        }
-        $mapMethodStr .= "        \n"
-                ."        return \$instance;\n"
-                ."    }\n";
-        $docStr .= "     * </ul>\n"
-                ."     * \n"
+                ."     * record. \n"
                 ."     * @return $className An instance of the class.\n"
                 ."     */\n";
+        
+        $mapMethodStr = "    public static function map(array \$record) {\n"
+                ."        if (self::\$RecordMapper === null) {\n"
+                ."            self::\$RecordMapper = new RecordMapper(self::class, array_keys(\$record));\n"
+                . "        }\n"
+                . "        return self::\$RecordMapper->map(\$record);\n"
+                . "    }\n";
         $this->classStr .= $docStr.$mapMethodStr;
     }
     private function _imlpJsonX() {

@@ -249,10 +249,11 @@ class Database {
      */
     public function execute() {
         $conn = $this->getConnection();
-
+        $lastQuery = $this->getLastQuery();
         if (!$conn->runQuery($this->getQueryGenerator())) {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }
+        $this->queries[] = $lastQuery;
         $lastQueryType = $this->getQueryGenerator()->getLastQueryType();
         $this->clear();
         $resultSet = null;

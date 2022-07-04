@@ -438,16 +438,6 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function testDelete01() {
-        $this->expectException(DatabaseException::class);
-        $schema = new MySQLTestSchema();
-        $schema->table('users')
-                ->delete()
-                ->where('x-id', '=', 88);
-    }
-    /**
-     * @test
-     */
     public function unionTest00() {
         $schema = new MySQLTestSchema();
         $schema->table('users')
