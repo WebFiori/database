@@ -783,6 +783,13 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->setConnection($conn);
         return $schema;
     }
+    public function testSetQuery00() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_tasks')->select()->whereBetween('task-id', 0, 33);
+        $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` between 0 and 33)', $schema->getLastQuery());
+        $schema->setQuery('select * from users');
+        $this->assertEquals('select * from users', $schema->getLastQuery());
+    }
     /**
      * 
      * @param MySQLTestSchema $schema
