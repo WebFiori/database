@@ -1244,9 +1244,10 @@ abstract class AbstractQuery {
             $colObj = $table->getColByKey($col);
 
             if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
+                $table->addColumns([
+                    $col => []
+                ]);
+                $colObj = $table->getColByKey($col);
             }
             $colObj->setWithTablePrefix(true);
             $colName = $colObj->getName();
