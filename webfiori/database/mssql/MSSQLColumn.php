@@ -236,7 +236,7 @@ class MSSQLColumn extends Column {
         } else if ($colType == 'boolean' || $colType == 'bool') {
             return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'nvarchar'
-                || $colType == 'datetime2' || $colType == 'char' || $colType == 'date'
+                || $colType == 'datetime2' || $colType == 'date'
                 || $colType == 'nchar' || $colType == 'binary' || $colType == 'varbinary') {
             return 'string'.$isNullStr;
         } else {
