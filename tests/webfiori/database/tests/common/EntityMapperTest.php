@@ -15,7 +15,14 @@ class EntityMapperTest extends TestCase {
      */
     public function test00() {
         $schema = new MySQLTestSchema();
-        $entityMapper = new EntityMapper($schema->getTable('users'), 'UserClass');
+        $t = $schema->getTable('users');
+        $t->addColumns([
+            'c-x-file' => [
+                'type' => 'bool'
+            ]
+        ]);
+        $entityMapper = new EntityMapper($t, 'UserClass');
+        
         $entityMapper->setPath(__DIR__);
         $entityMapper->setUseJsonI(true);
         $this->assertEquals('UserClass', $entityMapper->getEntityName());
@@ -25,11 +32,12 @@ class EntityMapperTest extends TestCase {
             'first-name' => 'firstName',
             'id' => 'id',
             'last-name' => 'lastName',
-            
+            'c-x-file' => 'cxFile'
         ], $entityMapper->getAttribitesNames());
         $this->assertEquals([
             'setters' => [
                 'setAge',
+                'setCXFile',
                 'setFirstName',
                 'setId',
                 'setLastName',
@@ -37,6 +45,7 @@ class EntityMapperTest extends TestCase {
             ],
             'getters' => [
                 'getAge',
+                'getCXFile',
                 'getFirstName',
                 'getId',
                 'getLastName',
@@ -45,23 +54,37 @@ class EntityMapperTest extends TestCase {
         ], $entityMapper->getEntityMethods());
         $this->assertEquals([
             'setId' => 'id',
+            'setCXFile' => 'c_x_file',
             'setFirstName' => 'first_name',
             'setLastName' => 'last_name',
             'setAge' => 'age',
+            
         ], $entityMapper->getSettersMap());
+        
+        $this->assertEquals([
+            'getId' => 'id',
+            'getCXFile' => 'c_x_file',
+            'getFirstName' => 'first_name',
+            'getLastName' => 'last_name',
+            'getAge' => 'age',
+            
+        ], $entityMapper->getGettersMap());
         
         $entityMapper->addAttribute('extraAttribute');
         $this->assertEquals([
             'setters' => [
                 'setAge',
+                'setCXFile',
                 'setExtraAttribute',
                 'setFirstName',
                 'setId',
+                
                 'setLastName',
                 
             ],
             'getters' => [
                 'getAge',
+                'getCXFile',
                 'getExtraAttribute',
                 'getFirstName',
                 'getId',
@@ -84,7 +107,8 @@ class EntityMapperTest extends TestCase {
             'setId' => 'id',
             'setFirstName' => 'first_name',
             'setLastName' => 'last_name',
-            'setAge' => 'age'
+            'setAge' => 'age',
+            'setCXFile' => 'c_x_file'
         ], $recordsMapper->getSettrsMap());
         $obj = $recordsMapper->map([
             'id' => 55,
