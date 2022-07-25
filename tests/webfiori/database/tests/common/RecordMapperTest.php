@@ -36,6 +36,12 @@ class RecordMapperTest extends TestCase {
             'setId' => 'id',
             'setEmailAddress' => 'email_address'
         ], $mapper->getSettrsMap());
+        $mapper->addSetterMap('c_file_x');
+        $this->assertEquals([
+            'setId' => 'id',
+            'setEmailAddress' => 'email_address',
+            'setCFileX' => 'c_file_x'
+        ], $mapper->getSettrsMap());
     }
     /**
      * @test
