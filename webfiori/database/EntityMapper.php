@@ -325,7 +325,7 @@ class EntityMapper {
         return $mapper;
     }
     /**
-     * Returns an associative array that maps possible entity methods names with 
+     * Returns an associative array that maps possible setter entity methods names with 
      * table columns names in the database.
      * 
      * Assuming that the table has two columns. The first one has a key = 'user-id' 
@@ -358,6 +358,39 @@ class EntityMapper {
         return $retVal;
     }
     /**
+     * Returns an associative array that maps possible entity getter methods names with 
+     * table columns names in the database.
+     * 
+     * Assuming that the table has two columns. The first one has a key = 'user-id' 
+     * and the second one has a key 'password'. Also, let's assume that the first column 
+     * has the name 'id' in the database and the second one has the name 'user_pass'. 
+     * If this is the case, the method will return something like the following array:
+     * <p>
+     * <code>[<br/>
+     * 'getUserId' =&gt; 'id',<br/>
+     * 'getPassword' =&gt; 'user_pass'<br/>
+     * ]</code>
+     * </p>
+     * 
+     * @return array An associative array. The indices represents the names of 
+     * the methods in the entity class and the values are the names of table 
+     * columns as they appear in the database.
+     * 
+     * @since 1.0
+     */
+    public function getGettersMap() : array {
+        $keys = $this->getTable()->getColsKeys();
+        $retVal = [];
+
+        foreach ($keys as $keyName) {
+            $methodName = $this->mapToMethodName($keyName, 'g');
+            $mappedCol = $this->getTable()->getColByKey($keyName)->getNormalName();
+            $retVal[$methodName] = $mappedCol;
+        }
+
+        return $retVal;
+    }
+    /**
      * Returns the table instance which is associated with the mapper.
      * 
      * @return Table An object of type 'Table'.
@@ -380,30 +413,27 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public function mapToMethodName(string $colKey, $type = 'g') {
+    private function mapToMethodName(string $colKey, $type = 'g') {
         $trimmed = trim($colKey);
 
-        if (strlen($trimmed) !== 0) {
-            $split = explode('-', $trimmed);
-            $methodName = '';
 
-            foreach ($split as $namePart) {
-                if (strlen($namePart) == 1) {
-                    $methodName .= strtoupper($namePart);
-                } else {
-                    $firstChar = $namePart[0];
-                    $methodName .= strtoupper($firstChar).substr($namePart, 1);
-                }
-            }
+        $split = explode('-', $trimmed);
+        $methodName = '';
 
-            if ($type == 's') {
-                return 'set'.$methodName;
+        foreach ($split as $namePart) {
+            if (strlen($namePart) == 1) {
+                $methodName .= strtoupper($namePart);
             } else {
-                return 'get'.$methodName;
+                $firstChar = $namePart[0];
+                $methodName .= strtoupper($firstChar).substr($namePart, 1);
             }
         }
 
-        return '';
+        if ($type == 's') {
+            return 'set'.$methodName;
+        }
+        return 'get'.$methodName;
+
     }
     /**
      * Sets the name of the entity class.

@@ -1235,7 +1235,7 @@ abstract class AbstractQuery {
     private function _addWhere($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
-        $tableName = $table->getName();
+        
         $col = $options['col-key'];
         $joinCond = $options['join-cond'];
         $not = isset($options['not']) ? $options['not'] : false;
@@ -1244,9 +1244,10 @@ abstract class AbstractQuery {
             $colObj = $table->getColByKey($col);
 
             if ($colObj === null) {
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$col'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
+                $table->addColumns([
+                    $col => []
+                ]);
+                $colObj = $table->getColByKey($col);
             }
             $colObj->setWithTablePrefix(true);
             $colName = $colObj->getName();
