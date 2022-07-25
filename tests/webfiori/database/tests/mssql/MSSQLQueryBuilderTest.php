@@ -226,11 +226,11 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @test
      */
     public function testDelete01() {
-        $this->expectException(DatabaseException::class);
         $schema = new MSSQLTestSchema();
         $schema->table('users')
                 ->delete()
                 ->where('x-id', '=', 88);
+        $this->assertEquals("delete from [users] where [users].[x_id] = N'88'", $schema->getLastQuery());
     }
     /**
      * @test
@@ -411,8 +411,8 @@ class MSSQLQueryBuilderTest extends TestCase{
      */
     public function testLike03() {
         $schema = new MSSQLTestSchema();
-        $this->expectException(DatabaseException::class);
         $schema->table('users_tasks')->select()->whereNotLike('first-naome', '%Ibra%');
+        $this->assertEquals("select * from [users_tasks] where [users_tasks].[first_naome] not like N'%Ibra%'", $schema->getLastQuery());
     }
     /**
      * @test
@@ -820,8 +820,8 @@ class MSSQLQueryBuilderTest extends TestCase{
      */
     public function testWhereBetween01() {
         $schema = new MSSQLTestSchema();
-        $this->expectException(DatabaseException::class);
         $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
+        $this->assertEquals("select * from [users_tasks] where ([users_tasks].[task_idx] between N'0' and N'33')", $schema->getLastQuery());
     }
     /**
      * @test
