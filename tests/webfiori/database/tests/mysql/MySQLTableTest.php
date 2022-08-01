@@ -74,6 +74,7 @@ class MySQLTableTest extends TestCase {
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $table2->toSQL());
+        $this->assertEquals(3, $table->getUniqueColsCount());
     }
     /**
      * @test
@@ -280,6 +281,10 @@ class MySQLTableTest extends TestCase {
         ]);
         $this->assertTrue($table->getColByKey('id-col')->isUnique());
         $this->assertEquals(1, $table->getPrimaryKeyColsCount());
+        $this->assertEquals(1, $table->getUniqueColsCount());
+        $this->assertEquals([
+            'id-col'
+        ], $table->getUniqueColsKeys());
         return $table;
     }
     /**
@@ -296,6 +301,7 @@ class MySQLTableTest extends TestCase {
         $this->assertFalse($table->getColByKey('id-col')->isUnique());
         $this->assertFalse($table->getColByKey('id-col-2')->isUnique());
         $this->assertEquals(2, $table->getPrimaryKeyColsCount());
+        $this->assertEquals(0, $table->getUniqueColsCount());
         return $table;
     }
     /**
@@ -306,7 +312,7 @@ class MySQLTableTest extends TestCase {
     public function testPrimaryKey02($table) {
         $table->removeColByKey('id-col');
         $this->assertTrue($table->getColByKey('id-col-2')->isUnique());
-
+        $this->assertEquals(1, $table->getUniqueColsCount());
         return $table;
     }
     /**

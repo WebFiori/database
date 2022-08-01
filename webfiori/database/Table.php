@@ -24,8 +24,6 @@
  */
 namespace webfiori\database;
 
-use webfiori\database\mssql\MSSQLColumn;
-
 /**
  * A class that can be used to represents database tables.
  *
@@ -463,15 +461,8 @@ abstract class Table {
      * @since 1.0
      */
     public function getPrimaryKeyColsCount() {
-        $count = 0;
 
-        foreach ($this->getCols() as $col) {
-            if ($col->isPrimary()) {
-                $count++;
-            }
-        }
-
-        return $count;
+        return count($this->getPrimaryKeyColsKeys());
     }
     /**
      * Returns an array that contains the keys of the columns which are primary.
@@ -481,16 +472,31 @@ abstract class Table {
      * @since 1.0
      */
     public function getPrimaryKeyColsKeys() {
+        return $this->_getColsKeys('isPrimary');
+    }
+    private function _getColsKeys($method) : array {
         $arr = [];
 
         foreach ($this->getCols() as $colkey => $col) {
-            if ($col->isPrimary()) {
+            if ($col->$method()) {
                 $arr[] = $colkey;
             }
         }
 
         return $arr;
     }
+    private function _getCols($method) : array {
+        $arr = [];
+
+        foreach ($this->getCols() as $col) {
+            if ($col->$method()) {
+                $arr[] = $col;
+            }
+        }
+
+        return $arr;
+    }
+
     /**
      * Returns the name of table primary key.
      * 
@@ -521,20 +527,33 @@ abstract class Table {
     /**
      * Returns an array that holds all the columns which are set to be unique.
      * 
-     * @return array An array that holds objects of type 'MSSQLColumn'.
+     * @return array An array that holds objects of type 'Column'.
      * 
      * @since 1.0.2
      */
     public function getUniqueCols() {
-        $retVal = [];
 
-        foreach ($this->getCols() as $colObj) {
-            if ($colObj->isUnique()) {
-                $retVal[] = $colObj;
-            }
-        }
+        return $this->_getCols('isUnique');
+    }
+    /**
+     * Returns the number of columns that are marked as unique.
+     * 
+     * @return int The number of columns that are marked as unique. If 
+     * the table has no unique columns, the method will return 0..
+     * 
+     */
+    public function getUniqueColsCount() {
 
-        return $retVal;
+        return count($this->getUniqueColsKeys());
+    }
+    /**
+     * Returns an array that contains the keys of the columns which are unique.
+     * 
+     * @return array An array that contains the keys of the columns which are unique.
+     * 
+     */
+    public function getUniqueColsKeys() {
+        return $this->_getColsKeys('isUnique');
     }
     /**
      * Checks if the table has a column which has specific name.
