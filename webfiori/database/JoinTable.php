@@ -24,10 +24,10 @@
  */
 namespace webfiori\database;
 
-use webfiori\database\mysql\MySQLQuery;
 use webfiori\database\mssql\MSSQLQuery;
-use webfiori\database\mysql\MySQLTable;
 use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mysql\MySQLTable;
 /**
  * A class that represents two joined tables.
  *
@@ -88,7 +88,7 @@ class JoinTable extends Table {
         $this->joinType = $joinType;
         $this->left = $left;
         $this->right = $right;
-        
+
         $this->_addCols(true);
         $this->_addCols(false);
         $this->setOwner($this->getLeft()->getOwner());

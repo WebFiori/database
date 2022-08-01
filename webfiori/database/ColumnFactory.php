@@ -1,7 +1,6 @@
 <?php
 namespace webfiori\database;
 
-use webfiori\database\DatabaseException;
 use webfiori\database\mssql\MSSQLColumn;
 use webfiori\database\mysql\MySQLColumn;
 
@@ -15,6 +14,7 @@ class ColumnFactory {
         if (!in_array($database, ConnectionInfo::SUPPORTED_DATABASES)) {
             throw new DatabaseException('Not support database: '.$database);
         }
+
         if ($database == 'mssql') {
             $col = new MSSQLColumn($name);
         } else if ($database == 'mysql') {
@@ -35,10 +35,10 @@ class ColumnFactory {
 
         self::_primaryCheck($col, $options);
         self::_extraAttrsCheck($col, $options);
-        
+
         return $col;
     }
-    
+
     /**
      * 
      * @param MSSQLColumn $col
@@ -55,7 +55,7 @@ class ColumnFactory {
         if (isset($options['is-unique'])) {
             $col->setIsUnique($options['is-unique']);
         }
-        
+
         if (isset($options['unique'])) {
             $col->setIsUnique($options['unique']);
         }
@@ -89,7 +89,7 @@ class ColumnFactory {
             $isPrimary = isset($options['is-primary']) ? $options['is-primary'] : false;
         }
         $col->setIsPrimary($isPrimary);
-        
+
         if ($isPrimary && isset($options['auto-inc']) && $col instanceof MySQLColumn) {
             $col->setIsAutoInc($options['auto-inc']);
             $col->setIsNull(true);

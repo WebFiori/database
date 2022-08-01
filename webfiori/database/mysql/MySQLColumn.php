@@ -25,9 +25,9 @@
 namespace webfiori\database\mysql;
 
 use webfiori\database\Column;
+use webfiori\database\ColumnFactory;
 use webfiori\database\DatabaseException;
 use webfiori\database\DateTimeValidator;
-use webfiori\database\ColumnFactory;
 
 /**
  * A class that represents a column in MySQL table.
@@ -210,7 +210,6 @@ class MySQLColumn extends Column {
      */
     public static function createColObj(array $options) {
         if (isset($options['name'])) {
-            
             return ColumnFactory::create('mysql', $options['name'], $options);
         }
     }
@@ -289,6 +288,7 @@ class MySQLColumn extends Column {
             } else  if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === "b'1'" || $defaultVal === true;
             }
+
             return $retVal;
         } else {
             return parent::getDefault();
@@ -704,11 +704,11 @@ class MySQLColumn extends Column {
             }
         }
     }
-    
+
     private function _firstColPart() {
         $retVal = $this->getName().' ';
         $colDataType = $this->getDatatype();
-        
+
         if ($colDataType == 'int') {
             $vNum = explode('.', $this->getMySQLVersion());
             $major = intval($vNum[0]);

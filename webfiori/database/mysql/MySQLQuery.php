@@ -125,6 +125,7 @@ class MySQLQuery extends AbstractQuery {
 
             return implode('.', $arr);
         }
+
         return '';
     }
     /**
@@ -215,36 +216,6 @@ class MySQLQuery extends AbstractQuery {
         $this->insertHelper($colsAndVals);
 
         return $this;
-    }
-    private function insertHelper(array $colsAndVals, $isReplace = false) {
-        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $colsArr = [];
-            $tblName = $this->getTable()->getName();
-
-            foreach ($colsAndVals['cols'] as $colKey) {
-                $colObj = $this->getTable()->getColByKey($colKey);
-
-                if (!($colObj instanceof MySQLColumn)) {
-                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
-                }
-                $colObj->setWithTablePrefix(false);
-                $colsArr[] = $colObj->getName();
-            }
-            $colsStr = '('.implode(', ', $colsArr).')';
-            $suberValsArr = [];
-
-            foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
-            }
-            $valsStr = implode(",\n", $suberValsArr);
-            if ($isReplace) {
-                $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
-            } else {
-                $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
-            }
-        } else {
-            $this->setQuery($this->_createInsertStm($colsAndVals, $isReplace));
-        }
     }
     /**
      * Checks if the query represents a blob insert or update.
@@ -456,7 +427,7 @@ class MySQLQuery extends AbstractQuery {
 
         $data = $this->_insertHelper(array_keys($colsAndVals), $colsAndVals);
 
-        
+
         $cols = '('.$data['cols'].')';
         $vals = '('.$data['vals'].')';
 
@@ -495,13 +466,15 @@ class MySQLQuery extends AbstractQuery {
                 $columnsWithVals[] = $colKey;
                 $colsNamesArr[] = $column->getName();
                 $type = $column->getDatatype();
-                
+
                 if (isset($valuesToInsert[$colKey])) {
                     $val = $valuesToInsert[$colKey];
-                } else if (isset ($valuesToInsert[$valIndex])) {
-                    $val = $valuesToInsert[$valIndex];
                 } else {
-                    $val = null;
+                    if (isset($valuesToInsert[$valIndex])) {
+                        $val = $valuesToInsert[$valIndex];
+                    } else {
+                        $val = null;
+                    }
                 }
 
                 if ($val !== null) {
@@ -510,7 +483,8 @@ class MySQLQuery extends AbstractQuery {
                     if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
                         //chr(0) to remove null bytes in path.
                         $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
-                        set_error_handler(function($no, $message) {
+                        set_error_handler(function($no, $message)
+                        {
                             throw new DatabaseException($message, $no);
                         });
                         $this->setIsBlobInsertOrUpdate(true);
@@ -559,12 +533,15 @@ class MySQLQuery extends AbstractQuery {
                 if ($defaultVal !== null) {
                     $colsNamesArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
+
                     if ($type == 'boolean' || $type == 'bool') {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
-                    } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
-                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
                     } else {
-                        $valsArr[] = $colObj->cleanValue($defaultVal);
+                        if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                            $valsArr[] = "'".date('Y-m-d H:i:s')."'";
+                        } else {
+                            $valsArr[] = $colObj->cleanValue($defaultVal);
+                        }
                     }
                 }
             }
@@ -574,5 +551,36 @@ class MySQLQuery extends AbstractQuery {
             'cols' => implode(', ', $colsNamesArr),
             'vals' => implode(', ', $valsArr)
         ];
+    }
+    private function insertHelper(array $colsAndVals, $isReplace = false) {
+        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
+            $colsArr = [];
+            $tblName = $this->getTable()->getName();
+
+            foreach ($colsAndVals['cols'] as $colKey) {
+                $colObj = $this->getTable()->getColByKey($colKey);
+
+                if (!($colObj instanceof MySQLColumn)) {
+                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+                }
+                $colObj->setWithTablePrefix(false);
+                $colsArr[] = $colObj->getName();
+            }
+            $colsStr = '('.implode(', ', $colsArr).')';
+            $suberValsArr = [];
+
+            foreach ($colsAndVals['values'] as $valsArr) {
+                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
+            }
+            $valsStr = implode(",\n", $suberValsArr);
+
+            if ($isReplace) {
+                $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
+            } else {
+                $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
+            }
+        } else {
+            $this->setQuery($this->_createInsertStm($colsAndVals, $isReplace));
+        }
     }
 }

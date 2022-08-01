@@ -25,11 +25,10 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLConnection;
 use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\mssql\MSSQLConnection;
-use webfiori\database\DatabaseException;
 /**
  * A class which is used to represents the structure of the database 
  * (database schema). 
@@ -250,6 +249,7 @@ class Database {
     public function execute() {
         $conn = $this->getConnection();
         $lastQuery = $this->getLastQuery();
+
         if (!$conn->runQuery($this->getQueryGenerator())) {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }
@@ -283,7 +283,7 @@ class Database {
         if ($this->connection === null) {
             $driver = $this->getConnectionInfo()->getDatabaseType();
             $connInfo = $this->getConnectionInfo();
-            
+
             if ($driver == 'mysql') {
                 try {
                     $conn = new MySQLConnection($connInfo);
@@ -584,6 +584,7 @@ class Database {
      */
     public function setQuery($query) {
         $t = $this->getQueryGenerator()->getTable();
+
         if ($t !== null) {
             $t->getSelect()->clear();
         }

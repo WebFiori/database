@@ -36,11 +36,11 @@ use Iterator;
  */
 class ResultSet implements Countable, Iterator {
     private $cursorPos;
+    private $dataChangedBeforeMapping;
     private $mapArgs;
     private $mappingFunction;
     private $orgResultRows;
     private $resultRows;
-    private $dataChangedBeforeMapping;
     /**
      * Creates new instance of the class.
      * 
@@ -66,22 +66,6 @@ class ResultSet implements Countable, Iterator {
         }
     }
     /**
-     * Map the records of the result set using a mapping function.
-     * 
-     * @param Closure $mappingFunction A PHP function. The first argument of the
-     * function will always be the fetched raw records as an array. Each
-     * index of the array will have the record as associative array,
-     * 
-     * @param array $mapArgs Any additional arguments that the developer
-     * would like to pass to mapping function.
-     * 
-     * @return array The method will return an array of mapped records.
-     */
-    public function map($mappingFunction, array $mapArgs = []) : array {
-        $this->setMappingFunction($mappingFunction, $mapArgs);
-        return $this->getMappedRows();
-    }
-    /**
      * Reset the values in the set to default values.
      * 
      * @since 1.0
@@ -91,15 +75,6 @@ class ResultSet implements Countable, Iterator {
         $this->orgResultRows = [];
         $this->resultRows = [];
         $this->dataChangedBeforeMapping = true;
-    }
-    /**
-     * Sets the data at which the set will use in its operations.
-     * 
-     * @param array $records An array that represents the records.
-     */
-    public function setData(array $records) {
-        $this->clearSet();
-        $this->orgResultRows = $records;
     }
     /**
      * Return the number of mapped rows in the set.
@@ -144,12 +119,13 @@ class ResultSet implements Countable, Iterator {
         }
         $args = array_merge([$this->getRows()], $this->mapArgs);
         $result = call_user_func_array($this->mappingFunction, $args);
-        
+
         if (gettype($result) != 'array') {
             throw new DatabaseException('Map function is expected to return an array. '.gettype($result).' is returned.');
         }
         $this->resultRows = $result;
         $this->dataChangedBeforeMapping = false;
+
         return $result;
     }
     /**
@@ -200,6 +176,23 @@ class ResultSet implements Countable, Iterator {
     public function key() {
         return $this->cursorPos;
     }
+    /**
+     * Map the records of the result set using a mapping function.
+     * 
+     * @param Closure $mappingFunction A PHP function. The first argument of the
+     * function will always be the fetched raw records as an array. Each
+     * index of the array will have the record as associative array,
+     * 
+     * @param array $mapArgs Any additional arguments that the developer
+     * would like to pass to mapping function.
+     * 
+     * @return array The method will return an array of mapped records.
+     */
+    public function map($mappingFunction, array $mapArgs = []) : array {
+        $this->setMappingFunction($mappingFunction, $mapArgs);
+
+        return $this->getMappedRows();
+    }
     #[\ReturnTypeWillChange]
     /**
      * Move forward to next record.
@@ -217,6 +210,15 @@ class ResultSet implements Countable, Iterator {
      */
     public function rewind() {
         $this->cursorPos = 0;
+    }
+    /**
+     * Sets the data at which the set will use in its operations.
+     * 
+     * @param array $records An array that represents the records.
+     */
+    public function setData(array $records) {
+        $this->clearSet();
+        $this->orgResultRows = $records;
     }
     /**
      * Sets a custom callback which can be used to process result set and 
@@ -238,6 +240,7 @@ class ResultSet implements Countable, Iterator {
             $this->mapArgs = $otherParams;
             $this->mappingFunction = $callback;
             $this->dataChangedBeforeMapping = true;
+
             return true;
         }
 

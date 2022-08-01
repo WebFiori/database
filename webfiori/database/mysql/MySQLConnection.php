@@ -28,8 +28,8 @@ use mysqli;
 use mysqli_stmt;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
-use webfiori\database\ResultSet;
 use webfiori\database\DatabaseException;
+use webfiori\database\ResultSet;
 /**
  * A class that represents a connection to MySQL server.
  * 
@@ -78,11 +78,12 @@ class MySQLConnection extends Connection {
         $user = $connInfo->getUsername();
         $pass = $connInfo->getPassword();
         $dbName = $connInfo->getDBName();
-        
+
         if (!function_exists('mysqli_connect')) {
             throw new DatabaseException('mysqli extension is missing.');
         }
-        set_error_handler(function($no, $message) {
+        set_error_handler(function($no, $message)
+        {
             throw new DatabaseException($message, $no);
         });
         try {

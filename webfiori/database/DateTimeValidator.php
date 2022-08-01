@@ -11,29 +11,6 @@ namespace webfiori\database;
  */
 class DateTimeValidator {
     /**
-     * Checks if a date-time string is valid or not.
-     * 
-     * @param string $dateTime A date string in the format 'YYYY-MM-DD HH:MM:SS'.
-     * 
-     * @return boolean If the string represents correct date and time, the 
-     * method will return true. False if it is not valid.
-     * 
-     * @since 1.0
-     */
-    public static function isValidDateTime(string $dateTime) {
-        $trimmed = trim($dateTime);
-
-        if (strlen($trimmed) == 19) {
-            $dateAndTime = explode(' ', $trimmed);
-
-            if (count($dateAndTime) == 2) {
-                return self::isValidDate($dateAndTime[0]) && self::isValidTime($dateAndTime[1]);
-            }
-        }
-
-        return false;
-    }
-    /**
      * Checks if date string represents a valid date.
      * 
      * @param string $date A string that represents the date in the format 
@@ -54,6 +31,29 @@ class DateTimeValidator {
                 $day = intval($split[2]);
 
                 return $year > 1969 && $month > 0 && $month < 13 && $day > 0 && $day < 32;
+            }
+        }
+
+        return false;
+    }
+    /**
+     * Checks if a date-time string is valid or not.
+     * 
+     * @param string $dateTime A date string in the format 'YYYY-MM-DD HH:MM:SS'.
+     * 
+     * @return boolean If the string represents correct date and time, the 
+     * method will return true. False if it is not valid.
+     * 
+     * @since 1.0
+     */
+    public static function isValidDateTime(string $dateTime) {
+        $trimmed = trim($dateTime);
+
+        if (strlen($trimmed) == 19) {
+            $dateAndTime = explode(' ', $trimmed);
+
+            if (count($dateAndTime) == 2) {
+                return self::isValidDate($dateAndTime[0]) && self::isValidTime($dateAndTime[1]);
             }
         }
 

@@ -403,7 +403,6 @@ class SelectExpression extends Expression {
 
                     if ($isJoinTable) {
                         if (!($thisTable->getLeft() instanceof JoinTable)) {
-                            
                             $ownerName = $obj->getOwner()->getName();
                             $leftName = $thisTable->getLeft()->getName();
                             $rightName = $thisTable->getRight()->getName();
@@ -527,11 +526,11 @@ class SelectExpression extends Expression {
     public function getValue() : string {
         $colsStr = $this->getColsStr();
         $table = $this->getTable();
-        
+
         if ($table instanceof JoinTable) {
             $joinWhere = $this->_getJoinWhere($table);
             $joinCols = $this->_getJoinCols($table);
-            
+
             if (strlen($colsStr) == 0) {
                 return "select * from ($joinCols".$table->getJoin()."$joinWhere) as ".$table->getName();
             }
@@ -543,42 +542,6 @@ class SelectExpression extends Expression {
             }
 
             return "select $colsStr from ".$table->getName();
-        }
-        
-    }
-    private function _getJoinCols(JoinTable $joinTable) {
-        $leftTable = $joinTable->getLeft();
-        
-        if ($leftTable instanceof JoinTable) {
-            return $leftTable->getSelect()->getValue();
-        } 
-        
-        $leftCols = $joinTable->getLeft()->getSelect()->getColsStr();
-        $rightCols = $joinTable->getRight()->getSelect()->getColsStr();
-        
-        if ($leftCols == '*' && $rightCols == '*') {
-            return "select * from ";
-        } else if ($leftCols != '*' && $rightCols == '*') {
-            return "select $leftCols, ".$joinTable->getRight()->getName().".* from ";
-        } else if ($leftCols == '*' && $rightCols != '*') {
-            return "select ".$joinTable->getLeft()->getName().".*, $rightCols from ";
-        } else {
-            return "select * from ";
-        }
-    }
-    private function _getJoinWhere(JoinTable $joinTable) {
-        // remove the string ' where '
-        $leftWhere = substr($joinTable->getLeft()->getSelect()->getWhereStr(true, false), 7);
-        $rightWhere = substr($joinTable->getRight()->getSelect()->getWhereStr(true, false), 7);
-
-        if (strlen($leftWhere) != 0 && strlen($rightWhere) != 0) {
-            return " where $leftWhere and $rightWhere";
-        } else if (strlen($leftWhere) != 0 && strlen($rightWhere) == 0) {
-            return " where $leftWhere";
-        } else if (strlen($leftWhere) == 0 && strlen($rightWhere) != 0) {
-            return " where $rightWhere";
-        } else {
-            return '';
         }
     }
 
@@ -610,7 +573,7 @@ class SelectExpression extends Expression {
         $orderBy = '';
         $groupBy = '';
 
-        
+
         if ($this->whereExp !== null) {
             $retVal = $this->whereExp->getValue();
         }
@@ -697,8 +660,10 @@ class SelectExpression extends Expression {
 
             if ($orderType == 'd') {
                 $colArr['order'] = 'desc';
-            } else if ($orderType == 'a') {
-                $colArr['order'] = 'asc';
+            } else {
+                if ($orderType == 'a') {
+                    $colArr['order'] = 'asc';
+                }
             }
         }
         $this->orderByCols[$colKey] = $colArr;
@@ -760,6 +725,45 @@ class SelectExpression extends Expression {
             $selectColStr .= ' as '.$alias;
         }
         $arr[] = $selectColStr;
+    }
+    private function _getJoinCols(JoinTable $joinTable) {
+        $leftTable = $joinTable->getLeft();
+
+        if ($leftTable instanceof JoinTable) {
+            return $leftTable->getSelect()->getValue();
+        } 
+
+        $leftCols = $joinTable->getLeft()->getSelect()->getColsStr();
+        $rightCols = $joinTable->getRight()->getSelect()->getColsStr();
+
+        if ($leftCols == '*' && $rightCols == '*') {
+            return "select * from ";
+        } else {
+            if ($leftCols != '*' && $rightCols == '*') {
+                return "select $leftCols, ".$joinTable->getRight()->getName().".* from ";
+            } else {
+                if ($leftCols == '*' && $rightCols != '*') {
+                    return "select ".$joinTable->getLeft()->getName().".*, $rightCols from ";
+                } else {
+                    return "select * from ";
+                }
+            }
+        }
+    }
+    private function _getJoinWhere(JoinTable $joinTable) {
+        // remove the string ' where '
+        $leftWhere = substr($joinTable->getLeft()->getSelect()->getWhereStr(true, false), 7);
+        $rightWhere = substr($joinTable->getRight()->getSelect()->getWhereStr(true, false), 7);
+
+        if (strlen($leftWhere) != 0 && strlen($rightWhere) != 0) {
+            return " where $leftWhere and $rightWhere";
+        } else if (strlen($leftWhere) != 0 && strlen($rightWhere) == 0) {
+            return " where $leftWhere";
+        } else if (strlen($leftWhere) == 0 && strlen($rightWhere) != 0) {
+            return " where $rightWhere";
+        } else {
+            return '';
+        }
     }
     private function _setAlias($colObj, $options, &$opArr) {
         if (isset($options['alias'])) {

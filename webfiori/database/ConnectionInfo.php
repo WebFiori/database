@@ -154,6 +154,7 @@ class ConnectionInfo {
         } else {
             $this->setHost($host);
         }
+
         if ($port === null) {
             if ($databaseType == 'mysql') {
                 $this->setPort(3306);

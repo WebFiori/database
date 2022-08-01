@@ -2,8 +2,8 @@
 namespace webfiori\database\mssql;
 
 use webfiori\database\Column;
-use webfiori\database\DateTimeValidator;
 use webfiori\database\ColumnFactory;
+use webfiori\database\DateTimeValidator;
 /**
  * A class that represents a column in MSSQL table.
  *
@@ -131,7 +131,6 @@ class MSSQLColumn extends Column {
      */
     public static function createColObj(array $options) {
         if (isset($options['name'])) {
-            
             return ColumnFactory::create('mssql', $options['name'], $options);
         }
     }
@@ -377,10 +376,10 @@ class MSSQLColumn extends Column {
 
         if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar')) {
-            
             if ($colDatatype == 'nchar' || $colDatatype == 'nvarchar') {
                 return "N'".$retVal."'";
             }
+
             return "'".$retVal."'";
         }
 
@@ -425,7 +424,7 @@ class MSSQLColumn extends Column {
             }
         }
     }
-    
+
 
     private function _firstColPart() {
         $retVal = MSSQLQuery::squareBr($this->getName()).' ';

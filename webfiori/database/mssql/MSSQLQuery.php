@@ -90,9 +90,10 @@ class MSSQLQuery extends AbstractQuery {
      */
     public function getQuery() {
         $query = parent::getQuery();
-         if ($this->getLastQueryType() == 'select' && $this->getLimit() > 0) {
+
+        if ($this->getLastQueryType() == 'select' && $this->getLimit() > 0) {
             $query .= ' offset '.($this->getOffset() == -1 ? 0 : $this->getOffset()).' rows';
-       
+
             $query .= ' fetch next '.$this->getLimit().' rows only';
         }
 
@@ -113,10 +114,10 @@ class MSSQLQuery extends AbstractQuery {
      */
     public function insert(array $colsAndVals) {
         $tblName = $this->getTable()->getName();
-        
+
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $colsArr = [];
-            
+
 
             foreach ($colsAndVals['cols'] as $colKey) {
                 $colObj = $this->getTable()->getColByKey($colKey);
@@ -137,8 +138,8 @@ class MSSQLQuery extends AbstractQuery {
             $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
         } else {
             $data = $this->_insertHelper(array_keys($colsAndVals), $colsAndVals);
-            $cols = '('. $data['cols'].')';
-            $vals = '('. $data['vals'].')';
+            $cols = '('.$data['cols'].')';
+            $vals = '('.$data['vals'].')';
             $this->setQuery("insert into $tblName $cols values $vals;");
         }
 
@@ -231,6 +232,7 @@ class MSSQLQuery extends AbstractQuery {
 
             return implode('.', $arr);
         }
+
         return '';
     }
 
@@ -305,13 +307,15 @@ class MSSQLQuery extends AbstractQuery {
                 $columnsWithVals[] = $colKey;
                 $colsNamesArr[] = $column->getName();
                 $type = $column->getDatatype();
-                
+
                 if (isset($valuesToInsert[$colKey])) {
                     $val = $valuesToInsert[$colKey];
-                } else if (isset ($valuesToInsert[$valIndex])) {
-                    $val = $valuesToInsert[$valIndex];
                 } else {
-                    $val = null;
+                    if (isset($valuesToInsert[$valIndex])) {
+                        $val = $valuesToInsert[$valIndex];
+                    } else {
+                        $val = null;
+                    }
                 }
 
                 if ($val !== null) {
@@ -320,7 +324,8 @@ class MSSQLQuery extends AbstractQuery {
                     if ($type == 'binary' || $type == 'varbinary') {
                         //chr(0) to remove null bytes in path.
                         $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
-                        set_error_handler(function (int $no, string $message) {
+                        set_error_handler(function (int $no, string $message)
+                        {
                             throw new DatabaseException($message, $no);
                         });
 
@@ -332,18 +337,18 @@ class MSSQLQuery extends AbstractQuery {
                                 $fileContent = fread($file, filesize($fixedPath));
 
                                 if ($fileContent !== false) {
-                                    $data = '0x'. bin2hex($fileContent);
+                                    $data = '0x'.bin2hex($fileContent);
                                     $valsArr[] = $data;
                                 } else {
                                     $valsArr[] = 'null';
                                 }
                                 fclose($file);
                             } else {
-                                $data = '0x'. bin2hex($val);
+                                $data = '0x'.bin2hex($val);
                                 $valsArr[] = $data;
                             }
                         } else {
-                            $data = '0x'. bin2hex($cleanedVal).'';
+                            $data = '0x'.bin2hex($cleanedVal).'';
                             $valsArr[] = $data;
                         }
                         restore_error_handler();
@@ -368,6 +373,7 @@ class MSSQLQuery extends AbstractQuery {
                 if ($defaultVal !== null) {
                     $colsNamesArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
+
                     if ($type == 'boolean' || $type == 'bool') {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
                     } else if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {

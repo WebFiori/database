@@ -101,6 +101,7 @@ class MSSQLTable extends Table {
         if ($this->uniqueConstName === null) {
             $this->uniqueConstName = $this->getNormalName();
         }
+
         return 'AK_'.$this->getNormalName();
     }
     /**
@@ -152,7 +153,7 @@ class MSSQLTable extends Table {
     private function _createFK() {
         $comma = '';
         $fkConstraint = '';
-        
+
         foreach ($this->getForignKeys() as $fkObj) {
             $fkConstraint .= $comma;
             $sourceCols = [];

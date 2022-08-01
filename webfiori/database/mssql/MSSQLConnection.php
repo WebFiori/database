@@ -57,7 +57,7 @@ class MSSQLConnection extends Connection {
         }
         ini_set('mssql.charset', 'UTF-8');
         $connObj = $this->getConnectionInfo();
-        
+
         if ($connObj->getUsername() === null) {
             $connInfo = [
                 'Database' => $connObj->getDBName(),
@@ -73,7 +73,7 @@ class MSSQLConnection extends Connection {
                 'ReturnDatesAsStrings' => true
             ];
         }
-        
+
         //Needs more debugging
         //If port is added on localhost, it always fail
         $servName = $connObj->getHost();//.", ".$connObj->getPort();
@@ -204,7 +204,7 @@ class MSSQLConnection extends Connection {
     private function _setErr() {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);
         $lastErr = $allErrs[count($allErrs) - 1];
-        
+
         if (strpos($lastErr['message'], 'The statement has been terminated') === false) {
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
