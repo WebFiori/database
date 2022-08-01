@@ -311,19 +311,22 @@ class EntityMapper {
      * ]</code>
      * </p>
      * 
+     * @param bool $useColKey If this parameter is set to true, the value of the
+     * index will be column key instead of column name. Default is false.
+     * 
      * @return array An associative array. The indices represents the names of 
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
      * @since 1.0
      */
-    public function getGettersMap() : array {
+    public function getGettersMap(bool $useColKey = false) : array {
         $keys = $this->getTable()->getColsKeys();
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $methodName = $this->mapToMethodName($keyName, 'g');
-            $mappedCol = $this->getTable()->getColByKey($keyName)->getNormalName();
+            $methodName = self::mapToMethodName($keyName, 'g');
+            $mappedCol = $useColKey ? $keyName : $this->getTable()->getColByKey($keyName)->getNormalName();
             $retVal[$methodName] = $mappedCol;
         }
 
@@ -377,19 +380,22 @@ class EntityMapper {
      * ]</code>
      * </p>
      * 
+     * @param bool $useColKey If this parameter is set to true, the value of the
+     * index will be column key instead of column name. Default is false.
+     * 
      * @return array An associative array. The indices represents the names of 
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
      * @since 1.0
      */
-    public function getSettersMap() : array {
+    public function getSettersMap(bool $useColKey = false) : array {
         $keys = $this->getTable()->getColsKeys();
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $methodName = $this->mapToMethodName($keyName, 's');
-            $mappedCol = $this->getTable()->getColByKey($keyName)->getNormalName();
+            $methodName = self::mapToMethodName($keyName, 's');
+            $mappedCol = $useColKey ? $keyName : $this->getTable()->getColByKey($keyName)->getNormalName();
             $retVal[$methodName] = $mappedCol;
         }
 
