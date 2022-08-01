@@ -6,3 +6,4 @@ tests/mysql/UserEntity.php
 vendor/*
 tests/webfiori/database/tests/common/UserClass.php
 composer.lock
+php-cs-fixer-v2.phar

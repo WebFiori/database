@@ -1,13 +1,14 @@
 <?php
 namespace webfiori\database;
+
 /**
  * A class which is used to map a database record to a system entity.
  *
  * @author Ibrahim
  */
 class RecordMapper {
-    private $settersMap;
     private $clazzName;
+    private $settersMap;
     /**
      * Creates new instance of the class.
      * 
@@ -19,6 +20,7 @@ class RecordMapper {
      */
     public function __construct(string $clazz = '', array $columns = []) {
         $this->settersMap = [];
+
         if (strlen(trim($clazz)) != 0) {
             $this->setClass($clazz);
         } else {
@@ -46,31 +48,15 @@ class RecordMapper {
      */
     public function addSetterMap(string $colName, $methodName = null) {
         $trimmedColName = trim(trim(trim(trim($colName, '`'), ']'), '['));
+
         if (strlen($trimmedColName) == 0) {
             return;
         }
+
         if ($methodName === null) {
             $methodName = 'set'.$this->columnNameToMethodName($trimmedColName);
         }
         $this->settersMap[$methodName] = $trimmedColName;
-    }
-    /**
-     * Sets the class that the records will be mapped to.
-     * 
-     * Note that the method will throw an exception if the class
-     * does not exist.
-     * 
-     * @param string $clazz The name of the class (including namespace).
-     * 
-     * @throws DatabaseException
-     */
-    public function setClass($clazz) {
-        $trimmed = trim($clazz);
-        if (class_exists($trimmed)) {
-            $this->clazzName = $clazz;
-        } else {
-            throw new DatabaseException('Class not found: '.$clazz);
-        }
     }
     /**
      * Returns the name of the class that the mapper will use to map a
@@ -81,6 +67,15 @@ class RecordMapper {
      */
     public function getClass() : string {
         return $this->clazzName;
+    }
+    /**
+     * Returns an array that holds the methods and each record they are mapped to.
+     * 
+     * @return array An associative array. The indices will represent methods
+     * names and the values are columns names.
+     */
+    public function getSettrsMap() : array {
+        return $this->settersMap;
     }
     /**
      * Maps a record to the specified entity class.
@@ -97,44 +92,57 @@ class RecordMapper {
      */
     public function map(array $record) {
         $instance = new $this->clazzName();
-        
+
         foreach ($this->getSettrsMap() as $method => $colName) {
             if (is_callable([$instance, $method])) {
                 try {
                     $instance->$method($record[$colName]);
                 } catch (\Throwable $ex) {
-                    
                 }
             }
         }
-      return $instance;
+
+        return $instance;
     }
     /**
-     * Returns an array that holds the methods and each record they are mapped to.
+     * Sets the class that the records will be mapped to.
      * 
-     * @return array An associative array. The indices will represent methods
-     * names and the values are columns names.
+     * Note that the method will throw an exception if the class
+     * does not exist.
+     * 
+     * @param string $clazz The name of the class (including namespace).
+     * 
+     * @throws DatabaseException
      */
-    public function getSettrsMap() : array {
-        return $this->settersMap;
-    }
-    private function extractMethodsNames($columnsNames) {
-        foreach ($columnsNames as $name) {
-            $this->addSetterMap($name);
+    public function setClass($clazz) {
+        $trimmed = trim($clazz);
+
+        if (class_exists($trimmed)) {
+            $this->clazzName = $clazz;
+        } else {
+            throw new DatabaseException('Class not found: '.$clazz);
         }
     }
     private function columnNameToMethodName($colName) {
         $expl = explode('_', $colName);
         $methName = '';
-        for($x = 0 ; $x < count($expl) ; $x++) {
+
+        for ($x = 0 ; $x < count($expl) ; $x++) {
             $xStr = $expl[$x];
             $upper = strtoupper($xStr[0]);
+
             if (strlen($xStr) == 1) {
                 $methName .= $upper;
             } else {
                 $methName .= $upper.substr($xStr, 1);
             }
         }
+
         return $methName;
+    }
+    private function extractMethodsNames($columnsNames) {
+        foreach ($columnsNames as $name) {
+            $this->addSetterMap($name);
+        }
     }
 }

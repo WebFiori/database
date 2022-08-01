@@ -178,8 +178,8 @@ abstract class Column {
         $this->setDatatype('char');
         $this->setWithTablePrefix(false);
         $this->setName($name);
-        
-        
+
+
         $this->columnIndex = -1;
         $this->cleanupFunc = function ($val, $cleanedVal)
         {
@@ -318,6 +318,7 @@ abstract class Column {
         if ($this->oldName === null) {
             return $this->getName();
         }
+
         return $this->oldName;
     }
     /**
@@ -561,7 +562,6 @@ abstract class Column {
      * @since 1.0
      */
     public function setIsPrimary(bool $bool) {
-
         if ($bool) {
             $this->setIsNull(false);
         }
@@ -587,15 +587,19 @@ abstract class Column {
      */
     public function setName(string $name) {
         $this->oldName = $this->getName();
+
         if (strlen($this->oldName) == 0) {
             $this->oldName = null;
         }
+
         if ($this instanceof MySQLColumn) {
             $this->name = trim($name, '`');
-        } else if ($this instanceof MSSQLColumn) {
-            $this->name = trim(trim($name, '['), ']');
         } else {
-            $this->name = trim($name);
+            if ($this instanceof MSSQLColumn) {
+                $this->name = trim(trim($name, '['), ']');
+            } else {
+                $this->name = trim($name);
+            }
         }
     }
     /**

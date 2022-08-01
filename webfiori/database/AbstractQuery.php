@@ -24,10 +24,11 @@
  */
 namespace webfiori\database;
 
-use webfiori\database\mysql\MySQLQuery;
+use Throwable;
 use webfiori\database\mssql\MSSQLQuery;
-use webfiori\database\mysql\MySQLTable;
 use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mysql\MySQLTable;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -251,7 +252,7 @@ abstract class AbstractQuery {
             $copy = new MSSQLQuery();
             $copy->associatedTbl = $this->associatedTbl;
             $copy->schema = $this->schema;
-            
+
             return $copy;
         }
     }
@@ -574,7 +575,7 @@ abstract class AbstractQuery {
 
         $nameAsInt = intval(substr($alias, -1));
         $alias = 'T'.(++$nameAsInt);
-        
+
 
 
         $joinTable = new JoinTable($leftTable, $rightTable, $joinType, $alias);
@@ -671,11 +672,12 @@ abstract class AbstractQuery {
 
             if ($leftCol instanceof Column) {
                 $leftCol->setWithTablePrefix(false);
+
                 if ($leftCol->getOwner() instanceof JoinTable && $leftCol->getAlias() !== null) {
                     $leftCol->setName($leftCol->getAlias());
                 }
                 $leftColName = $leftCol->getOwner()->getName().'.'.$leftCol->getOldName();
-                
+
                 $rightCol = $table->getRight()->getColByKey($rightCol);
 
                 if ($rightCol instanceof Column) {
@@ -837,7 +839,7 @@ abstract class AbstractQuery {
         $select->clear();
         $select->select($cols);
         $selectVal = $select->getValue();
-        
+
         $this->setQuery($selectVal);
 
         return $this;
@@ -1046,9 +1048,10 @@ abstract class AbstractQuery {
      */
     public function table($tblName) {
         $tableObj = $this->checkIsClass($tblName);
-        
+
         if ($tableObj === null) {
             $tableObj = $this->getSchema()->getTable($tblName);
+
             if ($tableObj === null) {
                 $tableObj = $this->createTableObj($tblName);
             }
@@ -1064,34 +1067,6 @@ abstract class AbstractQuery {
         $this->setTable($tableObj);
 
         return $this;
-    }
-    /**
-     * 
-     * @param type $name
-     * @return MySQLTable|MSSQLTable
-     */
-    private function createTableObj($name) {
-        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
-        if ($dbType == 'mysql') {
-            $tableObj = new MySQLTable($name);
-        } else if ($dbType == 'mssql') {
-            $tableObj = new MSSQLTable($name);
-        }
-        return $tableObj;
-    }
-    private function checkIsClass($str) {
-        if (class_exists($str)) {
-            try {
-                $clazz = new $str();
-                if ($clazz instanceof Table) {
-                    return $clazz;
-                }
-            } catch (Exception $ex) {
-
-            } catch (\ErrorException $ex) {
-                
-            }
-        }
     }
 
     /**
@@ -1231,65 +1206,6 @@ abstract class AbstractQuery {
         ]);
 
         return $this;
-    }
-    private function _addWhere($options) {
-        $lastQType = $this->getLastQueryType();
-        $table = $this->getTable();
-        
-        $col = $options['col-key'];
-        $joinCond = $options['join-cond'];
-        $not = isset($options['not']) ? $options['not'] : false;
-        
-        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
-            $colObj = $table->getColByKey($col);
-
-            if ($colObj === null) {
-                $table->addColumns([
-                    $col => []
-                ]);
-                $colObj = $table->getColByKey($col);
-            }
-            $colObj->setWithTablePrefix(true);
-            $colName = $colObj->getName();
-            
-            if ($options['func'] == 'between') {
-                $firstCleanVal = $colObj->cleanValue($options['first-value']);
-                $secCleanVal = $colObj->cleanValue($options['second-value']);
-                $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
-            } else if ($options['func'] == 'in') {
-                $cleanedVals = $colObj->cleanValue($options['values']);
-                $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
-            } else if ($options['func'] == 'left') {
-                $cleanVal = $colObj->cleanValue($options['value']);
-                $cleanType = gettype($cleanVal);
-                $charsCount = $options['count'];
-                $cond = $options['condition'];
-                
-                if ($cleanType == 'string' || $cleanType == 'array') {
-                    $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
-                }
-            } else if ($options['func'] == 'like') {
-                
-                $cleanVal = $colObj->cleanValue($options['value']);
-
-                if (gettype($cleanVal) == 'string') {
-                    $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
-                }
-            } else if ($options['func'] == 'null') {
-                $this->getTable()->getSelect()->addWhereNull($colName, $joinCond, $not);
-            } else if ($options['func'] == 'right') {
-                $cleanVal = $colObj->cleanValue($options['value']);
-                $cleanType = gettype($cleanVal);
-                $charsCount = $options['count'];
-                $cond = $options['condition'];
-                
-                if ($cleanType == 'string' || $cleanType == 'array') {
-                    $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
-                }
-            }
-        } else {
-            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
-        }
     }
     /**
      * Constructs a 'where in()' condition.
@@ -1564,6 +1480,64 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    private function _addWhere($options) {
+        $lastQType = $this->getLastQueryType();
+        $table = $this->getTable();
+
+        $col = $options['col-key'];
+        $joinCond = $options['join-cond'];
+        $not = isset($options['not']) ? $options['not'] : false;
+
+        if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
+            $colObj = $table->getColByKey($col);
+
+            if ($colObj === null) {
+                $table->addColumns([
+                    $col => []
+                ]);
+                $colObj = $table->getColByKey($col);
+            }
+            $colObj->setWithTablePrefix(true);
+            $colName = $colObj->getName();
+
+            if ($options['func'] == 'between') {
+                $firstCleanVal = $colObj->cleanValue($options['first-value']);
+                $secCleanVal = $colObj->cleanValue($options['second-value']);
+                $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
+            } else if ($options['func'] == 'in') {
+                $cleanedVals = $colObj->cleanValue($options['values']);
+                $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+            } else if ($options['func'] == 'left') {
+                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanType = gettype($cleanVal);
+                $charsCount = $options['count'];
+                $cond = $options['condition'];
+
+                if ($cleanType == 'string' || $cleanType == 'array') {
+                    $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
+                }
+            } else if ($options['func'] == 'like') {
+                $cleanVal = $colObj->cleanValue($options['value']);
+
+                if (gettype($cleanVal) == 'string') {
+                    $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
+                }
+            } else if ($options['func'] == 'null') {
+                $this->getTable()->getSelect()->addWhereNull($colName, $joinCond, $not);
+            } else if ($options['func'] == 'right') {
+                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanType = gettype($cleanVal);
+                $charsCount = $options['count'];
+                $cond = $options['condition'];
+
+                if ($cleanType == 'string' || $cleanType == 'array') {
+                    $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
+                }
+            }
+        } else {
+            throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
+        }
+    }
     private function _getColsToSelect() {
         $thisTable = $this->getTable();
 
@@ -1598,5 +1572,33 @@ abstract class AbstractQuery {
         }
 
         return $columnsToSelect;
+    }
+    private function checkIsClass($str) {
+        if (class_exists($str)) {
+            try {
+                $clazz = new $str();
+
+                if ($clazz instanceof Table) {
+                    return $clazz;
+                }
+            } catch (Throwable $ex) {
+            }
+        }
+    }
+    /**
+     * 
+     * @param type $name
+     * @return MySQLTable|MSSQLTable
+     */
+    private function createTableObj($name) {
+        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
+
+        if ($dbType == 'mysql') {
+            $tableObj = new MySQLTable($name);
+        } else if ($dbType == 'mssql') {
+            $tableObj = new MSSQLTable($name);
+        }
+
+        return $tableObj;
     }
 }

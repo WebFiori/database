@@ -106,6 +106,7 @@ abstract class Table {
      */
     public function __construct(string $name = 'new_table') {
         $this->name = '';
+
         if (!$this->setName($name)) {
             $this->name = 'new_table';
         }
@@ -461,7 +462,6 @@ abstract class Table {
      * @since 1.0
      */
     public function getPrimaryKeyColsCount() {
-
         return count($this->getPrimaryKeyColsKeys());
     }
     /**
@@ -473,28 +473,6 @@ abstract class Table {
      */
     public function getPrimaryKeyColsKeys() {
         return $this->_getColsKeys('isPrimary');
-    }
-    private function _getColsKeys($method) : array {
-        $arr = [];
-
-        foreach ($this->getCols() as $colkey => $col) {
-            if ($col->$method()) {
-                $arr[] = $colkey;
-            }
-        }
-
-        return $arr;
-    }
-    private function _getCols($method) : array {
-        $arr = [];
-
-        foreach ($this->getCols() as $col) {
-            if ($col->$method()) {
-                $arr[] = $col;
-            }
-        }
-
-        return $arr;
     }
 
     /**
@@ -532,7 +510,6 @@ abstract class Table {
      * @since 1.0.2
      */
     public function getUniqueCols() {
-
         return $this->_getCols('isUnique');
     }
     /**
@@ -543,7 +520,6 @@ abstract class Table {
      * 
      */
     public function getUniqueColsCount() {
-
         return count($this->getUniqueColsKeys());
     }
     /**
@@ -676,6 +652,7 @@ abstract class Table {
 
         if (strlen($trimmed) > 0) {
             $this->oldName = $this->getName();
+
             if (strlen($this->oldName) == 0) {
                 $this->oldName = null;
             }
@@ -748,6 +725,28 @@ abstract class Table {
         } else {
             throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
         }
+    }
+    private function _getCols($method) : array {
+        $arr = [];
+
+        foreach ($this->getCols() as $col) {
+            if ($col->$method()) {
+                $arr[] = $col;
+            }
+        }
+
+        return $arr;
+    }
+    private function _getColsKeys($method) : array {
+        $arr = [];
+
+        foreach ($this->getCols() as $colkey => $col) {
+            if ($col->$method()) {
+                $arr[] = $colkey;
+            }
+        }
+
+        return $arr;
     }
     /**
      * 
