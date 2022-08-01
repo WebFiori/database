@@ -2,6 +2,8 @@
 namespace webfiori\database;
 
 use InvalidArgumentException;
+use webfiori\json\Json;
+use webfiori\json\JsonI;
 /**
  * A class which is used to map a 'Table' object to an entity class.
  *
@@ -159,9 +161,9 @@ class EntityMapper {
 
             if ($this->implJsonI) {
                 $this->classStr .= ""
-                ."use webfiori\database\RecordMapper;\n"
-                ."use webfiori\json\Json;\n"
-                ."use webfiori\json\JsonI;\n"
+                ."use ".RecordMapper::class.";\n"
+                ."use ".Json::class.";\n"
+                ."use ".JsonI::class.";\n"
                 ."\n";
             }
             $this->classStr .= "/**\n"
