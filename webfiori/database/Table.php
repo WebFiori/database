@@ -253,7 +253,7 @@ abstract class Table {
         $trimmed = trim($name);
 
         foreach ($this->getCols() as $colObj) {
-            if ($colObj->getName() == $trimmed) {
+            if ($colObj->getNormalName() == $trimmed) {
                 return $colObj;
             }
         }
@@ -282,16 +282,16 @@ abstract class Table {
     /**
      * Returns an array that contains data types of table columns.
      * 
-     * @return array An indexed array that contains columns data types. Each 
-     * index will corresponds to the index of the column in the table.
+     * @return array An associative array that contains columns data types. Each 
+     * index will be column key.
      * 
      * @since 1.0
      */
     public function getColsDatatypes() {
         $retVal = [];
 
-        foreach ($this->getCols() as $colObj) {
-            $retVal[] = $colObj->getDatatype();
+        foreach ($this->getCols() as $idx => $colObj) {
+            $retVal[$idx] = $colObj->getDatatype();
         }
 
         return $retVal;
