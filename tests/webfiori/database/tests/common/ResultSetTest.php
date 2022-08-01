@@ -112,4 +112,18 @@ class ResultSetTest extends TestCase {
         $this->assertEquals(5, $set->getMappedRowsCount());
         $this->assertEquals([0,2,3,5,6], $data2);
     }
+    /**
+     * @test
+     */
+    public function test03() {
+        $this->expectException(\webfiori\database\DatabaseException::class);
+        $this->expectExceptionMessage('Map function is expected to return an array. integer is returned.');
+        $set = new ResultSet([
+            ['col_1' => 'Super', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 0],
+            ['col_1' => 'Super-2', 'col_2' => 'ok', 'col_3' => 'Not Cool', 'col_4' => 1],
+        ]);
+        $set->map(function () {
+            return 33;
+        });
+    }
 }

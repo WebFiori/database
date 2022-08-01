@@ -583,6 +583,10 @@ class Database {
      * @since 1.0.2
      */
     public function setQuery($query) {
+        $t = $this->getQueryGenerator()->getTable();
+        if ($t !== null) {
+            $t->getSelect()->clear();
+        }
         $this->getQueryGenerator()->setQuery($query);
 
         return $this;

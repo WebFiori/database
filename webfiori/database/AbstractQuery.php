@@ -1235,7 +1235,7 @@ abstract class AbstractQuery {
     private function _addWhere($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
-        $tableName = $table->getName();
+        
         $col = $options['col-key'];
         $joinCond = $options['join-cond'];
         $not = isset($options['not']) ? $options['not'] : false;

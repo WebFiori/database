@@ -387,6 +387,8 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals(0,$col->getScale());
         $this->assertTrue($col->setScale(9));
         $this->assertEquals(9,$col->getScale());
+        $this->assertFalse($col->setScale(-1));
+        $this->assertEquals(9,$col->getScale());
         $this->assertFalse($col->setScale(10));
         $this->assertEquals(9,$col->getScale());
     }

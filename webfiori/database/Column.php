@@ -24,6 +24,9 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLColumn;
+use webfiori\database\mysql\MySQLColumn;
+
 /**
  * A class which represents a column in a database table.
  *
@@ -475,21 +478,15 @@ abstract class Column {
      * where the first value is the original value and the second one is the value with 
      * basic filtering applied to.
      * 
-     * @param Closure $callback The callback.
+     * @param callable $callback The callback.
      * 
      * @return boolean If it was updated, the method will return true. Other than that, 
      * the method will return false.
      * 
      * @since 1.0
      */
-    public function setCustomFilter($callback) {
-        if (is_callable($callback)) {
-            $this->cleanupFunc = $callback;
-
-            return true;
-        }
-
-        return false;
+    public function setCustomFilter(callable $callback) {
+        $this->cleanupFunc = $callback;
     }
     /**
      * Sets the type of column data.
