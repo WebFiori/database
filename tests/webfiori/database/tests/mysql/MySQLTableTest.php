@@ -74,6 +74,7 @@ class MySQLTableTest extends TestCase {
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $table2->toSQL());
+        $this->assertEquals(3, $table->getUniqueColsCount());
     }
     /**
      * @test
@@ -280,6 +281,10 @@ class MySQLTableTest extends TestCase {
         ]);
         $this->assertTrue($table->getColByKey('id-col')->isUnique());
         $this->assertEquals(1, $table->getPrimaryKeyColsCount());
+        $this->assertEquals(1, $table->getUniqueColsCount());
+        $this->assertEquals([
+            'id-col'
+        ], $table->getUniqueColsKeys());
         return $table;
     }
     /**
@@ -296,6 +301,7 @@ class MySQLTableTest extends TestCase {
         $this->assertFalse($table->getColByKey('id-col')->isUnique());
         $this->assertFalse($table->getColByKey('id-col-2')->isUnique());
         $this->assertEquals(2, $table->getPrimaryKeyColsCount());
+        $this->assertEquals(0, $table->getUniqueColsCount());
         return $table;
     }
     /**
@@ -306,7 +312,7 @@ class MySQLTableTest extends TestCase {
     public function testPrimaryKey02($table) {
         $table->removeColByKey('id-col');
         $this->assertTrue($table->getColByKey('id-col-2')->isUnique());
-
+        $this->assertEquals(1, $table->getUniqueColsCount());
         return $table;
     }
     /**
@@ -384,13 +390,22 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                'size' => 15,
+                'name' => 'cool'
             ],
             'is-active' => [
                 'type' => 'bool'
             ]
         ]);
+        $this->assertNull($table->getColByName('is-active'));
+        $this->assertNotNull($table->getColByName('is_active'));
+        $this->assertNull($table->getColByName('user_id'));
+        $this->assertNotNull($table->getColByName('cool'));
         $this->assertNull($table->removeReference('not-exist'));
+        $this->assertEquals([
+            'user-id' => 'varchar',
+            'is-active' => 'bool'
+        ], $table->getColsDatatypes());
     }
     /**
      * @test
