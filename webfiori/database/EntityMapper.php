@@ -413,7 +413,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    private function mapToMethodName(string $colKey, $type = 'g') {
+    public static function mapToMethodName(string $colKey, $type = 'g') {
         $trimmed = trim($colKey);
 
 
