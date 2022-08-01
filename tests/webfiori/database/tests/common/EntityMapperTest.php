@@ -95,8 +95,8 @@ class EntityMapperTest extends TestCase {
         $this->assertTrue($entityMapper->create());
         $this->assertFalse($entityMapper->setNamespace('\\A\\B'));
         $this->assertFalse($entityMapper->setNamespace('6\\B'));
-        $this->assertFalse($entityMapper->setNamespace('\\A\\\B'));
-        $this->assertFalse($entityMapper->setNamespace('\\A\\$AX'));
+        $this->assertFalse($entityMapper->setNamespace('A\\\B'));
+        $this->assertFalse($entityMapper->setNamespace('A\\$AX'));
         return $entityMapper;
     }
     /**
