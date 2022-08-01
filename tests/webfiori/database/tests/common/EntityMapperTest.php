@@ -60,7 +60,14 @@ class EntityMapperTest extends TestCase {
             'setAge' => 'age',
             
         ], $entityMapper->getSettersMap());
-        
+        $this->assertEquals([
+            'setId' => 'id',
+            'setCXFile' => 'c-x-file',
+            'setFirstName' => 'first-name',
+            'setLastName' => 'last-name',
+            'setAge' => 'age',
+            
+        ], $entityMapper->getSettersMap(true));
         $this->assertEquals([
             'getId' => 'id',
             'getCXFile' => 'c_x_file',
@@ -69,6 +76,15 @@ class EntityMapperTest extends TestCase {
             'getAge' => 'age',
             
         ], $entityMapper->getGettersMap());
+        
+        $this->assertEquals([
+            'getId' => 'id',
+            'getCXFile' => 'c-x-file',
+            'getFirstName' => 'first-name',
+            'getLastName' => 'last-name',
+            'getAge' => 'age',
+            
+        ], $entityMapper->getGettersMap(true));
         
         $entityMapper->addAttribute('extraAttribute');
         $this->assertEquals([
