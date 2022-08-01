@@ -390,13 +390,22 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                'size' => 15,
+                'name' => 'cool'
             ],
             'is-active' => [
                 'type' => 'bool'
             ]
         ]);
+        $this->assertNull($table->getColByName('is-active'));
+        $this->assertNotNull($table->getColByName('is_active'));
+        $this->assertNull($table->getColByName('user_id'));
+        $this->assertNotNull($table->getColByName('cool'));
         $this->assertNull($table->removeReference('not-exist'));
+        $this->assertEquals([
+            'user-id' => 'varchar',
+            'is-active' => 'bool'
+        ], $table->getColsDatatypes());
     }
     /**
      * @test
