@@ -218,9 +218,9 @@ class MSSQLColumnTest extends TestCase {
      */
     public function testGetPHPType01() {
         $colObj = new MSSQLColumn('col', 'money');
-        $this->assertEquals('double', $colObj->getPHPType());
+        $this->assertEquals('float', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('double|null', $colObj->getPHPType());
+        $this->assertEquals('float|null', $colObj->getPHPType());
     }
     /**
      * @test
@@ -236,9 +236,9 @@ class MSSQLColumnTest extends TestCase {
      */
     public function testGetPHPType03() {
         $colObj = new MSSQLColumn('col', 'decimal');
-        $this->assertEquals('double', $colObj->getPHPType());
+        $this->assertEquals('float', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('double|null', $colObj->getPHPType());
+        $this->assertEquals('float|null', $colObj->getPHPType());
     }
     /**
      * @test

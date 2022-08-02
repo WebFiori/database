@@ -1,4 +1,13 @@
 <?php
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2019 Ibrahim BinAlshikh
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
 namespace webfiori\database\mssql;
 
 use webfiori\database\Column;
@@ -231,7 +240,7 @@ class MSSQLColumn extends Column {
         if ($colType == 'int' || $colType == 'bit') {
             return 'int'.$isNullStr;
         } else if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
-            return 'double'.$isNullStr;
+            return 'float'.$isNullStr;
         } else if ($colType == 'boolean' || $colType == 'bool') {
             return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'nvarchar'
