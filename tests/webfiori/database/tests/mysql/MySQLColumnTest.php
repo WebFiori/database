@@ -9,11 +9,7 @@
 namespace webfiori\database\tests\mysql;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\database\Database;
-use webfiori\database\mysql\MySQLTable;
 use webfiori\database\mysql\MySQLColumn;
-use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\AbstractQuery;
 /**
  * Description of MySQLColumnTest
  *
@@ -748,7 +744,7 @@ class MySQLColumnTest extends TestCase {
      */
     public function testGetPHPType03() {
         $colObj = new MySQLColumn('col', 'decimal');
-        $this->assertEquals('floa', $colObj->getPHPType());
+        $this->assertEquals('float', $colObj->getPHPType());
         $colObj->setIsNull(true);
         $this->assertEquals('float|null', $colObj->getPHPType());
     }
