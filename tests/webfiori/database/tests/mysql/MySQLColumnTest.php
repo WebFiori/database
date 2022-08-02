@@ -748,9 +748,9 @@ class MySQLColumnTest extends TestCase {
      */
     public function testGetPHPType03() {
         $colObj = new MySQLColumn('col', 'decimal');
-        $this->assertEquals('double', $colObj->getPHPType());
+        $this->assertEquals('floa', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('double|null', $colObj->getPHPType());
+        $this->assertEquals('float|null', $colObj->getPHPType());
     }
     /**
      * @test

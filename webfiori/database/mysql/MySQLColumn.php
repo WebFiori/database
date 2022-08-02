@@ -345,7 +345,7 @@ class MySQLColumn extends Column {
         if ($colType == 'int') {
             return 'int'.$isNullStr;
         } else  if ($colType == 'decimal' || $colType == 'double' || $colType == 'float') {
-            return 'double'.$isNullStr;
+            return 'float'.$isNullStr;
         } else  if ($colType == 'boolean' || $colType == 'bool') {
             return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'datetime'

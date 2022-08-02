@@ -231,7 +231,7 @@ class MSSQLColumn extends Column {
         if ($colType == 'int' || $colType == 'bit') {
             return 'int'.$isNullStr;
         } else if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
-            return 'double'.$isNullStr;
+            return 'float'.$isNullStr;
         } else if ($colType == 'boolean' || $colType == 'bool') {
             return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'nvarchar'
