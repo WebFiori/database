@@ -106,16 +106,24 @@ class Database {
      * 
      * @param Table $table the table that will be added.
      * 
+     * @param bool $updateOwnerDb If the owner database of the table is already
+     * set and this parameter is set to true, the owner database will be
+     * updated to the database specified in the instance. This parameter
+     * is used to maintain foreign key relationships between tables which
+     * belongs to different databases.
+     * 
      * @return boolean If the table is added, the method will return true. False 
      * otherwise.
      * 
      * @since 1.0
      */
-    public function addTable(Table $table) {
+    public function addTable(Table $table, bool $updateOwnerDb = true) {
         $trimmedName = $table->getNormalName();
 
         if (!$this->hasTable($trimmedName)) {
-            $table->setOwner($this);
+            if ($table->getOwner() === null || ($table->getOwner() !== null && $updateOwnerDb)) {
+                $table->setOwner($this);
+            }
             $this->tablesArr[$trimmedName] = $table;
 
             return true;
