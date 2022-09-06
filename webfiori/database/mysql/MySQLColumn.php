@@ -112,7 +112,7 @@ class MySQLColumn extends Column {
         }
         $retVal .= $this->_defaultPart();
 
-        if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext') {
+        if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {
             $retVal .= 'collate '.$this->getCollation().' ';
         }
         $retVal .= $this->_commentPart();
@@ -631,13 +631,27 @@ class MySQLColumn extends Column {
             // At minimum, just sanitize the value using default filter
             
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
-            if ($val != 'now()' && $val != 'current_timestamp') {
+            if ($val != 'now' && $val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
             } else {
                 $cleanedVal = $val;
             }
         } else if ($colDatatype == 'mixed') {
-            return $val;
+            $valType = gettype($val);
+            
+            if ($valType == 'string') {
+                $cleanedVal = filter_var(addslashes($val));
+            } else if ($valType == 'double') {
+                $cleanedVal = "'".floatval($val)."'";
+            } else if ($valType == 'boolean') {
+                if ($val === true) {
+                    return "b'1'";
+                } else {
+                    return "b'0'";
+                }
+            } else {
+                return $val;
+            }
         } else {
             //blob mostly
             $cleanedVal = $val;
