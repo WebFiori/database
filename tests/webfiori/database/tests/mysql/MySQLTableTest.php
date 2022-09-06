@@ -234,8 +234,8 @@ class MySQLTableTest extends TestCase {
         $this->assertEquals(1, $table->getPrimaryKeyColsCount());
         
         $col01 = $table->getColByIndex(2);
-        $this->assertEquals('varchar',$col01->getDatatype());
-        $this->assertEquals(150,$col01->getSize());
+        $this->assertEquals('mixed',$col01->getDatatype());
+        $this->assertEquals(1,$col01->getSize());
         $this->assertFalse($col01->isPrimary());
         $this->asserttrue($col01->isUnique());
 
@@ -403,7 +403,7 @@ class MySQLTableTest extends TestCase {
         $this->assertNotNull($table->getColByName('cool'));
         $this->assertNull($table->removeReference('not-exist'));
         $this->assertEquals([
-            'user-id' => 'varchar',
+            'user-id' => 'mixed',
             'is-active' => 'bool'
         ], $table->getColsDatatypes());
     }

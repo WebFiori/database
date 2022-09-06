@@ -69,6 +69,7 @@ class MySQLColumn extends Column {
         parent::__construct($name);
         $this->setSupportedTypes([
             'int',
+            'char',
             'varchar',
             'timestamp',
             'tinyblob',
@@ -269,10 +270,12 @@ class MySQLColumn extends Column {
                 } else {
                     $retVal = $defaultVal;
                 }
-            } else  if ($dt == 'int') {
+            } else if ($dt == 'int') {
                 $retVal = intval($defaultVal);
-            } else  if ($dt == 'boolean' || $dt == 'bool') {
+            } else if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === "b'1'" || $defaultVal === true;
+            } else if ($dt == 'mixed') {
+                return $defaultVal;
             }
 
             return $retVal;
@@ -633,6 +636,8 @@ class MySQLColumn extends Column {
             } else {
                 $cleanedVal = $val;
             }
+        } else if ($colDatatype == 'mixed') {
+            return $val;
         } else {
             //blob mostly
             $cleanedVal = $val;
@@ -685,6 +690,8 @@ class MySQLColumn extends Column {
                 } else {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
+            } else if ($colDataType == 'mixed') {
+                return "default '". addslashes($colDefault)."' ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
@@ -714,6 +721,9 @@ class MySQLColumn extends Column {
             } else {
                 $retVal .= $colDataType.' ';
             }
+        } else if ($colDataType == 'mixed') {
+            //Treat mixed as varchar datatype when creating the column.
+            $retVal .= 'varchar(256) ';
         } else {
             $retVal .= $colDataType.' ';
         }

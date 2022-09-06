@@ -10,6 +10,7 @@
  */
 namespace webfiori\database\mssql;
 
+use webfiori\database\Column;
 use webfiori\database\Table;
 /**
  * A class that represents MSSQL table.
@@ -84,6 +85,38 @@ class MSSQLTable extends Table {
             }
         }
         parent::addColumns($arrToAdd);
+    }
+    /**
+     * Adds new column to the table.
+     * 
+     * @param string $key Key name of the column. A valid key must follow following
+     * conditions: Contains letters A-Z, a-z, numbers 0-9 and a dash only.
+     * Note that if key contains underscores they will be replaced by dashes.
+     * 
+     * @param Column $colObj An object that holds the information of the column.
+     * 
+     * @return boolean If added, the method will return true. False otherwise.
+     */
+    public function addColumn(string $key, Column $colObj) : bool {
+        if ($colObj instanceof MSSQLColumn && $colObj->isIdentity() && $this->hasIdentity()) {
+            return false;
+        }
+        return parent::addColumn($key, $colObj);
+    }
+    /**
+     * Checks if the table has identity column or not.
+     * 
+     * Note that a table is allowed to have only one column as an identity.
+     * 
+     * @return bool True if the table has identity column. False otherwise.
+     */
+    public function hasIdentity() : bool {
+        foreach ($this->getCols() as $colObj) {
+            if ($colObj->isIdentity()) {
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * Returns the name of the table.

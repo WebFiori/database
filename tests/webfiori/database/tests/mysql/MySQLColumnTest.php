@@ -279,6 +279,7 @@ class MySQLColumnTest extends TestCase {
     public function testCreateCol01() {
         $colObj = MySQLColumn::createColObj([
             'name' => 'my_col',
+            'type' => 'varchar',
             'validator' => function ($orgVal, $cleaned) {
                 return 'Hello '.$cleaned;
             }
@@ -546,6 +547,15 @@ class MySQLColumnTest extends TestCase {
         $col->setDefault('now()');
         $this->assertEquals('now()',$col->getDefault());
         $this->assertEquals('`date` datetime not null default now()',$col.'');
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault09() {
+        $col = new MySQLColumn('mix', 'mixed');
+        $col->setDefault('2019-11-09');
+        $this->assertEquals('2019-11-09',$col->getDefault());
+        $this->assertEquals('`mix` varchar(256) not null default \'2019-11-09\'',$col.'');
     }
     /**
      * @test

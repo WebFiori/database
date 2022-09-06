@@ -261,6 +261,15 @@ class MSSQLColumnTest extends TestCase {
     /**
      * @test
      */
+    public function testGetPHPType06() {
+        $colObj = new MSSQLColumn('col', 'mixed');
+        $this->assertEquals('mixed', $colObj->getPHPType());
+        $colObj->setIsNull(true);
+        $this->assertEquals('mixed|null', $colObj->getPHPType());
+    }
+    /**
+     * @test
+     */
     public function testSetDefault00() {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('2019-11-09');
@@ -375,6 +384,16 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals('[date] [datetime2] not null default getdate()',$col.'');
     }
     /**
+     * @test
+     */
+    public function testSetDefault09() {
+        $col = new MSSQLColumn('mix', 'mixed');
+        $col->setDefault('2019-11-09');
+        $this->assertEquals('2019-11-09',$col->getDefault());
+        $this->assertEquals('[mix] [nvarchar](256) not null default \'2019-11-09\'',$col.'');
+    }
+    
+    /**
      * 
      * @param MSSQLColumn $col
      * @depends testConstructor09
@@ -477,5 +496,40 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals('now', $col->getDefault());
         $col->setDefault('current_timestamp');
         $this->assertEquals('current_timestamp', $col->getDefault());
+    }
+    /**
+     * @test
+     */
+    public function testIdentity00() {
+        $col = new MSSQLColumn();
+        $this->assertFalse($col->isIdentity());
+        $col->setIsIdentity(true);
+        $this->assertFalse($col->isIdentity());
+        $col->setDatatype('bigint');
+        $col->setIsIdentity(true);
+        $this->assertTrue($col->isIdentity());
+        $col->setDatatype('mixed');
+        $this->assertFalse($col->isIdentity());
+        $col->setDatatype('int');
+        $col->setIsIdentity(true);
+        $this->assertTrue($col->isIdentity());
+        $col->setDatatype('bigint');
+        $col->setIsIdentity(true);
+    }
+    /**
+     * @test
+     */
+    public function testIdentity01() {
+        $col = new MSSQLColumn('iden', 'int');
+        $col->setIsIdentity(true);
+        $this->assertEquals('[iden] [int] identity(1,1) not null',$col.'');
+    }
+    /**
+     * @test
+     */
+    public function testIdentity02() {
+        $col = new MSSQLColumn('iden', 'bigint');
+        $col->setIsIdentity(true);
+        $this->assertEquals('[iden] [bigint] identity(1,1) not null',$col.'');
     }
 }

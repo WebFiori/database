@@ -22,6 +22,13 @@ use webfiori\database\DateTimeValidator;
  */
 class MSSQLColumn extends Column {
     /**
+     * A boolean which is set to true if the column is of type int and is
+     * set as an identity.
+     * 
+     * @var bool
+     */
+    private $isIdintity;
+    /**
      * A boolean which can be set to true in order to auto-update any 
      * date datatype column..
      * 
@@ -46,10 +53,13 @@ class MSSQLColumn extends Column {
     public function __construct(string $name = 'col', string $datatype = 'nvarchar', int $size = 1) {
         parent::__construct($name);
         $this->isAutoUpdate = false;
+        $this->isIdintity = false;
         $this->setSupportedTypes([
             'int',
+            'bigint',
             'varchar',
             'nvarchar',
+            'char',
             'nchar',
             'binary',
             'varbinary',
@@ -69,6 +79,38 @@ class MSSQLColumn extends Column {
             $this->setSize(1);
         }
     }
+    /**
+     * Checks if the column represents an identity column or not.
+     * 
+     * Identity column only applies to int and bigint data types.
+     * 
+     * @return bool If the column is set as an identity, the method will
+     * return true. False if not. Default is false.
+     */
+    public function isIdentity () : bool {
+        return $this->isIdintity;
+    }
+    /**
+     * Sets the value of the property which is used to check if the column
+     * represents an identity or not.
+     * 
+     * @param bool $bool True to set the column as identity column. False
+     * to set as non-identity.
+     */
+    public function setIsIdentity(bool $bool) {
+        $dType = $this->getDatatype();
+        
+        if ($dType == 'int' || $dType == 'bigint') {
+            $this->isIdintity = $bool;
+        }
+    }
+    /**
+     * Returns a string that represents the column.
+     * 
+     * The string can be used to alter or add the column to a table.
+     * 
+     * @return string
+     */
     public function __toString() {
         $retVal = $this->_firstColPart();
         $retVal .= $this->_nullPart();
@@ -76,6 +118,13 @@ class MSSQLColumn extends Column {
 
         return trim($retVal);
     }
+    /**
+     * Returns a string that represents the column.
+     * 
+     * The string can be used to alter or add the column to a table.
+     * 
+     * @return string
+     */
     public function asString() : string {
         return $this->__toString();
     }
@@ -189,12 +238,14 @@ class MSSQLColumn extends Column {
                 } else {
                     $retVal = $defaultVal;
                 }
-            } else if ($dt == 'int') {
+            } else if ($dt == 'int' || $dt == 'bigint') {
                 $retVal = intval($defaultVal);
             } else if ($dt == 'boolean') {
                 return $defaultVal === 1 || $defaultVal === true;
             } else if ($dt == 'float' || $dt == 'decimal' || $dt == 'money') {
                 $retVal = floatval($defaultVal);
+            } else if ($dt == 'mixed') {
+                return $defaultVal;
             }
 
             return $retVal;
@@ -237,7 +288,7 @@ class MSSQLColumn extends Column {
             $isNullStr = $this->isNull() ? '|null' : '';
         }
 
-        if ($colType == 'int' || $colType == 'bit') {
+        if ($colType == 'int' || $colType == 'bit' || $colType == 'bigint') {
             return 'int'.$isNullStr;
         } else if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
             return 'float'.$isNullStr;
@@ -256,7 +307,7 @@ class MSSQLColumn extends Column {
      * 
      * @return boolean If the column type is 'datetime' or 'timestamp' and the 
      * column is set to auto update in case of update query, the method will 
-     * return true. Default return value is valse.
+     * return true. Default return value is false.
      * 
      * @since 1.0
      */
@@ -278,6 +329,23 @@ class MSSQLColumn extends Column {
     public function setAutoUpdate(bool $bool) {
         if ($this->getDatatype() == 'datetime2' || $this->getDatatype() == 'date') {
             $this->isAutoUpdate = $bool;
+        }
+    }
+    /**
+     * Sets the type of column data.
+     * 
+     * Note that calling this method will set default value to null.
+     * 
+     * @param string $type The type of column data.
+     * 
+     * @throws DatabaseException The method will throw an exception if the given 
+     * column type is not supported.
+     */
+    public function setDatatype($type) {
+        parent::setDatatype($type);
+        
+        if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
+            $this->isIdintity = false;
         }
     }
     /**
@@ -346,40 +414,30 @@ class MSSQLColumn extends Column {
 
         if ($val === null) {
             return null;
-        } else {
-            if ($colDatatype == 'int') {
-                $cleanedVal = intval($val);
+        } else if ($colDatatype == 'int' || $colDatatype == 'bigint') {
+            $cleanedVal = intval($val);
+        } else if ($colDatatype == 'boolean') {
+            if ($val === true) {
+                return 1;
             } else {
-                if ($colDatatype == 'boolean') {
-                    if ($val === true) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                } else {
-                    if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
-                        $cleanedVal = floatval($val);
-                    } else {
-                        if ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
-                || $colDatatype == 'char' || $colDatatype == 'nchar') {
-                            $cleanedVal = filter_var(addslashes($val));
-                        // It is not secure if not escaped without connection
-            // Think about multi-byte strings
-            // At minimum, just sanitize the value using default filter
-                        } else {
-                            if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
-                                if ($val != 'now' && $val != 'current_timestamp') {
-                                    $cleanedVal = $this->_dateCleanUp($val);
-                                } else {
-                                    $cleanedVal = $val;
-                                }
-                            } else {
-                                $cleanedVal = $val;
-                            }
-                        }
-                    }
-                }
+                return 0;
             }
+        } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
+            $cleanedVal = floatval($val);
+        } else if ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
+                || $colDatatype == 'char' || $colDatatype == 'nchar') {
+            $cleanedVal = filter_var(addslashes($val));
+        // It is not secure if not escaped without connection
+        // Think about multi-byte strings
+        // At minimum, just sanitize the value using default filter
+        } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
+            if ($val != 'now' && $val != 'current_timestamp') {
+                $cleanedVal = $this->_dateCleanUp($val);
+            } else {
+                $cleanedVal = $val;
+            }
+        } else {
+            $cleanedVal = $val;
         }
         $retVal = call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
 
@@ -419,17 +477,16 @@ class MSSQLColumn extends Column {
                 } else {
                     return 'default 0 ';
                 }
-            } else {
-                if ($colDataType == 'datetime2' || $colDataType == 'time'
-                    || $colDataType == 'date') {
-                    if ($colDefault == 'now' || $colDefault == 'current_timestamp') {
-                        return 'default getdate() ';
-                    } else {
-                        return 'default '.$this->cleanValue($colDefault).' ';
-                    }
+            } else if ($colDataType == 'datetime2' || $colDataType == 'time' || $colDataType == 'date') {
+                if ($colDefault == 'now' || $colDefault == 'current_timestamp') {
+                    return 'default getdate() ';
                 } else {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
+            } else if ($colDataType == 'mixed') {
+                return "default '". addslashes($colDefault)."' ";
+            } else {
+                return 'default '.$this->cleanValue($colDefault).' ';
             }
         }
     }
@@ -444,20 +501,23 @@ class MSSQLColumn extends Column {
                 || $colDataType == 'char' || $colDataType == 'nchar'
                 || $colDataType == 'binary' || $colDataType == 'varbinary') {
             $retVal .= $colDataTypeSq.'('.$this->getSize().') ';
-        } else {
-            if ($colDataType == 'boolean') {
+        } else if ($colDataType == 'boolean') {
                 $retVal .= '[bit] ';
+        } else if ($colDataType == 'decimal') {
+            if ($this->getSize() != 0) {
+                $retVal .= $colDataTypeSq.'('.$this->getSize().','.$this->getScale().') ';
             } else {
-                if ($colDataType == 'decimal') {
-                    if ($this->getSize() != 0) {
-                        $retVal .= $colDataTypeSq.'('.$this->getSize().','.$this->getScale().') ';
-                    } else {
-                        $retVal .= $colDataTypeSq.'(18,0) ';
-                    }
-                } else {
-                    $retVal .= $colDataTypeSq.' ';
-                }
+                $retVal .= $colDataTypeSq.'(18,0) ';
             }
+        } else if ($colDataType == 'mixed') {
+            //Treat mixed as nvarchar datatype when creating the column.
+            $retVal .= MSSQLQuery::squareBr('nvarchar').'(256) ';
+        } else {
+            $retVal .= $colDataTypeSq.' ';
+        }
+        
+        if (($colDataType == 'int' || $colDataType == 'bigint') && $this->isIdentity()) {
+            $retVal .= 'identity(1,1) ';
         }
 
         return $retVal;
