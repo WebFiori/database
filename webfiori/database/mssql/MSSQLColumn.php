@@ -436,6 +436,22 @@ class MSSQLColumn extends Column {
             } else {
                 $cleanedVal = $val;
             }
+        } else if ($colDatatype == 'mixed') {
+            $valType = gettype($val);
+            
+            if ($valType == 'string') {
+                return "'". filter_var(addslashes($val)) ."'";
+            } else if ($valType == 'double') {
+                return "'".floatval($val)."'";
+            } else if ($valType == 'boolean') {
+                if ($val === true) {
+                    return "b'1'";
+                } else {
+                    return "b'0'";
+                }
+            } else {
+                return $val;
+            }
         } else {
             $cleanedVal = $val;
         }
