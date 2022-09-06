@@ -640,9 +640,9 @@ class MySQLColumn extends Column {
             $valType = gettype($val);
             
             if ($valType == 'string') {
-                $cleanedVal = filter_var(addslashes($val));
+                return "'". filter_var(addslashes($val)) ."'";
             } else if ($valType == 'double') {
-                $cleanedVal = "'".floatval($val)."'";
+                return "'".floatval($val)."'";
             } else if ($valType == 'boolean') {
                 if ($val === true) {
                     return "b'1'";
