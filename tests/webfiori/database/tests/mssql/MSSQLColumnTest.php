@@ -159,7 +159,7 @@ class MSSQLColumnTest extends TestCase {
         ]);
         $this->assertNotNull($colObj);
         $this->assertEquals('[my_col]', $colObj->getName());
-        $this->assertEquals('nvarchar', $colObj->getDatatype());
+        $this->assertEquals('mixed', $colObj->getDatatype());
         $this->assertEquals(1, $colObj->getSize());
         $this->assertEquals("N'Hello Ibrahim'", $colObj->cleanValue('Ibrahim'));
     }
@@ -389,10 +389,18 @@ class MSSQLColumnTest extends TestCase {
     public function testSetDefault09() {
         $col = new MSSQLColumn('mix', 'mixed');
         $col->setDefault('2019-11-09');
-        $this->assertEquals('2019-11-09',$col->getDefault());
-        $this->assertEquals('[mix] [nvarchar](256) not null default \'2019-11-09\'',$col.'');
+        $this->assertEquals("N'2019-11-09'",$col->getDefault());
+        $this->assertEquals("[mix] [nvarchar](256) not null default N'2019-11-09'",$col.'');
     }
-    
+    /**
+     * @test
+     */
+    public function testSetDefault10() {
+        $col = new MSSQLColumn('mix', 'mixed');
+        $col->setDefault(1);
+        $this->assertEquals("N'1'",$col->getDefault());
+        $this->assertEquals("[mix] [nvarchar](256) not null default N'1'",$col.'');
+    }
     /**
      * 
      * @param MSSQLColumn $col

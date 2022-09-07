@@ -1273,7 +1273,7 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testWhereIn03() {
         $schema = new MySQLTestSchema();
         $schema->table('users')->select()->whereNotIn('first-naiome', [7,"9","100"]);
-        $this->assertEquals("select * from `users` where `users`.`first_naiome` not in('7', '9', '100')", $schema->getLastQuery());
+        $this->assertEquals("select * from `users` where `users`.`first_naiome` not in(7, '9', '100')", $schema->getLastQuery());
     }
     /**
      * @test
@@ -1291,11 +1291,11 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testWhereBetween01() {
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
-        $this->assertEquals("select * from `users_tasks` where (`users_tasks`.`task_idx` between '0' and '33')", $schema->getLastQuery());
-        
-        $schema->table('users_tasks')->getTable()->getColByKey('task-idx')->setDatatype('int');
-        $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
         $this->assertEquals("select * from `users_tasks` where (`users_tasks`.`task_idx` between 0 and 33)", $schema->getLastQuery());
+        
+        $schema->table('users_tasks')->getTable()->getColByKey('task-idx')->setDatatype('varchar');
+        $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
+        $this->assertEquals("select * from `users_tasks` where (`users_tasks`.`task_idx` between '0' and '33')", $schema->getLastQuery());
     }
     /**
      * @test

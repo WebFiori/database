@@ -21,10 +21,12 @@ class MSSQLTestSchema extends Database {
                 'is-primary' => true,
             ],
             'first-name' => [
-                'size' => '15'
+                'size' => '15',
+                'type' => 'nvarchar'
             ],
             'last-name' => [
-                'size' => 20
+                'size' => 20,
+                'type' => 'nvarchar'
             ],
             'age' => [
                 'type' => 'int',

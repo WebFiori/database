@@ -275,7 +275,7 @@ class MySQLColumn extends Column {
             } else if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === "b'1'" || $defaultVal === true;
             } else if ($dt == 'mixed') {
-                return $defaultVal;
+                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);;
             }
 
             return $retVal;
@@ -640,17 +640,17 @@ class MySQLColumn extends Column {
             $valType = gettype($val);
             
             if ($valType == 'string') {
-                return "'". filter_var(addslashes($val)) ."'";
+                $cleanedVal = "'". filter_var(addslashes($val)) ."'";
             } else if ($valType == 'double') {
-                return "'".floatval($val)."'";
+                $cleanedVal = "'".floatval($val)."'";
             } else if ($valType == 'boolean') {
                 if ($val === true) {
-                    return "b'1'";
+                    $cleanedVal = "b'1'";
                 } else {
-                    return "b'0'";
+                    $cleanedVal = "b'0'";
                 }
             } else {
-                return $val;
+                $cleanedVal = $val;
             }
         } else {
             //blob mostly

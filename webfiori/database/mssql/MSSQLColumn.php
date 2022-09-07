@@ -341,7 +341,7 @@ class MSSQLColumn extends Column {
      * @throws DatabaseException The method will throw an exception if the given 
      * column type is not supported.
      */
-    public function setDatatype($type) {
+    public function setDatatype(string $type) {
         parent::setDatatype($type);
         
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
@@ -367,6 +367,10 @@ class MSSQLColumn extends Column {
      * @since 1.0
      */
     public function setDefault($default) {
+        
+        if ($this->getDatatype() == 'mixed') {
+            $default .= '';
+        }
         parent::setDefault($this->cleanValue($default));
         $type = $this->getDatatype();
 
@@ -411,16 +415,17 @@ class MSSQLColumn extends Column {
     private function _cleanValueHelper($val) {
         $colDatatype = $this->getDatatype();
         $cleanedVal = null;
-
+        $valType = gettype($val);
+        
         if ($val === null) {
             return null;
         } else if ($colDatatype == 'int' || $colDatatype == 'bigint') {
             $cleanedVal = intval($val);
         } else if ($colDatatype == 'boolean') {
             if ($val === true) {
-                return 1;
+                $cleanedVal = 1;
             } else {
-                return 0;
+                $cleanedVal = 0;
             }
         } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
             $cleanedVal = floatval($val);
@@ -437,29 +442,29 @@ class MSSQLColumn extends Column {
                 $cleanedVal = $val;
             }
         } else if ($colDatatype == 'mixed') {
-            $valType = gettype($val);
+            
             
             if ($valType == 'string') {
-                return "'". filter_var(addslashes($val)) ."'";
+                $cleanedVal =  filter_var(addslashes($val));
             } else if ($valType == 'double') {
-                return "'".floatval($val)."'";
+                $cleanedVal = "'".floatval($val)."'";
             } else if ($valType == 'boolean') {
                 if ($val === true) {
-                    return "b'1'";
+                    $cleanedVal = 1;
                 } else {
-                    return "b'0'";
+                    $cleanedVal = 0;
                 }
             } else {
-                return $val;
+                $cleanedVal = $val;
             }
         } else {
             $cleanedVal = $val;
         }
         $retVal = call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
 
-        if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
+        if ($retVal !== null && (($colDatatype == 'mixed' && $valType == 'string')|| $colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar')) {
-            if ($colDatatype == 'nchar' || $colDatatype == 'nvarchar') {
+            if ($colDatatype == 'nchar' || $colDatatype == 'nvarchar' || $colDatatype == 'mixed') {
                 return "N'".$retVal."'";
             }
 
@@ -500,7 +505,7 @@ class MSSQLColumn extends Column {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
             } else if ($colDataType == 'mixed') {
-                return "default '". addslashes($colDefault)."' ";
+                return "default ". $colDefault." ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }

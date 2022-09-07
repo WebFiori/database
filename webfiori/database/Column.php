@@ -165,16 +165,17 @@ abstract class Column {
         $this->size = 1;
         $this->scale = 0;
         $this->supportedTypes = ['mixed'];
+        $this->cleanupFunc = function ($val, $cleanedVal)
+        {
+            return $cleanedVal;
+        };
         $this->setDatatype('mixed');
         $this->setWithTablePrefix(false);
         $this->setName($name);
 
 
         $this->columnIndex = -1;
-        $this->cleanupFunc = function ($val, $cleanedVal)
-        {
-            return $cleanedVal;
-        };
+        
     }
     /**
      * Returns a string that represents the column.

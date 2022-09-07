@@ -24,10 +24,12 @@ class MySQLTestSchema extends Database {
                 'auto-inc' => true
             ],
             'first-name' => [
-                'size' => '15'
+                'size' => '15',
+                'type' => 'varchar'
             ],
             'last-name' => [
-                'size' => 20
+                'size' => 20,
+                'type' => 'varchar'
             ],
             'age' => [
                 'type' => 'int',
@@ -84,7 +86,8 @@ class MySQLTestSchema extends Database {
                 'default' => false
             ],
             'details' => [
-                'size' => 1500
+                'size' => 1500,
+                'type' => 'varchar'
             ]
         ]);
         $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'cascade', 'restrict');

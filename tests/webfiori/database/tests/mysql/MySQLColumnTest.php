@@ -554,8 +554,8 @@ class MySQLColumnTest extends TestCase {
     public function testSetDefault09() {
         $col = new MySQLColumn('mix', 'mixed');
         $col->setDefault('2019-11-09');
-        $this->assertEquals('2019-11-09',$col->getDefault());
-        $this->assertEquals('`mix` varchar(256) not null default \'2019-11-09\'',$col.'');
+        $this->assertEquals("2019-11-09",$col->getDefault());
+        $this->assertEquals("`mix` varchar(256) not null default '2019-11-09' collate utf8mb4_unicode_520_ci",$col.'');
     }
     /**
      * @test
