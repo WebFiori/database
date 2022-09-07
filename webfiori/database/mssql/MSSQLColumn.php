@@ -368,7 +368,7 @@ class MSSQLColumn extends Column {
      */
     public function setDefault($default) {
         
-        if ($this->getDatatype() == 'mixed') {
+        if ($this->getDatatype() == 'mixed' && $default !== null) {
             $default .= '';
         }
         parent::setDefault($this->cleanValue($default));
