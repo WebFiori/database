@@ -12,6 +12,7 @@ namespace webfiori\database;
 
 use webfiori\database\mssql\MSSQLColumn;
 use webfiori\database\mysql\MySQLColumn;
+use webfiori\database\Column;
 
 /**
  * A factory class for creating column objects.
@@ -19,7 +20,35 @@ use webfiori\database\mysql\MySQLColumn;
  * @author Ibrahim
  */
 class ColumnFactory {
-    public static function create($database, $name, $options = []) {
+    /**
+     * Creates new instance class which represents a column in a database table.
+     * 
+     * @param string $database The name of DBMS that the column will be created
+     * for. Supported DBMSs are 'mysql' and 'mssql'.
+     * 
+     * @param string $name The name of the column as it appears in the database.
+     * 
+     * @param array $options An associative array of options which can be used to
+     * customize the column. Supported options are:
+     * 
+     * <ul>
+     * <li>type: Datatype of the column.</li>
+     * <li>size: If datatype supports size, this can be used to specify the size.</li>
+     * <li>primary: A boolean. If set to true, the column will be treated as primary.</li>
+     * <li>auto-inc: A boolean. Auto increment the value of primary column in case of insert (mysql Only)</li>
+     * <li>identity: A boolean. Make the column an identity column (mssql only)</li>
+     * <li>default: Sets a default value for the column in case of insert.</li>
+     * <li>unique: Make the column act as unique index.</li>
+     * <li>is-null: A boolean. If set to true, null values will be allowed for the column.</li>
+     * <li>comment: A comment to include about the column.</li>
+     * <li>validator: A custom PHP function that can be used as a filter before inserting.</li>
+     * </ul>
+     * 
+     * @return Column
+     * 
+     * @throws DatabaseException
+     */
+    public static function create($database, $name, $options = []) : Column {
         if (!in_array($database, ConnectionInfo::SUPPORTED_DATABASES)) {
             throw new DatabaseException('Not support database: '.$database);
         }
@@ -35,7 +64,7 @@ class ColumnFactory {
             if (isset($options['type'])) {
                 $datatype = $options['type'];
             } else {
-                $datatype = $col instanceof MySQLColumn ? 'varchar' : 'nvarchar';
+                $datatype = 'mixed';
             }
         }
         $col->setDatatype($datatype);
@@ -44,7 +73,8 @@ class ColumnFactory {
 
         self::_primaryCheck($col, $options);
         self::_extraAttrsCheck($col, $options);
-
+        self::_identityCheck($col, $options);
+        
         return $col;
     }
 
@@ -86,6 +116,21 @@ class ColumnFactory {
             $col->setCustomFilter($options['validator']);
         }
     }
+    /**
+     * 
+     * @param MSSQLColumn $col
+     * @param array $options
+     */
+    private static function _identityCheck(&$col, $options) {
+        if ($col instanceof MSSQLColumn) {
+            $isIdentity = isset($options['identity']) ? $options['identity'] : false;
+        
+            if ($isIdentity === true) {
+                $col->setIsIdentity(true);
+            }
+        }
+    }
+
     /**
      * 
      * @param MSSQLColumn $col

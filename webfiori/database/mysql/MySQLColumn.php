@@ -69,6 +69,7 @@ class MySQLColumn extends Column {
         parent::__construct($name);
         $this->setSupportedTypes([
             'int',
+            'char',
             'varchar',
             'timestamp',
             'tinyblob',
@@ -111,7 +112,7 @@ class MySQLColumn extends Column {
         }
         $retVal .= $this->_defaultPart();
 
-        if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext') {
+        if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {
             $retVal .= 'collate '.$this->getCollation().' ';
         }
         $retVal .= $this->_commentPart();
@@ -269,10 +270,12 @@ class MySQLColumn extends Column {
                 } else {
                     $retVal = $defaultVal;
                 }
-            } else  if ($dt == 'int') {
+            } else if ($dt == 'int') {
                 $retVal = intval($defaultVal);
-            } else  if ($dt == 'boolean' || $dt == 'bool') {
+            } else if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === "b'1'" || $defaultVal === true;
+            } else if ($dt == 'mixed') {
+                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);;
             }
 
             return $retVal;
@@ -628,8 +631,24 @@ class MySQLColumn extends Column {
             // At minimum, just sanitize the value using default filter
             
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
-            if ($val != 'now()' && $val != 'current_timestamp') {
+            if ($val != 'now' && $val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
+            } else {
+                $cleanedVal = $val;
+            }
+        } else if ($colDatatype == 'mixed') {
+            $valType = gettype($val);
+            
+            if ($valType == 'string') {
+                $cleanedVal = "'". filter_var(addslashes($val)) ."'";
+            } else if ($valType == 'double') {
+                $cleanedVal = "'".floatval($val)."'";
+            } else if ($valType == 'boolean') {
+                if ($val === true) {
+                    $cleanedVal = "b'1'";
+                } else {
+                    $cleanedVal = "b'0'";
+                }
             } else {
                 $cleanedVal = $val;
             }
@@ -685,6 +704,8 @@ class MySQLColumn extends Column {
                 } else {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
+            } else if ($colDataType == 'mixed') {
+                return "default '". addslashes($colDefault)."' ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
@@ -714,6 +735,9 @@ class MySQLColumn extends Column {
             } else {
                 $retVal .= $colDataType.' ';
             }
+        } else if ($colDataType == 'mixed') {
+            //Treat mixed as varchar datatype when creating the column.
+            $retVal .= 'varchar(256) ';
         } else {
             $retVal .= $colDataType.' ';
         }

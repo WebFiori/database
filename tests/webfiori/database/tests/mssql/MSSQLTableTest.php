@@ -190,7 +190,8 @@ class MSSQLTableTest extends TestCase {
         $t1->addColumns([
             'id' => [
                 'type' => 'int',
-                'primary' => true
+                'primary' => true,
+                'identity' => true
             ],
             'name' => [
                 'type' => 'nvarchar',
@@ -205,7 +206,7 @@ class MSSQLTableTest extends TestCase {
         ]);
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [name] [nvarchar](128) not null,\n"
                 . "    [email] [varchar](256) not null,\n"
                 . "    constraint users_pk primary key clustered([id]) on [PRIMARY],\n"
@@ -292,13 +293,48 @@ class MSSQLTableTest extends TestCase {
         $this->assertEquals(1, $table->getPrimaryKeyColsCount());
         
         $col01 = $table->getColByIndex(2);
-        $this->assertEquals('nvarchar',$col01->getDatatype());
+        $this->assertEquals('mixed',$col01->getDatatype());
         $this->assertEquals(150,$col01->getSize());
         $this->assertFalse($col01->isPrimary());
         $this->asserttrue($col01->isUnique());
 
         $col02 = $table->getColByIndex(6);
         $this->assertNull($col02);
+    }
+    /**
+     * @test
+     */
+    public function testIdentity00() {
+        $t1 = new MSSQLTable('users');
+        $t1->addColumns([
+            'id' => [
+                'type' => 'int',
+                'primary' => true,
+                'identity' => true
+            ],
+            'name' => [
+                'type' => 'nvarchar',
+                'size' => 128,
+                'unique' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'unique' => true
+            ],
+            'age' => [
+                'datatype' => 'int',
+                'identity' => true
+            ]
+        ]);
+        $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
+                . "create table [users] (\n"
+                . "    [id] [int] identity(1,1) not null,\n"
+                . "    [name] [nvarchar](128) not null,\n"
+                . "    [email] [varchar](256) not null,\n"
+                . "    constraint users_pk primary key clustered([id]) on [PRIMARY],\n"
+                . "    constraint AK_users unique (name, email)\n"
+                . ")\n", $t1->toSQL());
     }
     /**
      * 

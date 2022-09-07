@@ -57,7 +57,7 @@ class MySQLTable extends Table {
      * 
      * @since 1.0
      */
-    public function addColumn($key, Column $colObj) {
+    public function addColumn(string $key, Column $colObj) : bool {
         if (parent::addColumn($key, $colObj)) {
             $this->_checkPKs();
 

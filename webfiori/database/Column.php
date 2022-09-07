@@ -149,6 +149,10 @@ abstract class Column {
     /**
      * Creates new instance of the class.
      * 
+     * By default, the instance will have one data type which is 'mixed'.
+     * This type is used as placeholder for dynamically created columns
+     * when running SQL queries on the database.
+     * 
      * @param string $name The name of the column as it appears in the database.
      * 
      * @since 1.0
@@ -160,17 +164,18 @@ abstract class Column {
         $this->isUnique = false;
         $this->size = 1;
         $this->scale = 0;
-        $this->supportedTypes = ['char'];
-        $this->setDatatype('char');
+        $this->supportedTypes = ['mixed'];
+        $this->cleanupFunc = function ($val, $cleanedVal)
+        {
+            return $cleanedVal;
+        };
+        $this->setDatatype('mixed');
         $this->setWithTablePrefix(false);
         $this->setName($name);
 
 
         $this->columnIndex = -1;
-        $this->cleanupFunc = function ($val, $cleanedVal)
-        {
-            return $cleanedVal;
-        };
+        
     }
     /**
      * Returns a string that represents the column.
@@ -497,6 +502,7 @@ abstract class Column {
         if ($trimmed == 'bool' || $trimmed == 'boolean') {
             $this->setIsNull(false);
         }
+        
         $this->datatype = $trimmed;
         $this->setDefault(null);
     }

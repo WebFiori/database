@@ -99,13 +99,18 @@ abstract class Table {
         $this->colsArr = [];
     }
     /**
+     * Adds new column to the table.
      * 
-     * @param string $key
-     * @param Column $colObj
-     * @return boolean
+     * @param string $key Key name of the column. A valid key must follow following
+     * conditions: Contains letters A-Z, a-z, numbers 0-9 and a dash only.
+     * Note that if key contains underscores they will be replaced by dashes.
+     * 
+     * @param Column $colObj An object that holds the information of the column.
+     * 
+     * @return boolean If added, the method will return true. False otherwise.
      */
-    public function addColumn($key, Column $colObj) {
-        $trimmidKey = trim($key);
+    public function addColumn(string $key, Column $colObj) : bool {
+        $trimmidKey = str_replace('_', '-', trim($key));
         $colName = $colObj->getNormalName();
 
         if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
