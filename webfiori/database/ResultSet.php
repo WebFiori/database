@@ -40,15 +40,17 @@ class ResultSet implements Countable, Iterator {
      * @param array $mapArgs An optional array of arguments to pass on to the 
      * mapping function.
      */
-    public function __construct(array $resultArr = [], $mappingFunction = null, array $mapArgs = []) {
+    public function __construct(array $resultArr = [], callable $mappingFunction = null, array $mapArgs = []) {
         $this->setData($resultArr);
         $this->mapArgs = $mapArgs;
 
-        if (!$this->setMappingFunction($mappingFunction)) {
-            $this->setMappingFunction(function ($data)
+        if ($mappingFunction === null) {
+            $this->setMappingFunction(function ($record)
             {
-                return $data;
+                return $record;
             }, $this->mapArgs);
+        } else {
+            $this->mappingFunction = $mappingFunction;
         }
     }
     /**
@@ -103,12 +105,15 @@ class ResultSet implements Countable, Iterator {
         if (!$this->dataChangedBeforeMapping) {
             return $this->resultRows;
         }
-        $args = array_merge([$this->getRows()], $this->mapArgs);
-        $result = call_user_func_array($this->mappingFunction, $args);
-
-        if (gettype($result) != 'array') {
-            throw new DatabaseException('Map function is expected to return an array. '.gettype($result).' is returned.');
+        $result = [];
+        $index = 0;
+        $records = $this->getRows();
+        
+        foreach ($records as $record) {
+            $args = array_merge([$record, $index, $records], $this->mapArgs);
+            $result[] = call_user_func_array($this->mappingFunction, $args);
         }
+
         $this->resultRows = $result;
         $this->dataChangedBeforeMapping = false;
 
@@ -165,16 +170,18 @@ class ResultSet implements Countable, Iterator {
     /**
      * Map the records of the result set using a mapping function.
      * 
-     * @param Closure $mappingFunction A PHP function. The first argument of the
-     * function will always be the fetched raw records as an array. Each
-     * index of the array will have the record as associative array,
+     * @param callable $mappingFunction A PHP function. The first argument of the
+     * function will always be an associative array that represents the
+     * record. The second argument will always be the index of the record.
+     * the third argument will be an array of sub-arrays that holds
+     * raw data.
      * 
      * @param array $mapArgs Any additional arguments that the developer
      * would like to pass to mapping function.
      * 
      * @return array The method will return an array of mapped records.
      */
-    public function map($mappingFunction, array $mapArgs = []) : array {
+    public function map(callable $mappingFunction, array $mapArgs = []) : array {
         $this->setMappingFunction($mappingFunction, $mapArgs);
 
         return $this->getMappedRows();
@@ -210,8 +217,11 @@ class ResultSet implements Countable, Iterator {
      * Sets a custom callback which can be used to process result set and 
      * map the records as desired.
      * 
-     * @param Closure $callback A PHP function. The function will have one 
-     * parameter which is the raw result set as an array.
+     * @param callable $callback A PHP function. The first argument of the
+     * function will always be an associative array that represents the
+     * record. The second argument will always be the index of the record.
+     * the third argument will be an array of sub-arrays that holds
+     * raw data.
      * 
      * @param array $otherParams An array that holds extra arguments which can 
      * be passed to the mapping function.
@@ -221,16 +231,10 @@ class ResultSet implements Countable, Iterator {
      * 
      * @since 1.0
      */
-    public function setMappingFunction($callback, array $otherParams = []) {
-        if (is_callable($callback)) {
-            $this->mapArgs = $otherParams;
-            $this->mappingFunction = $callback;
-            $this->dataChangedBeforeMapping = true;
-
-            return true;
-        }
-
-        return false;
+    public function setMappingFunction(callable $callback, array $otherParams = []) {
+        $this->mapArgs = $otherParams;
+        $this->mappingFunction = $callback;
+        $this->dataChangedBeforeMapping = true;
     }
     /**
      * Checks if current position is valid in the iterator.
