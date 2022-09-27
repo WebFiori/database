@@ -908,17 +908,13 @@ class MySQLQueryBuilderTest extends TestCase {
         $mapper->create();
         require_once $mapper->getAbsolutePath();
         $resultSet = $schema->getLastResultSet();
-        $resultSet->setMappingFunction(function($data) {
-            $retVal = [];
-            foreach ($data as $record) {
-                $obj = new UserEntity();
-                $obj->setAge($record['age']);
-                $obj->setFirstName($record['first_name']);
-                $obj->setId($record['id']);
-                $obj->setLastName($record['last_name']);
-                $retVal[] = $obj;
-            }
-            return $retVal;
+        $resultSet->setMappingFunction(function($record) {
+            $obj = new UserEntity();
+            $obj->setAge($record['age']);
+            $obj->setFirstName($record['first_name']);
+            $obj->setId($record['id']);
+            $obj->setLastName($record['last_name']);
+            $obj;
         });
         $data = $resultSet->getMappedRows();
         foreach ($data as $obj) {
