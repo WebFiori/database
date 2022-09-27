@@ -914,7 +914,7 @@ class MySQLQueryBuilderTest extends TestCase {
             $obj->setFirstName($record['first_name']);
             $obj->setId($record['id']);
             $obj->setLastName($record['last_name']);
-            $obj;
+            return $obj;
         });
         $data = $resultSet->getMappedRows();
         foreach ($data as $obj) {
