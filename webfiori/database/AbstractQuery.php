@@ -369,7 +369,7 @@ abstract class AbstractQuery {
         try {
             return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
-            throw new DatabaseException($ex->getMessage());
+            throw new DatabaseException($ex->getMessage(), $ex->getCode());
         }
     }
     /**
