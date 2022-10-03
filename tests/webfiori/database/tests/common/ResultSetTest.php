@@ -24,7 +24,7 @@ class ResultSetTest extends TestCase {
             ['col_1' => 'Super-7', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 6]
         ]);
         $this->assertEquals(7, $set->getRowsCount());
-        $this->assertEquals(7, $set->getMappedRowsCount());
+        
         $this->assertEquals([
             ['col_1' => 'Super', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 0],
             ['col_1' => 'Super-2', 'col_2' => 'ok', 'col_3' => 'Not Cool', 'col_4' => 1],
@@ -34,15 +34,6 @@ class ResultSetTest extends TestCase {
             ['col_1' => 'Super-6', 'col_2' => 'ok', 'col_3' => 'Cool', 'col_4' => 5],
             ['col_1' => 'Super-7', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 6]
         ], $set->getRows());
-        $this->assertEquals([
-            ['col_1' => 'Super', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 0],
-            ['col_1' => 'Super-2', 'col_2' => 'ok', 'col_3' => 'Not Cool', 'col_4' => 1],
-            ['col_1' => 'Super-3', 'col_2' => 'ok', 'col_3' => 'Cool', 'col_4' => 2],
-            ['col_1' => 'Super-4', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 3],
-            ['col_1' => 'Super-5', 'col_2' => 'ok', 'col_3' => 'Not Cool', 'col_4' => 4],
-            ['col_1' => 'Super-6', 'col_2' => 'ok', 'col_3' => 'Cool', 'col_4' => 5],
-            ['col_1' => 'Super-7', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 6]
-        ], $set->getMappedRows());
         
         $index = 0;
         
@@ -53,9 +44,8 @@ class ResultSetTest extends TestCase {
         $set->clearSet();
         
         $this->assertEquals(0, $set->getRowsCount());
-        $this->assertEquals(0, $set->getMappedRowsCount());
+        
         $this->assertEquals([], $set->getRows());
-        $this->assertEquals([], $set->getMappedRows());
     }
     
     /**
@@ -64,9 +54,8 @@ class ResultSetTest extends TestCase {
     public function test01() {
         $set = new ResultSet();
         $this->assertEquals(0, $set->getRowsCount());
-        $this->assertEquals(0, $set->getMappedRowsCount());
+        
         $this->assertEquals([], $set->getRows());
-        $this->assertEquals([], $set->getMappedRows());
         
         $set->setData([
             ['col_1' => 'Super', 'col_2' => 'not_ok', 'col_3' => 'Cool', 'col_4' => 0],
@@ -79,14 +68,14 @@ class ResultSetTest extends TestCase {
         ]);
         
         $this->assertEquals(7, $set->getRowsCount());
-        $this->assertEquals(7, $set->getMappedRowsCount());
+        
         $data = $set->map(function ($record) {
             if ($record['col_2'] == 'ok') {
                 return $record['col_4'];
             }
-        });
+        })->getRows();
         $this->assertEquals(7, $set->getRowsCount());
-        $this->assertEquals(7, $set->getMappedRowsCount());
+        
         $this->assertEquals([null, 1, 2,null, 4, 5, null], $data);
         
         
@@ -96,8 +85,19 @@ class ResultSetTest extends TestCase {
             }
         });
         $this->assertEquals(7, $set->getRowsCount());
-        $this->assertEquals(7, $set->getMappedRowsCount());
-        $this->assertEquals([0,null,2,3,null,5,6], $data2);
+        
+        $this->assertEquals([0,null,2,3,null,5,6], $data2->toArray());
+        $this->assertEquals([0,2,3,5,6], $data2->filter(function ($val) {
+            if ($val === null) {
+                return false;
+            }
+            return true;
+        })->toArray());
+        $this->assertEquals([null, null], $data2->filter(function ($val) {
+            if ($val === null) {
+                return true;
+            }
+        })->toArray());
     }
     /**
      * @test
@@ -109,7 +109,7 @@ class ResultSetTest extends TestCase {
         ]);
         $result = $set->map(function () {
             return 33;
-        });
+        })->getRows();
         $this->assertEquals([33, 33], $result);
     }
 }
