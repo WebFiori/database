@@ -22,36 +22,15 @@ use Iterator;
  */
 class ResultSet implements Countable, Iterator {
     private $cursorPos;
-    private $dataChangedBeforeMapping;
-    private $mapArgs;
-    private $mappingFunction;
     private $orgResultRows;
-    private $resultRows;
     /**
      * Creates new instance of the class.
      * 
-     * @param array $resultArr An array that holds original result set.
+     * @param array $resultArr An array that holds set values.
      * 
-     * @param callable $mappingFunction A PHP function which is used to modify 
-     * original result set and shape it as needed. The method can have two 
-     * arguments, first one is the original data set and the second is an optional 
-     * array of arguments.
-     * 
-     * @param array $mapArgs An optional array of arguments to pass on to the 
-     * mapping function.
      */
-    public function __construct(array $resultArr = [], callable $mappingFunction = null, array $mapArgs = []) {
+    public function __construct(array $resultArr = []) {
         $this->setData($resultArr);
-        $this->mapArgs = $mapArgs;
-
-        if ($mappingFunction === null) {
-            $this->setMappingFunction(function ($record)
-            {
-                return $record;
-            }, $this->mapArgs);
-        } else {
-            $this->mappingFunction = $mappingFunction;
-        }
     }
     /**
      * Reset the values in the set to default values.
@@ -61,8 +40,6 @@ class ResultSet implements Countable, Iterator {
     public function clearSet() {
         $this->cursorPos = 0;
         $this->orgResultRows = [];
-        $this->resultRows = [];
-        $this->dataChangedBeforeMapping = true;
     }
     /**
      * Return the number of mapped rows in the set.
@@ -75,7 +52,7 @@ class ResultSet implements Countable, Iterator {
      * @since 1.0
      */
     public function count() : int {
-        return $this->getMappedRowsCount();
+        return $this->getRowsCount();
     }
     #[\ReturnTypeWillChange]
     /**
@@ -88,51 +65,7 @@ class ResultSet implements Countable, Iterator {
      * @since 1.0
      */
     public function current() {
-        return $this->getMappedRows()[$this->cursorPos];
-    }
-    /**
-     * Returns the records which was generated after calling the map 
-     * function.
-     * 
-     * 
-     * @return mixed The return value of this method will depend on how the 
-     * developer implemented the mapping function. By default, the method will
-     * return an array that holds fetched records information.
-     * 
-     * @since 1.0
-     */
-    public function getMappedRows() : array {
-        if (!$this->dataChangedBeforeMapping) {
-            return $this->resultRows;
-        }
-        $result = [];
-        $index = 0;
-        $records = $this->getRows();
-        
-        foreach ($records as $record) {
-            $args = array_merge([$record, $index, $records], $this->mapArgs);
-            $result[] = call_user_func_array($this->mappingFunction, $args);
-        }
-
-        $this->resultRows = $result;
-        $this->dataChangedBeforeMapping = false;
-
-        return $result;
-    }
-    /**
-     * Returns the number of records which was generated after calling the map 
-     * function.
-     * 
-     * The number of records might be less or more based on how the developer 
-     * have implemented the mapping function. Note that if the mapping function 
-     * did not return an array, the method will return 1.
-     * 
-     * @return int Number of records after mapping.
-     * 
-     * @since 1.0
-     */
-    public function getMappedRowsCount() : int {
-        return count($this->getMappedRows());
+        return $this->getRows()[$this->cursorPos];
     }
     /**
      * Returns an array which contains all original records in the set before 
@@ -168,23 +101,65 @@ class ResultSet implements Countable, Iterator {
         return $this->cursorPos;
     }
     /**
-     * Map the records of the result set using a mapping function.
+     * Map the records of the result set using a custom callback.
      * 
      * @param callable $mappingFunction A PHP function. The first argument of the
-     * function will always be an associative array that represents the
-     * record. The second argument will always be the index of the record.
-     * the third argument will be an array of sub-arrays that holds
-     * raw data.
+     * function will always be the record/value that will be mapped. In case
+     * of database records, this will be an associative array. The indices
+     * are names of columns as they appear in the database. The second
+     * argument is the index of the record/value and, the last value will
+     * be the original set of records as an array.
      * 
      * @param array $mapArgs Any additional arguments that the developer
      * would like to pass to mapping function.
      * 
-     * @return array The method will return an array of mapped records.
+     * @return ResultSet The method will return an object of type ResultSet
+     * that holds the mapped records.
      */
-    public function map(callable $mappingFunction, array $mapArgs = []) : array {
-        $this->setMappingFunction($mappingFunction, $mapArgs);
+    public function map(callable $mappingFunction, array $mapArgs = []) : ResultSet {
+        $result = [];
+        $index = 0;
+        $records = $this->getRows();
+        
+        foreach ($records as $record) {
+            $args = array_merge([$record, $index, $records], $mapArgs);
+            $result[] = call_user_func_array($mappingFunction, $args);
+        }
 
-        return $this->getMappedRows();
+        return new ResultSet($result);
+    }
+    /**
+     * Filter the records of the result set using a custom callback.
+     * 
+     * @param callable $filterFunction A PHP function that must return true for
+     * the records that will be included. The first argument of the
+     * function will always be the record/value that will be mapped. In case
+     * of database records, this will be an associative array. The indices
+     * are names of columns as they appear in the database. The second
+     * argument is the index of the record/value and, the last value will
+     * be the original set of records as an array.
+     * 
+     * @param array $mapArgs Any additional arguments that the developer
+     * would like to pass to filtering function.
+     * 
+     * @return ResultSet The method will return an object of type ResultSet
+     * that holds the filtered records.
+     */
+    public function filter(callable $filterFunction, array $mapArgs = []) : ResultSet {
+        $result = [];
+        $index = 0;
+        $records = $this->getRows();
+        
+        foreach ($records as $record) {
+            $args = array_merge([$record, $index, $records], $mapArgs);
+            $include = call_user_func_array($filterFunction, $args);
+            
+            if ($include === true) {
+                $result[] = $record;
+            }
+        }
+
+        return new ResultSet($result);
     }
     #[\ReturnTypeWillChange]
     /**
@@ -214,27 +189,14 @@ class ResultSet implements Countable, Iterator {
         $this->orgResultRows = $records;
     }
     /**
-     * Sets a custom callback which can be used to process result set and 
-     * map the records as desired.
+     * Returns an array that represents the set.
      * 
-     * @param callable $callback A PHP function. The first argument of the
-     * function will always be an associative array that represents the
-     * record. The second argument will always be the index of the record.
-     * the third argument will be an array of sub-arrays that holds
-     * raw data.
+     * This method is an alias for the method ResultSet::getRows().
      * 
-     * @param array $otherParams An array that holds extra arguments which can 
-     * be passed to the mapping function.
-     * 
-     * @return boolean If the function is set, the method will return true. 
-     * If not, the method will return false.
-     * 
-     * @since 1.0
+     * @return array An array that represents the set.
      */
-    public function setMappingFunction(callable $callback, array $otherParams = []) {
-        $this->mapArgs = $otherParams;
-        $this->mappingFunction = $callback;
-        $this->dataChangedBeforeMapping = true;
+    public function toArray() : array {
+        return $this->getRows();
     }
     /**
      * Checks if current position is valid in the iterator.

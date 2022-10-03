@@ -855,7 +855,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema->table('users')->select()->execute();
         $resultSet = $schema->getLastResultSet();
         $this->assertEquals(2, $resultSet->getRowsCount());
-        $this->assertEquals(2, $resultSet->getMappedRowsCount());
+        
         
         $this->assertEquals([
             ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
@@ -865,7 +865,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
             ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
-        ], $resultSet->getMappedRows());
+        ], $resultSet->getRows());
         $schema->table('users')->insert([
             'cols' => [
                 'id','first-name','last-name','age'
@@ -908,7 +908,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $mapper->create();
         require_once $mapper->getAbsolutePath();
         $resultSet = $schema->getLastResultSet();
-        $resultSet->setMappingFunction(function($record) {
+        $newSet = $resultSet->map(function($record) {
             $obj = new UserEntity();
             $obj->setAge($record['age']);
             $obj->setFirstName($record['first_name']);
@@ -916,7 +916,7 @@ class MySQLQueryBuilderTest extends TestCase {
             $obj->setLastName($record['last_name']);
             return $obj;
         });
-        $data = $resultSet->getMappedRows();
+        $data = $newSet->getRows();
         foreach ($data as $obj) {
             $this->assertTrue($obj instanceof UserEntity);
         }
