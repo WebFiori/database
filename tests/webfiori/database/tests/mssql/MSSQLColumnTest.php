@@ -143,6 +143,15 @@ class MSSQLColumnTest extends TestCase {
     /**
      * @test
      */
+    public function testConstructor14() {
+        $col = new MSSQLColumn('free_text', 'varchar ', 44);
+        $this->assertEquals("'This isn''t good.'", $col->cleanValue("This isn't good."));
+
+        return $col;
+    }
+    /**
+     * @test
+     */
     public function testCreateCol00() {
         $colObj = MSSQLColumn::createColObj([]);
         $this->assertNull($colObj);

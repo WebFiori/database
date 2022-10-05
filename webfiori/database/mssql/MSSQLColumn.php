@@ -431,10 +431,14 @@ class MSSQLColumn extends Column {
             $cleanedVal = floatval($val);
         } else if ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar') {
-            $cleanedVal = filter_var(addslashes($val));
+            
+            $cleanedVal = filter_var(str_replace('@!@', "''", addslashes(str_replace("'", '@!@', $val))));
         // It is not secure if not escaped without connection
         // Think about multi-byte strings
-        // At minimum, just sanitize the value using default filter
+        // At minimum, just sanitize the value using default filter plus
+        //escaping special characters
+        // The @!@ used as replacement for single qut since MSSQL
+        // use it as escape character
         } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
             if ($val != 'now' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
