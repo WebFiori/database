@@ -1492,7 +1492,9 @@ abstract class AbstractQuery {
                 $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
             } else if ($options['func'] == 'in') {
                 $cleanedVals = $colObj->cleanValue($options['values']);
-                $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+                if (count($cleanedVals) != 0) {
+                    $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+                }
             } else if ($options['func'] == 'left') {
                 $cleanVal = $colObj->cleanValue($options['value']);
                 $cleanType = gettype($cleanVal);
