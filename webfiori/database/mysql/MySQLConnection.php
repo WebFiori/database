@@ -14,6 +14,7 @@ use mysqli;
 use mysqli_stmt;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
+use webfiori\database\ConnectionInfo;
 use webfiori\database\DatabaseException;
 use webfiori\database\ResultSet;
 /**
