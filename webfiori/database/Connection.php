@@ -18,6 +18,7 @@ namespace webfiori\database;
  * @version 1.0.1
  */
 abstract class Connection {
+    private $executedQueries;
     /**
      *
      * @var ConnectionInfo 
@@ -65,6 +66,7 @@ abstract class Connection {
      */
     public function __construct(ConnectionInfo $connInfo) {
         $this->connParams = $connInfo;
+        $this->executedQueries = [];
 
         if (!$this->connect()) {
             throw new DatabaseException('Unable to connect to database: '.$this->getLastErrCode().' - '.$this->getLastErrMessage());
@@ -83,6 +85,16 @@ abstract class Connection {
      * @since 1.0
      */
     public abstract function connect() : bool;
+    /**
+     * Adds a query to the set of executed SQL queries.
+     * 
+     * This method is used to append the queries that reached execution stage.
+     * 
+     * @param string $query The query that will be executed.
+     */
+    public function addToExecuted(string $query) {
+        $this->executedQueries[] = $query;
+    }
     /**
      * Returns an object that contains database connection information.
      * 
@@ -192,6 +204,15 @@ abstract class Connection {
      */
     public function setLastQuery(AbstractQuery $query) {
         $this->lastQuery = $query;
+    }
+    /**
+     * Returns an indexed array that contains all executed SQL queries.
+     * 
+     * @return array An indexed array that contains all executed SQL queries.
+     * 
+     */
+    public function getExecutedQueries() : array {
+        return $this->executedQueries;
     }
     /**
      * Sets result set.
