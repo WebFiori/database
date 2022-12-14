@@ -371,6 +371,16 @@ class Database {
         return $this->queries;
     }
     /**
+     * Returns an indexed array that contains all executed SQL queries.
+     * 
+     * @return array An indexed array that contains all executed SQL queries.
+     * 
+     * @since 1.0
+     */
+    public function getExecutedQueries() {
+        return $this->getConnection()->getExecutedQueries();
+    }
+    /**
      * Returns the query builder which is used to build SQL queries.
      *  
      * @return AbstractQuery

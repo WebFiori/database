@@ -14,6 +14,7 @@ use mysqli;
 use mysqli_stmt;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
+use webfiori\database\ConnectionInfo;
 use webfiori\database\DatabaseException;
 use webfiori\database\ResultSet;
 /**
@@ -27,6 +28,7 @@ use webfiori\database\ResultSet;
  * @version 1.0.2
  */
 class MySQLConnection extends Connection {
+    private $isCollationSet;
     /**
      *
      * @var mysqli|null
@@ -41,6 +43,16 @@ class MySQLConnection extends Connection {
      * @since 1.0.2 
      */
     private $sqlStm;
+    /**
+     * Creates new instance of the class.
+     * 
+     * @param ConnectionInfo $connInfo An object that holds connection
+     * information.
+     */
+    public function __construct(ConnectionInfo $connInfo) {
+        parent::__construct($connInfo);
+        $this->isCollationSet = false;
+    }
     /**
      * Close database connection.
      */
@@ -85,7 +97,9 @@ class MySQLConnection extends Connection {
 
             if ($test) {
                 $this->link->set_charset("utf8");
+                $this->addToExecuted("set character_set_client='utf8'");
                 mysqli_query($this->link, "set character_set_client='utf8'");
+                $this->addToExecuted("set character_set_results='utf8'");
                 mysqli_query($this->link, "set character_set_results='utf8'");
             }
         } else {
@@ -163,7 +177,7 @@ class MySQLConnection extends Connection {
     public function runQuery(AbstractQuery $query = null) {
         $this->setLastQuery($query);
 
-        if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate()) {
+        if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate() && !$this->isCollationSet) {
             $table = $query->getTable();
 
             if ($table !== null && $table instanceof MySQLTable) {
@@ -171,11 +185,14 @@ class MySQLConnection extends Connection {
             } else {
                 $collation = 'utf8mb4_unicode_520_ci';
             }
+            $this->addToExecuted('set collation_connection = ?');
             $stm = mysqli_prepare($this->link, 'set collation_connection = ?');
             $stm->bind_param('s', $collation);
             $stm->execute();
+            $this->isCollationSet = true;
         }
         $qType = $query->getLastQueryType();
+        $this->addToExecuted($query->getQuery());
 
         try {
             if ($qType == 'insert' || $qType == 'update') {

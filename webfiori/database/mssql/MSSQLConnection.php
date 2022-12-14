@@ -143,6 +143,7 @@ class MSSQLConnection extends Connection {
      * @since 1.0
      */
     public function runQuery(AbstractQuery $query = null) {
+        $this->addToExecuted($query->getQuery());
         $this->setLastQuery($query);
 
         $qType = $query->getLastQueryType();
