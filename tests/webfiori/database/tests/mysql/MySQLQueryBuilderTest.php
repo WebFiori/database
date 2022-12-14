@@ -34,6 +34,10 @@ class MySQLQueryBuilderTest extends TestCase {
 //    }
     public function testCreateTables() {
         $schema = new MySQLTestSchema();
+        $this->assertEquals([
+            "set character_set_client='utf8'",
+            "set character_set_results='utf8'"
+        ],$schema->getExecutedQueries());
         $schema->createTables();
         $this->assertEquals("create table if not exists `users` (\n"
                 . "    `id` int not null unique auto_increment,\n"
@@ -98,7 +102,21 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
         $schema->execute();
-        
+        $this->assertEquals([
+            "set character_set_client='utf8'",
+            "set character_set_results='utf8'",
+            "set collation_connection = ?",
+            "create table if not exists `users` (\n"
+                . "    `id` int not null unique auto_increment,\n"
+                . "    `first_name` varchar(15) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    `last_name` varchar(20) not null collate utf8mb4_unicode_520_ci,\n"
+                . "    `age` int not null,\n"
+                . "    constraint `users_pk` primary key (`id`)\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;"
+        ], $schema->getExecutedQueries());
         $schema->table('users_privileges')->createTable();
         $this->assertEquals("create table if not exists `users_privileges` (\n"
                 . "    `id` int not null unique,\n"
@@ -767,6 +785,10 @@ class MySQLQueryBuilderTest extends TestCase {
         $conn = new MySQLConnection($connInfo);
         $schema = new MySQLTestSchema();
         $schema->setConnection($conn);
+        $this->assertEquals([
+            "set character_set_client='utf8'",
+            "set character_set_results='utf8'"
+        ], $schema->getExecutedQueries());
         $this->assertTrue(true);
         return $schema;
     }
