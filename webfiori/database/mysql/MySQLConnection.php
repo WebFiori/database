@@ -248,12 +248,10 @@ class MySQLConnection extends Connection {
 
         if ($this->getLastQuery()->isPrepareBeforeExec()) {
             $r = $this->_bindAndExc();
+        } else if (!$this->getLastQuery()->isMultiQuery()) {
+            $r = mysqli_query($this->link, $query);
         } else {
-            if (!$this->getLastQuery()->isMultiQuery()) {
-                $r = mysqli_query($this->link, $query);
-            } else {
-                $r = mysqli_multi_query($this->link, $query);
-            }
+            $r = mysqli_multi_query($this->link, $query);
         }
 
         if (!$r) {
@@ -265,7 +263,6 @@ class MySQLConnection extends Connection {
             $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
             $retVal = true;
         }
-        $r = mysqli_query($this->link, $query);
 
         if ($r === true || gettype($r) == 'object') {
             $retVal = true;
