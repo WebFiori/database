@@ -543,8 +543,11 @@ class MySQLQuery extends AbstractQuery {
             foreach ($colsAndVals['cols'] as $colKey) {
                 $colObj = $this->getTable()->getColByKey($colKey);
 
-                if (!($colObj instanceof MySQLColumn)) {
-                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+                if ($colObj === null) {
+                    $this->getTable()->addColumns([
+                        $colKey => []
+                    ]);
+                    $colObj = $this->getTable()->getColByKey($colKey);
                 }
                 $colObj->setWithTablePrefix(false);
                 $colsArr[] = $colObj->getName();
