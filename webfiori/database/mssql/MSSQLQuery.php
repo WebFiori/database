@@ -131,8 +131,11 @@ class MSSQLQuery extends AbstractQuery {
             foreach ($colsAndVals['cols'] as $colKey) {
                 $colObj = $this->getTable()->getColByKey($colKey);
 
-                if (!($colObj instanceof MSSQLColumn)) {
-                    throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+                if ($colObj === null) {
+                    $this->getTable()->addColumns([
+                        $colKey => []
+                    ]);
+                    $colObj = $this->getTable()->getColByKey($colKey);
                 }
                 $colObj->setWithTablePrefix(false);
                 $colsArr[] = $colObj->getName();
@@ -311,7 +314,12 @@ class MSSQLQuery extends AbstractQuery {
 
         foreach ($colsKeysArr as $colKey) {
             $column = $this->getTable()->getColByKey($colKey);
-
+            if ($column === null) {
+                $this->getTable()->addColumns([
+                    $colKey => []
+                ]);
+                $column = $this->getTable()->getColByKey($colKey);
+            }
             if ($column instanceof MSSQLColumn) {
                 $columnsWithVals[] = $colKey;
                 $colsNamesArr[] = $column->getName();
