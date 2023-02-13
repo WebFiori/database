@@ -212,7 +212,7 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testSelectWithWhere000() {
         $schema = new MySQLTestSchema();
-        $bulder = $schema->table('users')->select()->where('id', '=', 66);
+        $bulder = $schema->table('users')->select()->where('id', 66);
         $this->assertEquals('select * from `users` where `users`.`id` = 66', $schema->getLastQuery());
         $bulder->groupBy('first-name');
         $this->assertEquals('select * from `users` where `users`.`id` = 66 group by `users`.`first_name`', $schema->getLastQuery());
@@ -227,10 +227,10 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testSelectWithWhere001() {
         $schema = new MySQLTestSchema();
         $schema->table('users')->select()->where(
-            $schema->where('id', '=', 7)
+            $schema->where('id', 7)
         );
         $this->assertEquals('select * from `users` where `users`.`id` = 7', $schema->getLastQuery());
-        $schema->orWhere('first-name', '=', 'Ibrahim');
+        $schema->orWhere('first-name', 'Ibrahim');
         $this->assertEquals('select * from `users` where `users`.`id` = 7 or `users`.`first_name` = \'Ibrahim\'', $schema->getLastQuery());
         $schema->clear();
     }
@@ -243,11 +243,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $q = $schema->table('users')->select();
         $q->where(
             $q->where(
-                $q->where('id', '=', 7)
+                $q->where('id', 7)
             )
         );
         $this->assertEquals('select * from `users` where `users`.`id` = 7', $schema->getLastQuery());
-        $schema->orWhere('first-name', '=', 'Ibrahim');
+        $schema->orWhere('first-name', 'Ibrahim');
         $this->assertEquals('select * from `users` where `users`.`id` = 7 or `users`.`first_name` = \'Ibrahim\'', $schema->getLastQuery());
         $schema->clear();
     }
@@ -261,13 +261,13 @@ class MySQLQueryBuilderTest extends TestCase {
         //2 Expr (id = 7)
         $q->where(//This where will create an expression of sub query.
             //1 Cond id = 7
-            $q->where('id', '=', 7)
-            ->orWhere('id', '=', 8)//This will create one big cond
+            $q->where('id', 7)
+            ->orWhere('id', 8)//This will create one big cond
         //4 
         )->orWhere(
                 //3 Cond f_name = Ibr
-            $q->where('first-name', '=', 'Ibrahim')
-            ->andWhere('last-name', '=', 'BinAlshikh')//This will create one big cond
+            $q->where('first-name', 'Ibrahim')
+            ->andWhere('last-name', 'BinAlshikh')//This will create one big cond
         );
         '((id = 7) and f_n = ibrahim)';
         $this->assertEquals('select * from `users` '
@@ -282,12 +282,12 @@ class MySQLQueryBuilderTest extends TestCase {
         $q = $schema->table('users')->select();
         
         $q->where(
-            $q->where('id', '=', 7)
-        )->where('id', '=', 8)
-         ->orWhere('id', '=', 88);
+            $q->where('id', 7)
+        )->where('id', 8)
+         ->orWhere('id', 88);
         
         $this->assertEquals('select * from `users` where `users`.`id` = 7 and `users`.`id` = 8 or `users`.`id` = 88', $schema->getLastQuery());
-        $schema->orWhere('first-name', '=', 'Ibrahim');
+        $schema->orWhere('first-name', 'Ibrahim');
         
         $this->assertEquals('select * from `users` where `users`.`id` = 7 '
                 . 'and `users`.`id` = 8 or `users`.`id` = 88 or `users`.`first_name` = \'Ibrahim\'', $schema->getLastQuery());
@@ -300,11 +300,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $q = $schema->table('users')->select();
         
         $q->where(//This where will create an expression of sub query.
-            $q->where('id', '=', 7)
+            $q->where('id', 7)
         )->orWhere(
-            $q->where('first-name', '=', 'Ibrahim')
+            $q->where('first-name', 'Ibrahim')
         )->andWhere(
-            $q->where('last-name', '=', 'BinAlshikh')
+            $q->where('last-name', 'BinAlshikh')
         );
         // Expr(Cond) Cond Expr
         // (id = 7) and f_n = Ibrahim
@@ -324,9 +324,9 @@ class MySQLQueryBuilderTest extends TestCase {
             //2 Expr (id = 7)
             $q->where(
                 //1 Cond id = 7
-                $q->where('id', '=', 7)
+                $q->where('id', 7)
             //3 Expr (id = 7) and id = 8
-            )->where('id', '=', 8)
+            )->where('id', 8)
         );
         // Expr(Expr(Cond) Cond)
         $this->assertEquals('select * from `users` where `users`.`id` = 7 and `users`.`id` = 8', $schema->getLastQuery());
@@ -343,9 +343,9 @@ class MySQLQueryBuilderTest extends TestCase {
             //2 Expr (id = 7)
             $q->where(
                 //1 Cond id = 7
-                $q->where('id', '=', null)
+                $q->where('id', null)
             //3 Expr (id = 7) and id = 8
-            )->where('id', '!=', null)
+            )->where('id', null, '!=')
         );
         // Expr(Expr(Cond) Cond)
         $this->assertEquals('select * from `users` where `users`.`id` is null and `users`.`id` is not null', $schema->getLastQuery());
@@ -362,11 +362,11 @@ class MySQLQueryBuilderTest extends TestCase {
             //2 Expr (id = 7)
             $q->where(
                 //1 Cond id = 7
-                $q->where('id', '=', 7)
+                $q->where('id', 7)
             //3 Expr (id = 7) and id = 8
-            )->where('id', '=', 8)
-             ->where('id', '=', 100)
-             ->where('first-name', '=', 44)
+            )->where('id', 8)
+             ->where('id', 100)
+             ->where('first-name', 44)
         );
         $this->assertEquals('select * from `users` where (`users`.`id` = 7 and (`users`.`id` = 8 and `users`.`id` = 100 and `users`.`first_name` = \'44\'))', $schema->getLastQuery());
     }
@@ -381,13 +381,13 @@ class MySQLQueryBuilderTest extends TestCase {
         //5
         $q->where(
             $q->where(
-                $q->where('id', '=', 7)
+                $q->where('id', 7)
             )->where(
-                $q->where('id', '=', 8)
+                $q->where('id', 8)
             )
         );
         $this->assertEquals('select * from `users` where `users`.`id` = 7 and `users`.`id` = 8', $schema->getLastQuery());
-        $schema->orWhere('first-name', '=', 'Ibrahim');
+        $schema->orWhere('first-name', 'Ibrahim');
         $this->assertEquals('select * from `users` where `users`.`id` = 7 and `users`.`id` = 8 or `users`.`first_name` = \'Ibrahim\'', $schema->getLastQuery());
     }
     /**
@@ -397,11 +397,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users')->select();
         
-        $q->where('id', '=', 2)
-                ->where('id', '!=', 9, 'or')
-                ->orWhere('id', '=', 10)
-                ->andWhere('id', '=', 30)
-                ->andWhere('first-name', '!=', 'Ibr');
+        $q->where('id', 2)
+                ->where('id', 9,'!=', 'or')
+                ->orWhere('id', 10)
+                ->andWhere('id', 30)
+                ->andWhere('first-name', 'Ibr', '!=');
         $this->assertEquals('select * from `users` where '
                 . '`users`.`id` = 2 or '
                 . '`users`.`id` != 9 or '
@@ -416,11 +416,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users')->select();
         
-        $q->where($q->where('id', '=', 2)
-                ->where('id', '!=', 9, 'or')
-                ->orWhere('id', '=', 10)
-                ->andWhere('id', '=', 30)
-                ->andWhere('first-name', '!=', 'Ibr'));
+        $q->where($q->where('id', 2)
+                ->where('id', 9,'!=', 'or')
+                ->orWhere('id', 10)
+                ->andWhere('id', 30)
+                ->andWhere('first-name', 'Ibr', '!='));
         $this->assertEquals('select * from `users` where ('
                 . '`users`.`id` = 2 or '
                 . '`users`.`id` != 9 or '
@@ -435,11 +435,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users')->select();
         
-        $q->where($q->where($q->where('id', '=', 2)
-                ->where('id', '!=', 9, 'or')
-                ->orWhere('id', '=', 10)
-                ->andWhere('id', '=', 30)
-                ->andWhere('first-name', '!=', 'Ibr')));
+        $q->where($q->where($q->where('id', 2)
+                ->where('id', 9, '!=', 'or')
+                ->orWhere('id', 10)
+                ->andWhere('id', 30)
+                ->andWhere('first-name', 'Ibr', '!=')));
         $this->assertEquals('select * from `users` where ('
                 . '`users`.`id` = 2 or '
                 . '`users`.`id` != 9 or '
@@ -452,11 +452,11 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $schema->table('users')
                 ->delete()
-                ->where('id', '=', 88);
+                ->where('id', 88);
         $this->assertEquals("delete from `users` where `users`.`id` = 88", $schema->getLastQuery());
-        $schema->where('id', '=', 55);
+        $schema->where('id', 55);
         $this->assertEquals("delete from `users` where `users`.`id` = 88 and `users`.`id` = 55", $schema->getLastQuery());
-        $schema->orWhere('id', '!=', '8');
+        $schema->orWhere('id', '8', '!=');
         $this->assertEquals("delete from `users` where `users`.`id` = 88 and `users`.`id` = 55 or `users`.`id` != 8", $schema->getLastQuery());
     }
     public function testDelete04() {
@@ -465,17 +465,17 @@ class MySQLQueryBuilderTest extends TestCase {
         
                $q ->delete()
         ->orWhere(
-                $q->orWhere('first-name', '=', 'Ibrahim')
-                ->andWhere('last-name', '=', 'BinAlshikh'));
+                $q->orWhere('first-name', 'Ibrahim')
+                ->andWhere('last-name', 'BinAlshikh'));
         $this->assertEquals("delete from `users` where (`users`.`first_name` = 'Ibrahim' and `users`.`last_name` = 'BinAlshikh')", $schema->getLastQuery());
     }
     public function testDelete03() {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users')
                 ->delete()
-                ->where('id', '=', 88);
+                ->where('id', 88);
         $this->assertEquals("delete from `users` where `users`.`id` = 88", $schema->getLastQuery());
-        $q->where('id', '=', 55);
+        $q->where('id', 55);
         $this->assertEquals("delete from `users` where `users`.`id` = 88 and `users`.`id` = 55", $schema->getLastQuery());
     }
     /**
@@ -501,7 +501,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 ->select(['id' => [
                     'as' => 'user_id'
                 ], 'first-name'])
-                ->where('id', '!=', 44)
+                ->where('id', 44, '!=')
                 ->union($schema->table('users_privileges')->select());
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44"
                 . "\nunion\n"
@@ -516,7 +516,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 $q->select(['id' => [
                     'alias' => 'user_id'
                 ], 'first-name'])
-                ->where('id', '!=', 44)
+                ->where('id', 44, '!=')
                 ->union($q->table('users_privileges')->select())
                 ->union($q->table('users_tasks')->select(), true);
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44"
@@ -687,10 +687,10 @@ class MySQLQueryBuilderTest extends TestCase {
         
         $q->update([
             'details' => 'OKKKKKKKk'
-        ])->where('task-id', '=', 77);
+        ])->where('task-id', 77);
         $date = date('Y-m-d H:i:s');
         $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', `last_updated` = '$date' where `users_tasks`.`task_id` = 77", $schema->getLastQuery());
-        $q->andWhere('user-id', '=', 6);
+        $q->andWhere('user-id', 6);
         $this->assertEquals("update `users_tasks` set `details` = 'OKKKKKKKk', `last_updated` = '$date' "
                 . "where `users_tasks`.`task_id` = 77 and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
     }
@@ -703,10 +703,10 @@ class MySQLQueryBuilderTest extends TestCase {
         
         $q->update([
             'details' => null
-        ])->where('task-id', '=', 77);
+        ])->where('task-id', 77);
         $date = date('Y-m-d H:i:s');
         $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' where `users_tasks`.`task_id` = 77", $schema->getLastQuery());
-        $q->andWhere('user-id', '=', 6);
+        $q->andWhere('user-id', 6);
         $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' "
                 . "where `users_tasks`.`task_id` = 77 and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
     }
@@ -719,11 +719,11 @@ class MySQLQueryBuilderTest extends TestCase {
         
         $q->update([
             'details' => null
-        ])->where('last-updated', '=', '2021-07-13');
+        ])->where('last-updated', '2021-07-13');
         $date = date('Y-m-d H:i:s');
         $this->assertEquals("update `users_tasks` set `details` = null, "
                 . "`last_updated` = '$date' where `users_tasks`.`last_updated` = '2021-07-13 00:00:00'", $schema->getLastQuery());
-        $q->andWhere('user-id', '=', 6);
+        $q->andWhere('user-id', 6);
         $this->assertEquals("update `users_tasks` set `details` = null, `last_updated` = '$date' "
                 . "where `users_tasks`.`last_updated` = '2021-07-13 00:00:00' and `users_tasks`.`user_id` = 6", $schema->getLastQuery());
     }
@@ -872,7 +872,7 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testDropRecord00($schema) {
         $row = $schema->getLastResultSet()->getRows()[0];
-        $schema->table('users')->delete()->where('id', '=', $row['id']);
+        $schema->table('users')->delete()->where('id', $row['id']);
         $this->assertEquals('delete from `users` where `users`.`id` = '.$row['id'], $schema->getLastQuery());
         $schema->execute();
         $schema->table('users')->select()->execute();
@@ -1025,7 +1025,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
-                $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
+                $queryBuilder->table('users_privileges')->select()->where('id', 3)
                 )->on('id', 'id')->select();
         $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
                 . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
@@ -1036,7 +1036,7 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testJoin02() {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
-        $queryBuilder->table('users')->select()->where('id', '=', 88)->join(
+        $queryBuilder->table('users')->select()->where('id', 88)->join(
             $queryBuilder->table('users_privileges')
         )->on('id', 'id')->select();
         $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
@@ -1049,7 +1049,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
-                $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
+                $queryBuilder->table('users_privileges')->select()->where('id', 3)
                 )->on('id', 'id')->select();
         $this->assertEquals("select * from (select * from `users` join `users_privileges` on(`users`.`id` = `users_privileges`.`id`) "
                 . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
@@ -1061,7 +1061,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $queryBuilder = $schema->getQueryGenerator();
         $queryBuilder->table('users')->join(
-            $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
+            $queryBuilder->table('users_privileges')->select()->where('id', 3)
         )->on('id', 'id')->select([
             'id','first-name','last-name','can-edit-price','can-do-anything'
         ]);
@@ -1076,7 +1076,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "where `users_privileges`.`id` = 3) as `T1`", $schema->getLastQuery());
         
         $queryBuilder->table('users')->select(['id'])->join(
-            $queryBuilder->table('users_privileges')->select()->where('id', '=', 3)
+            $queryBuilder->table('users_privileges')->select()->where('id', 3)
         )->on('id', 'id')->select([
             'id','first-name','last-name','can-edit-price','can-do-anything'
         ]);
@@ -1325,7 +1325,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereBetween('task-id', 0, 33);
         $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` between 0 and 33)', $schema->getLastQuery());
-        $schema->andWhere('user-id', '=', 88);
+        $schema->andWhere('user-id', 88);
         $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` between 0 and 33) and `users_tasks`.`user_id` = 88', $schema->getLastQuery());
     }
     /**
@@ -1355,7 +1355,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereNotBetween('task-id', 0, 33);
         $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` not between 0 and 33)', $schema->getLastQuery());
-        $schema->getQueryGenerator()->andWhere('user-id', '=', 88);
+        $schema->getQueryGenerator()->andWhere('user-id', 88);
         $this->assertEquals('select * from `users_tasks` where (`users_tasks`.`task_id` not between 0 and 33) and `users_tasks`.`user_id` = 88', $schema->getLastQuery());
     }
     /**
@@ -1469,7 +1469,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $q->table('users_tasks')->select()
                 ->whereLeft('details', 8, 'not in', ['good']);
         $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) not in('good')", $schema->getLastQuery());
-        $q->andWhere('user-id', '=', 9);
+        $q->andWhere('user-id', 9);
         $this->assertEquals("select * from `users_tasks` where left(`users_tasks`.`details`, 8) not in('good') and `users_tasks`.`user_id` = 9", $schema->getLastQuery());
     }
     /**
