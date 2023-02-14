@@ -87,6 +87,41 @@ class MSSQLTable extends Table {
         parent::addColumns($arrToAdd);
     }
     /**
+     * Returns a string which can be used to add table comment as extended 
+     * property.
+     * 
+     * The returned SQL statement will use the procedure 'sp_[add|update|drop]extendedproperty'
+     * 
+     * @param string $spType The type of operation. Can be 'add', 'update' or 'drop'.
+     * 
+     * @return string If the comment of the table is set, the method will
+     * return non-empty string. Other than that, empty string is returned.
+     */
+    public function createTableCommentCommand(string $spType = 'add') {
+        $comment = $this->getComment();
+        
+        if ($comment === null) {
+            
+            return '';
+        }
+        
+        $tableName = $this->getNormalName();
+        
+        if (in_array($spType, ['update', 'add', 'drop'])) {
+            $sp = "sp_".$spType."extendedproperty";
+        } else {
+            $sp = 'sp_addextendedproperty';
+        }
+        
+        return "exec $sp\n"
+                . "@name = N'MS_Description',\n"
+                . "@value = '$comment',\n"
+                . "@level0type = N'Schema',\n"
+                . "@level0name = 'dbo',\n"
+                . "@level1type = N'Table',\n"
+                . "@level1name = '$tableName';";
+    }
+    /**
      * Adds new column to the table.
      * 
      * @param string $key Key name of the column. A valid key must follow following
@@ -189,8 +224,28 @@ class MSSQLTable extends Table {
             $queryStr .= ",\n".$un;
         }
         $queryStr .= "\n)\n";
-
+        $comment = $this->createTableCommentCommand();
+        
+        if (strlen($comment) != 0) {
+            $queryStr .= $comment."\n";
+        }
+        $colsComments = $this->getAddColsComments();
+        
+        if (strlen($colsComments) != 0) {
+            $queryStr .= $colsComments."\n";
+        }
         return $queryStr;
+    }
+    private function getAddColsComments() {
+        $str = '';
+        foreach ($this->getCols() as $colObj) {
+            $comment = $colObj->createColCommentCommand();
+        
+            if (strlen($comment) != 0) {
+                $str .= $comment."\n";
+            }
+        }
+        return trim($str);
     }
     private function _createFK() {
         $comma = '';

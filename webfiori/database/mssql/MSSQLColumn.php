@@ -80,6 +80,49 @@ class MSSQLColumn extends Column {
         }
     }
     /**
+     * Returns a string which can be used to add column comment as extended 
+     * property.
+     * 
+     * The returned SQL statement will use the procedure 'sp_[add|update|drop]extendedproperty'
+     * 
+     * @param string $spType The type of operation. Can be 'add', 'update' or 'drop'.
+     * 
+     * @return string If the comment of the column is set, the method will
+     * return non-empty string. Other than that, empty string is returned.
+     */
+    public function createColCommentCommand(string $spType = 'add') {
+        $comment = $this->getComment();
+        
+        if ($comment === null) {
+            
+            return '';
+        }
+        $table = $this->getOwner();
+        
+        if ($table === null) {
+            
+            return '';
+        }
+        $tableName = $table->getNormalName();
+        $colName = $this->getNormalName();
+        
+        if (in_array($spType, ['update', 'add', 'drop'])) {
+            $sp = "sp_".$spType."extendedproperty";
+        } else {
+            $sp = 'sp_addextendedproperty';
+        }
+        
+        return "exec $sp\n"
+                . "@name = N'MS_Description',\n"
+                . "@value = '$comment',\n"
+                . "@level0type = N'Schema',\n"
+                . "@level0name = 'dbo',\n"
+                . "@level1type = N'Table',\n"
+                . "@level1name = '$tableName',\n"
+                . "@level2type = N'Column',\n"
+                . "@level2name = '$colName';";
+    }
+    /**
      * Checks if the column represents an identity column or not.
      * 
      * Identity column only applies to int and bigint data types.

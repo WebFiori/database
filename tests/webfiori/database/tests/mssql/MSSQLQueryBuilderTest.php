@@ -89,6 +89,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testCreateTables() {
         $schema = new MSSQLTestSchema();
         $schema->createTables();
+        var_dump($schema->getLastQuery());
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
                 . "    [id] [int] not null,\n"
@@ -119,6 +120,15 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
                 . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
                 . ")\n"
+                . "exec sp_addextendedproperty\n"
+                . "@name = N'MS_Description',\n"
+                . "@value = 'The ID of the user who must perform the activity.',\n"
+                . "@level0type = N'Schema',\n"
+                . "@level0name = 'dbo',\n"
+                . "@level1type = N'Table',\n"
+                . "@level1name = 'users_tasks',\n"
+                . "@level2type = N'Column',\n"
+                . "@level2name = 'user_id';\n"
                 . "\n"
                 . "if not exists (select * from sysobjects where name='profile_pics' and xtype='U')\n"
                 . "create table [profile_pics] (\n"
