@@ -62,7 +62,7 @@ class MySQLConnection extends Connection {
     /**
      * Connect to MySQL database.
      * 
-     * @return boolean If the connection was established, the method will return 
+     * @return bool If the connection was established, the method will return 
      * true. If the attempt to connect fails, the method will return false.
      * 
      * @since 1.0
@@ -137,7 +137,7 @@ class MySQLConnection extends Connection {
      * </li>
      * <ul>
      * 
-     * @return boolean|mysqli_stmt If the statement was successfully prepared, the method 
+     * @return bool|mysqli_stmt If the statement was successfully prepared, the method 
      * will return true. If an error happens, the method will return false.
      * 
      * @since 1.0.2
@@ -169,7 +169,7 @@ class MySQLConnection extends Connection {
      * @param AbstractQuery $query A query builder that has the generated MySQL 
      * query.
      * 
-     * @return boolean If the query successfully executed, the method will return 
+     * @return bool If the query successfully executed, the method will return 
      * true. Other than that, the method will return true.
      * 
      * @since 1.0

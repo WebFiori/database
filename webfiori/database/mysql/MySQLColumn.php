@@ -348,7 +348,7 @@ class MySQLColumn extends Column {
     /**
      * Checks if the column is auto increment or not.
      * 
-     * @return boolean true if the column is auto increment.
+     * @return bool true if the column is auto increment.
      * 
      * @since 1.0
      */
@@ -358,7 +358,7 @@ class MySQLColumn extends Column {
     /**
      * Returns the value of the property 'isAutoUpdate'.
      * 
-     * @return boolean If the column type is 'datetime' or 'timestamp' and the 
+     * @return bool If the column type is 'datetime' or 'timestamp' and the 
      * column is set to auto update in case of update query, the method will 
      * return true. Default return value is valse.
      * 
@@ -443,7 +443,7 @@ class MySQLColumn extends Column {
      * 
      * @param boolean $bool true or false.
      * 
-     * @return boolean <b>true</b> if the property value changed. false 
+     * @return bool <b>true</b> if the property value changed. false 
      * otherwise.
      * 
      * @since 1.0
@@ -534,7 +534,7 @@ class MySQLColumn extends Column {
      * @param int $val Number of numbers after the decimal point. It must be a 
      * positive number.
      * 
-     * @return boolean If scale value is set, the method will return true. 
+     * @return bool If scale value is set, the method will return true. 
      * false otherwise. The method will not set the scale in the following cases:
      * <ul>
      * <li>Datatype of the column is not decimal, float or double.</li>
@@ -571,7 +571,7 @@ class MySQLColumn extends Column {
      * 
      * @param int $size The size to set.
      * 
-     * @return boolean true if the size is set. The method will return 
+     * @return bool true if the size is set. The method will return 
      * false in case the size is invalid or datatype does not support 
      * size attribute. Also The method will return 
      * false in case the datatype of the column does not 

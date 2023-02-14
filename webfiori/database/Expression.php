@@ -54,7 +54,7 @@ class Expression {
      * 
      * @param Expression $exp The expression that will be checked with.
      * 
-     * @return boolean If the two are equals, the method will return true. 
+     * @return bool If the two are equals, the method will return true. 
      * False otherwise.
      * 
      * @since 1.0

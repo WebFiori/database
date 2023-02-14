@@ -321,7 +321,7 @@ class MSSQLColumn extends Column {
     /**
      * Returns the value of the property 'isAutoUpdate'.
      * 
-     * @return boolean If the column type is 'datetime' or 'timestamp' and the 
+     * @return bool If the column type is 'datetime' or 'timestamp' and the 
      * column is set to auto update in case of update query, the method will 
      * return true. Default return value is false.
      * 
@@ -428,7 +428,7 @@ class MSSQLColumn extends Column {
      * @param int $val Number of numbers after the decimal point. It must be a 
      * positive number.
      * 
-     * @return boolean If scale value is set, the method will return true. 
+     * @return bool If scale value is set, the method will return true. 
      * false otherwise. The method will not set the scale in the following cases:
      * <ul>
      * <li>Datatype of the column is not decimal, float or double.</li>
@@ -456,7 +456,7 @@ class MSSQLColumn extends Column {
         $colDatatype = $this->getDatatype();
         $cleanedVal = null;
         $valType = gettype($val);
-        
+
         if ($val === null) {
             return null;
         } else if ($colDatatype == 'int' || $colDatatype == 'bigint') {

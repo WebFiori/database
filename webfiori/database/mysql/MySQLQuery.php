@@ -208,7 +208,7 @@ class MySQLQuery extends AbstractQuery {
      * The aim of this method is to fix an issue with setting the collation 
      * of the connection while executing a query.
      * 
-     * @return boolean The method will return true if the query represents an 
+     * @return bool The method will return true if the query represents an 
      * insert or an update of blob datatype. false if not.
      * 
      * @since 1.0

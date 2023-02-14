@@ -52,7 +52,7 @@ class MSSQLConnection extends Connection {
     /**
      * Connect to MSSQL database.
      * 
-     * @return boolean If the connection was established, the method will return 
+     * @return bool If the connection was established, the method will return 
      * true. If the attempt to connect fails, the method will return false.
      * 
      * @since 1.0
@@ -114,7 +114,7 @@ class MSSQLConnection extends Connection {
      * can have similar structure to the ones which are used by the 
      * function 'sqlsrv_prepare'.
      * 
-     * @return boolean|resource If the statement is prepared, the method will return 
+     * @return bool|resource If the statement is prepared, the method will return 
      * a resource that can be used to run the query. If it fails, the 
      * method will return false.
      * 
@@ -137,7 +137,7 @@ class MSSQLConnection extends Connection {
      * @param AbstractQuery $query A query builder that has the generated MSSQL 
      * query.
      * 
-     * @return boolean If the query successfully executed, the method will return 
+     * @return bool If the query successfully executed, the method will return 
      * true. Other than that, the method will return false.
      * 
      * @since 1.0
