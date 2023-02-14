@@ -389,7 +389,7 @@ abstract class Column {
     /**
      * Checks if table name will be prefixed with database name or not.
      * 
-     * @return boolean True if it will be prefixed. False if not.
+     * @return bool True if it will be prefixed. False if not.
      * 
      * @since 1.0
      */
@@ -399,7 +399,7 @@ abstract class Column {
     /**
      * Checks if the column allows null values.
      * 
-     * @return boolean true if the column allows null values. Default return 
+     * @return bool true if the column allows null values. Default return 
      * value is false which means that the column does not allow null values.
      * 
      * @since 1.0
@@ -410,7 +410,7 @@ abstract class Column {
     /**
      * Checks if the column is part of the primary key or not.
      * 
-     * @return boolean true if the column is primary. 
+     * @return bool true if the column is primary. 
      * Default return value is false.
      * 
      * @since 1.0
@@ -421,7 +421,7 @@ abstract class Column {
     /**
      * Returns the value of the property $isUnique.
      * 
-     * @return boolean true if the column value is unique. 
+     * @return bool true if the column value is unique. 
      * 
      * @since 1.0
      */
@@ -471,7 +471,7 @@ abstract class Column {
      * 
      * @param callable $callback The callback.
      * 
-     * @return boolean If it was updated, the method will return true. Other than that, 
+     * @return bool If it was updated, the method will return true. Other than that, 
      * the method will return false.
      * 
      * @since 1.0
@@ -525,7 +525,7 @@ abstract class Column {
      * @param boolean $bool true if the column allow null values. false 
      * if not.
      * 
-     * @return boolean true If the property value is updated. If the given 
+     * @return bool true If the property value is updated. If the given 
      * value is not a boolean, the method will return false. Also if 
      * the column represents a primary key, the method will always return false.
      * 
@@ -640,7 +640,7 @@ abstract class Column {
      * @param int $size A positive number that represents the size. must be greater 
      * than 0.
      * 
-     * @return boolean If the size is set, the method will return true. Other than 
+     * @return bool If the size is set, the method will return true. Other than 
      * that, it will return false.
      * 
      * @since 1.0

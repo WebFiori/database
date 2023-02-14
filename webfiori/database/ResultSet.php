@@ -201,7 +201,7 @@ class ResultSet implements Countable, Iterator {
     /**
      * Checks if current position is valid in the iterator.
      * 
-     * @return boolean Returns true on success or false on failure.
+     * @return bool Returns true on success or false on failure.
      * 
      * @since 1.0
      */

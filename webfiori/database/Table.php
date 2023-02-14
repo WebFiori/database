@@ -107,7 +107,7 @@ abstract class Table {
      * 
      * @param Column $colObj An object that holds the information of the column.
      * 
-     * @return boolean If added, the method will return true. False otherwise.
+     * @return bool If added, the method will return true. False otherwise.
      */
     public function addColumn(string $key, Column $colObj) : bool {
         $trimmidKey = str_replace('_', '-', trim($key));
@@ -527,7 +527,7 @@ abstract class Table {
      * 
      * @param string $colName The name of the column as it appears in database.
      * 
-     * @return boolean If the table has such column, the method will return true. 
+     * @return bool If the table has such column, the method will return true. 
      * other than that, the method will return false.
      */
     public function hasColumn($colName) {
@@ -548,7 +548,7 @@ abstract class Table {
      * 
      * @param string $keyName The name of the key.
      * 
-     * @return boolean If a column with the given key exist, the method will return 
+     * @return bool If a column with the given key exist, the method will return 
      * true. Other than that, the method will return false.
      * 
      * @since 1.0
@@ -561,7 +561,7 @@ abstract class Table {
     /**
      * Checks if table name will be prefixed with database name or not.
      * 
-     * @return boolean True if it will be prefixed. False if not.
+     * @return bool True if it will be prefixed. False if not.
      * 
      * @since 1.0
      */
@@ -633,7 +633,7 @@ abstract class Table {
      * @param string $name The name of the table. Must be non-empty string in order 
      * to set.
      * 
-     * @return boolean If the name is set, the method will return true. Other than 
+     * @return bool If the name is set, the method will return true. Other than 
      * that, the method will return false.
      * 
      * @since 1.0
@@ -742,7 +742,7 @@ abstract class Table {
     /**
      * 
      * @param type $key
-     * @return boolean
+     * @return bool
      * @since 1.6.1
      */
     private function _isKeyNameValid($key) {

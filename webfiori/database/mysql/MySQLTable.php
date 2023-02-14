@@ -53,7 +53,7 @@ class MySQLTable extends Table {
      * 
      * @param MySQLColumn $colObj An object of type MySQLColumn. 
      * 
-     * @return boolean true if the column is added. false otherwise.
+     * @return bool true if the column is added. false otherwise.
      * 
      * @since 1.0
      */
@@ -196,7 +196,7 @@ class MySQLTable extends Table {
      * 
      * @param string $key Column key.
      * 
-     * @return boolean If the column was removed, the method will return true. 
+     * @return bool If the column was removed, the method will return true. 
      * Other than that, the method will return false.
      * 
      * @since 1.0

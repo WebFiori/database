@@ -260,7 +260,7 @@ class ConnectionInfo {
      * 
      * @param string $type Database type such as 'mysql' or 'maria-db'.
      * 
-     * @return boolean If the type is set, the method will return true. Other 
+     * @return bool If the type is set, the method will return true. Other 
      * than that, the method will return false.
      * 
      * @since 1.0

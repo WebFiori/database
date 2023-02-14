@@ -112,7 +112,7 @@ class Database {
      * is used to maintain foreign key relationships between tables which
      * belongs to different databases.
      * 
-     * @return boolean If the table is added, the method will return true. False 
+     * @return bool If the table is added, the method will return true. False 
      * otherwise.
      * 
      * @since 1.0
@@ -426,7 +426,7 @@ class Database {
      * 
      * @param string $tableName The name of the table.
      * 
-     * @return boolean If the table exist, the method will return true. 
+     * @return bool If the table exist, the method will return true. 
      * False if it does not exist.
      * 
      * @since 1.0

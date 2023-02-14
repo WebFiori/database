@@ -147,7 +147,7 @@ class ForeignKey {
      * not provided, it will assume that the name of the source column is 
      * the same as the owner column.
      * 
-     * @return boolean If the reference is created, the method will return true. 
+     * @return bool If the reference is created, the method will return true. 
      * Other than that, the method will return false.
      * 
      * @since 1.0
@@ -289,7 +289,7 @@ class ForeignKey {
      * 
      * @param string $ownerColName The name of the owner column name.
      * 
-     * @return boolean If a column which has the given name was found and removed, 
+     * @return bool If a column which has the given name was found and removed, 
      * the method will return true. Other than that, the method will return false.
      * 
      * @since 1.0
@@ -329,7 +329,7 @@ class ForeignKey {
      * underscore.</li>
      * </ul>
      * 
-     * @return boolean|string true if the name of the key is set. The method will 
+     * @return bool|string true if the name of the key is set. The method will 
      * return the constant ForeignKey::INV_KEY_NAME in 
      * case if the given key name is invalid.
      * 
@@ -427,7 +427,7 @@ class ForeignKey {
      * Also it must not contain any spaces or any characters other than A-Z, a-z and 
      * underscore.
      * 
-     * @return boolean true if the given parameter is valid. false in 
+     * @return bool true if the given parameter is valid. false in 
      * case if the given parameter is invalid.
      * 
      * @since 1.0

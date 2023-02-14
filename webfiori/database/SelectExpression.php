@@ -608,7 +608,7 @@ class SelectExpression extends Expression {
      * @param string $colKey The key of the column. For expressions, this can be 
      * sha256 hash of expression value.
      * 
-     * @return boolean If the column exist in the select, the method will return 
+     * @return bool If the column exist in the select, the method will return 
      * true. Other than that, the method will return false.
      * 
      * @since 1.0

@@ -519,7 +519,7 @@ abstract class AbstractQuery {
     /**
      * Checks if the query represents a multi-query.
      * 
-     * @return boolean The method will return true if the query is a multi-query. 
+     * @return bool The method will return true if the query is a multi-query. 
      * False if not.
      * 
      * @since 1.0.1
@@ -530,7 +530,7 @@ abstract class AbstractQuery {
     /**
      * Checks if the query will be prepared before execution or not.
      * 
-     * @return boolean The method will return true if the query will be prepared 
+     * @return bool The method will return true if the query will be prepared 
      * before execution. False if not.
      * 
      * @since 1.0.2
@@ -1123,7 +1123,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery{
+    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         if ($col instanceof AbstractQuery) {
             //Prev where was a sub where
             $this->getTable()->getSelect()->addWhere($col, null, null, $joinCond);
@@ -1131,7 +1131,6 @@ abstract class AbstractQuery {
             // A where condition based on last select, delete or update
             $lastQType = $this->getLastQueryType();
             $table = $this->getTable();
-            $tableName = $table->getName();
 
             if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
                 $colObj = $table->getColByKey($col);

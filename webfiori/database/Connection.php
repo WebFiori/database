@@ -89,7 +89,7 @@ abstract class Connection {
      * to a database using native database driver or PDO. Once the connection is 
      * established without errors, the method should return true.
      * 
-     * @return boolean If the connection to the database is established, the method 
+     * @return bool If the connection to the database is established, the method 
      * should return true. False otherwise.
      * 
      * @since 1.0

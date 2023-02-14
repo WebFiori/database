@@ -41,7 +41,7 @@ class MSSQLTable extends Table {
      * 
      * @param Column $colObj An object that holds the information of the column.
      * 
-     * @return boolean If added, the method will return true. False otherwise.
+     * @return bool If added, the method will return true. False otherwise.
      */
     public function addColumn(string $key, Column $colObj) : bool {
         if ($colObj instanceof MSSQLColumn && $colObj->isIdentity() && $this->hasIdentity()) {

@@ -152,7 +152,7 @@ class EntityMapper {
     /**
      * Creates the class that the table records will be mapped to.
      * 
-     * @return boolean If the class is created, the method will return true. 
+     * @return bool If the class is created, the method will return true. 
      * If not, the method will return false.
      * 
      * @since 1.0
@@ -462,7 +462,7 @@ class EntityMapper {
      * 
      * @param string $name A string that represents the name of the entity class.
      * 
-     * @return boolean If the name is set, the method will return true. If 
+     * @return bool If the name is set, the method will return true. If 
      * not set, the method will return false.
      * 
      * @since 1.0
@@ -483,7 +483,7 @@ class EntityMapper {
      * 
      * @param string $ns A string that represents the namespace.
      * 
-     * @return boolean If the namespace is set, the method will return true. If 
+     * @return bool If the namespace is set, the method will return true. If 
      * not set, the method will return false.
      * 
      * @since 1.0
@@ -505,7 +505,7 @@ class EntityMapper {
      * @param string $path A string that represents the path to the folder at 
      * which the entity will be created on.
      * 
-     * @return boolean If the path is set, the method will return true. If 
+     * @return bool If the path is set, the method will return true. If 
      * not set, the method will return false.
      * 
      * @since 1.0
