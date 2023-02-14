@@ -34,7 +34,7 @@ class MySQLQuery extends AbstractQuery {
     /**
      * Build a query which can be used to add a column to associated table.
      * 
-     * @param string $colObjKey The key of the column taken from the table.
+     * @param string $colKey The key of the column taken from the table.
      * 
      * @param string $location The location at which the column will be added to. 
      * It can be the word 'first' or the key of the column at which the new column 
@@ -48,12 +48,12 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function addCol($colObjKey, $location = null) {
+    public function addCol(string $colKey, string $location = null) {
         $tblName = $this->getTable()->getName();
-        $colToAdd = $this->getTable()->getColByKey($colObjKey);
+        $colToAdd = $this->getTable()->getColByKey($colKey);
 
         if (!($colToAdd instanceof Column)) {
-            throw new DatabaseException("The table '$tblName' has no column with key '$colObjKey'.");
+            throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
         } 
         $this->_alterColStm('add', $colToAdd, $location, $tblName);
 
@@ -67,7 +67,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function addPrimaryKey($pkName, array $pkCols) {
+    public function addPrimaryKey(string $pkName, array $pkCols) {
         $trimmedPkName = self::backtick(trim($pkName));
         $tableObj = $this->getTable();
         $keyCols = [];
