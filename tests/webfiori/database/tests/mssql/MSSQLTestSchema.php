@@ -11,9 +11,10 @@ use webfiori\database\mssql\MSSQLTable;
  */
 class MSSQLTestSchema extends Database {
     public function __construct() {
-        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost'));
+        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890', 'testing_db', 'localhost/sqlexpress'));
         
         $table00 = new MSSQLTable('users');
+        $table00->setComment('This table is used to hold users info.');
         $table00->addColumns([
             'id' => [
                 'type' => 'int',
@@ -57,6 +58,7 @@ class MSSQLTestSchema extends Database {
         $this->addTable($table01);
         
         $table02 = new MSSQLTable('users_tasks');
+        $table02->setComment('A table used to hold users tasks.');
         $table02->addColumns([
             'task-id' => [
                 'type' => 'int',
@@ -75,7 +77,8 @@ class MSSQLTestSchema extends Database {
             'last-updated' => [
                 'type' => 'datetime2',
                 'is-null' => true,
-                'auto-update' => true
+                'auto-update' => true,
+                'comment' => 'The last time this record was updated at.'
             ],
             'is-finished' => [
                 'type' => 'boolean',
