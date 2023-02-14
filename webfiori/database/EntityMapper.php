@@ -697,7 +697,7 @@ class EntityMapper {
                 ."     */\n";
 
         $mapMethodStr = "    public static function map(array \$record) {\n"
-                ."        if (self::\$RecordMapper === null) {\n"
+                ."        if (self::\$RecordMapper === null ||  count(array_keys(\$records)) != self::\$RecordMapper->getSettrsMapCount()) {\n"
                 ."            self::\$RecordMapper = new RecordMapper(self::class, array_keys(\$record));\n"
                 ."        }\n"
                 ."        return self::\$RecordMapper->map(\$record);\n"

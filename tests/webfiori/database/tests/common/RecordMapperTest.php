@@ -29,18 +29,24 @@ class RecordMapperTest extends TestCase {
         $mapper = new RecordMapper();
         $mapper->addSetterMap('id');
         $this->assertEquals([
-            'setId' => 'id'
+            'setId' => ['id']
         ], $mapper->getSettrsMap());
         $mapper->addSetterMap('  email_address');
         $this->assertEquals([
-            'setId' => 'id',
-            'setEmailAddress' => 'email_address'
+            'setId' => ['id'],
+            'setEmailAddress' => ['email_address']
         ], $mapper->getSettrsMap());
         $mapper->addSetterMap('c_file_x');
         $this->assertEquals([
-            'setId' => 'id',
-            'setEmailAddress' => 'email_address',
-            'setCFileX' => 'c_file_x'
+            'setId' => ['id'],
+            'setEmailAddress' => ['email_address'],
+            'setCFileX' => ['c_file_x']
+        ], $mapper->getSettrsMap());
+        $mapper->addSetterMap('user_id', 'setId');
+        $this->assertEquals([
+            'setId' => ['id', 'user_id'],
+            'setEmailAddress' => ['email_address'],
+            'setCFileX' => ['c_file_x']
         ], $mapper->getSettrsMap());
     }
     /**
