@@ -55,7 +55,7 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function addPrimaryKey($pkName, array $pkCols) {
+    public function addPrimaryKey(string $pkName, array $pkCols) {
         $tableObj = $this->getTable();
         $trimmedPkName = trim($pkName);
         $keyCols = [];
