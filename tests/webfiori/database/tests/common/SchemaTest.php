@@ -58,7 +58,7 @@ class SchemaTest extends TestCase{
         $s->table('hello')->select()->where(
                 $s->where(
                         $s->where('user-id', 31)
-                        )->where('user-id', 44, '<', 'or')
+                        )->where('user_id', 44, '<', 'or')
                 )->where('username', 'Ibrahim', '!=', 'and');
         $this->assertEquals("select * from `hello` where `hello`.`user_id` = 31 and `hello`.`user_id` < 44 and `hello`.`username` != 'Ibrahim'",$s->getLastQuery());
         $s->page(1, 40);
@@ -86,7 +86,7 @@ class SchemaTest extends TestCase{
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $s->getLastQuery());
         $s->table('hello')->insert([
-            'user-id' => 33,
+            'user_id' => 33,
             'username' => 'Ibrahim',
             'pass' => 'rand_pass'
         ]);
@@ -96,7 +96,7 @@ class SchemaTest extends TestCase{
         $this->assertEquals('select * from `hello`',$s->getLastQuery());
         $s->where('user-id', 66);
         $this->assertEquals('select * from `hello` where `hello`.`user_id` = 66',$s->getLastQuery());
-        $s->where('user-id', 77);
+        $s->where('user_id', 77);
         $this->assertEquals('select * from `hello` where `hello`.`user_id` = 66 and `hello`.`user_id` = 77',$s->getLastQuery());
         $s->clear();
         $s->table('hello')->select()->where(

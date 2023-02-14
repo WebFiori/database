@@ -224,7 +224,7 @@ abstract class Table {
      * @since 1.0
      */
     public function getColByKey($key) {
-        $trimmed = trim($key);
+        $trimmed = trim(str_replace('_', '-', $key));
 
         if (isset($this->colsArr[$trimmed])) {
             return $this->colsArr[$trimmed];
