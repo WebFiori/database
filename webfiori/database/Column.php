@@ -175,7 +175,6 @@ abstract class Column {
 
 
         $this->columnIndex = -1;
-        
     }
     /**
      * Returns a string that represents the column.
@@ -502,7 +501,7 @@ abstract class Column {
         if ($trimmed == 'bool' || $trimmed == 'boolean') {
             $this->setIsNull(false);
         }
-        
+
         $this->datatype = $trimmed;
         $this->setDefault(null);
     }

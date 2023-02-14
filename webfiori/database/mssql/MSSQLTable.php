@@ -33,6 +33,24 @@ class MSSQLTable extends Table {
         parent::__construct($name);
     }
     /**
+     * Adds new column to the table.
+     * 
+     * @param string $key Key name of the column. A valid key must follow following
+     * conditions: Contains letters A-Z, a-z, numbers 0-9 and a dash only.
+     * Note that if key contains underscores they will be replaced by dashes.
+     * 
+     * @param Column $colObj An object that holds the information of the column.
+     * 
+     * @return boolean If added, the method will return true. False otherwise.
+     */
+    public function addColumn(string $key, Column $colObj) : bool {
+        if ($colObj instanceof MSSQLColumn && $colObj->isIdentity() && $this->hasIdentity()) {
+            return false;
+        }
+
+        return parent::addColumn($key, $colObj);
+    }
+    /**
      * Adds multiple columns at once.
      * 
      * @param array $colsArr An associative array. The keys will act as column 
@@ -99,59 +117,26 @@ class MSSQLTable extends Table {
      */
     public function createTableCommentCommand(string $spType = 'add') {
         $comment = $this->getComment();
-        
+
         if ($comment === null) {
-            
             return '';
         }
-        
+
         $tableName = $this->getNormalName();
-        
+
         if (in_array($spType, ['update', 'add', 'drop'])) {
             $sp = "sp_".$spType."extendedproperty";
         } else {
             $sp = 'sp_addextendedproperty';
         }
-        
+
         return "exec $sp\n"
-                . "@name = N'MS_Description',\n"
-                . "@value = '$comment',\n"
-                . "@level0type = N'Schema',\n"
-                . "@level0name = 'dbo',\n"
-                . "@level1type = N'Table',\n"
-                . "@level1name = '$tableName';";
-    }
-    /**
-     * Adds new column to the table.
-     * 
-     * @param string $key Key name of the column. A valid key must follow following
-     * conditions: Contains letters A-Z, a-z, numbers 0-9 and a dash only.
-     * Note that if key contains underscores they will be replaced by dashes.
-     * 
-     * @param Column $colObj An object that holds the information of the column.
-     * 
-     * @return boolean If added, the method will return true. False otherwise.
-     */
-    public function addColumn(string $key, Column $colObj) : bool {
-        if ($colObj instanceof MSSQLColumn && $colObj->isIdentity() && $this->hasIdentity()) {
-            return false;
-        }
-        return parent::addColumn($key, $colObj);
-    }
-    /**
-     * Checks if the table has identity column or not.
-     * 
-     * Note that a table is allowed to have only one column as an identity.
-     * 
-     * @return bool True if the table has identity column. False otherwise.
-     */
-    public function hasIdentity() : bool {
-        foreach ($this->getCols() as $colObj) {
-            if ($colObj->isIdentity()) {
-                return true;
-            }
-        }
-        return false;
+                ."@name = N'MS_Description',\n"
+                ."@value = '$comment',\n"
+                ."@level0type = N'Schema',\n"
+                ."@level0name = 'dbo',\n"
+                ."@level1type = N'Table',\n"
+                ."@level1name = '$tableName';";
     }
     /**
      * Returns the name of the table.
@@ -180,6 +165,22 @@ class MSSQLTable extends Table {
         }
 
         return 'AK_'.$this->getNormalName();
+    }
+    /**
+     * Checks if the table has identity column or not.
+     * 
+     * Note that a table is allowed to have only one column as an identity.
+     * 
+     * @return bool True if the table has identity column. False otherwise.
+     */
+    public function hasIdentity() : bool {
+        foreach ($this->getCols() as $colObj) {
+            if ($colObj->isIdentity()) {
+                return true;
+            }
+        }
+
+        return false;
     }
     /**
      * Sets the name of the unique constraint.
@@ -225,27 +226,17 @@ class MSSQLTable extends Table {
         }
         $queryStr .= "\n)\n";
         $comment = $this->createTableCommentCommand();
-        
+
         if (strlen($comment) != 0) {
             $queryStr .= $comment."\n";
         }
         $colsComments = $this->getAddColsComments();
-        
+
         if (strlen($colsComments) != 0) {
             $queryStr .= $colsComments."\n";
         }
+
         return $queryStr;
-    }
-    private function getAddColsComments() {
-        $str = '';
-        foreach ($this->getCols() as $colObj) {
-            $comment = $colObj->createColCommentCommand();
-        
-            if (strlen($comment) != 0) {
-                $str .= $comment."\n";
-            }
-        }
-        return trim($str);
     }
     private function _createFK() {
         $comma = '';
@@ -329,5 +320,18 @@ class MSSQLTable extends Table {
         } else {
             return '';
         }
+    }
+    private function getAddColsComments() {
+        $str = '';
+
+        foreach ($this->getCols() as $colObj) {
+            $comment = $colObj->createColCommentCommand();
+
+            if (strlen($comment) != 0) {
+                $str .= $comment."\n";
+            }
+        }
+
+        return trim($str);
     }
 }

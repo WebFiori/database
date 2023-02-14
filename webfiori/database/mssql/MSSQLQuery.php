@@ -314,12 +314,14 @@ class MSSQLQuery extends AbstractQuery {
 
         foreach ($colsKeysArr as $colKey) {
             $column = $this->getTable()->getColByKey($colKey);
+
             if ($column === null) {
                 $this->getTable()->addColumns([
                     $colKey => []
                 ]);
                 $column = $this->getTable()->getColByKey($colKey);
             }
+
             if ($column instanceof MSSQLColumn) {
                 $columnsWithVals[] = $colKey;
                 $colsNamesArr[] = $column->getName();

@@ -22,13 +22,6 @@ use webfiori\database\DateTimeValidator;
  */
 class MSSQLColumn extends Column {
     /**
-     * A boolean which is set to true if the column is of type int and is
-     * set as an identity.
-     * 
-     * @var bool
-     */
-    private $isIdintity;
-    /**
      * A boolean which can be set to true in order to auto-update any 
      * date datatype column..
      * 
@@ -37,6 +30,13 @@ class MSSQLColumn extends Column {
      * @since 1.0
      */
     private $isAutoUpdate;
+    /**
+     * A boolean which is set to true if the column is of type int and is
+     * set as an identity.
+     * 
+     * @var bool
+     */
+    private $isIdintity;
     /**
      * Creates new instance of the class.
      * 
@@ -77,74 +77,6 @@ class MSSQLColumn extends Column {
 
         if (!$this->setSize($size)) {
             $this->setSize(1);
-        }
-    }
-    /**
-     * Returns a string which can be used to add column comment as extended 
-     * property.
-     * 
-     * The returned SQL statement will use the procedure 'sp_[add|update|drop]extendedproperty'
-     * 
-     * @param string $spType The type of operation. Can be 'add', 'update' or 'drop'.
-     * 
-     * @return string If the comment of the column is set, the method will
-     * return non-empty string. Other than that, empty string is returned.
-     */
-    public function createColCommentCommand(string $spType = 'add') {
-        $comment = $this->getComment();
-        
-        if ($comment === null) {
-            
-            return '';
-        }
-        $table = $this->getOwner();
-        
-        if ($table === null) {
-            
-            return '';
-        }
-        $tableName = $table->getNormalName();
-        $colName = $this->getNormalName();
-        
-        if (in_array($spType, ['update', 'add', 'drop'])) {
-            $sp = "sp_".$spType."extendedproperty";
-        } else {
-            $sp = 'sp_addextendedproperty';
-        }
-        
-        return "exec $sp\n"
-                . "@name = N'MS_Description',\n"
-                . "@value = '$comment',\n"
-                . "@level0type = N'Schema',\n"
-                . "@level0name = 'dbo',\n"
-                . "@level1type = N'Table',\n"
-                . "@level1name = '$tableName',\n"
-                . "@level2type = N'Column',\n"
-                . "@level2name = '$colName';";
-    }
-    /**
-     * Checks if the column represents an identity column or not.
-     * 
-     * Identity column only applies to int and bigint data types.
-     * 
-     * @return bool If the column is set as an identity, the method will
-     * return true. False if not. Default is false.
-     */
-    public function isIdentity () : bool {
-        return $this->isIdintity;
-    }
-    /**
-     * Sets the value of the property which is used to check if the column
-     * represents an identity or not.
-     * 
-     * @param bool $bool True to set the column as identity column. False
-     * to set as non-identity.
-     */
-    public function setIsIdentity(bool $bool) {
-        $dType = $this->getDatatype();
-        
-        if ($dType == 'int' || $dType == 'bigint') {
-            $this->isIdintity = $bool;
         }
     }
     /**
@@ -196,6 +128,47 @@ class MSSQLColumn extends Column {
         } else {
             return $this->_cleanValueHelper($val);
         }
+    }
+    /**
+     * Returns a string which can be used to add column comment as extended 
+     * property.
+     * 
+     * The returned SQL statement will use the procedure 'sp_[add|update|drop]extendedproperty'
+     * 
+     * @param string $spType The type of operation. Can be 'add', 'update' or 'drop'.
+     * 
+     * @return string If the comment of the column is set, the method will
+     * return non-empty string. Other than that, empty string is returned.
+     */
+    public function createColCommentCommand(string $spType = 'add') {
+        $comment = $this->getComment();
+
+        if ($comment === null) {
+            return '';
+        }
+        $table = $this->getOwner();
+
+        if ($table === null) {
+            return '';
+        }
+        $tableName = $table->getNormalName();
+        $colName = $this->getNormalName();
+
+        if (in_array($spType, ['update', 'add', 'drop'])) {
+            $sp = "sp_".$spType."extendedproperty";
+        } else {
+            $sp = 'sp_addextendedproperty';
+        }
+
+        return "exec $sp\n"
+                ."@name = N'MS_Description',\n"
+                ."@value = '$comment',\n"
+                ."@level0type = N'Schema',\n"
+                ."@level0name = 'dbo',\n"
+                ."@level1type = N'Table',\n"
+                ."@level1name = '$tableName',\n"
+                ."@level2type = N'Column',\n"
+                ."@level2name = '$colName';";
     }
     /**
      * Creates an instance of the class 'Column' given an array of options.
@@ -358,6 +331,17 @@ class MSSQLColumn extends Column {
         return $this->isAutoUpdate;
     }
     /**
+     * Checks if the column represents an identity column or not.
+     * 
+     * Identity column only applies to int and bigint data types.
+     * 
+     * @return bool If the column is set as an identity, the method will
+     * return true. False if not. Default is false.
+     */
+    public function isIdentity () : bool {
+        return $this->isIdintity;
+    }
+    /**
      * Sets the value of the property 'isAutoUpdate'.
      * 
      * It is used in case the user want to update the date of a column 
@@ -386,7 +370,7 @@ class MSSQLColumn extends Column {
      */
     public function setDatatype(string $type) {
         parent::setDatatype($type);
-        
+
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
             $this->isIdintity = false;
         }
@@ -410,7 +394,6 @@ class MSSQLColumn extends Column {
      * @since 1.0
      */
     public function setDefault($default) {
-        
         if ($this->getDatatype() == 'mixed' && $default !== null) {
             $default .= '';
         }
@@ -419,6 +402,20 @@ class MSSQLColumn extends Column {
 
         if (($type == 'datetime2' || $type == 'date') && $this->getDefault() !== null && strlen($this->getDefault()) == 0) {
             parent::setDefault(null);
+        }
+    }
+    /**
+     * Sets the value of the property which is used to check if the column
+     * represents an identity or not.
+     * 
+     * @param bool $bool True to set the column as identity column. False
+     * to set as non-identity.
+     */
+    public function setIsIdentity(bool $bool) {
+        $dType = $this->getDatatype();
+
+        if ($dType == 'int' || $dType == 'bigint') {
+            $this->isIdintity = $bool;
         }
     }
     /**
@@ -583,7 +580,7 @@ class MSSQLColumn extends Column {
         } else {
             $retVal .= $colDataTypeSq.' ';
         }
-        
+
         if (($colDataType == 'int' || $colDataType == 'bigint') && $this->isIdentity()) {
             $retVal .= 'identity(1,1) ';
         }
