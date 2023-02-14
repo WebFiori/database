@@ -89,7 +89,6 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testCreateTables() {
         $schema = new MSSQLTestSchema();
         $schema->createTables();
-        var_dump($schema->getLastQuery());
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
                 . "    [id] [int] not null,\n"
