@@ -124,11 +124,11 @@ class EntityMapperTest extends TestCase {
         $recordsMapper = $m->getRecordMapper();
         $this->assertEquals('webfiori\\database\\entity\\UserClass', $recordsMapper->getClass());
         $this->assertEquals([
-            'setId' => 'id',
-            'setFirstName' => 'first_name',
-            'setLastName' => 'last_name',
-            'setAge' => 'age',
-            'setCXFile' => 'c_x_file'
+            'setId' => ['id'],
+            'setFirstName' => ['first_name'],
+            'setLastName' => ['last_name'],
+            'setAge' => ['age'],
+            'setCXFile' => ['c_x_file']
         ], $recordsMapper->getSettrsMap());
         $obj = $recordsMapper->map([
             'id' => 55,

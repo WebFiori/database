@@ -38,6 +38,14 @@ class RecordMapper {
         $this->extractMethodsNames($columns);
     }
     /**
+     * Returns the number of methods which where added as setters.
+     * 
+     * @return int Number of methods which where added as setters.
+     */
+    public function getSettrsMapCount() : int {
+        return count($this->getSettrsMap());
+    }
+    /**
      * Adds a custom method to map column value to a setter method.
      * 
      * Note that if setter was specified for the column, this method
@@ -65,7 +73,10 @@ class RecordMapper {
         if ($methodName === null) {
             $methodName = 'set'.$this->columnNameToMethodName($trimmedColName);
         }
-        $this->settersMap[$methodName] = $trimmedColName;
+        if (!isset($this->settersMap[$methodName])) {
+            $this->settersMap[$methodName] = [];
+        }
+        $this->settersMap[$methodName][] = $trimmedColName;
     }
     /**
      * Returns the name of the class that the mapper will use to map a
@@ -78,10 +89,10 @@ class RecordMapper {
         return $this->clazzName;
     }
     /**
-     * Returns an array that holds the methods and each record they are mapped to.
+     * Returns an array that holds the methods and each records they are mapped to.
      * 
      * @return array An associative array. The indices will represent methods
-     * names and the values are columns names.
+     * names and the values are arrays of columns names.
      */
     public function getSettrsMap() : array {
         return $this->settersMap;
@@ -102,11 +113,13 @@ class RecordMapper {
     public function map(array $record) {
         $instance = new $this->clazzName();
 
-        foreach ($this->getSettrsMap() as $method => $colName) {
+        foreach ($this->getSettrsMap() as $method => $colsNames) {
             if (is_callable([$instance, $method])) {
-                try {
-                    $instance->$method($record[$colName]);
-                } catch (\Throwable $ex) {
+                foreach ($colsNames as $colName) {
+                    try {
+                        $instance->$method($record[$colName]);
+                    } catch (\Throwable $ex) {
+                    }
                 }
             }
         }
