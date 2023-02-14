@@ -155,8 +155,8 @@ class Database {
      * 
      * @since 1.0
      */
-    public function andWhere($col, $cond = null, $val = null) {
-        return $this->where($col, $cond, $val, 'and');
+    public function andWhere($col, $val, $cond = '=') {
+        return $this->where($col, $val, $cond, 'and');
     }
     /**
      * Rest all attributes of the class to original values.
@@ -505,8 +505,8 @@ class Database {
      * 
      * @since 1.0
      */
-    public function orWhere($col, $cond = null, $val = null) {
-        return $this->where($col, $cond, $val, 'or');
+    public function orWhere(string $col, $val = null, string $cond = '=') {
+        return $this->where($col, $val, $cond, 'or');
     }
     /**
      * Constructs a query which can be used to fetch a set of records as a page.
@@ -665,7 +665,7 @@ class Database {
      * 
      * @since 1.0
      */
-    public function where($col, $cond = null, $val = null, $joinCond = 'and') {
-        return $this->getQueryGenerator()->where($col, $cond, $val, $joinCond);
+    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') {
+        return $this->getQueryGenerator()->where($col, $val, $cond, $joinCond);
     }
 }

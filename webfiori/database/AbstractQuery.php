@@ -110,15 +110,14 @@ abstract class AbstractQuery {
      * @param string $colKey The name of column key as specified when the column 
      * was added to the table.
      * 
-     * @param string $location The location at which the column will be added to. 
-     * This usually the name of the column that the new column will be added after.
+     * @param string|null $location The name of the column that the new column will be added after.
      * 
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
      * @since 1.0
      */
-    public abstract function addCol($colKey, $location = null);
+    public abstract function addCol(string $colKey, string $location = null);
     /**
      * Constructs a query that can be used to add foreign key constraint.
      * 
@@ -132,7 +131,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0.1
      */
-    public function addForeignKey($keyName) {
+    public function addForeignKey(string $keyName) {
         $fkObj = $this->getTable()->getForeignKey($keyName);
 
         if ($fkObj === null) {
@@ -178,7 +177,7 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      */
-    public abstract function addPrimaryKey($pkName, array $pkCols);
+    public abstract function addPrimaryKey(string $pkName, array $pkCols);
 
     /**
      * Build a where condition.
@@ -191,8 +190,8 @@ abstract class AbstractQuery {
      * 'AbstractQuery' in case the developer would like to build a sub-where 
      * condition.
      * 
-     * @param string $cond A string that represents the condition at which column 
-     * value will be evaluated against. Can be ignored if first parameter is of 
+     * @param string|null $cond A string that represents the condition at which column
+     * value will be evaluated against (e.g. '=', '&lt;&gt;', '&lt;' etc...). Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      * 
      * @param mixed $val The value (or values) at which the column will be evaluated 
@@ -205,8 +204,8 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function andWhere($col, $cond = null, $val = null) {
-        return $this->where($col, $cond, $val, 'and');
+    public function andWhere($col, $val = null, string $cond = '=') {
+        return $this->where($col, $val, $cond, 'and');
     }
     /**
      * Creates and returns a copy of the builder.
@@ -738,8 +737,8 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function orWhere($col, $cond = null, $val = null) {
-        return $this->where($col, $cond, $val, 'or');
+    public function orWhere($col, $val = null, string $cond = '=') {
+        return $this->where($col, $val, $cond, 'or');
     }
     /**
      * Constructs a query which can be used to fetch a set of records as a page.
@@ -1106,27 +1105,25 @@ abstract class AbstractQuery {
     /**
      * Adds a 'where' condition to an existing select, update or delete query.
      * 
-     * @param AbstractQuery|string $col The key of the column. This also can be an 
+     * @param AbstractQuery|string $col The key of the column. This also can be an
      * object of type AbstractQuery. The object is used to build a sub 
      * where condition.
-     * 
-     * @param string $cond A string such as '=' or '!='.
-     * 
+     *
      * @param mixed $val The value at which column value will be evaluated againest.
+     *
+     * @param string $cond A string such as '=' or '!='.
      * 
      * @param string $joinCond An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
-     * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
+     * @return AbstractQuery|MySQLQuery|MSSQLQuery The method will return the same instance at which the
      * method is called on.
-     * 
-     * @throws DatabaseException If one of the columns does not exist, the method 
-     * will throw an exception.
+     *
      * 
      * @since 1.0
      */
-    public function where($col, $cond = null, $val = null, $joinCond = 'and') {
+    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery{
         if ($col instanceof AbstractQuery) {
             //Prev where was a sub where
             $this->getTable()->getSelect()->addWhere($col, null, null, $joinCond);
@@ -1237,11 +1234,12 @@ abstract class AbstractQuery {
      * @param int $charsCount The number of characters that will be taken from 
      * the left of the column value.
      * 
-     * @param string $cond A condition at which the comparison will be based on. 
-     * can only have 4 values, '=', '!=', 'in' and 'not in'.
      * 
      * @param string|array $val The value at which the condition will be compared with. 
      * This also can be an array of values if the condition is 'in' or 'not in'.
+     * 
+     * @param string $cond A condition at which the comparison will be based on. 
+     * can only have 4 values, '=', '!=', 'in' and 'not in'.
      * 
      * @param string $joinCond An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
