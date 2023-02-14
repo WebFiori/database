@@ -68,6 +68,39 @@ class ResultSet implements Countable, Iterator {
         return $this->getRows()[$this->cursorPos];
     }
     /**
+     * Filter the records of the result set using a custom callback.
+     * 
+     * @param callable $filterFunction A PHP function that must return true for
+     * the records that will be included. The first argument of the
+     * function will always be the record/value that will be mapped. In case
+     * of database records, this will be an associative array. The indices
+     * are names of columns as they appear in the database. The second
+     * argument is the index of the record/value and, the last value will
+     * be the original set of records as an array.
+     * 
+     * @param array $mapArgs Any additional arguments that the developer
+     * would like to pass to filtering function.
+     * 
+     * @return ResultSet The method will return an object of type ResultSet
+     * that holds the filtered records.
+     */
+    public function filter(callable $filterFunction, array $mapArgs = []) : ResultSet {
+        $result = [];
+        $index = 0;
+        $records = $this->getRows();
+
+        foreach ($records as $record) {
+            $args = array_merge([$record, $index, $records], $mapArgs);
+            $include = call_user_func_array($filterFunction, $args);
+
+            if ($include === true) {
+                $result[] = $record;
+            }
+        }
+
+        return new ResultSet($result);
+    }
+    /**
      * Returns an array which contains all original records in the set before 
      * mapping.
      * 
@@ -120,43 +153,10 @@ class ResultSet implements Countable, Iterator {
         $result = [];
         $index = 0;
         $records = $this->getRows();
-        
+
         foreach ($records as $record) {
             $args = array_merge([$record, $index, $records], $mapArgs);
             $result[] = call_user_func_array($mappingFunction, $args);
-        }
-
-        return new ResultSet($result);
-    }
-    /**
-     * Filter the records of the result set using a custom callback.
-     * 
-     * @param callable $filterFunction A PHP function that must return true for
-     * the records that will be included. The first argument of the
-     * function will always be the record/value that will be mapped. In case
-     * of database records, this will be an associative array. The indices
-     * are names of columns as they appear in the database. The second
-     * argument is the index of the record/value and, the last value will
-     * be the original set of records as an array.
-     * 
-     * @param array $mapArgs Any additional arguments that the developer
-     * would like to pass to filtering function.
-     * 
-     * @return ResultSet The method will return an object of type ResultSet
-     * that holds the filtered records.
-     */
-    public function filter(callable $filterFunction, array $mapArgs = []) : ResultSet {
-        $result = [];
-        $index = 0;
-        $records = $this->getRows();
-        
-        foreach ($records as $record) {
-            $args = array_merge([$record, $index, $records], $mapArgs);
-            $include = call_user_func_array($filterFunction, $args);
-            
-            if ($include === true) {
-                $result[] = $record;
-            }
         }
 
         return new ResultSet($result);

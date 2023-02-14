@@ -12,7 +12,6 @@ namespace webfiori\database;
 
 use webfiori\database\mssql\MSSQLColumn;
 use webfiori\database\mysql\MySQLColumn;
-use webfiori\database\Column;
 
 /**
  * A factory class for creating column objects.
@@ -74,7 +73,7 @@ class ColumnFactory {
         self::_primaryCheck($col, $options);
         self::_extraAttrsCheck($col, $options);
         self::_identityCheck($col, $options);
-        
+
         return $col;
     }
 
@@ -124,7 +123,7 @@ class ColumnFactory {
     private static function _identityCheck(&$col, $options) {
         if ($col instanceof MSSQLColumn) {
             $isIdentity = isset($options['identity']) ? $options['identity'] : false;
-        
+
             if ($isIdentity === true) {
                 $col->setIsIdentity(true);
             }

@@ -38,14 +38,6 @@ class RecordMapper {
         $this->extractMethodsNames($columns);
     }
     /**
-     * Returns the number of methods which where added as setters.
-     * 
-     * @return int Number of methods which where added as setters.
-     */
-    public function getSettrsMapCount() : int {
-        return count($this->getSettrsMap());
-    }
-    /**
      * Adds a custom method to map column value to a setter method.
      * 
      * Note that if setter was specified for the column, this method
@@ -73,6 +65,7 @@ class RecordMapper {
         if ($methodName === null) {
             $methodName = 'set'.$this->columnNameToMethodName($trimmedColName);
         }
+
         if (!isset($this->settersMap[$methodName])) {
             $this->settersMap[$methodName] = [];
         }
@@ -96,6 +89,14 @@ class RecordMapper {
      */
     public function getSettrsMap() : array {
         return $this->settersMap;
+    }
+    /**
+     * Returns the number of methods which where added as setters.
+     * 
+     * @return int Number of methods which where added as setters.
+     */
+    public function getSettrsMapCount() : int {
+        return count($this->getSettrsMap());
     }
     /**
      * Maps a record to the specified entity class.

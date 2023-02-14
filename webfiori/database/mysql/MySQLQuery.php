@@ -446,12 +446,14 @@ class MySQLQuery extends AbstractQuery {
 
         foreach ($colsKeysArr as $colKey) {
             $column = $this->getTable()->getColByKey($colKey);
+
             if ($column === null) {
                 $this->getTable()->addColumns([
                     $colKey => []
                 ]);
                 $column = $this->getTable()->getColByKey($colKey);
             }
+
             if ($column instanceof MySQLColumn) {
                 $columnsWithVals[] = $colKey;
                 $colsNamesArr[] = $column->getName();

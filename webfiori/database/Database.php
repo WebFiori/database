@@ -307,6 +307,16 @@ class Database {
         return $this->connectionInfo;
     }
     /**
+     * Returns an indexed array that contains all executed SQL queries.
+     * 
+     * @return array An indexed array that contains all executed SQL queries.
+     * 
+     * @since 1.0
+     */
+    public function getExecutedQueries() {
+        return $this->getConnection()->getExecutedQueries();
+    }
+    /**
      * Returns the last database error info.
      * 
      * @return array The method will return an associative array with two indices. 
@@ -369,16 +379,6 @@ class Database {
      */
     public function getQueries() {
         return $this->queries;
-    }
-    /**
-     * Returns an indexed array that contains all executed SQL queries.
-     * 
-     * @return array An indexed array that contains all executed SQL queries.
-     * 
-     * @since 1.0
-     */
-    public function getExecutedQueries() {
-        return $this->getConnection()->getExecutedQueries();
     }
     /**
      * Returns the query builder which is used to build SQL queries.

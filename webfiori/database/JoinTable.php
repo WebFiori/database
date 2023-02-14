@@ -79,55 +79,6 @@ class JoinTable extends Table {
         $this->_addCols(false);
         $this->setOwner($this->getLeft()->getOwner());
     }
-    public function getName() : string {
-        $left = $this->getLeft();
-        while ($left instanceof JoinTable) {
-            $left = $left->getLeft();
-        }
-        if ($left instanceof MySQLTable) {
-            return MySQLQuery::backtick($this->getNormalName());
-        } else if ($left instanceof MSSQLTable) {
-            return MSSQLQuery::squareBr($this->getNormalName());
-        }
-        return parent::getName();
-    }
-    private function _addCols($left = true) {
-        $prefix = $left === true ? 'left' : 'right';
-        
-        if ($left) {
-            $cols = $this->getLeft()->getCols();
-        } else {
-            $cols = $this->getRight()->getCols();
-        }
-        
-        foreach ($cols as $colKey => $colObj) {
-            if ($this->hasColumnWithKey($colKey)) {
-                $colKey = $prefix.'-'.$colKey;
-            }
-            $colObj->setWithTablePrefix(false);
-            if ($colObj->getOwner() instanceof JoinTable && $colObj->getAlias() !== null) {
-                $colObj->setName($colObj->getAlias());
-            } else {
-                if ($this->hasColumn($colObj->getNormalName())) {
-                    $colObj->setAlias($prefix.'_'.$colObj->getNormalName());
-                }
-            }
-            $this->addColumn($colKey, $this->copyCol($colObj));
-        }
-    }
-    private function copyCol(Column $column) {
-        if ($column instanceof mysql\MySQLColumn) {
-            $copyCol = new mysql\MySQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
-        } else {
-            $copyCol = new mssql\MSSQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
-        }
-        $copyCol->setOwner($column->getOwner());
-        $copyCol->setCustomFilter($column->getCustomCleaner());
-        $copyCol->setIsNull($column->isNull());
-        $copyCol->setAlias($column->getAlias());
-        
-        return $copyCol;
-    }
     /**
      * Adds a condition which could be used to join the two tables.
      * 
@@ -166,7 +117,7 @@ class JoinTable extends Table {
                 .' '.$this->getJoinType()
                 .' '.$this->getRight()->getName();
         }
-        
+
 
         if ($this->getJoinCondition() !== null) {
             $retVal .= ' on('.$this->getJoinCondition().')';
@@ -205,6 +156,23 @@ class JoinTable extends Table {
     public function getLeft() {
         return $this->left;
     }
+    public function getName() : string {
+        $left = $this->getLeft();
+
+        while ($left instanceof JoinTable) {
+            $left = $left->getLeft();
+        }
+
+        if ($left instanceof MySQLTable) {
+            return MySQLQuery::backtick($this->getNormalName());
+        } else {
+            if ($left instanceof MSSQLTable) {
+                return MSSQLQuery::squareBr($this->getNormalName());
+            }
+        }
+
+        return parent::getName();
+    }
     /**
      * Returns the right table of the join.
      * 
@@ -217,7 +185,43 @@ class JoinTable extends Table {
     }
 
     public function toSQL() {
-        
     }
+    private function _addCols($left = true) {
+        $prefix = $left === true ? 'left' : 'right';
 
+        if ($left) {
+            $cols = $this->getLeft()->getCols();
+        } else {
+            $cols = $this->getRight()->getCols();
+        }
+
+        foreach ($cols as $colKey => $colObj) {
+            if ($this->hasColumnWithKey($colKey)) {
+                $colKey = $prefix.'-'.$colKey;
+            }
+            $colObj->setWithTablePrefix(false);
+
+            if ($colObj->getOwner() instanceof JoinTable && $colObj->getAlias() !== null) {
+                $colObj->setName($colObj->getAlias());
+            } else {
+                if ($this->hasColumn($colObj->getNormalName())) {
+                    $colObj->setAlias($prefix.'_'.$colObj->getNormalName());
+                }
+            }
+            $this->addColumn($colKey, $this->copyCol($colObj));
+        }
+    }
+    private function copyCol(Column $column) {
+        if ($column instanceof mysql\MySQLColumn) {
+            $copyCol = new mysql\MySQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        } else {
+            $copyCol = new mssql\MSSQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        }
+        $copyCol->setOwner($column->getOwner());
+        $copyCol->setCustomFilter($column->getCustomCleaner());
+        $copyCol->setIsNull($column->isNull());
+        $copyCol->setAlias($column->getAlias());
+
+        return $copyCol;
+    }
 }

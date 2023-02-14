@@ -91,6 +91,7 @@ class SelectExpression extends Expression {
      */
     public function addColumn($colKey, $options = null) {
         if ($colKey != '*') {
+            $colKey = str_replace('_', '-', $colKey);
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj === null) {
