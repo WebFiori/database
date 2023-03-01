@@ -138,7 +138,7 @@ abstract class Column {
      */
     private $size;
     /**
-     * An array which holds all supported datatypes of the column.
+     * An array which holds all supported data types of the column.
      * 
      * @var array
      * 
@@ -146,15 +146,17 @@ abstract class Column {
      */
     private $supportedTypes;
     private $withTablePrefix;
+
     /**
      * Creates new instance of the class.
-     * 
+     *
      * By default, the instance will have one data type which is 'mixed'.
      * This type is used as placeholder for dynamically created columns
      * when running SQL queries on the database.
-     * 
+     *
      * @param string $name The name of the column as it appears in the database.
-     * 
+     *
+     * @throws DatabaseException
      * @since 1.0
      */
     public function __construct(string $name) {
@@ -220,7 +222,7 @@ abstract class Column {
     /**
      * Returns the function which is used to filter the value of the column.
      * 
-     * @return Closure The function which is used to filter the value of the column.
+     * @return callable The function which is used to filter the value of the column.
      * 
      * @since 1.0
      */
@@ -324,7 +326,7 @@ abstract class Column {
         return $this->owner;
     }
     /**
-     * Returns a string that represents the datatype as one of PHP datatypes.
+     * Returns a string that represents the datatype as one of PHP data types.
      * 
      * The main aim of this method is to produce correct type hinting when mapping 
      * the column to an entity class. For example, the 'varchar' in MySQL is 
@@ -377,9 +379,9 @@ abstract class Column {
         return $this->size;
     }
     /**
-     * Returns an array that contains supported datatypes.
+     * Returns an array that contains supported data types.
      * 
-     * @return array An array that contains supported datatypes.
+     * @return array An array that contains supported data types.
      * 
      * @since 1.0
      */
@@ -462,17 +464,14 @@ abstract class Column {
         }
     }
     /**
-     * Sets a custom filtering function to cleanup values before being used in 
+     * Sets a custom filtering function to clean up values before being used in 
      * database queries.
      * 
      * The function signature should be as follows : <code>function ($orgVal, $cleanedVa)</code>
      * where the first value is the original value and the second one is the value with 
      * basic filtering applied to.
      * 
-     * @param callable $callback The callback.
-     * 
-     * @return bool If it was updated, the method will return true. Other than that, 
-     * the method will return false.
+     * @param callable $callback The callback
      * 
      * @since 1.0
      */
@@ -522,16 +521,16 @@ abstract class Column {
      * null values. Note that for primary key column, the method will have no 
      * effect.
      * 
-     * @param boolean $bool true if the column allow null values. false 
+     * @param bool $bool true if the column allow null values. false 
      * if not.
      * 
      * @return bool true If the property value is updated. If the given 
-     * value is not a boolean, the method will return false. Also if 
+     * value is not a boolean, the method will return false. Also, if 
      * the column represents a primary key, the method will always return false.
      * 
      * @since 1.0
      */
-    public function setIsNull(bool $bool) {
+    public function setIsNull(bool $bool) : bool {
         $colDatatype = $this->getDatatype();
 
         if (!($colDatatype == 'bool' || $colDatatype == 'boolean') && !$this->isPrimary()) {
@@ -547,7 +546,7 @@ abstract class Column {
      * 
      * Note that once the column become primary, it will not allow null values.
      * 
-     * @param boolean $bool <b>true</b> if the column is primary key. false 
+     * @param bool $bool <b>true</b> if the column is primary key. false 
      * if not.
      * 
      * @since 1.0
@@ -561,7 +560,7 @@ abstract class Column {
     /**
      * Sets the value of the property $isUnique.
      * 
-     * @param boolean $bool True if the column value is unique. false 
+     * @param bool $bool True if the column value is unique. false 
      * if not.
      * 
      * @since 1.0
@@ -604,14 +603,14 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setOwner($table) {
+    public function setOwner(Table $table = null) {
+        $this->prevOwner = $this->owner;
+
         if ($table instanceof Table) {
-            $this->prevOwner = $this->owner;
             $this->owner = $table;
             $colsCount = $table->getColsCount();
             $this->columnIndex = $colsCount == 0 ? 0 : $colsCount;
-        } else if ($table === null) {
-            $this->prevOwner = $this->owner;
+        } else {
             $this->owner = null;
             $this->columnIndex = -1;
         }
@@ -637,8 +636,7 @@ abstract class Column {
     /**
      * Sets the size of the data that will be stored by the column.
      * 
-     * @param int $size A positive number that represents the size. must be greater 
-     * than 0.
+     * @param int $size A positive number that represents the size. must be greater than 0.
      * 
      * @return bool If the size is set, the method will return true. Other than 
      * that, it will return false.
@@ -655,7 +653,7 @@ abstract class Column {
         return false;
     }
     /**
-     * Adds a set of values as a supported datatypes for the column.
+     * Adds a set of values as a supported data types for the column.
      * 
      * @param array $datatypes An indexed array that contains a strings that 
      * represents the types.
@@ -678,7 +676,7 @@ abstract class Column {
      * Note that table name will be prefixed with database name only if owner 
      * schema is set.
      * 
-     * @param boolean $withDbPrefix True to prefix table name with database name. 
+     * @param bool $withDbPrefix True to prefix table name with database name. 
      * false to not prefix table name with database name.
      * 
      * @since 1.0

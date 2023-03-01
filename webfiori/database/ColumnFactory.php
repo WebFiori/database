@@ -47,25 +47,24 @@ class ColumnFactory {
      * 
      * @throws DatabaseException
      */
-    public static function create($database, $name, $options = []) : Column {
+    public static function create(string $database, string $name, array $options = []) : Column {
         if (!in_array($database, ConnectionInfo::SUPPORTED_DATABASES)) {
             throw new DatabaseException('Not support database: '.$database);
         }
 
         if ($database == 'mssql') {
             $col = new MSSQLColumn($name);
-        } else if ($database == 'mysql') {
+        } else {
             $col = new MySQLColumn($name);
         }
         if (isset($options['datatype'])) {
             $datatype = $options['datatype'];
+        } else if (isset($options['type'])) {
+            $datatype = $options['type'];
         } else {
-            if (isset($options['type'])) {
-                $datatype = $options['type'];
-            } else {
-                $datatype = 'mixed';
-            }
+            $datatype = 'mixed';
         }
+
         $col->setDatatype($datatype);
         $size = isset($options['size']) ? intval($options['size']) : 1;
         $col->setSize($size);
@@ -82,7 +81,7 @@ class ColumnFactory {
      * @param MSSQLColumn $col
      * @param array $options
      */
-    private static function _extraAttrsCheck(&$col, $options) {
+    private static function _extraAttrsCheck(Column $col, array $options) {
         $scale = isset($options['scale']) ? intval($options['scale']) : 2;
         $col->setScale($scale);
 
@@ -98,7 +97,7 @@ class ColumnFactory {
             $col->setIsUnique($options['unique']);
         }
 
-        //the 'not null' or 'null' must be specified or it will cause query 
+        //the 'not null' or 'null' must be specified, or it will cause query,
         //or it will cause query error.
         $isNull = isset($options['is-null']) ? $options['is-null'] : false;
         $col->setIsNull($isNull);
@@ -117,10 +116,10 @@ class ColumnFactory {
     }
     /**
      * 
-     * @param MSSQLColumn $col
+     * @param Column $col
      * @param array $options
      */
-    private static function _identityCheck(&$col, $options) {
+    private static function _identityCheck(Column $col, array $options) {
         if ($col instanceof MSSQLColumn) {
             $isIdentity = isset($options['identity']) ? $options['identity'] : false;
 
@@ -132,10 +131,10 @@ class ColumnFactory {
 
     /**
      * 
-     * @param MSSQLColumn $col
+     * @param Column $col
      * @param array $options
      */
-    private static function _primaryCheck(&$col, $options) {
+    private static function _primaryCheck(Column $col, array $options) {
         $isPrimary = isset($options['primary']) ? $options['primary'] : false;
 
         if (!$isPrimary) {

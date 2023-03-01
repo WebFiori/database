@@ -114,7 +114,7 @@ class ConnectionInfo {
      * @param string $user The username of the user that will be used to access 
      * the database.
      * 
-     * @param string $pass The password of the user.
+     * @param string $password The password of the user.
      * 
      * @param string $dbname The name of the database.
      * 
@@ -130,9 +130,9 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function __construct($databaseType, $user, $pass, $dbname, $host = 'localhost', $port = null, array $extras = []) {
+    public function __construct(string $databaseType, string $user, string $password, string $dbname, string $host = 'localhost', int $port = null, array $extras = []) {
         $this->setUsername($user);
-        $this->setPassword($pass);
+        $this->setPassword($password);
         $this->setDBName($dbname);
 
         if ($host === null) {
@@ -169,7 +169,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getDatabaseType() {
+    public function getDatabaseType() : string {
         return $this->dbType;
     }
     /**
@@ -179,7 +179,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getDBName() {
+    public function getDBName() : string {
         return $this->dbName;
     }
     /**
@@ -189,7 +189,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getExtars() {
+    public function getExtars() : array {
         return $this->extras;
     }
     /**
@@ -204,7 +204,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getHost() {
+    public function getHost() : string {
         return $this->host;
     }
     /**
@@ -214,7 +214,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         return $this->connectionName;
     }
     /**
@@ -224,7 +224,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getPassword() {
+    public function getPassword() : string {
         return $this->pass;
     }
     /**
@@ -235,7 +235,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getPort() {
+    public function getPort() : int {
         return $this->port;
     }
     /**
@@ -245,7 +245,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function getUsername() {
+    public function getUsername() : string {
         return $this->uName;
     }
     /**
@@ -265,7 +265,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setDatabaseType($type) {
+    public function setDatabaseType(string $type) : bool {
         $trimmed = trim($type);
 
         if (strlen($trimmed) > 0 && in_array($trimmed, self::SUPPORTED_DATABASES)) {
@@ -283,7 +283,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setDBName($name) {
+    public function setDBName(string $name) {
         $this->dbName = $name;
     }
     /**
@@ -310,7 +310,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setHost($hostAddr) {
+    public function setHost(string $hostAddr) {
         $this->host = $hostAddr;
     }
     /**
@@ -320,7 +320,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setName($newName) {
+    public function setName(string $newName) : bool {
         $trimmed = trim($newName);
 
         if (strlen($trimmed) != 0) {
@@ -338,7 +338,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setPassword($password) {
+    public function setPassword(string $password) {
         $this->pass = $password;
     }
     /**
@@ -349,7 +349,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setPort($portNum) {
+    public function setPort(int $portNum) {
         if ($portNum > 0) {
             $this->port = $portNum;
         }
@@ -361,7 +361,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function setUsername($user) {
+    public function setUsername(string $user) {
         $this->uName = $user;
     }
 }
