@@ -33,7 +33,7 @@ class WhereExpression extends Expression {
      * 
      * @since 1.0
      */
-    private $condsChain;
+    private $conditionsChain;
     /**
      * Number of conditions in the expression.
      * 
@@ -41,7 +41,7 @@ class WhereExpression extends Expression {
      * 
      * @since 1.0 
      */
-    private $condsCount;
+    private $conditionsCount;
     /**
      * The condition at which will be used to join the expression 
      * with the parent.
@@ -68,7 +68,7 @@ class WhereExpression extends Expression {
         parent::__construct('');
         $this->children = [];
         $this->joinCond = '';
-        $this->condsCount = 0;
+        $this->conditionsCount = 0;
     }
     /**
      * Adds a condition to the expression and chain it with existing conditions. 
@@ -83,20 +83,20 @@ class WhereExpression extends Expression {
      * @since 1.0
      * 
      */
-    public function addCondition($condition, $joinOp) {
+    public function addCondition($condition, string $joinOp) {
         if ($this->getCondition() !== null) {
             $cond = new Condition($this->getCondition(), $condition, $joinOp);
-            $this->condsChain = $cond;
+            $this->conditionsChain = $cond;
         } else if ($condition instanceof Condition) {
-            $this->condsChain = $condition;
+            $this->conditionsChain = $condition;
 
             if (count($this->children) != 0) {
                 $this->setJoinCondition($joinOp);
             }
         } else if ($condition instanceof Expression) {
-            $this->condsChain = new Condition($condition, null, $joinOp);
+            $this->conditionsChain = new Condition($condition, null, $joinOp);
         }
-        $this->condsCount++;
+        $this->conditionsCount++;
     }
     /**
      * Returns the condition at which the statement represents.
@@ -107,7 +107,7 @@ class WhereExpression extends Expression {
      * @since 1.0
      */
     public function getCondition() {
-        return $this->condsChain;
+        return $this->conditionsChain;
     }
     /**
      * Returns the condition at which the expression will use to combine with children 
@@ -154,7 +154,7 @@ class WhereExpression extends Expression {
         }
 
         if ($this->getCondition() !== null) {
-            if ($this->condsCount == 1) {
+            if ($this->conditionsCount == 1) {
                 if (strlen($val) != 0) {
                     $val .= ' '.$this->getJoinCondition().' '.$this->getCondition().'';
                 } else {
