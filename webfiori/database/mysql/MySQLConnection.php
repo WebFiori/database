@@ -197,7 +197,7 @@ class MySQLConnection extends Connection {
         try {
             if ($qType == 'insert' || $qType == 'update') {
                 return $this->_insertQuery();
-            } else if ($qType == 'select' || $qType == 'show'|| $qType == 'describe') {
+            } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
                 return $this->_selectQuery();
             } else {
                 return $this->_otherQuery();
