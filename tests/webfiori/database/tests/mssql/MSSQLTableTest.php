@@ -250,7 +250,7 @@ class MSSQLTableTest extends TestCase {
         ]);
         $t3->addReference($t1, ['user-id' => 'id'], 'user_loc_fk');
         $t3->addReference($t2, ['location' => 'id'], 'loc_fk');
-        $this->assertEquals(2, $t3->getForignKeysCount());
+        $this->assertEquals(2, $t3->getForeignKeysCount());
         $this->assertEquals("if not exists (select * from sysobjects where name='user_location' and xtype='U')\n"
                 . "create table [user_location] (\n"
                 . "    [user_id] [int] not null,\n"
@@ -464,11 +464,11 @@ class MSSQLTableTest extends TestCase {
             ]
         ]);
         $table->addReference($table2, ['user-id'], 'hello_fk');
-        $this->assertEquals(1, $table->getForignKeysCount());
+        $this->assertEquals(1, $table->getForeignKeysCount());
         $this->assertNull($table->removeReference('not-exist'));
         $obj = $table->removeReference('hello_fk');
         $this->assertEquals('hello_fk', $obj->getKeyName());
-        $this->assertEquals(0, $table->getForignKeysCount());
+        $this->assertEquals(0, $table->getForeignKeysCount());
     }
     /**
      * @test
