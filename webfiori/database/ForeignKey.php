@@ -15,7 +15,7 @@ namespace webfiori\database;
  * 
  * A foreign key must have an owner table and a source table. The 
  * source table will contain original values and the owner is simply the table 
- * that ownes the key. 
+ * that own the key.
  * 
  * @author Ibrahim
  * 
@@ -95,21 +95,24 @@ class ForeignKey {
      * @since 1.0
      */
     private $sourceTableObj;
+
     /**
      * Creates new foreign key.
-     * 
-     * @param string $name The name of the key. It must be a string and its not empty. 
-     * Also it must not contain any spaces or any characters other than A-Z, a-z and 
+     *
+     * @param string $name The name of the key. It must be a string, and it's not empty.
+     * Also, it must not contain any spaces or any characters other than A-Z, a-z and
      * underscore. The default value is 'key_name'.
-     * 
+     *
      * @param Table $ownerTable The table that will contain the key.
-     * 
-     * @param Table $sourceTable The name of the table that contains the 
+     *
+     * @param Table $sourceTable The name of the table that contains the
      * original values.
-     * 
-     * @param array|string $cols An associative array that contains the names of key 
-     * columns. The indices must be columns in the owner table and the values are 
-     * columns in the source columns. 
+     *
+     * @param array|string $cols An associative array that contains the names of key
+     * columns. The indices must be columns in the owner table and the values are
+     * columns in the source columns.
+     *
+     * @throws DatabaseException If one of the tables of the foreign key is not set.
      */
     public function __construct(
             string $name = 'key_name',
@@ -133,27 +136,29 @@ class ForeignKey {
             $this->addReference($k, $v);
         }
     }
+
     /**
      * Add a column reference to the foreign key.
-     * 
-     * Note that before using this method, the owner table and the source 
+     *
+     * Note that before using this method, the owner table and the source
      * table must be set. In addition, the two columns must have same data type.
-     * 
-     * @param string $ownerColName The name of the column that belongs to the owner. 
+     *
+     * @param string $ownerColName The name of the column that belongs to the owner.
      * This one will take the value from source column.
-     * 
-     * @param string $sourceColName The name of the column that belongs to the 
-     * source. The value of the owner column will be taken from this column. If 
-     * not provided, it will assume that the name of the source column is 
+     *
+     * @param string $sourceColName The name of the column that belongs to the
+     * source. The value of the owner column will be taken from this column. If
+     * not provided, it will assume that the name of the source column is
      * the same as the owner column.
-     * 
-     * @return bool If the reference is created, the method will return true. 
+     *
+     * @return bool If the reference is created, the method will return true.
      * Other than that, the method will return false.
-     * 
+     *
+     * @throws DatabaseException If one of the tables of the foreign key is not set.
      * @since 1.0
      */
     public function addReference(string $ownerColName, string $sourceColName = null) : bool {
-        if ($this->_addReferenceHelper()) {
+        if ($this->addReferenceHelper()) {
             $ownerColName = trim($ownerColName);
             $sourceColName = $sourceColName === null ? $ownerColName : trim($sourceColName);
 
@@ -294,7 +299,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    public function removeReference($ownerColName) {
+    public function removeReference(string $ownerColName) : bool {
         $trimmed = trim($ownerColName);
         $colIndex = 0;
 
@@ -359,7 +364,7 @@ class ForeignKey {
 
         if (in_array($fix, self::CONDITIONS)) {
             $this->onDeleteCondition = $fix;
-        } else if ($val === null) {
+        } else {
             $this->onDeleteCondition = null;
         }
     }
@@ -408,7 +413,11 @@ class ForeignKey {
         $this->sourceTableObj = $table;
         $this->sourceCols = [];
     }
-    private function _addReferenceHelper() {
+
+    /**
+     * @throws DatabaseException
+     */
+    private function addReferenceHelper(): bool {
         if ($this->getOwner() !== null) {
             if ($this->getSource() !== null) {
                 return true;
@@ -423,8 +432,8 @@ class ForeignKey {
      * A method that is used to validate the names of the key attributes (such as source column 
      * name or source table name).
      * 
-     * @param string $trimmed The string to validate. It must be a string and its not empty. 
-     * Also it must not contain any spaces or any characters other than A-Z, a-z and 
+     * @param string $trimmed The string to validate. It must be a string, and it's not empty.
+     * Also, it must not contain any spaces or any characters other than A-Z, a-z and
      * underscore.
      * 
      * @return bool true if the given parameter is valid. false in 
@@ -432,7 +441,7 @@ class ForeignKey {
      * 
      * @since 1.0
      */
-    private function validateAttr($trimmed) {
+    private function validateAttr(string $trimmed) : bool {
         $len = strlen($trimmed);
 
         if ($len != 0 && strpos($trimmed, ' ') === false) {
