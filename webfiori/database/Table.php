@@ -110,12 +110,12 @@ abstract class Table {
      * @return bool If added, the method will return true. False otherwise.
      */
     public function addColumn(string $key, Column $colObj) : bool {
-        $trimmidKey = str_replace('_', '-', trim($key));
+        $fixedKey = str_replace('_', '-', trim($key));
         $colName = $colObj->getNormalName();
 
-        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
+        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($fixedKey) && $this->isKeyNameValid($fixedKey)) {
             $colObj->setOwner($this);
-            $this->colsArr[$trimmidKey] = $colObj;
+            $this->colsArr[$fixedKey] = $colObj;
 
             return true;
         }
@@ -189,7 +189,7 @@ abstract class Table {
             }
         }
 
-        $this->_createFk($refTable, $cols, $keyName, $onUpdate, $onDelete);
+        $this->createFk($refTable, $cols, $keyName, $onUpdate, $onDelete);
     }
     /**
      * Returns a column given its index.
@@ -283,7 +283,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColsDatatypes() : array {
+    public function getColsDataTypes() : array {
         $retVal = [];
 
         foreach ($this->getCols() as $idx => $colObj) {
@@ -363,7 +363,7 @@ abstract class Table {
      * @since 1.0.1
      */
     public function getForeignKey(string $keyName) {
-        foreach ($this->getForignKeys() as $keyObj) {
+        foreach ($this->getForeignKeys() as $keyObj) {
             if ($keyObj->getKeyName() == $keyName) {
                 return $keyObj;
             }
@@ -378,7 +378,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getForignKeys() : array {
+    public function getForeignKeys() : array {
         return $this->foreignKeys;
     }
     /**
@@ -388,12 +388,12 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getForignKeysCount() : int {
+    public function getForeignKeysCount() : int {
         return count($this->foreignKeys);
     }
     /**
      * Returns the name of the table.
-     * 
+     *
      * @return string The name of the table. Default return value is 'new_table'.
      * 
      * @since 1.0
@@ -691,7 +691,11 @@ abstract class Table {
         $this->withDbPrefix = $withDbPrefix;
     }
     public abstract function toSQL();
-    private function _createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
+
+    /**
+     * @throws DatabaseException
+     */
+    private function createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
         if ($refTable instanceof Table) {
             $fk = new ForeignKey();
             $fk->setOwner($this);
@@ -744,9 +748,9 @@ abstract class Table {
     private function _getColsKeys($method) : array {
         $arr = [];
 
-        foreach ($this->getCols() as $colkey => $col) {
+        foreach ($this->getCols() as $columnKey => $col) {
             if ($col->$method()) {
-                $arr[] = $colkey;
+                $arr[] = $columnKey;
             }
         }
 
@@ -758,7 +762,7 @@ abstract class Table {
      * @return bool
      * @since 1.6.1
      */
-    private function _isKeyNameValid(string $key) : bool {
+    private function isKeyNameValid(string $key) : bool {
         $keyLen = strlen($key);
 
         if ($keyLen == 0) {
