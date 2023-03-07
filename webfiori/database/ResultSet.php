@@ -12,6 +12,7 @@ namespace webfiori\database;
 
 use Countable;
 use Iterator;
+use ReturnTypeWillChange;
 /**
  * A class which is used to represent a data set which was fetched from the 
  * database after executing a query like a 'select' query.
@@ -21,7 +22,13 @@ use Iterator;
  * @version 1.0
  */
 class ResultSet implements Countable, Iterator {
+    /**
+     * @var int
+     */
     private $cursorPos;
+    /**
+     * @var array
+     */
     private $orgResultRows;
     /**
      * Creates new instance of the class.
@@ -54,7 +61,7 @@ class ResultSet implements Countable, Iterator {
     public function count() : int {
         return $this->getRowsCount();
     }
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     /**
      * Returns the element which exist at current cursor location in the 
      * mapped result.
@@ -108,7 +115,7 @@ class ResultSet implements Countable, Iterator {
      * 
      * @since 1.0
      */
-    public function getRows() {
+    public function getRows() : array {
         return $this->orgResultRows;
     }
     /**
@@ -122,7 +129,7 @@ class ResultSet implements Countable, Iterator {
     public function getRowsCount() : int {
         return count($this->orgResultRows);
     }
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     /**
      * Return the key of the current record.
      * 
@@ -161,7 +168,7 @@ class ResultSet implements Countable, Iterator {
 
         return new ResultSet($result);
     }
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     /**
      * Move forward to next record.
      * 
@@ -170,7 +177,7 @@ class ResultSet implements Countable, Iterator {
     public function next() {
         $this->cursorPos++;
     }
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     /**
      * Rewind the Iterator to the first record.
      * 
