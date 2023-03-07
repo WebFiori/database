@@ -73,14 +73,13 @@ class JoinTable extends Table {
         $this->left = $left;
         $this->right = $right;
         $this->joinType = $joinType;
-        
+
         parent::__construct($alias);
-        
-        
+
+
         $this->_addCols();
         $this->_addCols(false);
         $this->setOwner($this->getLeft()->getOwner());
-        
     }
     /**
      * Adds a condition which could be used to join the two tables.
