@@ -437,7 +437,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setAlias($alias) {
+    public function setAlias(string $alias) {
         $trimmed = trim($alias.'');
 
         if (strlen($trimmed) != 0) {
@@ -452,15 +452,13 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setComment($comment) {
+    public function setComment(string $comment = null) {
         $trimmed = trim($comment);
 
         if (strlen($trimmed) != 0) {
             $this->comment = $trimmed;
-        } else {
-            if ($comment === null) {
-                $this->comment = null;
-            }
+        } else if ($comment === null) {
+            $this->comment = null;
         }
     }
     /**
@@ -655,13 +653,13 @@ abstract class Column {
     /**
      * Adds a set of values as a supported data types for the column.
      * 
-     * @param array $datatypes An indexed array that contains a strings that 
+     * @param array $dataTypes An indexed array that contains a strings that
      * represents the types.
      * 
      * @since 1.0
      */
-    public function setSupportedTypes(array $datatypes) {
-        foreach ($datatypes as $type) {
+    public function setSupportedTypes(array $dataTypes) {
+        foreach ($dataTypes as $type) {
             $trimmed = strtolower($type);
 
             if (strlen($trimmed) != 0) {
