@@ -368,7 +368,8 @@ abstract class AbstractQuery {
         try {
             return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
-            throw new DatabaseException($ex->getMessage(), $ex->getCode());
+            $query = $this->getSchema()->getLastQuery();
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query);
         }
     }
     /**
