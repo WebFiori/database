@@ -14,6 +14,7 @@ use webfiori\database\Column;
 use webfiori\database\ColumnFactory;
 use webfiori\database\DatabaseException;
 use webfiori\database\DateTimeValidator;
+use webfiori\database\Table;
 
 /**
  * A class that represents a column in MySQL table.
@@ -517,7 +518,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setOwner($table) {
+    public function setOwner(Table $table = null) {
         parent::setOwner($table);
 
         if ($this->getOwner() !== null && $this->getOwner() instanceof MySQLTable) {
