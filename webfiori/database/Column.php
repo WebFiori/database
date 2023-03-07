@@ -433,11 +433,11 @@ abstract class Column {
     /**
      * Sets an alias for the column.
      * 
-     * @param string $alias Column alias.
+     * @param string|null $alias Column alias.
      * 
      * @since 1.0
      */
-    public function setAlias(string $alias) {
+    public function setAlias(string $alias = null) {
         $trimmed = trim($alias.'');
 
         if (strlen($trimmed) != 0) {
