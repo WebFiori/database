@@ -725,21 +725,6 @@ class SelectExpression extends Expression {
             }
         }
     }
-    private function getJoinWhere(JoinTable $joinTable) : string {
-        // remove the string ' where '
-        $leftWhere = substr($joinTable->getLeft()->getSelect()->getWhereStr(true, false), 7);
-        $rightWhere = substr($joinTable->getRight()->getSelect()->getWhereStr(true, false), 7);
-
-        if (strlen($leftWhere) != 0 && strlen($rightWhere) != 0) {
-            return " where $leftWhere and $rightWhere";
-        } else if (strlen($leftWhere) != 0 && strlen($rightWhere) == 0) {
-            return " where $leftWhere";
-        } else if (strlen($leftWhere) == 0 && strlen($rightWhere) != 0) {
-            return " where $rightWhere";
-        } else {
-            return '';
-        }
-    }
     private function _setAlias($colObj, $options, &$opArr) {
         if (isset($options['alias'])) {
             $alias = trim($options['alias']);
@@ -773,5 +758,20 @@ class SelectExpression extends Expression {
             $this->whereExp = new WhereExpression();
         }
         $this->getWhereExpr()->addCondition($expr, $join);
+    }
+    private function getJoinWhere(JoinTable $joinTable) : string {
+        // remove the string ' where '
+        $leftWhere = substr($joinTable->getLeft()->getSelect()->getWhereStr(true, false), 7);
+        $rightWhere = substr($joinTable->getRight()->getSelect()->getWhereStr(true, false), 7);
+
+        if (strlen($leftWhere) != 0 && strlen($rightWhere) != 0) {
+            return " where $leftWhere and $rightWhere";
+        } else if (strlen($leftWhere) != 0 && strlen($rightWhere) == 0) {
+            return " where $leftWhere";
+        } else if (strlen($leftWhere) == 0 && strlen($rightWhere) != 0) {
+            return " where $rightWhere";
+        } else {
+            return '';
+        }
     }
 }
