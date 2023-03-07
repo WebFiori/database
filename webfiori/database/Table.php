@@ -93,7 +93,7 @@ abstract class Table {
     public function __construct(string $name = 'new_table') {
         $this->name = '';
         $this->setWithDbPrefix(false);
-        
+
         if (!$this->setName($name)) {
             $this->name = 'new_table';
         }
@@ -230,7 +230,7 @@ abstract class Table {
         if (isset($this->colsArr[$trimmed])) {
             return $this->colsArr[$trimmed];
         }
-        
+
         return null;
     }
     /**
@@ -252,7 +252,7 @@ abstract class Table {
                 return $colObj;
             }
         }
-        
+
         return null;
     }
     /**
@@ -369,7 +369,7 @@ abstract class Table {
                 return $keyObj;
             }
         }
-        
+
         return null;
     }
     /**
@@ -539,7 +539,6 @@ abstract class Table {
      * other than that, the method will return false.
      */
     public function hasColumn(string $colName) : bool {
-
         foreach ($this->colsArr as $colObj) {
             $normalColName = $colObj->getNormalName();
 
@@ -694,41 +693,6 @@ abstract class Table {
     public abstract function toSQL();
 
     /**
-     * @throws DatabaseException
-     */
-    private function createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
-        if ($refTable instanceof Table) {
-            $fk = new ForeignKey();
-            $fk->setOwner($this);
-            $fk->setSource($refTable);
-
-            if ($fk->setKeyName($keyName) === true) {
-                foreach ($cols as $target => $source) {
-                    if (gettype($target) == 'integer') {
-                        //indexed array. 
-                        //It means source and target columns have same name.
-                        $fk->addReference($source, $source);
-                    } else {
-                        //Associative. Probably two columns with different names.
-                        $fk->addReference($target, $source);
-                    }
-                }
-
-                if (count($fk->getSourceCols()) != 0) {
-                    $fk->setOnUpdate($onUpdate);
-                    $fk->setOnDelete($onDelete);
-                    $this->foreignKeys[] = $fk;
-
-                }
-            } else {
-                throw new DatabaseException('Invalid FK name: \''.$keyName.'\'.');
-            }
-        } else {
-            throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
-        }
-    }
-
-    /**
      * Returns an array that contains columns with specific condition.
      * 
      * @param string $method The name of column method such as 'isUnique' or 'isPrimary'.
@@ -756,6 +720,40 @@ abstract class Table {
         }
 
         return $arr;
+    }
+
+    /**
+     * @throws DatabaseException
+     */
+    private function createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
+        if ($refTable instanceof Table) {
+            $fk = new ForeignKey();
+            $fk->setOwner($this);
+            $fk->setSource($refTable);
+
+            if ($fk->setKeyName($keyName) === true) {
+                foreach ($cols as $target => $source) {
+                    if (gettype($target) == 'integer') {
+                        //indexed array. 
+                        //It means source and target columns have same name.
+                        $fk->addReference($source, $source);
+                    } else {
+                        //Associative. Probably two columns with different names.
+                        $fk->addReference($target, $source);
+                    }
+                }
+
+                if (count($fk->getSourceCols()) != 0) {
+                    $fk->setOnUpdate($onUpdate);
+                    $fk->setOnDelete($onDelete);
+                    $this->foreignKeys[] = $fk;
+                }
+            } else {
+                throw new DatabaseException('Invalid FK name: \''.$keyName.'\'.');
+            }
+        } else {
+            throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
+        }
     }
     /**
      * 
