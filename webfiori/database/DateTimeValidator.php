@@ -55,7 +55,7 @@ class DateTimeValidator {
      * 
      * @since 1.0
      */
-    public static function isValidDateTime(string $dateTime) : bool  {
+    public static function isValidDateTime(string $dateTime) : bool {
         $trimmed = trim($dateTime);
 
         if (strlen($trimmed) == 19) {
