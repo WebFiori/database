@@ -259,7 +259,7 @@ class MySQLColumn extends Column {
                     //$dt == 'timestamp' || $dt == 'datetime' || 
                     $dt == 'tinyblob' || $dt == 'blob' || $dt == 'mediumblob' || 
                     $dt == 'longblob' || $dt == 'decimal' || $dt == 'float' || $dt == 'double'
-                    ) {
+            ) {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
 
                 if ($dt == 'decimal' || $dt == 'float' || $dt == 'double') {
@@ -276,7 +276,7 @@ class MySQLColumn extends Column {
             } else if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === "b'1'" || $defaultVal === true;
             } else if ($dt == 'mixed') {
-                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);;
+                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
             }
 
             return $retVal;
@@ -616,8 +616,10 @@ class MySQLColumn extends Column {
             $cleanedVal = "'".floatval($val)."'";
         } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
             $ownerTable = $this->getOwner();
+
             if ($ownerTable !== null) {
                 $db = $ownerTable->getOwner();
+
                 if ($db !== null) {
                     $conn = $db->getConnection();
                     $cleanedVal = mysqli_real_escape_string($conn->getMysqli(), $val);
@@ -627,10 +629,9 @@ class MySQLColumn extends Column {
             } else {
                 $cleanedVal = filter_var(addslashes($val));
             }
-            // It is not secure if not escaped without connection
-            // Think about multi-byte strings
-            // At minimum, just sanitize the value using default filter
-            
+        // It is not secure if not escaped without connection
+        // Think about multi-byte strings
+        // At minimum, just sanitize the value using default filter
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now' && $val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->_dateCleanUp($val);
@@ -639,9 +640,9 @@ class MySQLColumn extends Column {
             }
         } else if ($colDatatype == 'mixed') {
             $valType = gettype($val);
-            
+
             if ($valType == 'string') {
-                $cleanedVal = "'". filter_var(addslashes($val)) ."'";
+                $cleanedVal = "'".filter_var(addslashes($val))."'";
             } else if ($valType == 'double') {
                 $cleanedVal = "'".floatval($val)."'";
             } else if ($valType == 'boolean') {
@@ -706,7 +707,7 @@ class MySQLColumn extends Column {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
             } else if ($colDataType == 'mixed') {
-                return "default '". addslashes($colDefault)."' ";
+                return "default '".addslashes($colDefault)."' ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
