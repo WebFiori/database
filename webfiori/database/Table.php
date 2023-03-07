@@ -92,7 +92,8 @@ abstract class Table {
      */
     public function __construct(string $name = 'new_table') {
         $this->name = '';
-
+        $this->setWithDbPrefix(false);
+        
         if (!$this->setName($name)) {
             $this->name = 'new_table';
         }
