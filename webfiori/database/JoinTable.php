@@ -70,14 +70,17 @@ class JoinTable extends Table {
      * @since 1.0
      */
     public function __construct(Table $left, Table $right, string $joinType = 'join', string $alias = 'new_table') {
-        parent::__construct($alias);
-        $this->joinType = $joinType;
         $this->left = $left;
         $this->right = $right;
-
+        $this->joinType = $joinType;
+        
+        parent::__construct($alias);
+        
+        
         $this->_addCols();
         $this->_addCols(false);
         $this->setOwner($this->getLeft()->getOwner());
+        
     }
     /**
      * Adds a condition which could be used to join the two tables.
@@ -128,12 +131,12 @@ class JoinTable extends Table {
     /**
      * Returns the condition at which the two tables joined based on.
      * 
-     * @return Condition The condition at which the two tables joined based on. 
+     * @return Condition|null The condition at which the two tables joined based on. 
      * This also can be a chain of conditions.
      * 
      * @since 1.0
      */
-    public function getJoinCondition() : Condition {
+    public function getJoinCondition() {
         return $this->joinConditions;
     }
     /**
