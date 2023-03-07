@@ -416,13 +416,8 @@ abstract class Table {
      * @since 1.0
      */
     public final function getNormalName() : string {
-        $owner = $this->getOwner();
 
-        if ($owner !== null && $this->isNameWithDbPrefix()) {
-            return $owner->getName().'.'.$this->name;
-        }
-
-        return $this->name;
+        return $this->getName();
     }
     /**
      * Returns the old name of the column.
