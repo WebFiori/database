@@ -57,6 +57,7 @@ class ColumnFactory {
         } else {
             $col = new MySQLColumn($name);
         }
+
         if (isset($options['datatype'])) {
             $datatype = $options['datatype'];
         } else if (isset($options['type'])) {
