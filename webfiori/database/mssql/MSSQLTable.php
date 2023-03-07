@@ -242,7 +242,7 @@ class MSSQLTable extends Table {
         $comma = '';
         $fkConstraint = '';
 
-        foreach ($this->getForignKeys() as $fkObj) {
+        foreach ($this->getForeignKeys() as $fkObj) {
             $fkConstraint .= $comma;
             $sourceCols = [];
 
