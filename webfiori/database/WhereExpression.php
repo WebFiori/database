@@ -146,7 +146,7 @@ class WhereExpression extends Expression {
         $val = '';
 
         foreach ($this->children as $chWhere) {
-            if ($chWhere->condsCount <= 1) {
+            if ($chWhere->conditionsCount <= 1) {
                 $val .= ''.$chWhere.'';
             } else {
                 $val .= '('.trim(trim($chWhere, 'or '), 'and ').')';
