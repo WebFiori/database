@@ -15,12 +15,12 @@ class RecordMapperTest extends TestCase {
      */
     public function test00() {
         $mapper = new RecordMapper();
-        $this->assertEquals([], $mapper->getSettrsMap());
+        $this->assertEquals([], $mapper->getSettersMap());
         $this->assertEquals('', $mapper->getClass());
         $mapper->addSetterMap('');
-        $this->assertEquals([], $mapper->getSettrsMap());
+        $this->assertEquals([], $mapper->getSettersMap());
         $mapper->addSetterMap('  ');
-        $this->assertEquals([], $mapper->getSettrsMap());
+        $this->assertEquals([], $mapper->getSettersMap());
     }
     /**
      * @test
@@ -30,24 +30,24 @@ class RecordMapperTest extends TestCase {
         $mapper->addSetterMap('id');
         $this->assertEquals([
             'setId' => ['id']
-        ], $mapper->getSettrsMap());
+        ], $mapper->getSettersMap());
         $mapper->addSetterMap('  email_address');
         $this->assertEquals([
             'setId' => ['id'],
             'setEmailAddress' => ['email_address']
-        ], $mapper->getSettrsMap());
+        ], $mapper->getSettersMap());
         $mapper->addSetterMap('c_file_x');
         $this->assertEquals([
             'setId' => ['id'],
             'setEmailAddress' => ['email_address'],
             'setCFileX' => ['c_file_x']
-        ], $mapper->getSettrsMap());
+        ], $mapper->getSettersMap());
         $mapper->addSetterMap('user_id', 'setId');
         $this->assertEquals([
             'setId' => ['id', 'user_id'],
             'setEmailAddress' => ['email_address'],
             'setCFileX' => ['c_file_x']
-        ], $mapper->getSettrsMap());
+        ], $mapper->getSettersMap());
     }
     /**
      * @test

@@ -368,7 +368,8 @@ abstract class AbstractQuery {
         try {
             return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
-            throw new DatabaseException($ex->getMessage(), $ex->getCode());
+            $errQuery = $this->getSchema()->getLastQuery();
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery);
         }
     }
     /**
@@ -746,15 +747,14 @@ abstract class AbstractQuery {
      * @param int $num Page number. It should be a number greater than or equals 
      * to 1.
      * 
-     * @param int $itemsCount Number of records per page. Must be a number greater 
-     * than or equals to 1.
+     * @param int $itemsCount Number of records per page. Must be a number greater than or equals to 1.
      * 
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
      * @since 1.0
      */
-    public function page($num, $itemsCount) {
+    public function page(int $num, int $itemsCount) {
         if ($num > 0 && $itemsCount > 0) {
             $this->limit($itemsCount);
             $this->offset(($num - 1) * $itemsCount);
@@ -1489,6 +1489,7 @@ abstract class AbstractQuery {
                 $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
             } else if ($options['func'] == 'in') {
                 $cleanedVals = $colObj->cleanValue($options['values']);
+
                 if (count($cleanedVals) != 0) {
                     $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
                 }

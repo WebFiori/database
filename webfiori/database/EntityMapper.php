@@ -86,7 +86,7 @@ class EntityMapper {
      * 
      * @param string $path The directory at which the entity will be created in. 
      * 
-     * @param string $namespace The namespace at which the entity will belongs 
+     * @param string $namespace The namespace at which the entity will belong
      * to. If invalid is given, 'webfiori\database\entity' is used as default value.
      * 
      * @throws InvalidArgumentException If the given object is not of type 
@@ -123,12 +123,12 @@ class EntityMapper {
      * <li>It must not contain $.</li>
      * </ul>
      * 
-     * @return boolean If the attribute is added, the method will return
+     * @return bool If the attribute is added, the method will return
      * true. Other than that, the method will return false.
      * 
      * @since 1.0.1
      */
-    public function addAttribute(string $attrName) {
+    public function addAttribute(string $attrName) : bool {
         $trimmed = trim($attrName);
 
         if (strlen($trimmed) == 0) {
@@ -274,7 +274,7 @@ class EntityMapper {
         ];
 
         foreach ($keys as $keyName) {
-            $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName, 'g');
+            $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName);
             $retVal['setters'][] = $this->_colKeyToSetterOrGetter($keyName, 's');
         }
 
@@ -325,7 +325,7 @@ class EntityMapper {
      * @param bool $useColKey If this parameter is set to true, the value of the
      * index will be column key instead of column name. Default is false.
      * 
-     * @return array An associative array. The indices represents the names of 
+     * @return array An associative array. The indices represent the names of
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
@@ -336,7 +336,7 @@ class EntityMapper {
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $methodName = self::mapToMethodName($keyName, 'g');
+            $methodName = self::mapToMethodName($keyName);
             $mappedCol = $useColKey ? $keyName : $this->getTable()->getColByKey($keyName)->getNormalName();
             $retVal[$methodName] = $mappedCol;
         }
@@ -372,9 +372,7 @@ class EntityMapper {
      * @return RecordMapper
      */
     public function getRecordMapper() : RecordMapper {
-        $mapper = new RecordMapper($this->getEntityName(true), $this->getTable()->getColsNames());
-
-        return $mapper;
+        return new RecordMapper($this->getEntityName(true), $this->getTable()->getColsNames());
     }
     /**
      * Returns an associative array that maps possible setter entity methods names with 
@@ -394,7 +392,7 @@ class EntityMapper {
      * @param bool $useColKey If this parameter is set to true, the value of the
      * index will be column key instead of column name. Default is false.
      * 
-     * @return array An associative array. The indices represents the names of 
+     * @return array An associative array. The indices represent the names of
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
@@ -435,7 +433,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public static function mapToMethodName(string $colKey, $type = 'g') {
+    public static function mapToMethodName(string $colKey, string $type = 'g') : string {
         $trimmed = trim($colKey);
 
 
@@ -479,7 +477,7 @@ class EntityMapper {
         return false;
     }
     /**
-     * Sets the namespace at which the entity will belongs to.
+     * Sets the namespace at which the entity will belong to.
      * 
      * @param string $ns A string that represents the namespace.
      * 
@@ -522,17 +520,17 @@ class EntityMapper {
     /**
      * Sets the value of the attribute '$implJsonI'. 
      * 
-     * If this attribute is set to true, the generated entity will implemented 
+     * If this attribute is set to true, the generated entity will implement 
      * the interface 'webfiori\json\JsonI'. Not that this will make the entity class 
      * depends on the library 'Json'.
      * 
-     * @param boolean $bool True to make it implement the interface JsonI and 
+     * @param bool $bool True to make it implement the interface JsonI and
      * false to not.
      * 
      * @since 1.0
      */
     public function setUseJsonI(bool $bool) {
-        $this->implJsonI = $bool === true;
+        $this->implJsonI = $bool;
     }
     private function _appendGetterMethod($attrName, $colName, $phpType, $getterName) {
         $this->classStr .= ""
@@ -578,7 +576,7 @@ class EntityMapper {
         }
         $this->classStr .= "    }\n";
     }
-    private function _colKeyToAttr($key) {
+    private function _colKeyToAttr(string $key) : string {
         $split = explode('-', $key);
         $attrName = '';
         $index = 0;
@@ -600,7 +598,7 @@ class EntityMapper {
 
         return $attrName;
     }
-    private function _colKeyToSetterOrGetter($key, $type = 'g') {
+    private function _colKeyToSetterOrGetter(string $key, $type = 'g') : string {
         $split = explode('-', $key);
         $methodName = '';
 
@@ -628,7 +626,7 @@ class EntityMapper {
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj !== null) {
-                $getterName = $this->_colKeyToSetterOrGetter($colKey, 'g');
+                $getterName = $this->_colKeyToSetterOrGetter($colKey);
                 $this->_appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
             } else {
                 $firstLetter = $attrName[0];
@@ -739,7 +737,7 @@ class EntityMapper {
             ."    }\n";
         }
     }
-    private function _isValidClassName($cn) {
+    private function _isValidClassName($cn) : bool {
         $trim = trim($cn);
         $len = strlen($cn);
 
@@ -761,7 +759,7 @@ class EntityMapper {
 
         return false;
     }
-    private function _isValidNs($ns) {
+    private function _isValidNs($ns) : bool {
         $trim = trim($ns);
         $len = strlen($ns);
 

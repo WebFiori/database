@@ -312,7 +312,7 @@ class MySQLTable extends Table {
             $queryStr .= $pkConstraint;
         }
 
-        foreach ($this->getForignKeys() as $fkObj) {
+        foreach ($this->getForeignKeys() as $fkObj) {
             $sourceCols = [];
 
             foreach ($fkObj->getSourceCols() as $colObj) {

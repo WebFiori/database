@@ -129,7 +129,7 @@ class EntityMapperTest extends TestCase {
             'setLastName' => ['last_name'],
             'setAge' => ['age'],
             'setCXFile' => ['c_x_file']
-        ], $recordsMapper->getSettrsMap());
+        ], $recordsMapper->getSettersMap());
         $obj = $recordsMapper->map([
             'id' => 55,
             'first_name' => 'Ibrahim',

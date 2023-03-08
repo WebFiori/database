@@ -42,4 +42,4 @@ Database abstraction layer of WebFiori framework.
 * Database abstraction which makes it easy to migrate your system to different DBMS.
 
 ## How to Use
-For more information on how to use the library, check [here](https://webfiori.com/learn/database)
+For more information on how to use the library, [check here](https://webfiori.com/learn/database)

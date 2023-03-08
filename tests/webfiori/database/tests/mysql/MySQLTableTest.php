@@ -405,7 +405,7 @@ class MySQLTableTest extends TestCase {
         $this->assertEquals([
             'user-id' => 'mixed',
             'is-active' => 'bool'
-        ], $table->getColsDatatypes());
+        ], $table->getColsDataTypes());
     }
     /**
      * @test
@@ -433,11 +433,11 @@ class MySQLTableTest extends TestCase {
             ]
         ]);
         $table->addReference($table2, ['user-id'], 'hello_fk');
-        $this->assertEquals(1, $table->getForignKeysCount());
+        $this->assertEquals(1, $table->getForeignKeysCount());
         $this->assertNull($table->removeReference('not-exist'));
         $obj = $table->removeReference('hello_fk');
         $this->assertEquals('hello_fk', $obj->getKeyName());
-        $this->assertEquals(0, $table->getForignKeysCount());
+        $this->assertEquals(0, $table->getForeignKeysCount());
     }
     public function testRemoveColFromRef00() {
         $table = new MySQLTable('active_or_not');

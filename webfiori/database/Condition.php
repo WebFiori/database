@@ -59,7 +59,7 @@ class Condition {
      * 
      * @since 1.0
      */
-    public function __construct($leftOperand, $rightOperand, $condition) {
+    public function __construct($leftOperand, $rightOperand, string $condition) {
         $this->setLeftOperand($leftOperand);
         $this->setRightOperand($rightOperand);
         $this->setCondition($condition);
@@ -101,7 +101,7 @@ class Condition {
      * 
      * @since 1.0
      */
-    public function equals(Condition $cond) {
+    public function equals(Condition $cond) : bool {
         return $this.'' == $cond.'';
     }
     /**
@@ -112,7 +112,7 @@ class Condition {
      * 
      * @since 1.0
      */
-    public function getCondition() {
+    public function getCondition() : string {
         return $this->condition;
     }
     /**
@@ -143,7 +143,7 @@ class Condition {
      * 
      * @since 1.0.2
      */
-    public function setCondition($cond) {
+    public function setCondition(string $cond) {
         $conditionT = trim($cond);
 
         if (strlen($conditionT) != 0) {
