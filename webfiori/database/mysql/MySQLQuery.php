@@ -298,7 +298,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0.2
      */
     public function replace(array $colsAndVals) {
-        $this->insertHelper($colsAndVals, true);
+        $this->insertHelper1($colsAndVals, true);
 
         return $this;
     }
@@ -542,7 +542,7 @@ class MySQLQuery extends AbstractQuery {
             'vals' => implode(', ', $valsArr)
         ];
     }
-    private function insertHelper(array $colsAndVals, $isReplace = false) {
+    private function insertHelper1(array $colsAndVals, $isReplace = false) {
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $colsArr = [];
             $tblName = $this->getTable()->getName();
