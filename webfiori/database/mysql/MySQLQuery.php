@@ -528,7 +528,7 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'boolean' || $type == 'bool') {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
-                    } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now'  || $defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                    } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now' || $defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
                         $valsArr[] = "'".date('Y-m-d H:i:s')."'";
                     } else {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
