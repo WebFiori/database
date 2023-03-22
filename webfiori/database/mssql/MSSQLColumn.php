@@ -87,9 +87,9 @@ class MSSQLColumn extends Column {
      * @return string
      */
     public function __toString() {
-        $retVal = $this->_firstColPart();
-        $retVal .= $this->_nullPart();
-        $retVal .= $this->_defaultPart();
+        $retVal = $this->firstColPartString();
+        $retVal .= $this->nullPartString();
+        $retVal .= $this->defaultPartString();
 
         return trim($retVal);
     }
@@ -121,12 +121,12 @@ class MSSQLColumn extends Column {
             $retVal = [];
 
             foreach ($val as $arrVal) {
-                $retVal[] = $this->_cleanValueHelper($arrVal);
+                $retVal[] = $this->cleanValueHelper($arrVal);
             }
 
             return $retVal;
         } else {
-            return $this->_cleanValueHelper($val);
+            return $this->cleanValueHelper($val);
         }
     }
     /**
@@ -452,7 +452,7 @@ class MSSQLColumn extends Column {
         return false;
     }
 
-    private function _cleanValueHelper($val) {
+    private function cleanValueHelper($val) {
         $colDatatype = $this->getDatatype();
         $cleanedVal = null;
         $valType = gettype($val);
@@ -480,7 +480,7 @@ class MSSQLColumn extends Column {
         // use it as escape character
         } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
             if ($val != 'now' && $val != 'current_timestamp') {
-                $cleanedVal = $this->_dateCleanUp($val);
+                $cleanedVal = $this->dateCleanUp($val);
             } else {
                 $cleanedVal = $val;
             }
@@ -514,7 +514,7 @@ class MSSQLColumn extends Column {
 
         return $retVal;
     }
-    private function _dateCleanUp($val) {
+    private function dateCleanUp($val) {
         $trimmed = strtolower(trim($val));
         $cleanedVal = '';
 
@@ -528,7 +528,7 @@ class MSSQLColumn extends Column {
 
         return $cleanedVal;
     }
-    private function _defaultPart() {
+    private function defaultPartString() {
         $colDataType = $this->getDatatype();
         $colDefault = $this->getDefault();
 
@@ -554,7 +554,7 @@ class MSSQLColumn extends Column {
     }
 
 
-    private function _firstColPart() {
+    private function firstColPartString() {
         $retVal = MSSQLQuery::squareBr($this->getName()).' ';
         $colDataTypeSq = MSSQLQuery::squareBr($this->getDatatype());
         $colDataType = $this->getDatatype();
@@ -584,7 +584,7 @@ class MSSQLColumn extends Column {
 
         return $retVal;
     }
-    private function _nullPart() {
+    private function nullPartString() {
         $colDataType = $this->getDatatype();
 
         if (!$this->isNull() || $colDataType == 'boolean') {

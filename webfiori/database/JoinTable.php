@@ -77,8 +77,8 @@ class JoinTable extends Table {
         parent::__construct($alias);
 
 
-        $this->_addCols();
-        $this->_addCols(false);
+        $this->addColsHelper();
+        $this->addColsHelper(false);
         $this->setOwner($this->getLeft()->getOwner());
     }
     /**
@@ -188,7 +188,7 @@ class JoinTable extends Table {
 
     public function toSQL() {
     }
-    private function _addCols($left = true) {
+    private function addColsHelper(bool $left = true) {
         $prefix = $left === true ? 'left' : 'right';
 
         if ($left) {

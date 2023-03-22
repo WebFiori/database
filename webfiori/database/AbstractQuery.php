@@ -1178,7 +1178,7 @@ abstract class AbstractQuery {
      * @since 1.0.3
      */
     public function whereBetween($col, $firstVal, $secondVal, $joinCond = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'first-value' => $firstVal,
             'second-value' => $secondVal,
@@ -1213,7 +1213,7 @@ abstract class AbstractQuery {
      * @since 1.0.3
      */
     public function whereIn($col, array $vals, $joinCond = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'values' => $vals,
             'join-cond' => $joinCond,
@@ -1253,7 +1253,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $joinCond,
             'func' => 'left',
@@ -1290,7 +1290,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereLike($col, $val, $joinCond = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $joinCond,
             'func' => 'like',
@@ -1414,7 +1414,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereNull($col, $join = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $join,
             'not' => $not,
@@ -1452,7 +1452,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $joinCond,
             'func' => 'right',
@@ -1463,7 +1463,7 @@ abstract class AbstractQuery {
 
         return $this;
     }
-    private function _addWhere($options) {
+    private function addWhereHelper($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
 
@@ -1524,7 +1524,35 @@ abstract class AbstractQuery {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
     }
-    private function _getColsToSelect() {
+    private function checkIsClass($str) {
+        if (class_exists($str)) {
+            try {
+                $clazz = new $str();
+
+                if ($clazz instanceof Table) {
+                    return $clazz;
+                }
+            } catch (Throwable $ex) {
+            }
+        }
+    }
+    /**
+     * 
+     * @param type $name
+     * @return MySQLTable|MSSQLTable
+     */
+    private function createTableObj($name) {
+        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
+
+        if ($dbType == 'mysql') {
+            $tableObj = new MySQLTable($name);
+        } else if ($dbType == 'mssql') {
+            $tableObj = new MSSQLTable($name);
+        }
+
+        return $tableObj;
+    }
+    private function getColsToSelect() {
         $thisTable = $this->getTable();
 
         $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
@@ -1558,33 +1586,5 @@ abstract class AbstractQuery {
         }
 
         return $columnsToSelect;
-    }
-    private function checkIsClass($str) {
-        if (class_exists($str)) {
-            try {
-                $clazz = new $str();
-
-                if ($clazz instanceof Table) {
-                    return $clazz;
-                }
-            } catch (Throwable $ex) {
-            }
-        }
-    }
-    /**
-     * 
-     * @param type $name
-     * @return MySQLTable|MSSQLTable
-     */
-    private function createTableObj($name) {
-        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
-
-        if ($dbType == 'mysql') {
-            $tableObj = new MySQLTable($name);
-        } else if ($dbType == 'mssql') {
-            $tableObj = new MSSQLTable($name);
-        }
-
-        return $tableObj;
     }
 }

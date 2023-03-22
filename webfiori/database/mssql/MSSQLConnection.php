@@ -93,7 +93,7 @@ class MSSQLConnection extends Connection {
         if ($this->link) {
             return true;
         }
-        $this->_setErr();
+        $this->setSqlErr();
 
         return false;
     }
@@ -124,7 +124,7 @@ class MSSQLConnection extends Connection {
         $stm = sqlsrv_prepare($this->link, $this->getLastQuery()->getQuery(), $params);
 
         if (!$stm) {
-            $this->_setErr();
+            $this->setSqlErr();
 
             return false;
         }
@@ -149,49 +149,49 @@ class MSSQLConnection extends Connection {
         $qType = $query->getLastQueryType();
 
         if ($qType == 'insert' || $qType == 'update') {
-            return $this->_insertQuery();
+            return $this->runInsertQuery();
         } else {
             if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
-                return $this->_selectQuery();
+                return $this->runSelectQuery();
             } else {
-                return $this->_otherQuery();
+                return $this->runOtherQuery();
             }
         }
     }
-    private function _bindAndExc() {
+    private function bindAndExcute() {
         $stm = $this->prepare($this->getLastQuery()->getParams());
 
         return $stm->execute();
     }
-    private function _insertQuery() {
+    private function runInsertQuery() {
         if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->_bindAndExc();
+            $r = $this->bindAndExcute();
         } else {
             $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
         }
 
         if (!is_resource($r)) {
-            $this->_setErr();
+            $this->setSqlErr();
 
             return false;
         }
 
         return true;
     }
-    private function _otherQuery() {
+    private function runOtherQuery() {
         $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
 
         if (!is_resource($r)) {
-            $this->_setErr();
+            $this->setSqlErr();
 
             return false;
         }
 
         return true;
     }
-    private function _selectQuery() {
+    private function runSelectQuery() {
         if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->_bindAndExc();
+            $r = $this->bindAndExcute();
         } else {
             $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
         }
@@ -206,12 +206,12 @@ class MSSQLConnection extends Connection {
 
             return true;
         } else {
-            $this->_setErr();
+            $this->setSqlErr();
 
             return false;
         }
     }
-    private function _setErr() {
+    private function setSqlErr() {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);
         $lastErr = $allErrs[count($allErrs) - 1];
 

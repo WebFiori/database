@@ -208,18 +208,18 @@ class MSSQLTable extends Table {
     public function toSQL() {
         $queryStr = "if not exists (select * from sysobjects where name='".$this->getNormalName()."' and xtype='U')\n";
         $queryStr .= 'create table '.$this->getName()." (\n";
-        $queryStr .= $this->_createTableColumns();
-        $pk = $this->_createPK();
+        $queryStr .= $this->createTableColumnsString();
+        $pk = $this->createPKString();
 
         if (strlen($pk) != 0) {
             $queryStr .= ",\n".$pk;
         }
-        $fk = $this->_createFK();
+        $fk = $this->createFKString();
 
         if (strlen($fk) != 0) {
             $queryStr .= ",\n".$fk;
         }
-        $un = $this->_createUnique();
+        $un = $this->createUniqueString();
 
         if (strlen($un) != 0) {
             $queryStr .= ",\n".$un;
@@ -238,7 +238,7 @@ class MSSQLTable extends Table {
 
         return $queryStr;
     }
-    private function _createFK() {
+    private function createFKString() {
         $comma = '';
         $fkConstraint = '';
 
@@ -270,7 +270,7 @@ class MSSQLTable extends Table {
 
         return $fkConstraint;
     }
-    private function _createPK() {
+    private function createPKString() {
         if ($this->getPrimaryKeyColsCount() != 0) {
             $queryStr = "    constraint ".$this->getPrimaryKeyName().' primary key clustered(';
             $pkCols = [];
@@ -286,7 +286,7 @@ class MSSQLTable extends Table {
             return '';
         }
     }
-    private function _createTableColumns() {
+    private function createTableColumnsString() {
         $cols = $this->getCols();
         $queryStr = '';
         $count = count($cols);
@@ -303,7 +303,7 @@ class MSSQLTable extends Table {
 
         return $queryStr;
     }
-    private function _createUnique() {
+    private function createUniqueString() {
         $uniqueCols = $this->getUniqueCols();
 
         if (count($uniqueCols) != 0) {

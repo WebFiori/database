@@ -416,7 +416,6 @@ abstract class Table {
      * @since 1.0
      */
     public final function getNormalName() : string {
-
         $owner = $this->getOwner();
 
         if ($owner !== null && $this->isNameWithDbPrefix()) {
@@ -471,7 +470,7 @@ abstract class Table {
      * @since 1.0
      */
     public function getPrimaryKeyColsKeys() : array {
-        return $this->_getColsKeys('isPrimary');
+        return $this->getColsKeysHelper('isPrimary');
     }
 
     /**
@@ -510,7 +509,7 @@ abstract class Table {
      * @since 1.0.2
      */
     public function getUniqueCols() : array {
-        return $this->_getCols('isUnique');
+        return $this->getColsHelper('isUnique');
     }
     /**
      * Returns the number of columns that are marked as unique.
@@ -529,7 +528,7 @@ abstract class Table {
      * 
      */
     public function getUniqueColsKeys() : array {
-        return $this->_getColsKeys('isUnique');
+        return $this->getColsKeysHelper('isUnique');
     }
     /**
      * Checks if the table has a column which has specific name.
@@ -694,36 +693,6 @@ abstract class Table {
     public abstract function toSQL();
 
     /**
-     * Returns an array that contains columns with specific condition.
-     * 
-     * @param string $method The name of column method such as 'isUnique' or 'isPrimary'.
-     * ,
-     * @return array An array that contains objects of type 'Column'.
-     */
-    private function _getCols(string $method) : array {
-        $arr = [];
-
-        foreach ($this->getCols() as $col) {
-            if ($col->$method()) {
-                $arr[] = $col;
-            }
-        }
-
-        return $arr;
-    }
-    private function _getColsKeys($method) : array {
-        $arr = [];
-
-        foreach ($this->getCols() as $columnKey => $col) {
-            if ($col->$method()) {
-                $arr[] = $columnKey;
-            }
-        }
-
-        return $arr;
-    }
-
-    /**
      * @throws DatabaseException
      */
     private function createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
@@ -755,6 +724,36 @@ abstract class Table {
         } else {
             throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
         }
+    }
+
+    /**
+     * Returns an array that contains columns with specific condition.
+     * 
+     * @param string $method The name of column method such as 'isUnique' or 'isPrimary'.
+     * ,
+     * @return array An array that contains objects of type 'Column'.
+     */
+    private function getColsHelper(string $method) : array {
+        $arr = [];
+
+        foreach ($this->getCols() as $col) {
+            if ($col->$method()) {
+                $arr[] = $col;
+            }
+        }
+
+        return $arr;
+    }
+    private function getColsKeysHelper($method) : array {
+        $arr = [];
+
+        foreach ($this->getCols() as $columnKey => $col) {
+            if ($col->$method()) {
+                $arr[] = $columnKey;
+            }
+        }
+
+        return $arr;
     }
     /**
      * 

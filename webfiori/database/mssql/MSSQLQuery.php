@@ -144,12 +144,12 @@ class MSSQLQuery extends AbstractQuery {
             $suberValsArr = [];
 
             foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
+                $suberValsArr[] = '('.$this->insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
             }
             $valsStr = implode(",\n", $suberValsArr);
             $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
         } else {
-            $data = $this->_insertHelper(array_keys($colsAndVals), $colsAndVals);
+            $data = $this->insertHelper(array_keys($colsAndVals), $colsAndVals);
             $cols = '('.$data['cols'].')';
             $vals = '('.$data['vals'].')';
             $this->setQuery("insert into $tblName $cols values $vals;");
@@ -306,7 +306,7 @@ class MSSQLQuery extends AbstractQuery {
      * @return type
      * @throws DatabaseException
      */
-    private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
+    private function insertHelper(array $colsKeysArr, array $valuesToInsert) {
         $valsArr = [];
         $columnsWithVals = [];
         $colsNamesArr = [];
