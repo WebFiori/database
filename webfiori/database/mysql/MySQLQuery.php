@@ -198,7 +198,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function insert(array $colsAndVals) {
-        $this->insertHelper($colsAndVals);
+        $this->insertHelper1($colsAndVals);
 
         return $this;
     }
