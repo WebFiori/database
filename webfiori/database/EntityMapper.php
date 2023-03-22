@@ -185,9 +185,9 @@ class EntityMapper {
             } else {
                 $this->classStr .= "class ".$entityClassName." {\n";
             }
-            $this->_createEntityVariables();
-            $this->_createEntityMethods();
-            $this->_imlpJsonX();
+            $this->createEntityVariables();
+            $this->createEntityMethods();
+            $this->implementJson();
             $this->classStr .= "}\n";
             fwrite($file, $this->classStr);
             fclose($file);
@@ -227,7 +227,7 @@ class EntityMapper {
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $retVal[$keyName] = $this->_colKeyToAttr($keyName);
+            $retVal[$keyName] = $this->colKeyToAttributeName($keyName);
         }
 
         foreach ($this->getAttributes() as $attrName) {
@@ -274,8 +274,8 @@ class EntityMapper {
         ];
 
         foreach ($keys as $keyName) {
-            $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName);
-            $retVal['setters'][] = $this->_colKeyToSetterOrGetter($keyName, 's');
+            $retVal['getters'][] = $this->colKeyToSetterOrGetter($keyName);
+            $retVal['setters'][] = $this->colKeyToSetterOrGetter($keyName, 's');
         }
 
         foreach ($this->getAttributes() as $attrName) {
@@ -468,7 +468,7 @@ class EntityMapper {
     public function setEntityName(string $name) : bool {
         $trimmed = trim($name);
 
-        if ($this->_isValidClassName($trimmed)) {
+        if ($this->isValidClassName($trimmed)) {
             $this->entityName = $trimmed;
 
             return true;
@@ -489,7 +489,7 @@ class EntityMapper {
     public function setNamespace(string $ns) : bool {
         $trimmed = trim($ns);
 
-        if ($this->_isValidNs($trimmed)) {
+        if ($this->isValidNamespace($trimmed)) {
             $this->entityNamespace = $trimmed;
 
             return true;
@@ -532,7 +532,7 @@ class EntityMapper {
     public function setUseJsonI(bool $bool) {
         $this->implJsonI = $bool;
     }
-    private function _appendGetterMethod($attrName, $colName, $phpType, $getterName) {
+    private function appendGetterMethod($attrName, $colName, $phpType, $getterName) {
         $this->classStr .= ""
         ."    /**\n"
         ."     * Returns the value of the attribute '".$attrName."'.\n"
@@ -552,7 +552,7 @@ class EntityMapper {
             .'        return $this->'.$attrName.";\n"
             ."    }\n";
     }
-    private function _appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
+    private function appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
         $this->classStr .= ""
             ."    /**\n"
             ."     * Sets the value of the attribute '".$attrName."'.\n"
@@ -576,7 +576,7 @@ class EntityMapper {
         }
         $this->classStr .= "    }\n";
     }
-    private function _colKeyToAttr(string $key) : string {
+    private function colKeyToAttributeName(string $key) : string {
         $split = explode('-', $key);
         $attrName = '';
         $index = 0;
@@ -598,7 +598,7 @@ class EntityMapper {
 
         return $attrName;
     }
-    private function _colKeyToSetterOrGetter(string $key, $type = 'g') : string {
+    private function colKeyToSetterOrGetter(string $key, $type = 'g') : string {
         $split = explode('-', $key);
         $methodName = '';
 
@@ -617,7 +617,7 @@ class EntityMapper {
             return 'set'.$methodName;
         }
     }
-    private function _createEntityMethods() {
+    private function createEntityMethods() {
         $entityAttrs = $this->getAttribitesNames();
         $colsNames = $this->getTable()->getColsNames();
         sort($colsNames, SORT_STRING);
@@ -626,12 +626,12 @@ class EntityMapper {
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj !== null) {
-                $getterName = $this->_colKeyToSetterOrGetter($colKey);
-                $this->_appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
+                $getterName = $this->colKeyToSetterOrGetter($colKey);
+                $this->appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
             } else {
                 $firstLetter = $attrName[0];
                 $xattrName = substr($attrName, 1);
-                $this->_appendGetterMethod($attrName, null, 'mixed', 'get'.strtoupper($firstLetter).$xattrName);
+                $this->appendGetterMethod($attrName, null, 'mixed', 'get'.strtoupper($firstLetter).$xattrName);
             }
         }
 
@@ -639,17 +639,17 @@ class EntityMapper {
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj !== null) {
-                $setterName = $this->_colKeyToSetterOrGetter($colKey, 's');
-                $this->_appendSetter($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
+                $setterName = $this->colKeyToSetterOrGetter($colKey, 's');
+                $this->appendSetter($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
             } else {
                 $firstLetter = $attrName[0];
                 $xattrName = substr($attrName, 1);
-                $this->_appendSetter($attrName, null, 'mixed', 'set'.strtoupper($firstLetter).$xattrName, null);
+                $this->appendSetter($attrName, null, 'mixed', 'set'.strtoupper($firstLetter).$xattrName, null);
             }
         }
-        $this->_createMapFunction();
+        $this->createMapFunction();
     }
-    private function _createEntityVariables() {
+    private function createEntityVariables() {
         $index = 0;
         $entityAttrs = $this->getAttribitesNames();
         $this->classStr .= ""
@@ -683,7 +683,7 @@ class EntityMapper {
             $index++;
         }
     }
-    private function _createMapFunction() {
+    private function createMapFunction() {
         $tableName = $this->getTable()->getNormalName();
         $className = $this->getEntityName();
         $docStr = "    /**\n"
@@ -702,7 +702,7 @@ class EntityMapper {
                 ."    }\n";
         $this->classStr .= $docStr.$mapMethodStr;
     }
-    private function _imlpJsonX() {
+    private function implementJson() {
         if ($this->implJsonI) {
             $this->classStr .= ""
             ."    /**\n"
@@ -737,7 +737,7 @@ class EntityMapper {
             ."    }\n";
         }
     }
-    private function _isValidClassName($cn) : bool {
+    private function isValidClassName(string $cn) : bool {
         $trim = trim($cn);
         $len = strlen($cn);
 
@@ -759,7 +759,7 @@ class EntityMapper {
 
         return false;
     }
-    private function _isValidNs($ns) : bool {
+    private function isValidNamespace($ns) : bool {
         $trim = trim($ns);
         $len = strlen($ns);
 
