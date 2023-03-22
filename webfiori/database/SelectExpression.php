@@ -101,7 +101,7 @@ class SelectExpression extends Expression {
             $opArr = [
                 'obj' => $colObj,
             ];
-            $this->_setAlias($colObj, $options, $opArr);
+            $this->setAliasHelper($colObj, $options, $opArr);
 
             if (isset($options['aggregate'])) {
                 $opArr['aggregate'] = $options['aggregate'];
@@ -403,7 +403,7 @@ class SelectExpression extends Expression {
                             $resetOwner = true;
                         }
                     }
-                    $this->_addColToSelectArr($selectArr, $obj, $optionsArr);
+                    $this->addColToSelectArr($selectArr, $obj, $optionsArr);
 
                     if ($resetOwner) {
                         $obj->setOwner($obj->getPrevOwner());
@@ -509,7 +509,7 @@ class SelectExpression extends Expression {
 
         if ($table instanceof JoinTable) {
             $joinWhere = $this->getJoinWhere($table);
-            $joinCols = $this->_getJoinCols($table);
+            $joinCols = $this->getJoinCols($table);
 
             if (strlen($colsStr) == 0) {
                 return "select * from ($joinCols".$table->getJoin()."$joinWhere) as ".$table->getName();
@@ -685,7 +685,7 @@ class SelectExpression extends Expression {
             }
         }
     }
-    private function _addColToSelectArr(&$arr, $colObj, $selectArr) {
+    private function addColToSelectArr(&$arr, $colObj, $selectArr) {
         $alias = $colObj->getAlias();
         $colName = $colObj->getName();
 
@@ -700,41 +700,6 @@ class SelectExpression extends Expression {
             $selectColStr .= ' as '.$alias;
         }
         $arr[] = $selectColStr;
-    }
-    private function _getJoinCols(JoinTable $joinTable) {
-        $leftTable = $joinTable->getLeft();
-
-        if ($leftTable instanceof JoinTable) {
-            return $leftTable->getSelect()->getValue();
-        } 
-
-        $leftCols = $joinTable->getLeft()->getSelect()->getColsStr();
-        $rightCols = $joinTable->getRight()->getSelect()->getColsStr();
-
-        if ($leftCols == '*' && $rightCols == '*') {
-            return "select * from ";
-        } else {
-            if ($leftCols != '*' && $rightCols == '*') {
-                return "select $leftCols, ".$joinTable->getRight()->getName().".* from ";
-            } else {
-                if ($leftCols == '*' && $rightCols != '*') {
-                    return "select ".$joinTable->getLeft()->getName().".*, $rightCols from ";
-                } else {
-                    return "select * from ";
-                }
-            }
-        }
-    }
-    private function _setAlias($colObj, $options, &$opArr) {
-        if (isset($options['alias'])) {
-            $alias = trim($options['alias']);
-            $colObj->setAlias($alias);
-            $opArr['alias'] = $alias;
-        } else if (isset($options['as'])) {
-            $alias = trim($options['as']);
-            $colObj->setAlias($alias);
-            $opArr['as'] = $alias;
-        }
     }
     private function addLeftOrRight($colName, $charsCount, $cond, $val, $join = 'and', $left = true) {
         $xCond = in_array($cond, ['=', '!=', 'in', 'not in']) ? $cond : '=';
@@ -759,6 +724,30 @@ class SelectExpression extends Expression {
         }
         $this->getWhereExpr()->addCondition($expr, $join);
     }
+    private function getJoinCols(JoinTable $joinTable) {
+        $leftTable = $joinTable->getLeft();
+
+        if ($leftTable instanceof JoinTable) {
+            return $leftTable->getSelect()->getValue();
+        } 
+
+        $leftCols = $joinTable->getLeft()->getSelect()->getColsStr();
+        $rightCols = $joinTable->getRight()->getSelect()->getColsStr();
+
+        if ($leftCols == '*' && $rightCols == '*') {
+            return "select * from ";
+        } else {
+            if ($leftCols != '*' && $rightCols == '*') {
+                return "select $leftCols, ".$joinTable->getRight()->getName().".* from ";
+            } else {
+                if ($leftCols == '*' && $rightCols != '*') {
+                    return "select ".$joinTable->getLeft()->getName().".*, $rightCols from ";
+                } else {
+                    return "select * from ";
+                }
+            }
+        }
+    }
     private function getJoinWhere(JoinTable $joinTable) : string {
         // remove the string ' where '
         $leftWhere = substr($joinTable->getLeft()->getSelect()->getWhereStr(true, false), 7);
@@ -772,6 +761,17 @@ class SelectExpression extends Expression {
             return " where $rightWhere";
         } else {
             return '';
+        }
+    }
+    private function setAliasHelper($colObj, $options, &$opArr) {
+        if (isset($options['alias'])) {
+            $alias = trim($options['alias']);
+            $colObj->setAlias($alias);
+            $opArr['alias'] = $alias;
+        } else if (isset($options['as'])) {
+            $alias = trim($options['as']);
+            $colObj->setAlias($alias);
+            $opArr['as'] = $alias;
         }
     }
 }

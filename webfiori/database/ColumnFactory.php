@@ -70,9 +70,9 @@ class ColumnFactory {
         $size = isset($options['size']) ? intval($options['size']) : 1;
         $col->setSize($size);
 
-        self::_primaryCheck($col, $options);
-        self::_extraAttrsCheck($col, $options);
-        self::_identityCheck($col, $options);
+        self::primaryCheck($col, $options);
+        self::columnAttributesCheck($col, $options);
+        self::identityCheck($col, $options);
 
         return $col;
     }
@@ -82,7 +82,7 @@ class ColumnFactory {
      * @param MSSQLColumn $col
      * @param array $options
      */
-    private static function _extraAttrsCheck(Column $col, array $options) {
+    private static function columnAttributesCheck(Column $col, array $options) {
         $scale = isset($options['scale']) ? intval($options['scale']) : 2;
         $col->setScale($scale);
 
@@ -120,7 +120,7 @@ class ColumnFactory {
      * @param Column $col
      * @param array $options
      */
-    private static function _identityCheck(Column $col, array $options) {
+    private static function identityCheck(Column $col, array $options) {
         if ($col instanceof MSSQLColumn) {
             $isIdentity = isset($options['identity']) ? $options['identity'] : false;
 
@@ -135,7 +135,7 @@ class ColumnFactory {
      * @param Column $col
      * @param array $options
      */
-    private static function _primaryCheck(Column $col, array $options) {
+    private static function primaryCheck(Column $col, array $options) {
         $isPrimary = isset($options['primary']) ? $options['primary'] : false;
 
         if (!$isPrimary) {
