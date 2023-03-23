@@ -15,6 +15,7 @@ require_once '../../vendor/autoload.php';
 use webfiori\database\ConnectionInfo;
 use webfiori\database\Database;
 use webfiori\database\DatabaseException;
+use webfiori\database\ResultSet;
 
 $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
 $database = new Database($connection);
@@ -28,4 +29,29 @@ try {
         die('Please run the query "mysql-tables.sql" to execute the examples.');
     }
 }
-
+/**
+ * Print the result set as HTML table.
+ * 
+ * @param ResultSet $result
+ */
+function displayResult(ResultSet $result) {
+    echo '<table border=1>';
+    if ($result->getRows() > 0) {
+        $headers = array_keys($result->getRows()[0]);
+        echo '<tr>';
+        foreach ($headers as $headerTxt) {
+            echo '<th>'.$headerTxt.'</th>';
+        }
+        echo '</tr>';
+        
+        foreach ($result as $record) {
+            echo '<tr>';
+            
+            foreach ($headers as $header) {
+                echo '<td>'.$record[$header].'</td>';
+            }
+            echo '</tr>';
+        }
+    }
+    echo '</table>';
+}
