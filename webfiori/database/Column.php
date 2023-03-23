@@ -10,9 +10,6 @@
  */
 namespace webfiori\database;
 
-use webfiori\database\mssql\MSSQLColumn;
-use webfiori\database\mysql\MySQLColumn;
-
 /**
  * A class which represents a column in a database table.
  *
@@ -198,6 +195,26 @@ abstract class Column {
      * @since 1.0
      */
     public abstract function cleanValue($val);
+    /**
+     * Removes '`', '[' and ']' from name of a column or table.
+     * 
+     * @param string $name
+     * 
+     * @return string
+     */
+    public static function fixName(string $name) : string {
+        while ($name[0] == '`' || $name[0] == '[') {
+            $name = substr($name, 1);
+        }
+        $len = strlen($name);
+
+        while ($name[$len - 1] == '`' || $name[$len - 1] == ']') {
+            $name = substr($name, 0, $len - 1);
+            $len = strlen($name);
+        }
+
+        return $name;
+    }
     /**
      * Returns column alias.
      * 
@@ -580,25 +597,7 @@ abstract class Column {
             $this->oldName = null;
         }
 
-        $this->name = self::fixName(trim($name)); 
-    }
-    /**
-     * Removes '`', '[' and ']' from name of a column or table.
-     * 
-     * @param string $name
-     * 
-     * @return string
-     */
-    public static function fixName(string $name) : string {
-        while ($name[0] == '`' || $name[0] == '[') {
-            $name = substr($name, 1);
-        }
-        $len = strlen($name);
-        while ($name[$len -1] == '`' || $name[$len - 1] == ']') {
-            $name = substr($name, 0, $len - 1);
-            $len = strlen($name);
-        }
-        return $name;
+        $this->name = self::fixName(trim($name));
     }
     /**
      * Sets or unset the owner table of the column.

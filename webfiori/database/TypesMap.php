@@ -84,18 +84,17 @@ class TypesMap {
      */
     public static function getType(string $from, string $to, string $dataType) : string {
         if (!isset(self::MAP[$from])) {
-            
             return '';
         }
+
         if (!isset(self::MAP[$from][$to])) {
-            
             return '';
         }
+
         if (!isset(self::MAP[$from][$to][$dataType])) {
-            
             return '';
         }
-        
+
         return self::MAP[$from][$to][$dataType];
     }
 }
