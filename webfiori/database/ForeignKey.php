@@ -39,6 +39,7 @@ class ForeignKey {
         'set null','restrict','set default',
         'no action','cascade'
     ];
+    private $colsMap;
     /**
      * The name of the key.
      * 
@@ -108,9 +109,9 @@ class ForeignKey {
      * @param Table $sourceTable The name of the table that contains the
      * original values.
      *
-     * @param array|string $cols An associative array that contains the names of key
+     * @param array $cols An associative array that contains the names of key
      * columns. The indices must be columns in the owner table and the values are
-     * columns in the source columns.
+     * columns in the source table.
      *
      * @throws DatabaseException If one of the tables of the foreign key is not set.
      */
@@ -173,7 +174,7 @@ class ForeignKey {
                 if ($sourceCol !== null && $sourceCol->getDatatype() == $ownerCol->getDatatype()) {
                     $this->ownerCols[$ownerColName] = $ownerCol;
                     $this->sourceCols[$sourceColName] = $sourceCol;
-
+                    $this->colsMap[$ownerColName] = $sourceColName;
                     return true;
                 }
             }
@@ -214,6 +215,16 @@ class ForeignKey {
      */
     public function getOnUpdate() {
         return $this->onUpdateCondition;
+    }
+    /**
+     * Returns an associative array of columns keys that represents columns
+     * at which the key is using.
+     * 
+     * @return array The indices of the array are keys of owner table columns
+     * and values are keys of source table columns.
+     */
+    public function getColumnsMap() : array {
+        return $this->colsMap;
     }
     /**
      * Returns the table who owns the key.
