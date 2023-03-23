@@ -140,36 +140,6 @@ abstract class Table {
         }
     }
     /**
-     * Maps a table instance to another DBMS.
-     * 
-     * @param string $to The name of the DBMS at which the table will be mapped
-     * to.
-     * 
-     * @param Table $table The instance that will be mapped.
-     * 
-     * @return Table The method will return new instance which will be
-     * compatible with the new DBMS.
-     */
-    public static function map(string $to, Table $table) : Table {
-        if ($to == 'mysql') {
-            $newTable = new MySQLTable($table->getName());
-        } else if ($to == 'mssql') {
-            $newTable = new MSSQLTable($table->getName());
-        }
-        $newTable->setComment($table->getComment());
-        
-        foreach ($table->getCols() as $key => $colObj) {
-            $newTable->addColumn($key, ColumnFactory::map($to, $colObj));
-        }
-        
-        foreach ($table->getForeignKeys() as $fk) {
-            $sourceTbl = self::map($to, $fk->getSource());
-            $newTable->addReference($sourceTbl, $fk->getColumnsMap(), $fk->getKeyName(), $fk->getOnUpdate(), $fk->getOnDelete());
-        }
-        
-        return $newTable;
-    }
-    /**
      * Adds a foreign key to the table.
      *
      * @param Table|AbstractQuery|string $refTable The referenced table. It is the table that
@@ -605,6 +575,36 @@ abstract class Table {
      */
     public function isNameWithDbPrefix() : bool {
         return $this->withDbPrefix;
+    }
+    /**
+     * Maps a table instance to another DBMS.
+     * 
+     * @param string $to The name of the DBMS at which the table will be mapped
+     * to.
+     * 
+     * @param Table $table The instance that will be mapped.
+     * 
+     * @return Table The method will return new instance which will be
+     * compatible with the new DBMS.
+     */
+    public static function map(string $to, Table $table) : Table {
+        if ($to == 'mysql') {
+            $newTable = new MySQLTable($table->getName());
+        } else if ($to == 'mssql') {
+            $newTable = new MSSQLTable($table->getName());
+        }
+        $newTable->setComment($table->getComment());
+
+        foreach ($table->getCols() as $key => $colObj) {
+            $newTable->addColumn($key, ColumnFactory::map($to, $colObj));
+        }
+
+        foreach ($table->getForeignKeys() as $fk) {
+            $sourceTbl = self::map($to, $fk->getSource());
+            $newTable->addReference($sourceTbl, $fk->getColumnsMap(), $fk->getKeyName(), $fk->getOnUpdate(), $fk->getOnDelete());
+        }
+
+        return $newTable;
     }
     /**
      * Removes a column from the table given its key.

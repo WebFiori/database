@@ -175,12 +175,23 @@ class ForeignKey {
                     $this->ownerCols[$ownerColName] = $ownerCol;
                     $this->sourceCols[$sourceColName] = $sourceCol;
                     $this->colsMap[$ownerColName] = $sourceColName;
+
                     return true;
                 }
             }
         }
 
         return false;
+    }
+    /**
+     * Returns an associative array of columns keys that represents columns
+     * at which the key is using.
+     * 
+     * @return array The indices of the array are keys of owner table columns
+     * and values are keys of source table columns.
+     */
+    public function getColumnsMap() : array {
+        return $this->colsMap;
     }
     /**
      * Returns the name of the key.
@@ -215,16 +226,6 @@ class ForeignKey {
      */
     public function getOnUpdate() {
         return $this->onUpdateCondition;
-    }
-    /**
-     * Returns an associative array of columns keys that represents columns
-     * at which the key is using.
-     * 
-     * @return array The indices of the array are keys of owner table columns
-     * and values are keys of source table columns.
-     */
-    public function getColumnsMap() : array {
-        return $this->colsMap;
     }
     /**
      * Returns the table who owns the key.

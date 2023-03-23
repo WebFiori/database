@@ -105,11 +105,13 @@ class ColumnFactory {
             'validator' => $column->getCustomCleaner(),
             'auto-update' => $column->isAutoUpdate()
         ];
+
         if ($column instanceof MSSQLColumn) {
-            $optionsArr['identity'] = $column->isIdentity();  
+            $optionsArr['identity'] = $column->isIdentity();
         } else if ($column instanceof MySQLColumn) {
             $optionsArr['auto-inc'] = $column->isAutoInc();
         }
+
         return self::create($to, $column->getName(), $optionsArr);
     }
     /**

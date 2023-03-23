@@ -143,14 +143,15 @@ class Database {
      * 'AbstractQuery' in case the developer would like to build a sub-where
      * condition.
      *
-     * @param string $cond A string that represents the condition at which column
-     * value will be evaluated against. Can be ignored if first parameter is of
-     * type 'AbstractQuery'.
      *
      * @param mixed $val The value (or values) at which the column will be evaluated
      * against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      *
+     * @param string $cond A string that represents the condition at which column
+     * value will be evaluated against. Can be ignored if first parameter is of
+     * type 'AbstractQuery'.
+     * 
      * @return AbstractQuery The method will return an instance of the class
      * 'AbstractQuery' which can be used to build SQL queries.
      *
@@ -482,12 +483,12 @@ class Database {
      * 'AbstractQuery' in case the developer would like to build a sub-where
      * condition.
      *
-     * @param string $cond A string that represents the condition at which column
-     * value will be evaluated against. Can be ignored if first parameter is of
-     * type 'AbstractQuery'.
-     *
      * @param mixed $val The value (or values) at which the column will be evaluated
      * against. Can be ignored if first parameter is of
+     * type 'AbstractQuery'.
+     * 
+     * @param string $cond A string that represents the condition at which column
+     * value will be evaluated against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      *
      * @return AbstractQuery The method will return an instance of the class
@@ -640,14 +641,14 @@ class Database {
      * 'AbstractQuery' in case the developer would like to build a sub-where
      * condition.
      *
-     * @param string $cond A string that represents the condition at which column
-     * value will be evaluated against. Can be ignored if first parameter is of
-     * type 'AbstractQuery'.
-     *
      * @param mixed $val The value (or values) at which the column will be evaluated
      * against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
-     *
+     * 
+     * @param string $cond A string that represents the condition at which column
+     * value will be evaluated against. Can be ignored if first parameter is of
+     * type 'AbstractQuery'.
+     * 
      * @param string $joinCond An optional string which can be used to join
      * multiple where conditions. If not provided, 'and' will be used by default.
      *
