@@ -580,15 +580,25 @@ abstract class Column {
             $this->oldName = null;
         }
 
-        if ($this instanceof MySQLColumn) {
-            $this->name = trim($name, '`');
-        } else {
-            if ($this instanceof MSSQLColumn) {
-                $this->name = trim(trim($name, '['), ']');
-            } else {
-                $this->name = trim($name);
-            }
+        $this->name = self::fixName(trim($name)); 
+    }
+    /**
+     * Removes '`', '[' and ']' from name of a column or table.
+     * 
+     * @param string $name
+     * 
+     * @return string
+     */
+    public static function fixName(string $name) : string {
+        while ($name[0] == '`' || $name[0] == '[') {
+            $name = substr($name, 1);
         }
+        $len = strlen($name);
+        while ($name[$len -1] == '`' || $name[$len - 1] == ']') {
+            $name = substr($name, 0, $len - 1);
+            $len = strlen($name);
+        }
+        return $name;
     }
     /**
      * Sets or unset the owner table of the column.

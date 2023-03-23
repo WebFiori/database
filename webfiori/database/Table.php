@@ -10,6 +10,9 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLTable;
+
 /**
  * A class that can be used to represent database tables.
  *
@@ -136,7 +139,36 @@ abstract class Table {
             $this->addColumn($colKey, $colObj);
         }
     }
-
+    /**
+     * Maps a table instance to another DBMS.
+     * 
+     * @param string $to The name of the DBMS at which the table will be mapped
+     * to.
+     * 
+     * @param Table $table The instance that will be mapped.
+     * 
+     * @return Table The method will return new instance which will be
+     * compatible with the new DBMS.
+     */
+    public static function map(string $to, Table $table) : Table {
+        if ($to == 'mysql') {
+            $newTable = new MySQLTable($table->getName());
+        } else if ($to == 'mssql') {
+            $newTable = new MSSQLTable($table->getName());
+        }
+        $newTable->setComment($table->getComment());
+        
+        foreach ($table->getCols() as $key => $colObj) {
+            $newTable->addColumn($key, ColumnFactory::map($to, $colObj));
+        }
+        
+        foreach ($table->getForeignKeys() as $fk) {
+            $sourceTbl = self::map($to, $fk->getSource());
+            $newTable->addReference($sourceTbl, $fk->getColumnsMap(), $fk->getKeyName(), $fk->getOnUpdate(), $fk->getOnDelete());
+        }
+        
+        return $newTable;
+    }
     /**
      * Adds a foreign key to the table.
      *
@@ -653,7 +685,7 @@ abstract class Table {
             if (strlen($this->oldName) == 0) {
                 $this->oldName = null;
             }
-            $this->name = $trimmed;
+            $this->name = Column::fixName($trimmed);
 
             return true;
         }

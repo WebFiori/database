@@ -76,7 +76,42 @@ class ColumnFactory {
 
         return $col;
     }
-
+    /**
+     * Map a database column in one DBMS to another DBMS.
+     * 
+     * @param string $to The DBMS at which the column will be converted to.
+     * 
+     * @param Column $column The column that will be converted.
+     * 
+     * @return Column The method will return new instance which is compatible
+     * with the new DBMS.
+     */
+    public static function map(string $to, Column $column) : Column {
+        if ($column instanceof MySQLColumn) {
+            $from = 'mysql';
+        } else if ($column instanceof MSSQLColumn) {
+            $from = 'mssql';
+        }
+        $optionsArr = [
+            'type' => TypesMap::getType($from, $to, $column->getDatatype()),
+            'default' => $column->getDefault(),
+            'comment' => $column->getComment(),
+            'primary' => $column->isPrimary(),
+            'name' => $column->getName(),
+            'size' => $column->getSize(),
+            'scale' => $column->getScale(),
+            'is-null' => $column->isNull(),
+            'unique' => $column->isUnique(),
+            'validator' => $column->getCustomCleaner(),
+            'auto-update' => $column->isAutoUpdate()
+        ];
+        if ($column instanceof MSSQLColumn) {
+            $optionsArr['identity'] = $column->isIdentity();  
+        } else if ($column instanceof MySQLColumn) {
+            $optionsArr['auto-inc'] = $column->isAutoInc();
+        }
+        return self::create($to, $column->getName(), $optionsArr);
+    }
     /**
      * 
      * @param MSSQLColumn $col

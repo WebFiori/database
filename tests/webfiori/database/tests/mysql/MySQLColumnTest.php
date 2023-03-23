@@ -9,6 +9,8 @@
 namespace webfiori\database\tests\mysql;
 
 use PHPUnit\Framework\TestCase;
+use webfiori\database\ColumnFactory;
+use webfiori\database\mssql\MSSQLColumn;
 use webfiori\database\mysql\MySQLColumn;
 /**
  * Description of MySQLColumnTest
@@ -721,6 +723,23 @@ class MySQLColumnTest extends TestCase {
         $this->assertEquals('now()', $col->getDefault());
         $col->setDefault('current_timestamp');
         $this->assertEquals('current_timestamp', $col->getDefault());
+    }
+    /**
+     * @test
+     */
+    public function testMap00() {
+        $col = new MySQLColumn();
+        $col->setDatatype('timestamp');
+        $col->setDefault('now()');
+        $this->assertEquals('now()', $col->getDefault());
+        $col->setDefault('current_timestamp');
+        $this->assertEquals('current_timestamp', $col->getDefault());
+        
+        $newCol = ColumnFactory::map('mssql', $col);
+        $this->assertTrue($newCol instanceof MSSQLColumn);
+        $this->assertEquals('col', $newCol->getNormalName());
+        $this->assertEquals('datetime2', $newCol->getDatatype());
+        $this->assertEquals('current_timestamp', $newCol->getDefault());
     }
     /**
      * @test
