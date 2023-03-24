@@ -122,7 +122,7 @@ class EntityMapperTest extends TestCase {
     public function test02(EntityMapper $m) {
         require_once __DIR__.DIRECTORY_SEPARATOR.'UserClass.php';
         $recordsMapper = $m->getRecordMapper();
-        $this->assertEquals('webfiori\\database\\entity\\UserClass', $recordsMapper->getClass());
+        $this->assertEquals('\UserClass', $recordsMapper->getClass());
         $this->assertEquals([
             'setId' => ['id'],
             'setFirstName' => ['first_name'],
@@ -136,7 +136,7 @@ class EntityMapperTest extends TestCase {
             'last_name' => 'BinAlshikh',
             'age' => 28
         ]);
-        $this->assertTrue($obj instanceof \webfiori\database\entity\UserClass);
+        $this->assertTrue($obj instanceof \UserClass);
         $this->assertEquals(55, $obj->getId());
         $this->assertEquals('Ibrahim', $obj->getFirstName());
         $this->assertEquals('BinAlshikh', $obj->getLastName());
