@@ -336,7 +336,7 @@ class MySQLQuery extends AbstractQuery {
         $colsWithVals = [];
         $tblName = $this->getTable()->getName();
         $table = $this->getTable();
-        
+
         foreach ($newColsVals as $colKey => $newVal) {
             $colObj = $table->getColByKey($colKey);
 

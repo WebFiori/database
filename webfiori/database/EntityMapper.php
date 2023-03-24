@@ -489,10 +489,13 @@ class EntityMapper {
      */
     public function setNamespace(string $ns) : bool {
         $trimmed = trim($ns);
+
         if ($trimmed == '\\') {
             $this->entityNamespace = '';
+
             return true;
         }
+
         if ($this->isValidNamespace($trimmed)) {
             $this->entityNamespace = $trimmed;
 

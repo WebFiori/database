@@ -13,5 +13,3 @@ try {
 } catch (DatabaseException $ex) {
     die($ex->getCode().' - '.$ex->getMessage());
 }
-
-

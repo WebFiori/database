@@ -12,9 +12,7 @@ namespace webfiori\database;
 
 use Throwable;
 use webfiori\database\mssql\MSSQLQuery;
-use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\mysql\MySQLTable;
 /**
  * A base class that can be used to build SQL queries.
  * 

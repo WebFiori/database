@@ -1,11 +1,12 @@
-<?php 
+<?php
+
 
 use webfiori\database\mysql\MySQLTable;
 
 class UserBookmarksTable extends MySQLTable {
     public function __construct() {
         parent::__construct('user_bookmarks');
-        
+
         $this->addColumns([
             'id' => [
                 'type' => 'int',
@@ -29,7 +30,7 @@ class UserBookmarksTable extends MySQLTable {
                 'size' => 5
             ],
         ]);
-        
+
         $this->addReference(UserInformationTable::class, [
             'user-id' => 'id'
         ], 'user_id_fk', 'cascade', 'restrict');

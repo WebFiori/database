@@ -141,7 +141,7 @@ abstract class Table {
         foreach ($cols as $colKey => $colObj) {
             $this->addColumn($colKey, $colObj);
         }
-        
+
         return $this;
     }
     /**
@@ -202,7 +202,7 @@ abstract class Table {
                 }
             } else {
                 $owner = $this->getOwner();
-                
+
                 if ($owner !== null) {
                     $refTable = $owner->getTable($refTable);
                 }
@@ -210,7 +210,7 @@ abstract class Table {
         }
 
         $this->createFk($refTable, $cols, $keyName, $onUpdate, $onDelete);
-        
+
         return $this;
     }
     /**

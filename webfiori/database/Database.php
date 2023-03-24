@@ -83,28 +83,6 @@ class Database {
         $this->tablesArr = [];
     }
     /**
-     * Creates a blueprint of a table that can be used to build table structure.
-     * 
-     * @param string $name The name of the table as it appears in the database.
-     * 
-     * @return Table the method will return an instance of the class 'Table'
-     * which will be based on the type of DBMS at which the instance is
-     * connected to. If connected to MySQL, an instance of 'MySQLTable' is
-     * returned. If connected to MSSQL, an instance of MSSQLTable is returned
-     * and so on.
-     */
-    public function createBlueprint(string $name) : Table {
-        $dbType = $this->getConnection()->getConnectionInfo()->getDatabaseType();
-        if ($dbType == 'mysql') {
-            $blueprint = new mysql\MySQLTable($name);
-        } else if ($dbType == 'mssql') {
-            $blueprint = new mssql\MSSQLTable($name);
-        }
-        $this->addTable($blueprint);
-        
-        return $blueprint;
-    }
-    /**
      * Adds a database query to the set of queries at which they were executed.
      * 
      * This method is called internally by the library to add the query. The 
@@ -192,6 +170,29 @@ class Database {
         $this->getQueryGenerator()->reset();
     }
     /**
+     * Creates a blueprint of a table that can be used to build table structure.
+     * 
+     * @param string $name The name of the table as it appears in the database.
+     * 
+     * @return Table the method will return an instance of the class 'Table'
+     * which will be based on the type of DBMS at which the instance is
+     * connected to. If connected to MySQL, an instance of 'MySQLTable' is
+     * returned. If connected to MSSQL, an instance of MSSQLTable is returned
+     * and so on.
+     */
+    public function createBlueprint(string $name) : Table {
+        $dbType = $this->getConnection()->getConnectionInfo()->getDatabaseType();
+
+        if ($dbType == 'mysql') {
+            $blueprint = new mysql\MySQLTable($name);
+        } else if ($dbType == 'mssql') {
+            $blueprint = new mssql\MSSQLTable($name);
+        }
+        $this->addTable($blueprint);
+
+        return $blueprint;
+    }
+    /**
      * Constructs a query which can be used to create selected database table.
      * 
      * @return AbstractQuery The method will return an instance of the class 
@@ -214,7 +215,6 @@ class Database {
         $generatedQuery = '';
 
         foreach ($this->getTables() as $tableObj) {
-            
             if ($tableObj->getColsCount() != 0) {
                 $generatedQuery .= $tableObj->toSQL()."\n";
             }

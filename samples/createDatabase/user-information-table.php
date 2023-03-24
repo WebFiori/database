@@ -5,7 +5,8 @@ $database->createBlueprint('users_information')->addColumns([
     'id' => [
         'type' => 'int',
         'size' => 5,
-        'primary' => true
+        'primary' => true,
+        'auto-inc' => true
     ],
     'first-name' => [
         'type' => 'varchar',

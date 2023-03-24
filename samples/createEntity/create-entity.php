@@ -23,4 +23,3 @@ $entityMapper->setUseJsonI(true);
 $entityMapper->create();
 
 echo 'Entity class created at '.__DIR__;
-

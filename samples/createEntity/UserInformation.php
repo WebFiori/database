@@ -10,12 +10,6 @@ use webfiori\json\JsonI;
  **/
 class UserInformation implements JsonI {
     /**
-     * A mapper which is used to map a record to an instance of the class.
-     * 
-     * @var RecordMapper
-     **/
-    private static $RecordMapper;
-    /**
      * The attribute which is mapped to the column 'email'.
      * 
      * @var string
@@ -39,6 +33,12 @@ class UserInformation implements JsonI {
      * @var string
      **/
     private $lastName;
+    /**
+     * A mapper which is used to map a record to an instance of the class.
+     * 
+     * @var RecordMapper
+     **/
+    private static $RecordMapper;
     /**
      * Returns the value of the attribute 'email'.
      * 
@@ -82,6 +82,20 @@ class UserInformation implements JsonI {
      **/
     public function getLastName() {
         return $this->lastName;
+    }
+    /**
+     * Maps a record which is taken from the table users_information to an instance of the class.
+     * 
+     * @param array $record An associative array that represents the
+     * record. 
+     * @return UserInformation An instance of the class.
+     */
+    public static function map(array $record) {
+        if (self::$RecordMapper === null || count(array_keys($record)) != self::$RecordMapper->getSettersMapCount()) {
+            self::$RecordMapper = new RecordMapper(self::class, array_keys($record));
+        }
+
+        return self::$RecordMapper->map($record);
     }
     /**
      * Sets the value of the attribute 'email'.
@@ -128,19 +142,6 @@ class UserInformation implements JsonI {
         $this->lastName = $lastName;
     }
     /**
-     * Maps a record which is taken from the table users_information to an instance of the class.
-     * 
-     * @param array $record An associative array that represents the
-     * record. 
-     * @return UserInformation An instance of the class.
-     */
-    public static function map(array $record) {
-        if (self::$RecordMapper === null ||  count(array_keys($record)) != self::$RecordMapper->getSettersMapCount()) {
-            self::$RecordMapper = new RecordMapper(self::class, array_keys($record));
-        }
-        return self::$RecordMapper->map($record);
-    }
-    /**
      * Returns an object of type 'Json' that contains object information.
      * 
      * The returned object will have the following attributes:
@@ -160,6 +161,7 @@ class UserInformation implements JsonI {
             'id' => $this->getId(),
             'lastName' => $this->getLastName()
         ]);
+
         return $json;
     }
 }

@@ -27,6 +27,7 @@ function getDatabaseInstance() : Database {
             die('Please run the query "mysql-tables.sql" to execute the examples.');
         }
     }
+
     return $database;
 }
 /**
@@ -36,17 +37,19 @@ function getDatabaseInstance() : Database {
  */
 function displayResult(ResultSet $result) {
     echo '<table border=1>';
+
     if ($result->getRows() > 0) {
         $headers = array_keys($result->getRows()[0]);
         echo '<tr>';
+
         foreach ($headers as $headerTxt) {
             echo '<th>'.$headerTxt.'</th>';
         }
         echo '</tr>';
-        
+
         foreach ($result as $record) {
             echo '<tr>';
-            
+
             foreach ($headers as $header) {
                 echo '<td>'.$record[$header].'</td>';
             }

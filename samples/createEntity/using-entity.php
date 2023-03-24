@@ -14,8 +14,9 @@ $mappedSet = $resultSet->map(function (array $record) {
 });
 
 echo '<ul>';
+
 foreach ($mappedSet as $record) {
     //$record is an object of type UserInformation
     echo '<li>'.$record->getFirstName().' '.$record->getLastName().'</li>';
 }
-echo '</ul>';
+echo '</ul>';echo '</ul>';

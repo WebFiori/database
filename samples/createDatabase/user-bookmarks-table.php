@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 //Create Blueprint of second table.
 $database->createBlueprint('user_bookmarks')->addColumns([

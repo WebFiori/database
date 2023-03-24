@@ -105,6 +105,7 @@ class MSSQLTable extends Table {
                 }
             }
         }
+
         return parent::addColumns($arrToAdd);
     }
     /**

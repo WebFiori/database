@@ -125,6 +125,7 @@ class MySQLTable extends Table {
                 }
             }
         }
+
         return parent::addColumns($arrToAdd);
     }
     /**
