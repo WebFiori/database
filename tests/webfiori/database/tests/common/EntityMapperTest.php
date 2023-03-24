@@ -26,7 +26,7 @@ class EntityMapperTest extends TestCase {
         $entityMapper->setPath(__DIR__);
         $entityMapper->setUseJsonI(true);
         $this->assertEquals('UserClass', $entityMapper->getEntityName());
-        $this->assertEquals('webfiori\\database\\entity\\UserClass', $entityMapper->getEntityName(true));
+        $this->assertEquals('\UserClass', $entityMapper->getEntityName(true));
         $this->assertEquals([
             'age'=> 'age',
             'first-name' => 'firstName',
@@ -149,7 +149,7 @@ class EntityMapperTest extends TestCase {
         $schema = new MySQLTestSchema();
         $entityMapper = new EntityMapper($schema->getTable('users'), '', '', '');
         $this->assertEquals('NewEntity', $entityMapper->getEntityName());
-        $this->assertEquals('webfiori\\database\\entity', $entityMapper->getNamespace());
+        $this->assertEquals('', $entityMapper->getNamespace());
         $this->assertFalse($entityMapper->addAttribute(''));
         $this->assertFalse($entityMapper->addAttribute('0cool'));
         $this->assertFalse($entityMapper->addAttribute('not valid'));
