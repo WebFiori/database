@@ -32,6 +32,12 @@ Database abstraction layer of WebFiori framework.
     * [Select Query](#select-query)
     * [Update Query](#update-query)
     * [Delete Query](#delete-query)
+  * [Building Database Structure](#running-basic-sql-queries)
+    * [Creating Table Blueprint](#creating-table-blueprint)
+    * [Seeding Structure to Database](#seeding-structure-to-database)
+  * [Creating Entity Classes and Using Them](#creating-entity-classes-and-using-them)
+    * [Creating an Entity Class](#creating-an-entity-class) 
+    * [Using Entity Class](#using-entity-class)
 
 ## Supported PHP Versions
 |                                                                                           Build Status                                                                                            |
@@ -158,6 +164,113 @@ $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
 $database = new Database($connection);
 
 $database->table('posts')->delete()->where('author', 'Ibrahim');
+```
+
+### Building Database Structure
+
+One of the features of the library is the ability to define database structure in the source code and later, seed the created structure to create database tables. The blueprint of tables are represented by the class `Table`. The main aim of the blueprint is to make sure that data types in database are represented correctly in the source code.
+
+> Note: Sample source code on how to build the structure can be found [here](https://github.com/WebFiori/database/tree/main/samples/createDatabase).
+
+#### Creating Table Blueprint
+
+Each blueprint must have following attributes defined:
+
+* Name of the blueprint (database table name).
+* Columns and thier properties such as data type.
+* Any relations with other tables.
+
+The method `Database::createBlueprint()` is used to create a table based on connected DBMS. The method will return an instance of the class `Table` which can be used to further customize the blueprint.
+
+``` php
+$database->createBlueprint('users_information')->addColumns([
+    'id' => [
+        'type' => 'int',
+        'size' => 5,
+        'primary' => true,
+        'auto-inc' => true
+    ],
+    'first-name' => [
+        'type' => 'varchar',
+        'size' => 15
+    ],
+    'last-name' => [
+        'type' => 'varchar',
+        'size' => 15
+    ],
+    'email' => [
+        'type' => 'varchar',
+        'size' => 128
+    ]
+]);
+
+```
+
+> Note: It is possible to represent the blueprint using classes. A sample blueprint as class can be found [here](https://github.com/WebFiori/database/blob/main/samples/createDatabase/UserInformationTable.php).
+
+#### Seeding Structure to Database
+
+After creating all blueprints, a query must be structured and executed to create database tables. Building the query can be performed using the method `Database::createTables()`. After calling this method, the method `Database::execute()` must be called to create all database tables.
+
+``` php 
+//Build the query
+$database->createTables();
+
+//Just to display created query
+echo '<pre>'.$database->getLastQuery().'</pre>';
+
+//Execute
+$database->execute();
+```
+
+### Creating Entity Classes and Using Them
+
+Entity classes are classes which are based on blueprints (or tables). They can be used to map records of tables to objects. Every blueprint will have an instance of the class `EntityMapper` which can be used to create an entity class.
+
+Entity classes that are generated using the class `EntityMapper` are special. They will have one static method with name `map()` which can automatically map a record to an instance of the entity.
+
+#### Creating an Entity Class
+
+First step in creating an entity is to have the blueprint at which the entity will be based on. From the bluprint, an instance of the class `EntityMapper` is generated. After having the instance, the probperties of the entity is set such as its name, namespace and where it will be created. Finally, the method `EntityMapper::create()` can be invoked to write the source code of the class.
+
+``` php
+
+$blueprint = $database->getTable('users_information');
+
+//Get entity mapper
+$entityMapper = $blueprint->getEntityMapper();
+
+//Set properties of the entity
+$entityMapper->setEntityName('UserInformation');
+$entityMapper->setNamespace('');
+$entityMapper->setPath(__DIR__);
+
+//Create the entity. The output will be the class 'UserInformation'.
+$entityMapper->create();
+```
+
+#### Using Entity Class
+
+Entity class can me used to map a record to an object. Each entity will have a special method called `map()`. The method accepts a single paramater which is an associative array that represents fetched record.
+
+The result set instance has one of array methods which is called `map($callback)` This method acts exactly as the function `array_map($callback, $array)`. The return value of the method is another result set with mapped records.
+
+``` php
+$resultSet = $database->table('users_information')
+        ->select()
+        ->execute();
+
+$mappedSet = $resultSet->map(function (array $record) {
+    return UserInformation::map($record);
+});
+
+echo '<ul>';
+
+foreach ($mappedSet as $record) {
+    //$record is an object of type UserInformation
+    echo '<li>'.$record->getFirstName().' '.$record->getLastName().'</li>';
+}
+echo '</ul>';
 ```
 
 
