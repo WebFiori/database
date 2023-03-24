@@ -4,6 +4,7 @@ This folder contains code samples for some of the use cases at which the library
 
 All examples are based on MySQL but there are applicable to other databases.
 
+* [Connecting to Database](connect-to-db.php)
 * [Basic Queries](basicQueries)
   * [Select Query](basicQueries/select.php)
   * [Insert Query](basicQueries/insert.php)
