@@ -2,6 +2,8 @@
 
 Entity classes are classes which are based on blueprints (or tables). They can be used to map records of tables to objects. Every blueprint will have an instance of the class `EntityMapper` which can be used to create an entity class.
 
+Entity classes that are generated using the class `EntityMapper` are special. They will have one static method with name `map()` which can automatically map a record to an instance of the entity. 
+
 
 Sample Sources:
 * [user-information-table.php](user-information-table.php)
