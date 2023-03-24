@@ -1,6 +1,8 @@
 <?php
 require_once '../mysql-db.php';
 
+$database = getDatabaseInstance();
+
 $postToUpdate = 'Post #1';
 $newTitle = 'New Post Title';
 $newAuthor = 'New Author';

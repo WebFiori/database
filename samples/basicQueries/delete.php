@@ -1,6 +1,8 @@
 <?php
 require_once '../mysql-db.php';
 
+$database = getDatabaseInstance();
+
 $postToDelete = 'Post #0';
 
 $resultSet = $database->table('posts')
