@@ -1,6 +1,6 @@
 # Code Samples
 
-This folder contains code samples for some of the use cases at which the library can be used in.
+This folder contains code samples for some use cases at which the library can be used in.
 
 All examples are based on MySQL but there are applicable to other databases.
 
