@@ -84,7 +84,7 @@ $database = new Database($connection);
 Most common SQL queries that will be executed in any relational DBMS are insert, select, update, and delete. Following examples shows how the 4 types can be constructed.
 
 
-For every query, the table that the query will be executed on must be specified. To specyfy the table, the method `Database::table(string $tblName)`. The method will return an instance of the class `AbstractQuery`. The class `AbstractQuery` has many methods which are used to further build the query. Commonly used methods include the following:
+For every query, the table that the query will be executed on must be specified. To specify the table, the method `Database::table(string $tblName)`. The method will return an instance of the class `AbstractQuery`. The class `AbstractQuery` has many methods which are used to further build the query. Commonly used methods include the following:
 
 * `AbstractQuery::insert(array $cols)`: Construct an insert query.
 * `AbstractQuery::select(array $cols)`: Construct a select query.
@@ -157,7 +157,7 @@ $database->table('posts')->update([
 
 #### Delete Query
 
-This query is used to delete specific record from the database. To execute a delete query, the method `AbstractQuery::delete()`. A `where` condition should be included to delete specific record. To include a `where` condition, the method `AbstractQuery::where()` can be used.
+This query is used to delete specific record from the database. To execute delete query, the method `AbstractQuery::delete()`. A `where` condition should be included to delete specific record. To include a `where` condition, the method `AbstractQuery::where()` can be used.
 
 ``` php
 $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
