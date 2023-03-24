@@ -132,12 +132,17 @@ abstract class Table {
      * @param array $cols An array that holds the columns as an associative array. 
      * The indices should represent columns keys.
      * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
      * @since 1.0
      */
-    public function addColumns(array $cols) {
+    public function addColumns(array $cols) : Table {
         foreach ($cols as $colKey => $colObj) {
             $this->addColumn($colKey, $colObj);
         }
+
+        return $this;
     }
     /**
      * Adds a foreign key to the table.
@@ -176,10 +181,14 @@ abstract class Table {
      * <li>no action</li>
      * </ul>
      * Default value is 'set null'.
+     * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
      * @throws DatabaseException
      * @since 1.0
      */
-    public function addReference($refTable, array $cols, string $keyName, string $onUpdate = 'set null', string $onDelete = 'set null') {
+    public function addReference($refTable, array $cols, string $keyName, string $onUpdate = 'set null', string $onDelete = 'set null') : Table {
         if (!($refTable instanceof Table)) {
             if ($refTable instanceof AbstractQuery) {
                 $refTable = $refTable->getTable();
@@ -188,11 +197,21 @@ abstract class Table {
 
                 if ($q instanceof AbstractQuery) {
                     $refTable = $q->getTable();
+                } else if ($q instanceof Table) {
+                    $refTable = $q;
+                }
+            } else {
+                $owner = $this->getOwner();
+
+                if ($owner !== null) {
+                    $refTable = $owner->getTable($refTable);
                 }
             }
         }
 
         $this->createFk($refTable, $cols, $keyName, $onUpdate, $onDelete);
+
+        return $this;
     }
     /**
      * Returns a column given its index.

@@ -87,14 +87,14 @@ class EntityMapper {
      * @param string $path The directory at which the entity will be created in. 
      * 
      * @param string $namespace The namespace at which the entity will belong
-     * to. If invalid is given, 'webfiori\database\entity' is used as default value.
+     * to. If invalid is given, '\' is used as default value.
      * 
      * @throws InvalidArgumentException If the given object is not of type 
      * 'webfiori\database\Table'.
      * 
      * @since 1.0
      */
-    public function __construct(Table $tableObj, string $className, string $path = __DIR__, string $namespace = 'webfiori\\database\\entity') {
+    public function __construct(Table $tableObj, string $className, string $path = __DIR__, string $namespace = '\\') {
         $this->table = $tableObj;
 
         if (!$this->setPath($path)) {
@@ -102,7 +102,7 @@ class EntityMapper {
         }
 
         if (!$this->setNamespace($namespace)) {
-            $this->setNamespace('webfiori\\database\\entity');
+            $this->setNamespace('\\');
         }
 
         if (!$this->setEntityName($className)) {
@@ -165,8 +165,9 @@ class EntityMapper {
         if (is_resource($file)) {
             $ns = $this->getNamespace();
             $entityClassName = $this->getEntityName();
+            $namespaceStr = $ns != '' ? "namespace ".$ns.";\n\n" : "\n";
             $this->classStr .= ""
-            ."<?php\nnamespace ".$ns.";\n\n";
+            ."<?php\n$namespaceStr";
 
             if ($this->implJsonI) {
                 $this->classStr .= ""
@@ -489,6 +490,12 @@ class EntityMapper {
     public function setNamespace(string $ns) : bool {
         $trimmed = trim($ns);
 
+        if ($trimmed == '\\') {
+            $this->entityNamespace = '';
+
+            return true;
+        }
+
         if ($this->isValidNamespace($trimmed)) {
             $this->entityNamespace = $trimmed;
 
@@ -695,7 +702,7 @@ class EntityMapper {
                 ."     */\n";
 
         $mapMethodStr = "    public static function map(array \$record) {\n"
-                ."        if (self::\$RecordMapper === null ||  count(array_keys(\$records)) != self::\$RecordMapper->getSettrsMapCount()) {\n"
+                ."        if (self::\$RecordMapper === null ||  count(array_keys(\$record)) != self::\$RecordMapper->getSettersMapCount()) {\n"
                 ."            self::\$RecordMapper = new RecordMapper(self::class, array_keys(\$record));\n"
                 ."        }\n"
                 ."        return self::\$RecordMapper->map(\$record);\n"

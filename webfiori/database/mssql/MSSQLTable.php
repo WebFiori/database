@@ -81,9 +81,12 @@ class MSSQLTable extends Table {
      * point. Only supported for decimal datatype.</li>
      * </ul>
      * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
      * @since 1.0
      */
-    public function addColumns(array $colsArr) {
+    public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
 
         foreach ($colsArr as $key => $arrOrObj) {
@@ -102,7 +105,8 @@ class MSSQLTable extends Table {
                 }
             }
         }
-        parent::addColumns($arrToAdd);
+
+        return parent::addColumns($arrToAdd);
     }
     /**
      * Returns a string which can be used to add table comment as extended 

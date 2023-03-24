@@ -335,12 +335,16 @@ class MySQLQuery extends AbstractQuery {
         $updateArr = [];
         $colsWithVals = [];
         $tblName = $this->getTable()->getName();
+        $table = $this->getTable();
 
         foreach ($newColsVals as $colKey => $newVal) {
-            $colObj = $this->getTable()->getColByKey($colKey);
+            $colObj = $table->getColByKey($colKey);
 
             if (!$colObj instanceof MySQLColumn) {
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+                $table->addColumns([
+                    $colKey => []
+                ]);
+                $colObj = $table->getColByKey($colKey);
             }
             $colName = $colObj->getName();
 

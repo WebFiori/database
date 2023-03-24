@@ -101,9 +101,12 @@ class MySQLTable extends Table {
      * <li><b>comment</b> A comment which can be used to describe the column.</li>
      * </ul>
      * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
      * @since 1.0
      */
-    public function addColumns(array $colsArr) {
+    public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
 
         foreach ($colsArr as $key => $arrOrObj) {
@@ -122,7 +125,8 @@ class MySQLTable extends Table {
                 }
             }
         }
-        parent::addColumns($arrToAdd);
+
+        return parent::addColumns($arrToAdd);
     }
     /**
      * Returns the character set that is used by the table.
@@ -294,7 +298,7 @@ class MySQLTable extends Table {
             $autoIncPart = $colObj->isAutoInc() ? ' auto_increment' : '';
 
             if ($index + 1 == $count) {
-                $queryStr .= '    '.$colObj->asString().$autoIncPart."\n";
+                $queryStr .= '    '.$colObj->asString().$autoIncPart."";
             } else {
                 $queryStr .= '    '.$colObj->asString().$autoIncPart.",\n";
             }
