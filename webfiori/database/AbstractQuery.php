@@ -1038,7 +1038,7 @@ abstract class AbstractQuery {
             $tableObj = $this->getSchema()->getTable($tblName);
 
             if ($tableObj === null) {
-                $tableObj = $this->createTableObj($tblName);
+                $tableObj = $this->getSchema()->createBlueprint($tblName);
             }
         }
         $this->getSchema()->addTable($tableObj);
@@ -1535,22 +1535,6 @@ abstract class AbstractQuery {
             } catch (Throwable $ex) {
             }
         }
-    }
-    /**
-     * 
-     * @param type $name
-     * @return MySQLTable|MSSQLTable
-     */
-    private function createTableObj($name) {
-        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
-
-        if ($dbType == 'mysql') {
-            $tableObj = new MySQLTable($name);
-        } else if ($dbType == 'mssql') {
-            $tableObj = new MSSQLTable($name);
-        }
-
-        return $tableObj;
     }
     private function getColsToSelect() {
         $thisTable = $this->getTable();
