@@ -17,4 +17,7 @@ All examples are based on MySQL but there are applicable to other databases.
   * [Blueprint 2 (OOP)](createDatabase/UserBookmarksTable.php)
   * [Initializing Tables](createDatabase/create-database.php)
 * [Creating and Using Entity Classes](createEntity) 
+  * [Entity Blueprint](createEntity/user-information-table.php)
+  * [Creating Entity Class](createEntity/create-entity.php)
+  * [Using Entity Class](createEntity/using-entity.php)
 
