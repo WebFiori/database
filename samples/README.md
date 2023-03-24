@@ -21,3 +21,17 @@ All examples are based on MySQL but there are applicable to other databases.
   * [Creating Entity Class](createEntity/create-entity.php)
   * [Using Entity Class](createEntity/using-entity.php)
 
+## How to Run Samples
+
+First thing is to make sure that you have MySQL installed in addition to PHP. Later on, you can follow following steps:
+
+* Clone this repo.
+* Install dependencies using composer.
+* Open terminal in the root folder.
+* Start PHP's development server by running the command `php -S localhost:8989`.
+* Open your web browser and navigate to any of the samples to execute.
+
+For example, to run the `select` sample, navigate to http://localhost/samples/basicQueries/select.php .
+
+
+
