@@ -679,7 +679,7 @@ class MySQLColumn extends Column {
 
         if ($trimmed == 'current_timestamp') {
             $cleanedVal = 'current_timestamp';
-        } else if ($trimmed == 'now()') {
+        } else if ($trimmed == 'now()' || $trimmed == 'now') {
             $cleanedVal = 'now()';
         } else if (DateTimeValidator::isValidDateTime($trimmed)) {
             $cleanedVal = '\''.$trimmed.'\'';
