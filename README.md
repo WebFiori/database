@@ -25,6 +25,7 @@ Database abstraction layer of WebFiori framework.
 * [Supported PHP Versions](#supported-php-versions)
 * [Supported Databases](#supported-databases)
 * [Features](#features)
+* [Installation](#installation)
 * [Usage](#usage)
   * [Connecting to Database](#connecting-to-database)
   * [Running Basic SQL Queries](#running-basic-sql-queries)
@@ -59,6 +60,9 @@ Database abstraction layer of WebFiori framework.
 * Building your database structure within PHP.
 * Fast and easy to use query builder.
 * Database abstraction which makes it easy to migrate your system to different DBMS.
+
+## Installation
+To install the library using composer, add following dependency to `composer.json`: `"webfiori/database":"0.7.1"
 
 ## Usage
 
