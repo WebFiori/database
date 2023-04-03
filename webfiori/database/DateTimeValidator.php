@@ -30,7 +30,7 @@ class DateTimeValidator {
      * 
      * @since 1.0
      */
-    public static function isValidDate(string $date) {
+    public static function isValidDate(string $date) : bool {
         if (strlen($date) == 10) {
             $split = explode('-', $date);
 
@@ -55,7 +55,7 @@ class DateTimeValidator {
      * 
      * @since 1.0
      */
-    public static function isValidDateTime(string $dateTime) {
+    public static function isValidDateTime(string $dateTime) : bool {
         $trimmed = trim($dateTime);
 
         if (strlen($trimmed) == 19) {
@@ -79,7 +79,7 @@ class DateTimeValidator {
      * 
      * @since 1.0
      */
-    public static function isValidTime(string $time) {
+    public static function isValidTime(string $time) : bool {
         if (strlen($time) == 8) {
             $split = explode(':', $time);
 

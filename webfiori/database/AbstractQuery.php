@@ -12,9 +12,7 @@ namespace webfiori\database;
 
 use Throwable;
 use webfiori\database\mssql\MSSQLQuery;
-use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLQuery;
-use webfiori\database\mysql\MySQLTable;
 /**
  * A base class that can be used to build SQL queries.
  * 
@@ -368,7 +366,8 @@ abstract class AbstractQuery {
         try {
             return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
-            throw new DatabaseException($ex->getMessage(), $ex->getCode());
+            $errQuery = $this->getSchema()->getLastQuery();
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery);
         }
     }
     /**
@@ -746,15 +745,14 @@ abstract class AbstractQuery {
      * @param int $num Page number. It should be a number greater than or equals 
      * to 1.
      * 
-     * @param int $itemsCount Number of records per page. Must be a number greater 
-     * than or equals to 1.
+     * @param int $itemsCount Number of records per page. Must be a number greater than or equals to 1.
      * 
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
      * @since 1.0
      */
-    public function page($num, $itemsCount) {
+    public function page(int $num, int $itemsCount) {
         if ($num > 0 && $itemsCount > 0) {
             $this->limit($itemsCount);
             $this->offset(($num - 1) * $itemsCount);
@@ -1038,7 +1036,7 @@ abstract class AbstractQuery {
             $tableObj = $this->getSchema()->getTable($tblName);
 
             if ($tableObj === null) {
-                $tableObj = $this->createTableObj($tblName);
+                $tableObj = $this->getSchema()->createBlueprint($tblName);
             }
         }
         $this->getSchema()->addTable($tableObj);
@@ -1178,7 +1176,7 @@ abstract class AbstractQuery {
      * @since 1.0.3
      */
     public function whereBetween($col, $firstVal, $secondVal, $joinCond = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'first-value' => $firstVal,
             'second-value' => $secondVal,
@@ -1213,7 +1211,7 @@ abstract class AbstractQuery {
      * @since 1.0.3
      */
     public function whereIn($col, array $vals, $joinCond = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'values' => $vals,
             'join-cond' => $joinCond,
@@ -1253,7 +1251,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $joinCond,
             'func' => 'left',
@@ -1290,7 +1288,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereLike($col, $val, $joinCond = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $joinCond,
             'func' => 'like',
@@ -1414,7 +1412,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereNull($col, $join = 'and', $not = false) {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $join,
             'not' => $not,
@@ -1452,7 +1450,7 @@ abstract class AbstractQuery {
      * @since 1.0.4
      */
     public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
-        $this->_addWhere([
+        $this->addWhereHelper([
             'col-key' => $col,
             'join-cond' => $joinCond,
             'func' => 'right',
@@ -1463,7 +1461,7 @@ abstract class AbstractQuery {
 
         return $this;
     }
-    private function _addWhere($options) {
+    private function addWhereHelper($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
 
@@ -1489,6 +1487,7 @@ abstract class AbstractQuery {
                 $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
             } else if ($options['func'] == 'in') {
                 $cleanedVals = $colObj->cleanValue($options['values']);
+
                 if (count($cleanedVals) != 0) {
                     $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
                 }
@@ -1523,7 +1522,19 @@ abstract class AbstractQuery {
             throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
         }
     }
-    private function _getColsToSelect() {
+    private function checkIsClass($str) {
+        if (class_exists($str)) {
+            try {
+                $clazz = new $str();
+
+                if ($clazz instanceof Table) {
+                    return $clazz;
+                }
+            } catch (Throwable $ex) {
+            }
+        }
+    }
+    private function getColsToSelect() {
         $thisTable = $this->getTable();
 
         $rightCols = $thisTable->getRight()->getSelect()->getColsStr();
@@ -1557,33 +1568,5 @@ abstract class AbstractQuery {
         }
 
         return $columnsToSelect;
-    }
-    private function checkIsClass($str) {
-        if (class_exists($str)) {
-            try {
-                $clazz = new $str();
-
-                if ($clazz instanceof Table) {
-                    return $clazz;
-                }
-            } catch (Throwable $ex) {
-            }
-        }
-    }
-    /**
-     * 
-     * @param type $name
-     * @return MySQLTable|MSSQLTable
-     */
-    private function createTableObj($name) {
-        $dbType = $this->getSchema()->getConnectionInfo()->getDatabaseType();
-
-        if ($dbType == 'mysql') {
-            $tableObj = new MySQLTable($name);
-        } else if ($dbType == 'mssql') {
-            $tableObj = new MSSQLTable($name);
-        }
-
-        return $tableObj;
     }
 }

@@ -55,7 +55,7 @@ class MySQLQuery extends AbstractQuery {
         if (!($colToAdd instanceof Column)) {
             throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
         } 
-        $this->_alterColStm('add', $colToAdd, $location, $tblName);
+        $this->alterColStm('add', $colToAdd, $location, $tblName);
 
         return $this;
     }
@@ -198,7 +198,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0
      */
     public function insert(array $colsAndVals) {
-        $this->insertHelper($colsAndVals);
+        $this->insertHelper1($colsAndVals);
 
         return $this;
     }
@@ -241,7 +241,7 @@ class MySQLQuery extends AbstractQuery {
             throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
         }
 
-        $this->_alterColStm('modify', $colObj, $location, $tblName);
+        $this->alterColStm('modify', $colObj, $location, $tblName);
 
         return $this;
     }
@@ -298,7 +298,7 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0.2
      */
     public function replace(array $colsAndVals) {
-        $this->insertHelper($colsAndVals, true);
+        $this->insertHelper1($colsAndVals, true);
 
         return $this;
     }
@@ -335,12 +335,16 @@ class MySQLQuery extends AbstractQuery {
         $updateArr = [];
         $colsWithVals = [];
         $tblName = $this->getTable()->getName();
+        $table = $this->getTable();
 
         foreach ($newColsVals as $colKey => $newVal) {
-            $colObj = $this->getTable()->getColByKey($colKey);
+            $colObj = $table->getColByKey($colKey);
 
             if (!$colObj instanceof MySQLColumn) {
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+                $table->addColumns([
+                    $colKey => []
+                ]);
+                $colObj = $table->getColByKey($colKey);
             }
             $colName = $colObj->getName();
 
@@ -375,7 +379,7 @@ class MySQLQuery extends AbstractQuery {
      * @param type $tblName
      * @throws DatabaseException
      */
-    private function _alterColStm($alterOpType, $colToAdd, $location, $tblName) {
+    private function alterColStm($alterOpType, $colToAdd, $location, $tblName) {
         $colObjAsStr = $colToAdd->asString();
 
         if ($alterOpType == 'modify') {
@@ -407,10 +411,10 @@ class MySQLQuery extends AbstractQuery {
         }
         $this->setQuery($stm.';');
     }
-    private function _createInsertStm($colsAndVals, $replace = false) {
+    private function createInsertStm($colsAndVals, $replace = false) {
         $tblName = $this->getTable()->getName();
 
-        $data = $this->_insertHelper(array_keys($colsAndVals), $colsAndVals);
+        $data = $this->insertHelper(array_keys($colsAndVals), $colsAndVals);
 
 
         $cols = '('.$data['cols'].')';
@@ -438,7 +442,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @throws DatabaseException
      */
-    private function _insertHelper(array $colsKeysArr, array $valuesToInsert) {
+    private function insertHelper(array $colsKeysArr, array $valuesToInsert) {
         $valsArr = [];
         $columnsWithVals = [];
         $colsNamesArr = [];
@@ -528,7 +532,7 @@ class MySQLQuery extends AbstractQuery {
 
                     if ($type == 'boolean' || $type == 'bool') {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
-                    } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now'  || $defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
+                    } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now' || $defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
                         $valsArr[] = "'".date('Y-m-d H:i:s')."'";
                     } else {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
@@ -542,7 +546,7 @@ class MySQLQuery extends AbstractQuery {
             'vals' => implode(', ', $valsArr)
         ];
     }
-    private function insertHelper(array $colsAndVals, $isReplace = false) {
+    private function insertHelper1(array $colsAndVals, $isReplace = false) {
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $colsArr = [];
             $tblName = $this->getTable()->getName();
@@ -563,7 +567,7 @@ class MySQLQuery extends AbstractQuery {
             $suberValsArr = [];
 
             foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = '('.$this->_insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
+                $suberValsArr[] = '('.$this->insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
             }
             $valsStr = implode(",\n", $suberValsArr);
 
@@ -573,7 +577,7 @@ class MySQLQuery extends AbstractQuery {
                 $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
             }
         } else {
-            $this->setQuery($this->_createInsertStm($colsAndVals, $isReplace));
+            $this->setQuery($this->createInsertStm($colsAndVals, $isReplace));
         }
     }
 }

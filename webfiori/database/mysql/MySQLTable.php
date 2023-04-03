@@ -59,7 +59,7 @@ class MySQLTable extends Table {
      */
     public function addColumn(string $key, Column $colObj) : bool {
         if (parent::addColumn($key, $colObj)) {
-            $this->_checkPKs();
+            $this->checkPKs();
 
             return true;
         }
@@ -101,9 +101,12 @@ class MySQLTable extends Table {
      * <li><b>comment</b> A comment which can be used to describe the column.</li>
      * </ul>
      * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
      * @since 1.0
      */
-    public function addColumns(array $colsArr) {
+    public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
 
         foreach ($colsArr as $key => $arrOrObj) {
@@ -122,7 +125,8 @@ class MySQLTable extends Table {
                 }
             }
         }
-        parent::addColumns($arrToAdd);
+
+        return parent::addColumns($arrToAdd);
     }
     /**
      * Returns the character set that is used by the table.
@@ -201,11 +205,11 @@ class MySQLTable extends Table {
      * 
      * @since 1.0
      */
-    public function removeColByKey($key) {
+    public function removeColByKey(string $key) {
         $col = parent::removeColByKey($key);
 
         if ($col !== null) {
-            $this->_checkPKs();
+            $this->checkPKs();
         }
 
         return $col;
@@ -249,7 +253,7 @@ class MySQLTable extends Table {
         $queryStr = '';
 
         $queryStr .= 'create table if not exists '.$this->getName().' ('."\n";
-        $queryStr .= $this->_createTableColumns();
+        $queryStr .= $this->createTableColumns();
         $queryStr .= ')'."\n";
         $comment = $this->getComment();
 
@@ -262,7 +266,7 @@ class MySQLTable extends Table {
         return $queryStr.'collate = '.$this->getCollation().';';
     }
 
-    private function _checkPKs() {
+    private function checkPKs() {
         $primaryCount = $this->getPrimaryKeyColsCount();
 
         if ($primaryCount > 1) {
@@ -284,7 +288,7 @@ class MySQLTable extends Table {
         }
     }
 
-    private function _createTableColumns() {
+    private function createTableColumns() {
         $cols = $this->getCols();
         $queryStr = '';
         $count = count($cols);
@@ -294,7 +298,7 @@ class MySQLTable extends Table {
             $autoIncPart = $colObj->isAutoInc() ? ' auto_increment' : '';
 
             if ($index + 1 == $count) {
-                $queryStr .= '    '.$colObj->asString().$autoIncPart."\n";
+                $queryStr .= '    '.$colObj->asString().$autoIncPart."";
             } else {
                 $queryStr .= '    '.$colObj->asString().$autoIncPart.",\n";
             }
@@ -312,7 +316,7 @@ class MySQLTable extends Table {
             $queryStr .= $pkConstraint;
         }
 
-        foreach ($this->getForignKeys() as $fkObj) {
+        foreach ($this->getForeignKeys() as $fkObj) {
             $sourceCols = [];
 
             foreach ($fkObj->getSourceCols() as $colObj) {

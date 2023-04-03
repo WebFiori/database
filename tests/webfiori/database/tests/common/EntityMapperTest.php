@@ -26,7 +26,7 @@ class EntityMapperTest extends TestCase {
         $entityMapper->setPath(__DIR__);
         $entityMapper->setUseJsonI(true);
         $this->assertEquals('UserClass', $entityMapper->getEntityName());
-        $this->assertEquals('webfiori\\database\\entity\\UserClass', $entityMapper->getEntityName(true));
+        $this->assertEquals('\UserClass', $entityMapper->getEntityName(true));
         $this->assertEquals([
             'age'=> 'age',
             'first-name' => 'firstName',
@@ -122,21 +122,21 @@ class EntityMapperTest extends TestCase {
     public function test02(EntityMapper $m) {
         require_once __DIR__.DIRECTORY_SEPARATOR.'UserClass.php';
         $recordsMapper = $m->getRecordMapper();
-        $this->assertEquals('webfiori\\database\\entity\\UserClass', $recordsMapper->getClass());
+        $this->assertEquals('\UserClass', $recordsMapper->getClass());
         $this->assertEquals([
             'setId' => ['id'],
             'setFirstName' => ['first_name'],
             'setLastName' => ['last_name'],
             'setAge' => ['age'],
             'setCXFile' => ['c_x_file']
-        ], $recordsMapper->getSettrsMap());
+        ], $recordsMapper->getSettersMap());
         $obj = $recordsMapper->map([
             'id' => 55,
             'first_name' => 'Ibrahim',
             'last_name' => 'BinAlshikh',
             'age' => 28
         ]);
-        $this->assertTrue($obj instanceof \webfiori\database\entity\UserClass);
+        $this->assertTrue($obj instanceof \UserClass);
         $this->assertEquals(55, $obj->getId());
         $this->assertEquals('Ibrahim', $obj->getFirstName());
         $this->assertEquals('BinAlshikh', $obj->getLastName());
@@ -149,7 +149,7 @@ class EntityMapperTest extends TestCase {
         $schema = new MySQLTestSchema();
         $entityMapper = new EntityMapper($schema->getTable('users'), '', '', '');
         $this->assertEquals('NewEntity', $entityMapper->getEntityName());
-        $this->assertEquals('webfiori\\database\\entity', $entityMapper->getNamespace());
+        $this->assertEquals('', $entityMapper->getNamespace());
         $this->assertFalse($entityMapper->addAttribute(''));
         $this->assertFalse($entityMapper->addAttribute('0cool'));
         $this->assertFalse($entityMapper->addAttribute('not valid'));

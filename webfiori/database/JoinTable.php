@@ -29,7 +29,7 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    private $joinConds;
+    private $joinConditions;
     /**
      * The type of the join.
      * 
@@ -69,14 +69,16 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    public function __construct(Table $left, Table $right, $joinType = 'join', $alias = 'new_table') {
-        parent::__construct($alias);
-        $this->joinType = $joinType;
+    public function __construct(Table $left, Table $right, string $joinType = 'join', string $alias = 'new_table') {
         $this->left = $left;
         $this->right = $right;
+        $this->joinType = $joinType;
 
-        $this->_addCols(true);
-        $this->_addCols(false);
+        parent::__construct($alias);
+
+
+        $this->addColsHelper();
+        $this->addColsHelper(false);
         $this->setOwner($this->getLeft()->getOwner());
     }
     /**
@@ -89,12 +91,12 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    public function addJoinCondition(Condition $cond, $joinOp = 'and') {
-        if ($this->joinConds === null) {
-            $this->joinConds = $cond;
+    public function addJoinCondition(Condition $cond, string $joinOp = 'and') {
+        if ($this->joinConditions === null) {
+            $this->joinConditions = $cond;
         } else {
-            $newCond = new Condition($this->joinConds, $cond, $joinOp);
-            $this->joinConds = $newCond;
+            $newCond = new Condition($this->joinConditions, $cond, $joinOp);
+            $this->joinConditions = $newCond;
         }
     }
     /**
@@ -108,7 +110,7 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    public function getJoin() {
+    public function getJoin() : string {
         if ($this->getLeft() instanceof JoinTable) {
             $retVal = ' '.$this->getJoinType()
                 .' '.$this->getRight()->getName();
@@ -128,13 +130,13 @@ class JoinTable extends Table {
     /**
      * Returns the condition at which the two tables joined based on.
      * 
-     * @return Condition The condition at which the two tables joined based on. 
+     * @return Condition|null The condition at which the two tables joined based on. 
      * This also can be a chain of conditions.
      * 
      * @since 1.0
      */
     public function getJoinCondition() {
-        return $this->joinConds;
+        return $this->joinConditions;
     }
     /**
      * Returns a string that represents join type.
@@ -143,7 +145,7 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    public function getJoinType() {
+    public function getJoinType() : string {
         return $this->joinType;
     }
     /**
@@ -153,7 +155,7 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    public function getLeft() {
+    public function getLeft() : Table {
         return $this->left;
     }
     public function getName() : string {
@@ -180,13 +182,13 @@ class JoinTable extends Table {
      * 
      * @since 1.0
      */
-    public function getRight() {
+    public function getRight() : Table {
         return $this->right;
     }
 
     public function toSQL() {
     }
-    private function _addCols($left = true) {
+    private function addColsHelper(bool $left = true) {
         $prefix = $left === true ? 'left' : 'right';
 
         if ($left) {

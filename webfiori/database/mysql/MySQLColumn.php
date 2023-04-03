@@ -14,6 +14,7 @@ use webfiori\database\Column;
 use webfiori\database\ColumnFactory;
 use webfiori\database\DatabaseException;
 use webfiori\database\DateTimeValidator;
+use webfiori\database\Table;
 
 /**
  * A class that represents a column in MySQL table.
@@ -103,19 +104,19 @@ class MySQLColumn extends Column {
      * @since 1.0
      */
     public function __toString() {
-        $retVal = $this->_firstColPart();
-        $retVal .= $this->_nullPart();
+        $retVal = $this->firstColPart();
+        $retVal .= $this->nullPart();
         $colDataType = $this->getDatatype();
 
         if ($this->isUnique() && $colDataType != 'boolean' && $colDataType != 'bool') {
             $retVal .= 'unique ';
         }
-        $retVal .= $this->_defaultPart();
+        $retVal .= $this->defaultPart();
 
         if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {
             $retVal .= 'collate '.$this->getCollation().' ';
         }
-        $retVal .= $this->_commentPart();
+        $retVal .= $this->commentPart();
 
         return trim($retVal);
     }
@@ -148,12 +149,12 @@ class MySQLColumn extends Column {
             $retVal = [];
 
             foreach ($val as $arrVal) {
-                $retVal[] = $this->_cleanValueHelper($arrVal);
+                $retVal[] = $this->cleanValueHelper($arrVal);
             }
 
             return $retVal;
         } else {
-            return $this->_cleanValueHelper($val);
+            return $this->cleanValueHelper($val);
         }
     }
 
@@ -258,7 +259,7 @@ class MySQLColumn extends Column {
                     //$dt == 'timestamp' || $dt == 'datetime' || 
                     $dt == 'tinyblob' || $dt == 'blob' || $dt == 'mediumblob' || 
                     $dt == 'longblob' || $dt == 'decimal' || $dt == 'float' || $dt == 'double'
-                    ) {
+            ) {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
 
                 if ($dt == 'decimal' || $dt == 'float' || $dt == 'double') {
@@ -275,7 +276,7 @@ class MySQLColumn extends Column {
             } else if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === "b'1'" || $defaultVal === true;
             } else if ($dt == 'mixed') {
-                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);;
+                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
             }
 
             return $retVal;
@@ -517,7 +518,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setOwner($table) {
+    public function setOwner(Table $table = null) {
         parent::setOwner($table);
 
         if ($this->getOwner() !== null && $this->getOwner() instanceof MySQLTable) {
@@ -586,9 +587,9 @@ class MySQLColumn extends Column {
         if ($type == 'boolean' || $type == 'bool') {
             $retVal = parent::setSize(1);
         } else if ($type == 'varchar' || $type == 'text') {
-            $retVal = $this->_textTypeSize($size);
+            $retVal = $this->textTypeSize($size);
         } else if ($type == 'int') {
-            $retVal = $this->_intSize($size);
+            $retVal = $this->intSize($size);
         } else if (($type == 'decimal' || $type == 'float' || $type == 'double') && $size >= 0) {
             $retVal = parent::setSize($size);
         } else {
@@ -597,7 +598,7 @@ class MySQLColumn extends Column {
 
         return $retVal;
     }
-    private function _cleanValueHelper($val) {
+    private function cleanValueHelper($val) {
         $colDatatype = $this->getDatatype();
         $cleanedVal = null;
 
@@ -615,8 +616,10 @@ class MySQLColumn extends Column {
             $cleanedVal = "'".floatval($val)."'";
         } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
             $ownerTable = $this->getOwner();
+
             if ($ownerTable !== null) {
                 $db = $ownerTable->getOwner();
+
                 if ($db !== null) {
                     $conn = $db->getConnection();
                     $cleanedVal = mysqli_real_escape_string($conn->getMysqli(), $val);
@@ -626,21 +629,20 @@ class MySQLColumn extends Column {
             } else {
                 $cleanedVal = filter_var(addslashes($val));
             }
-            // It is not secure if not escaped without connection
-            // Think about multi-byte strings
-            // At minimum, just sanitize the value using default filter
-            
+        // It is not secure if not escaped without connection
+        // Think about multi-byte strings
+        // At minimum, just sanitize the value using default filter
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now' && $val != 'now()' && $val != 'current_timestamp') {
-                $cleanedVal = $this->_dateCleanUp($val);
+                $cleanedVal = $this->dateCleanUp($val);
             } else {
                 $cleanedVal = $val;
             }
         } else if ($colDatatype == 'mixed') {
             $valType = gettype($val);
-            
+
             if ($valType == 'string') {
-                $cleanedVal = "'". filter_var(addslashes($val)) ."'";
+                $cleanedVal = "'".filter_var(addslashes($val))."'";
             } else if ($valType == 'double') {
                 $cleanedVal = "'".floatval($val)."'";
             } else if ($valType == 'boolean') {
@@ -664,20 +666,20 @@ class MySQLColumn extends Column {
 
         return $retVal;
     }
-    private function _commentPart() {
+    private function commentPart() {
         $colComment = $this->getComment();
 
         if ($colComment !== null) {
             return 'comment \''.$colComment.'\'';
         }
     }
-    private function _dateCleanUp($val) {
+    private function dateCleanUp($val) {
         $trimmed = strtolower(trim($val));
         $cleanedVal = '';
 
         if ($trimmed == 'current_timestamp') {
             $cleanedVal = 'current_timestamp';
-        } else if ($trimmed == 'now()') {
+        } else if ($trimmed == 'now()' || $trimmed == 'now') {
             $cleanedVal = 'now()';
         } else if (DateTimeValidator::isValidDateTime($trimmed)) {
             $cleanedVal = '\''.$trimmed.'\'';
@@ -687,7 +689,7 @@ class MySQLColumn extends Column {
 
         return $cleanedVal;
     }
-    private function _defaultPart() {
+    private function defaultPart() {
         $colDataType = $this->getDatatype();
         $colDefault = $this->getDefault();
 
@@ -705,14 +707,14 @@ class MySQLColumn extends Column {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
             } else if ($colDataType == 'mixed') {
-                return "default '". addslashes($colDefault)."' ";
+                return "default '".addslashes($colDefault)."' ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
         }
     }
 
-    private function _firstColPart() {
+    private function firstColPart() {
         $retVal = $this->getName().' ';
         $colDataType = $this->getDatatype();
 
@@ -744,7 +746,7 @@ class MySQLColumn extends Column {
 
         return $retVal;
     }
-    private function _intSize($size) {
+    private function intSize($size) {
         if ($size > 0 && $size < 12) {
             parent::setSize($size);
 
@@ -757,7 +759,7 @@ class MySQLColumn extends Column {
 
         return false;
     }
-    private function _nullPart() {
+    private function nullPart() {
         $colDataType = $this->getDatatype();
 
         if (!$this->isNull() || $colDataType == 'boolean' || $colDataType == 'bool') {
@@ -766,7 +768,7 @@ class MySQLColumn extends Column {
             return 'null ';
         }
     }
-    private function _textTypeSize($size) {
+    private function textTypeSize($size) {
         if ($size > 0) {
             parent::setSize($size);
 

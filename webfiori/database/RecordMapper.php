@@ -16,16 +16,25 @@ namespace webfiori\database;
  * @author Ibrahim
  */
 class RecordMapper {
+    /**
+     * @var string
+     */
     private $clazzName;
+    /**
+     * @var array
+     */
     private $settersMap;
+
     /**
      * Creates new instance of the class.
-     * 
+     *
      * @param string $clazz The name of the class that a record will be mapped
      * to. Usually obtained using the syntax 'Class::class'.
-     * 
+     *
      * @param array $columns An array that holds the names of database table
      * columns as they appear in the database.
+     *
+     * @throws DatabaseException
      */
     public function __construct(string $clazz = '', array $columns = []) {
         $this->settersMap = [];
@@ -52,10 +61,9 @@ class RecordMapper {
      * name by underscore. Then appending the string 'set' and capitalizing
      * first letter of the name of the column and capitalizing every letter 
      * after the underscore.
-     * 
-     * @return type
+     *
      */
-    public function addSetterMap(string $colName, $methodName = null) {
+    public function addSetterMap(string $colName, string $methodName = null) {
         $trimmedColName = trim(trim(trim(trim($colName, '`'), ']'), '['));
 
         if (strlen($trimmedColName) == 0) {
@@ -87,7 +95,7 @@ class RecordMapper {
      * @return array An associative array. The indices will represent methods
      * names and the values are arrays of columns names.
      */
-    public function getSettrsMap() : array {
+    public function getSettersMap() : array {
         return $this->settersMap;
     }
     /**
@@ -95,8 +103,8 @@ class RecordMapper {
      * 
      * @return int Number of methods which where added as setters.
      */
-    public function getSettrsMapCount() : int {
-        return count($this->getSettrsMap());
+    public function getSettersMapCount() : int {
+        return count($this->getSettersMap());
     }
     /**
      * Maps a record to the specified entity class.
@@ -114,7 +122,7 @@ class RecordMapper {
     public function map(array $record) {
         $instance = new $this->clazzName();
 
-        foreach ($this->getSettrsMap() as $method => $colsNames) {
+        foreach ($this->getSettersMap() as $method => $colsNames) {
             if (is_callable([$instance, $method])) {
                 foreach ($colsNames as $colName) {
                     try {
@@ -137,7 +145,7 @@ class RecordMapper {
      * 
      * @throws DatabaseException
      */
-    public function setClass($clazz) {
+    public function setClass(string $clazz) {
         $trimmed = trim($clazz);
 
         if (class_exists($trimmed)) {
@@ -146,12 +154,12 @@ class RecordMapper {
             throw new DatabaseException('Class not found: '.$clazz);
         }
     }
-    private function columnNameToMethodName($colName) {
-        $expl = explode('_', $colName);
+    private function columnNameToMethodName($colName) : string {
+        $colSplit = explode('_', $colName);
         $methName = '';
 
-        for ($x = 0 ; $x < count($expl) ; $x++) {
-            $xStr = $expl[$x];
+        for ($x = 0 ; $x < count($colSplit) ; $x++) {
+            $xStr = $colSplit[$x];
             $upper = strtoupper($xStr[0]);
 
             if (strlen($xStr) == 1) {

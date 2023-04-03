@@ -7,9 +7,12 @@
  */
 
 namespace webfiori\database\tests\mysql;
+
 use PHPUnit\Framework\TestCase;
-use webfiori\database\mysql\MySQLTable;
+use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLColumn;
+use webfiori\database\mysql\MySQLTable;
+use webfiori\database\Table;
 /**
  * Description of MySQLTableTest
  *
@@ -135,6 +138,78 @@ class MySQLTableTest extends TestCase {
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $table2->toSQL());
+    }
+    /**
+     * @test
+     */
+    public function testMap00() {
+        $table = new MySQLTable('users');
+        $table->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+            'username' => [
+                'type' => 'varchar',
+                'size' => 20,
+                'is-unique' => true
+            ],
+            'password' => [
+                'type' => 'varchar',
+                'size' => 256
+            ],
+            'created-on' => [
+                'type' => 'timestamp',
+                'default' => 'now()',
+            ],
+        ]);
+        
+        $table2 = new MySQLTable('t');
+        $table2->addColumns([
+            'user-id-super' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email-x' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+        ]);
+        $table2->addReference($table, [
+            'user-id-super' => 'user-id','email-x' =>  'email'], 'fk_ok', 'cascade', 'cascade');
+        $key = $table2->getForeignKey('fk_ok');
+        $this->assertEquals(2, count($key->getSourceCols()));
+        $this->assertEquals("create table if not exists `t` (\n"
+                . "    `user_id_super` int not null unique auto_increment,\n"
+                . "    `email_x` varchar(256) not null unique collate utf8mb4_unicode_520_ci,\n"
+                . "    constraint `t_pk` primary key (`user_id_super`),\n"
+                . "    constraint `fk_ok` foreign key (`user_id_super`, `email_x`) references `users` (`user_id`, `email`) on update cascade on delete cascade\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $table2->toSQL());
+        
+        $mappedInstance = Table::map('mssql', $table2);
+        $this->assertTrue($mappedInstance instanceof MSSQLTable);
+        $this->assertEquals('[t]', $mappedInstance->getName());
+        $this->assertEquals("if not exists (select * from sysobjects where name='t' and xtype='U')\n"
+                . "create table [t] (\n"
+                . "    [user_id_super] [int] not null,\n"
+                . "    [email_x] [varchar](256) not null,\n"
+                . "    constraint t_pk primary key clustered([user_id_super]) on [PRIMARY],\n"
+                . "    constraint fk_ok foreign key ([user_id_super], [email_x]) references [users] ([user_id], [email]) on update cascade on delete cascade,\n"
+                . "    constraint AK_t unique (user_id_super, email_x)\n"
+                . ")\n", $mappedInstance->toSQL());
     }
     /**
      * @test
@@ -405,7 +480,7 @@ class MySQLTableTest extends TestCase {
         $this->assertEquals([
             'user-id' => 'mixed',
             'is-active' => 'bool'
-        ], $table->getColsDatatypes());
+        ], $table->getColsDataTypes());
     }
     /**
      * @test
@@ -433,11 +508,11 @@ class MySQLTableTest extends TestCase {
             ]
         ]);
         $table->addReference($table2, ['user-id'], 'hello_fk');
-        $this->assertEquals(1, $table->getForignKeysCount());
+        $this->assertEquals(1, $table->getForeignKeysCount());
         $this->assertNull($table->removeReference('not-exist'));
         $obj = $table->removeReference('hello_fk');
         $this->assertEquals('hello_fk', $obj->getKeyName());
-        $this->assertEquals(0, $table->getForignKeysCount());
+        $this->assertEquals(0, $table->getForeignKeysCount());
     }
     public function testRemoveColFromRef00() {
         $table = new MySQLTable('active_or_not');

@@ -86,15 +86,15 @@ class EntityMapper {
      * 
      * @param string $path The directory at which the entity will be created in. 
      * 
-     * @param string $namespace The namespace at which the entity will belongs 
-     * to. If invalid is given, 'webfiori\database\entity' is used as default value.
+     * @param string $namespace The namespace at which the entity will belong
+     * to. If invalid is given, '\' is used as default value.
      * 
      * @throws InvalidArgumentException If the given object is not of type 
      * 'webfiori\database\Table'.
      * 
      * @since 1.0
      */
-    public function __construct(Table $tableObj, string $className, string $path = __DIR__, string $namespace = 'webfiori\\database\\entity') {
+    public function __construct(Table $tableObj, string $className, string $path = __DIR__, string $namespace = '\\') {
         $this->table = $tableObj;
 
         if (!$this->setPath($path)) {
@@ -102,7 +102,7 @@ class EntityMapper {
         }
 
         if (!$this->setNamespace($namespace)) {
-            $this->setNamespace('webfiori\\database\\entity');
+            $this->setNamespace('\\');
         }
 
         if (!$this->setEntityName($className)) {
@@ -123,12 +123,12 @@ class EntityMapper {
      * <li>It must not contain $.</li>
      * </ul>
      * 
-     * @return boolean If the attribute is added, the method will return
+     * @return bool If the attribute is added, the method will return
      * true. Other than that, the method will return false.
      * 
      * @since 1.0.1
      */
-    public function addAttribute(string $attrName) {
+    public function addAttribute(string $attrName) : bool {
         $trimmed = trim($attrName);
 
         if (strlen($trimmed) == 0) {
@@ -165,8 +165,9 @@ class EntityMapper {
         if (is_resource($file)) {
             $ns = $this->getNamespace();
             $entityClassName = $this->getEntityName();
+            $namespaceStr = $ns != '' ? "namespace ".$ns.";\n\n" : "\n";
             $this->classStr .= ""
-            ."<?php\nnamespace ".$ns.";\n\n";
+            ."<?php\n$namespaceStr";
 
             if ($this->implJsonI) {
                 $this->classStr .= ""
@@ -185,9 +186,9 @@ class EntityMapper {
             } else {
                 $this->classStr .= "class ".$entityClassName." {\n";
             }
-            $this->_createEntityVariables();
-            $this->_createEntityMethods();
-            $this->_imlpJsonX();
+            $this->createEntityVariables();
+            $this->createEntityMethods();
+            $this->implementJson();
             $this->classStr .= "}\n";
             fwrite($file, $this->classStr);
             fclose($file);
@@ -227,7 +228,7 @@ class EntityMapper {
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $retVal[$keyName] = $this->_colKeyToAttr($keyName);
+            $retVal[$keyName] = $this->colKeyToAttributeName($keyName);
         }
 
         foreach ($this->getAttributes() as $attrName) {
@@ -274,8 +275,8 @@ class EntityMapper {
         ];
 
         foreach ($keys as $keyName) {
-            $retVal['getters'][] = $this->_colKeyToSetterOrGetter($keyName, 'g');
-            $retVal['setters'][] = $this->_colKeyToSetterOrGetter($keyName, 's');
+            $retVal['getters'][] = $this->colKeyToSetterOrGetter($keyName);
+            $retVal['setters'][] = $this->colKeyToSetterOrGetter($keyName, 's');
         }
 
         foreach ($this->getAttributes() as $attrName) {
@@ -325,7 +326,7 @@ class EntityMapper {
      * @param bool $useColKey If this parameter is set to true, the value of the
      * index will be column key instead of column name. Default is false.
      * 
-     * @return array An associative array. The indices represents the names of 
+     * @return array An associative array. The indices represent the names of
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
@@ -336,7 +337,7 @@ class EntityMapper {
         $retVal = [];
 
         foreach ($keys as $keyName) {
-            $methodName = self::mapToMethodName($keyName, 'g');
+            $methodName = self::mapToMethodName($keyName);
             $mappedCol = $useColKey ? $keyName : $this->getTable()->getColByKey($keyName)->getNormalName();
             $retVal[$methodName] = $mappedCol;
         }
@@ -372,9 +373,7 @@ class EntityMapper {
      * @return RecordMapper
      */
     public function getRecordMapper() : RecordMapper {
-        $mapper = new RecordMapper($this->getEntityName(true), $this->getTable()->getColsNames());
-
-        return $mapper;
+        return new RecordMapper($this->getEntityName(true), $this->getTable()->getColsNames());
     }
     /**
      * Returns an associative array that maps possible setter entity methods names with 
@@ -394,7 +393,7 @@ class EntityMapper {
      * @param bool $useColKey If this parameter is set to true, the value of the
      * index will be column key instead of column name. Default is false.
      * 
-     * @return array An associative array. The indices represents the names of 
+     * @return array An associative array. The indices represent the names of
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
@@ -435,7 +434,7 @@ class EntityMapper {
      * 
      * @since 1.0
      */
-    public static function mapToMethodName(string $colKey, $type = 'g') {
+    public static function mapToMethodName(string $colKey, string $type = 'g') : string {
         $trimmed = trim($colKey);
 
 
@@ -470,7 +469,7 @@ class EntityMapper {
     public function setEntityName(string $name) : bool {
         $trimmed = trim($name);
 
-        if ($this->_isValidClassName($trimmed)) {
+        if ($this->isValidClassName($trimmed)) {
             $this->entityName = $trimmed;
 
             return true;
@@ -479,7 +478,7 @@ class EntityMapper {
         return false;
     }
     /**
-     * Sets the namespace at which the entity will belongs to.
+     * Sets the namespace at which the entity will belong to.
      * 
      * @param string $ns A string that represents the namespace.
      * 
@@ -491,7 +490,13 @@ class EntityMapper {
     public function setNamespace(string $ns) : bool {
         $trimmed = trim($ns);
 
-        if ($this->_isValidNs($trimmed)) {
+        if ($trimmed == '\\') {
+            $this->entityNamespace = '';
+
+            return true;
+        }
+
+        if ($this->isValidNamespace($trimmed)) {
             $this->entityNamespace = $trimmed;
 
             return true;
@@ -522,19 +527,19 @@ class EntityMapper {
     /**
      * Sets the value of the attribute '$implJsonI'. 
      * 
-     * If this attribute is set to true, the generated entity will implemented 
+     * If this attribute is set to true, the generated entity will implement 
      * the interface 'webfiori\json\JsonI'. Not that this will make the entity class 
      * depends on the library 'Json'.
      * 
-     * @param boolean $bool True to make it implement the interface JsonI and 
+     * @param bool $bool True to make it implement the interface JsonI and
      * false to not.
      * 
      * @since 1.0
      */
     public function setUseJsonI(bool $bool) {
-        $this->implJsonI = $bool === true;
+        $this->implJsonI = $bool;
     }
-    private function _appendGetterMethod($attrName, $colName, $phpType, $getterName) {
+    private function appendGetterMethod($attrName, $colName, $phpType, $getterName) {
         $this->classStr .= ""
         ."    /**\n"
         ."     * Returns the value of the attribute '".$attrName."'.\n"
@@ -554,7 +559,7 @@ class EntityMapper {
             .'        return $this->'.$attrName.";\n"
             ."    }\n";
     }
-    private function _appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
+    private function appendSetter($attrName, $colName, $phpType, $setterName, $colDatatype) {
         $this->classStr .= ""
             ."    /**\n"
             ."     * Sets the value of the attribute '".$attrName."'.\n"
@@ -578,7 +583,7 @@ class EntityMapper {
         }
         $this->classStr .= "    }\n";
     }
-    private function _colKeyToAttr($key) {
+    private function colKeyToAttributeName(string $key) : string {
         $split = explode('-', $key);
         $attrName = '';
         $index = 0;
@@ -600,7 +605,7 @@ class EntityMapper {
 
         return $attrName;
     }
-    private function _colKeyToSetterOrGetter($key, $type = 'g') {
+    private function colKeyToSetterOrGetter(string $key, $type = 'g') : string {
         $split = explode('-', $key);
         $methodName = '';
 
@@ -619,7 +624,7 @@ class EntityMapper {
             return 'set'.$methodName;
         }
     }
-    private function _createEntityMethods() {
+    private function createEntityMethods() {
         $entityAttrs = $this->getAttribitesNames();
         $colsNames = $this->getTable()->getColsNames();
         sort($colsNames, SORT_STRING);
@@ -628,12 +633,12 @@ class EntityMapper {
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj !== null) {
-                $getterName = $this->_colKeyToSetterOrGetter($colKey, 'g');
-                $this->_appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
+                $getterName = $this->colKeyToSetterOrGetter($colKey);
+                $this->appendGetterMethod($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $getterName);
             } else {
                 $firstLetter = $attrName[0];
                 $xattrName = substr($attrName, 1);
-                $this->_appendGetterMethod($attrName, null, 'mixed', 'get'.strtoupper($firstLetter).$xattrName);
+                $this->appendGetterMethod($attrName, null, 'mixed', 'get'.strtoupper($firstLetter).$xattrName);
             }
         }
 
@@ -641,17 +646,17 @@ class EntityMapper {
             $colObj = $this->getTable()->getColByKey($colKey);
 
             if ($colObj !== null) {
-                $setterName = $this->_colKeyToSetterOrGetter($colKey, 's');
-                $this->_appendSetter($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
+                $setterName = $this->colKeyToSetterOrGetter($colKey, 's');
+                $this->appendSetter($attrName, $colObj->getNormalName(), $colObj->getPHPType(), $setterName, $colObj->getDatatype());
             } else {
                 $firstLetter = $attrName[0];
                 $xattrName = substr($attrName, 1);
-                $this->_appendSetter($attrName, null, 'mixed', 'set'.strtoupper($firstLetter).$xattrName, null);
+                $this->appendSetter($attrName, null, 'mixed', 'set'.strtoupper($firstLetter).$xattrName, null);
             }
         }
-        $this->_createMapFunction();
+        $this->createMapFunction();
     }
-    private function _createEntityVariables() {
+    private function createEntityVariables() {
         $index = 0;
         $entityAttrs = $this->getAttribitesNames();
         $this->classStr .= ""
@@ -685,7 +690,7 @@ class EntityMapper {
             $index++;
         }
     }
-    private function _createMapFunction() {
+    private function createMapFunction() {
         $tableName = $this->getTable()->getNormalName();
         $className = $this->getEntityName();
         $docStr = "    /**\n"
@@ -697,14 +702,14 @@ class EntityMapper {
                 ."     */\n";
 
         $mapMethodStr = "    public static function map(array \$record) {\n"
-                ."        if (self::\$RecordMapper === null ||  count(array_keys(\$records)) != self::\$RecordMapper->getSettrsMapCount()) {\n"
+                ."        if (self::\$RecordMapper === null ||  count(array_keys(\$record)) != self::\$RecordMapper->getSettersMapCount()) {\n"
                 ."            self::\$RecordMapper = new RecordMapper(self::class, array_keys(\$record));\n"
                 ."        }\n"
                 ."        return self::\$RecordMapper->map(\$record);\n"
                 ."    }\n";
         $this->classStr .= $docStr.$mapMethodStr;
     }
-    private function _imlpJsonX() {
+    private function implementJson() {
         if ($this->implJsonI) {
             $this->classStr .= ""
             ."    /**\n"
@@ -739,7 +744,7 @@ class EntityMapper {
             ."    }\n";
         }
     }
-    private function _isValidClassName($cn) {
+    private function isValidClassName(string $cn) : bool {
         $trim = trim($cn);
         $len = strlen($cn);
 
@@ -761,7 +766,7 @@ class EntityMapper {
 
         return false;
     }
-    private function _isValidNs($ns) {
+    private function isValidNamespace($ns) : bool {
         $trim = trim($ns);
         $len = strlen($ns);
 

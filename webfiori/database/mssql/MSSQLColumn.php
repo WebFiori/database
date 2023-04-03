@@ -87,9 +87,9 @@ class MSSQLColumn extends Column {
      * @return string
      */
     public function __toString() {
-        $retVal = $this->_firstColPart();
-        $retVal .= $this->_nullPart();
-        $retVal .= $this->_defaultPart();
+        $retVal = $this->firstColPartString();
+        $retVal .= $this->nullPartString();
+        $retVal .= $this->defaultPartString();
 
         return trim($retVal);
     }
@@ -121,12 +121,12 @@ class MSSQLColumn extends Column {
             $retVal = [];
 
             foreach ($val as $arrVal) {
-                $retVal[] = $this->_cleanValueHelper($arrVal);
+                $retVal[] = $this->cleanValueHelper($arrVal);
             }
 
             return $retVal;
         } else {
-            return $this->_cleanValueHelper($val);
+            return $this->cleanValueHelper($val);
         }
     }
     /**
@@ -246,7 +246,7 @@ class MSSQLColumn extends Column {
 
             if ($dt == 'varchar' || $dt == 'nvarchar' || $dt == 'mediumtext' || 
                     $dt == 'char' || $dt == 'nchar'
-                    ) {
+            ) {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
             } else if ($dt == 'datetime2' || $dt == 'date') {
                 if (!($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
@@ -452,7 +452,7 @@ class MSSQLColumn extends Column {
         return false;
     }
 
-    private function _cleanValueHelper($val) {
+    private function cleanValueHelper($val) {
         $colDatatype = $this->getDatatype();
         $cleanedVal = null;
         $valType = gettype($val);
@@ -471,7 +471,6 @@ class MSSQLColumn extends Column {
             $cleanedVal = floatval($val);
         } else if ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar') {
-            
             $cleanedVal = filter_var(str_replace('@!@', "''", addslashes(str_replace("'", '@!@', $val))));
         // It is not secure if not escaped without connection
         // Think about multi-byte strings
@@ -481,15 +480,13 @@ class MSSQLColumn extends Column {
         // use it as escape character
         } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
             if ($val != 'now' && $val != 'current_timestamp') {
-                $cleanedVal = $this->_dateCleanUp($val);
+                $cleanedVal = $this->dateCleanUp($val);
             } else {
                 $cleanedVal = $val;
             }
         } else if ($colDatatype == 'mixed') {
-            
-            
             if ($valType == 'string') {
-                $cleanedVal =  filter_var(addslashes($val));
+                $cleanedVal = filter_var(addslashes($val));
             } else if ($valType == 'double') {
                 $cleanedVal = "'".floatval($val)."'";
             } else if ($valType == 'boolean') {
@@ -506,7 +503,7 @@ class MSSQLColumn extends Column {
         }
         $retVal = call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
 
-        if ($retVal !== null && (($colDatatype == 'mixed' && $valType == 'string')|| $colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
+        if ($retVal !== null && (($colDatatype == 'mixed' && $valType == 'string') || $colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar')) {
             if ($colDatatype == 'nchar' || $colDatatype == 'nvarchar' || $colDatatype == 'mixed') {
                 return "N'".$retVal."'";
@@ -517,7 +514,7 @@ class MSSQLColumn extends Column {
 
         return $retVal;
     }
-    private function _dateCleanUp($val) {
+    private function dateCleanUp($val) {
         $trimmed = strtolower(trim($val));
         $cleanedVal = '';
 
@@ -531,7 +528,7 @@ class MSSQLColumn extends Column {
 
         return $cleanedVal;
     }
-    private function _defaultPart() {
+    private function defaultPartString() {
         $colDataType = $this->getDatatype();
         $colDefault = $this->getDefault();
 
@@ -549,7 +546,7 @@ class MSSQLColumn extends Column {
                     return 'default '.$this->cleanValue($colDefault).' ';
                 }
             } else if ($colDataType == 'mixed') {
-                return "default ". $colDefault." ";
+                return "default ".$colDefault." ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
@@ -557,7 +554,7 @@ class MSSQLColumn extends Column {
     }
 
 
-    private function _firstColPart() {
+    private function firstColPartString() {
         $retVal = MSSQLQuery::squareBr($this->getName()).' ';
         $colDataTypeSq = MSSQLQuery::squareBr($this->getDatatype());
         $colDataType = $this->getDatatype();
@@ -567,7 +564,7 @@ class MSSQLColumn extends Column {
                 || $colDataType == 'binary' || $colDataType == 'varbinary') {
             $retVal .= $colDataTypeSq.'('.$this->getSize().') ';
         } else if ($colDataType == 'boolean') {
-                $retVal .= '[bit] ';
+            $retVal .= '[bit] ';
         } else if ($colDataType == 'decimal') {
             if ($this->getSize() != 0) {
                 $retVal .= $colDataTypeSq.'('.$this->getSize().','.$this->getScale().') ';
@@ -587,7 +584,7 @@ class MSSQLColumn extends Column {
 
         return $retVal;
     }
-    private function _nullPart() {
+    private function nullPartString() {
         $colDataType = $this->getDatatype();
 
         if (!$this->isNull() || $colDataType == 'boolean') {

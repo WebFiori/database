@@ -10,8 +10,11 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLTable;
+
 /**
- * A class that can be used to represents database tables.
+ * A class that can be used to represent database tables.
  *
  * @author Ibrahim
  * 
@@ -70,7 +73,7 @@ abstract class Table {
     private $ownerSchema;
     /**
      *
-     * @var type
+     * @var SelectExpression
      * 
      * @since 1.0
      */
@@ -92,6 +95,7 @@ abstract class Table {
      */
     public function __construct(string $name = 'new_table') {
         $this->name = '';
+        $this->setWithDbPrefix(false);
 
         if (!$this->setName($name)) {
             $this->name = 'new_table';
@@ -110,12 +114,12 @@ abstract class Table {
      * @return bool If added, the method will return true. False otherwise.
      */
     public function addColumn(string $key, Column $colObj) : bool {
-        $trimmidKey = str_replace('_', '-', trim($key));
+        $fixedKey = str_replace('_', '-', trim($key));
         $colName = $colObj->getNormalName();
 
-        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->isKeyNameValid($trimmidKey)) {
+        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($fixedKey) && $this->isKeyNameValid($fixedKey)) {
             $colObj->setOwner($this);
-            $this->colsArr[$trimmidKey] = $colObj;
+            $this->colsArr[$fixedKey] = $colObj;
 
             return true;
         }
@@ -128,31 +132,47 @@ abstract class Table {
      * @param array $cols An array that holds the columns as an associative array. 
      * The indices should represent columns keys.
      * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
      * @since 1.0
      */
-    public function addColumns(array $cols) {
+    public function addColumns(array $cols) : Table {
         foreach ($cols as $colKey => $colObj) {
             $this->addColumn($colKey, $colObj);
         }
+
+        return $this;
     }
     /**
      * Adds a foreign key to the table.
-     * 
-     * @param Table|AbstractQuery|string $refTable The referenced table. It is the table that 
-     * will contain original values. This value can be an object of type 
-     * 'Table', an object of type 'AbstractQuery' or the namespace of a class which is a sub-class of 
+     *
+     * @param Table|AbstractQuery|string $refTable The referenced table. It is the table that
+     * will contain original values. This value can be an object of type
+     * 'Table', an object of type 'AbstractQuery' or the namespace of a class which is a subclass of
      * the class 'AbstractQuery'.
-     * 
-     * @param array $cols An associative array that contains key columns. 
-     * The indices must be names of columns which exist in 'this' table and 
-     * the values must be columns from referenced table. It is possible to 
-     * provide an indexed array. If an indexed array is given, the method will 
-     * assume that the two tables have same column key. 
-     * 
-     * @param string $keyname The name of the key.
-     * 
-     * @param string $onupdate The 'on update' condition for the key. it can be one 
-     * of the following: 
+     *
+     * @param array $cols An associative array that contains key columns.
+     * The indices must be names of columns which exist in 'this' table and
+     * the values must be columns from referenced table. It is possible to
+     * provide an indexed array. If an indexed array is given, the method will
+     * assume that the two tables have same column key.
+     *
+     * @param string $keyName The name of the key.
+     *
+     * @param string $onUpdate The 'on update' condition for the key. it can be one
+     * of the following:
+     * <ul>
+     * <li>set null</li>
+     * <li>cascade</li>
+     * <li>restrict</li>
+     * <li>set default</li>
+     * <li>no action</li>
+     * </ul>
+     * Default value is 'set null'.
+     *
+     * @param string $onDelete The 'on delete' condition for the key. it can be one
+     * of the following:
      * <ul>
      * <li>set null</li>
      * <li>cascade</li>
@@ -162,21 +182,13 @@ abstract class Table {
      * </ul>
      * Default value is 'set null'.
      * 
-     * @param string $ondelete The 'on delete' condition for the key. it can be one 
-     * of the following: 
-     * <ul>
-     * <li>set null</li>
-     * <li>cascade</li>
-     * <li>restrict</li>
-     * <li>set default</li>
-     * <li>no action</li>
-     * </ul>
-     * Default value is 'set null'.
+     * @return Table The method will return the instance at which the method
+     * is called on.
      * 
-     * 
+     * @throws DatabaseException
      * @since 1.0
      */
-    public function addReference($refTable, array $cols, $keyname, $onupdate = 'set null', $ondelete = 'set null') {
+    public function addReference($refTable, array $cols, string $keyName, string $onUpdate = 'set null', string $onDelete = 'set null') : Table {
         if (!($refTable instanceof Table)) {
             if ($refTable instanceof AbstractQuery) {
                 $refTable = $refTable->getTable();
@@ -185,11 +197,21 @@ abstract class Table {
 
                 if ($q instanceof AbstractQuery) {
                     $refTable = $q->getTable();
+                } else if ($q instanceof Table) {
+                    $refTable = $q;
+                }
+            } else {
+                $owner = $this->getOwner();
+
+                if ($owner !== null) {
+                    $refTable = $owner->getTable($refTable);
                 }
             }
         }
 
-        $this->_createFk($refTable, $cols, $keyname, $onupdate, $ondelete);
+        $this->createFk($refTable, $cols, $keyName, $onUpdate, $onDelete);
+
+        return $this;
     }
     /**
      * Returns a column given its index.
@@ -201,7 +223,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColByIndex($index) {
+    public function getColByIndex(int $index) {
         foreach ($this->colsArr as $col) {
             $colIndex = $col->getIndex();
 
@@ -223,17 +245,19 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColByKey($key) {
+    public function getColByKey(string $key) {
         $trimmed = trim(str_replace('_', '-', $key));
 
         if (isset($this->colsArr[$trimmed])) {
             return $this->colsArr[$trimmed];
         }
+
+        return null;
     }
     /**
      * Returns a column given its actual name.
      * 
-     * @param string $key The name of column as it appears in the database.
+     * @param string $name The name of column as it appears in the database.
      * 
      * @return Column|null If a column which has the given name exist on the table, 
      * the method will return it as an object. Other than that, the method will return 
@@ -241,7 +265,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColByName($name) {
+    public function getColByName(string $name) {
         $trimmed = trim($name);
 
         foreach ($this->getCols() as $colObj) {
@@ -249,6 +273,8 @@ abstract class Table {
                 return $colObj;
             }
         }
+
+        return null;
     }
     /**
      * Returns an associative array that holds all table columns.
@@ -258,7 +284,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getCols() {
+    public function getCols() : array {
         return $this->colsArr;
     }
     /**
@@ -268,7 +294,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColsCount() {
+    public function getColsCount() : int {
         return count($this->colsArr);
     }
     /**
@@ -279,7 +305,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColsDatatypes() {
+    public function getColsDataTypes() : array {
         $retVal = [];
 
         foreach ($this->getCols() as $idx => $colObj) {
@@ -295,7 +321,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColsKeys() {
+    public function getColsKeys() : array {
         return array_keys($this->colsArr);
     }
     /**
@@ -307,7 +333,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getColsNames() {
+    public function getColsNames() : array {
         $columns = $this->getCols();
         $retVal = [];
 
@@ -339,7 +365,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getEntityMapper() {
+    public function getEntityMapper() : EntityMapper {
         if ($this->mapper === null) {
             $this->mapper = new EntityMapper($this, 'C');
         }
@@ -358,12 +384,14 @@ abstract class Table {
      * 
      * @since 1.0.1
      */
-    public function getForeignKey($keyName) {
-        foreach ($this->getForignKeys() as $keyObj) {
+    public function getForeignKey(string $keyName) {
+        foreach ($this->getForeignKeys() as $keyObj) {
             if ($keyObj->getKeyName() == $keyName) {
                 return $keyObj;
             }
         }
+
+        return null;
     }
     /**
      * Returns an array that contains all table foreign keys.
@@ -372,7 +400,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getForignKeys() {
+    public function getForeignKeys() : array {
         return $this->foreignKeys;
     }
     /**
@@ -382,12 +410,12 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getForignKeysCount() {
+    public function getForeignKeysCount() : int {
         return count($this->foreignKeys);
     }
     /**
      * Returns the name of the table.
-     * 
+     *
      * @return string The name of the table. Default return value is 'new_table'.
      * 
      * @since 1.0
@@ -408,7 +436,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public final function getNormalName() {
+    public final function getNormalName() : string {
         $owner = $this->getOwner();
 
         if ($owner !== null && $this->isNameWithDbPrefix()) {
@@ -452,7 +480,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getPrimaryKeyColsCount() {
+    public function getPrimaryKeyColsCount() : int {
         return count($this->getPrimaryKeyColsKeys());
     }
     /**
@@ -462,8 +490,8 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getPrimaryKeyColsKeys() {
-        return $this->_getColsKeys('isPrimary');
+    public function getPrimaryKeyColsKeys() : array {
+        return $this->getColsKeysHelper('isPrimary');
     }
 
     /**
@@ -474,7 +502,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function getPrimaryKeyName() {
+    public function getPrimaryKeyName() : string {
         $val = $this->isNameWithDbPrefix();
         $this->setWithDbPrefix(false);
         $keyName = $this->getNormalName();
@@ -483,10 +511,11 @@ abstract class Table {
         return $keyName.'_pk';
     }
     /**
+     * Returns select statement which was associated with the table.
      * 
      * @return SelectExpression
      */
-    public function getSelect() {
+    public function getSelect() : SelectExpression {
         if ($this->selectExpr === null) {
             $this->selectExpr = new SelectExpression($this);
         }
@@ -500,17 +529,17 @@ abstract class Table {
      * 
      * @since 1.0.2
      */
-    public function getUniqueCols() {
-        return $this->_getCols('isUnique');
+    public function getUniqueCols() : array {
+        return $this->getColsHelper('isUnique');
     }
     /**
      * Returns the number of columns that are marked as unique.
      * 
      * @return int The number of columns that are marked as unique. If 
-     * the table has no unique columns, the method will return 0..
+     * the table has no unique columns, the method will return 0.
      * 
      */
-    public function getUniqueColsCount() {
+    public function getUniqueColsCount() : int {
         return count($this->getUniqueColsKeys());
     }
     /**
@@ -519,8 +548,8 @@ abstract class Table {
      * @return array An array that contains the keys of the columns which are unique.
      * 
      */
-    public function getUniqueColsKeys() {
-        return $this->_getColsKeys('isUnique');
+    public function getUniqueColsKeys() : array {
+        return $this->getColsKeysHelper('isUnique');
     }
     /**
      * Checks if the table has a column which has specific name.
@@ -530,9 +559,7 @@ abstract class Table {
      * @return bool If the table has such column, the method will return true. 
      * other than that, the method will return false.
      */
-    public function hasColumn($colName) {
-        $normalColName = '';
-
+    public function hasColumn(string $colName) : bool {
         foreach ($this->colsArr as $colObj) {
             $normalColName = $colObj->getNormalName();
 
@@ -553,7 +580,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function hasColumnWithKey($keyName) {
+    public function hasColumnWithKey(string $keyName) : bool {
         $trimmed = trim($keyName);
 
         return isset($this->colsArr[$trimmed]);
@@ -565,8 +592,38 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function isNameWithDbPrefix() {
+    public function isNameWithDbPrefix() : bool {
         return $this->withDbPrefix;
+    }
+    /**
+     * Maps a table instance to another DBMS.
+     * 
+     * @param string $to The name of the DBMS at which the table will be mapped
+     * to.
+     * 
+     * @param Table $table The instance that will be mapped.
+     * 
+     * @return Table The method will return new instance which will be
+     * compatible with the new DBMS.
+     */
+    public static function map(string $to, Table $table) : Table {
+        if ($to == 'mysql') {
+            $newTable = new MySQLTable($table->getName());
+        } else if ($to == 'mssql') {
+            $newTable = new MSSQLTable($table->getName());
+        }
+        $newTable->setComment($table->getComment());
+
+        foreach ($table->getCols() as $key => $colObj) {
+            $newTable->addColumn($key, ColumnFactory::map($to, $colObj));
+        }
+
+        foreach ($table->getForeignKeys() as $fk) {
+            $sourceTbl = self::map($to, $fk->getSource());
+            $newTable->addReference($sourceTbl, $fk->getColumnsMap(), $fk->getKeyName(), $fk->getOnUpdate(), $fk->getOnDelete());
+        }
+
+        return $newTable;
     }
     /**
      * Removes a column from the table given its key.
@@ -578,7 +635,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function removeColByKey($colKey) {
+    public function removeColByKey(string $colKey) {
         $colObj = $this->getColByKey($colKey);
 
         if ($colObj !== null) {
@@ -598,7 +655,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function removeReference($keyName) {
+    public function removeReference(string $keyName) {
         $trimmed = trim($keyName);
         $newKeysArr = [];
         $removedKeyObj = null;
@@ -622,8 +679,8 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function setComment($comment) {
-        if ($comment == null || strlen($comment) != 0) {
+    public function setComment(string $comment = null) {
+        if ($comment === null || strlen($comment) != 0) {
             $this->comment = $comment;
         }
     }
@@ -638,7 +695,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function setName($name) {
+    public function setName(string $name) : bool {
         $trimmed = trim($name);
 
         if (strlen($trimmed) > 0) {
@@ -647,7 +704,7 @@ abstract class Table {
             if (strlen($this->oldName) == 0) {
                 $this->oldName = null;
             }
-            $this->name = $trimmed;
+            $this->name = Column::fixName($trimmed);
 
             return true;
         }
@@ -662,10 +719,10 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function setOwner($db) {
+    public function setOwner(Database $db = null) {
         if ($db instanceof Database) {
             $this->ownerSchema = $db;
-        } else if ($db === null) {
+        } else {
             $this->ownerSchema = null;
         }
     }
@@ -676,22 +733,26 @@ abstract class Table {
      * Note that table name will be prefixed with database name only if owner 
      * schema is set.
      * 
-     * @param boolean $withDbPrefix True to prefix table name with database name. 
+     * @param bool $withDbPrefix True to prefix table name with database name. 
      * false to not prefix table name with database name.
      * 
      * @since 1.0
      */
-    public function setWithDbPrefix($withDbPrefix) {
-        $this->withDbPrefix = $withDbPrefix === true;
+    public function setWithDbPrefix(bool $withDbPrefix) {
+        $this->withDbPrefix = $withDbPrefix;
     }
     public abstract function toSQL();
-    private function _createFk($refTable, $cols, $keyname, $onupdate, $ondelete) {
+
+    /**
+     * @throws DatabaseException
+     */
+    private function createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
         if ($refTable instanceof Table) {
             $fk = new ForeignKey();
             $fk->setOwner($this);
             $fk->setSource($refTable);
 
-            if ($fk->setKeyName($keyname) === true) {
+            if ($fk->setKeyName($keyName) === true) {
                 foreach ($cols as $target => $source) {
                     if (gettype($target) == 'integer') {
                         //indexed array. 
@@ -704,20 +765,26 @@ abstract class Table {
                 }
 
                 if (count($fk->getSourceCols()) != 0) {
-                    $fk->setOnUpdate($onupdate);
-                    $fk->setOnDelete($ondelete);
+                    $fk->setOnUpdate($onUpdate);
+                    $fk->setOnDelete($onDelete);
                     $this->foreignKeys[] = $fk;
-
-                    return true;
                 }
             } else {
-                throw new DatabaseException('Invalid FK name: \''.$keyname.'\'.');
+                throw new DatabaseException('Invalid FK name: \''.$keyName.'\'.');
             }
         } else {
             throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
         }
     }
-    private function _getCols($method) : array {
+
+    /**
+     * Returns an array that contains columns with specific condition.
+     * 
+     * @param string $method The name of column method such as 'isUnique' or 'isPrimary'.
+     * ,
+     * @return array An array that contains objects of type 'Column'.
+     */
+    private function getColsHelper(string $method) : array {
         $arr = [];
 
         foreach ($this->getCols() as $col) {
@@ -728,12 +795,12 @@ abstract class Table {
 
         return $arr;
     }
-    private function _getColsKeys($method) : array {
+    private function getColsKeysHelper($method) : array {
         $arr = [];
 
-        foreach ($this->getCols() as $colkey => $col) {
+        foreach ($this->getCols() as $columnKey => $col) {
             if ($col->$method()) {
-                $arr[] = $colkey;
+                $arr[] = $columnKey;
             }
         }
 
@@ -741,11 +808,11 @@ abstract class Table {
     }
     /**
      * 
-     * @param type $key
+     * @param string $key
      * @return bool
      * @since 1.6.1
      */
-    private function isKeyNameValid($key) {
+    private function isKeyNameValid(string $key) : bool {
         $keyLen = strlen($key);
 
         if ($keyLen == 0) {

@@ -196,11 +196,11 @@ class MySQLConnection extends Connection {
 
         try {
             if ($qType == 'insert' || $qType == 'update') {
-                return $this->_insertQuery();
-            } else if ($qType == 'select' || $qType == 'show'|| $qType == 'describe') {
-                return $this->_selectQuery();
+                return $this->runInsertQuery();
+            } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
+                return $this->runSelectQuery();
             } else {
-                return $this->_otherQuery();
+                return $this->runOtherQuery();
             }
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
@@ -208,16 +208,16 @@ class MySQLConnection extends Connection {
             throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode());
         }
     }
-    private function _bindAndExc() {
+    private function bindAndExcute() {
         $stm = $this->prepare($this->getLastQuery()->getParams());
 
         return $stm->execute();
     }
-    private function _insertQuery() {
+    private function runInsertQuery() {
         $query = $this->getLastQuery();
 
         if ($query->isPrepareBeforeExec()) {
-            $r = $this->_bindAndExc();
+            $r = $this->bindAndExcute();
         } else {
             $r = mysqli_query($this->link, $query->getQuery());
         }
@@ -242,12 +242,12 @@ class MySQLConnection extends Connection {
 
         return $retVal;
     }
-    private function _otherQuery() {
+    private function runOtherQuery() {
         $query = $this->getLastQuery()->getQuery();
         $retVal = false;
 
         if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->_bindAndExc();
+            $r = $this->bindAndExcute();
         } else if (!$this->getLastQuery()->isMultiQuery()) {
             $r = mysqli_query($this->link, $query);
         } else {
@@ -270,9 +270,9 @@ class MySQLConnection extends Connection {
 
         return $retVal;
     }
-    private function _selectQuery() {
+    private function runSelectQuery() {
         if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->_bindAndExc();
+            $r = $this->bindAndExcute();
         } else {
             $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
         }

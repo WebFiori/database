@@ -20,6 +20,8 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 define('ROOT', $rootDir);
 fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
 
+require_once $rootDir.$DS.'vendor'.$DS.'autoload.php';
+
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'AbstractQuery.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Table.php';
 require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ForeignKey.php';

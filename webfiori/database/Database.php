@@ -15,10 +15,10 @@ use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
 /**
- * A class which is used to represents the structure of the database 
+ * A class which is used to represent the structure of the database 
  * (database schema). 
- * In addition to that, the class has methods which is used to build some of 
- * the commonly used SQL queries such as 'create', 'insert' or 'update'.
+ * In addition to that, the class has methods which is used to build some
+ * commonly used SQL queries such as 'create', 'insert' or 'update'.
  * 
  * @author Ibrahim
  * 
@@ -30,7 +30,7 @@ class Database {
      * 
      * @var Connection 
      * 
-     * @since 1.0
+     * 
      */
     private $connection;
     /**
@@ -38,7 +38,7 @@ class Database {
      * 
      * @var ConnectionInfo
      * 
-     * @since 1.0 
+     *  
      */
     private $connectionInfo;
     /**
@@ -46,7 +46,7 @@ class Database {
      * 
      * @var array
      * 
-     * @since 1.0 
+     *  
      */
     private $queries;
 
@@ -55,7 +55,7 @@ class Database {
      * 
      * @var AbstractQuery 
      * 
-     * @since 1.0
+     * 
      */
     private $queryGenerator;
     /**
@@ -63,7 +63,7 @@ class Database {
      * 
      * @var array
      * 
-     * @since 1.0 
+     *  
      */
     private $tablesArr;
     /**
@@ -75,7 +75,7 @@ class Database {
      * @throws DatabaseException The method will throw an exception if database 
      * driver is not supported.
      * 
-     * @since 1.0
+     * 
      */
     public function __construct(ConnectionInfo $connectionInfo = null) {
         $this->setConnectionInfo($connectionInfo);
@@ -83,7 +83,7 @@ class Database {
         $this->tablesArr = [];
     }
     /**
-     * Adds a database query to the set of queries at which they where executed.
+     * Adds a database query to the set of queries at which they were executed.
      * 
      * This method is called internally by the library to add the query. The 
      * developer does not have to call this method manually.
@@ -93,9 +93,9 @@ class Database {
      * @param string $type The type of the query such as 'select', 'update' or 
      * 'delete'.
      * 
-     * @since 1.0
+     * 
      */
-    public function addQuery($query, $type) {
+    public function addQuery(string $query, string $type) {
         $this->queries[] = [
             'type' => $type,
             'query' => $query
@@ -115,9 +115,9 @@ class Database {
      * @return bool If the table is added, the method will return true. False 
      * otherwise.
      * 
-     * @since 1.0
+     * 
      */
-    public function addTable(Table $table, bool $updateOwnerDb = true) {
+    public function addTable(Table $table, bool $updateOwnerDb = true) : bool {
         $trimmedName = $table->getNormalName();
 
         if (!$this->hasTable($trimmedName)) {
@@ -131,41 +131,66 @@ class Database {
 
         return false;
     }
+
     /**
      * Build a 'where' expression.
-     * 
-     * This method can be used to append an 'and' condition to an already existing 
+     *
+     * This method can be used to append an 'and' condition to an already existing
      * 'where' condition.
-     * 
-     * @param AbstractQuery|string $col A string that represents the name of the 
-     * column that will be evaluated. This also can be an object of type 
-     * 'AbstractQuery' in case the developer would like to build a sub-where 
+     *
+     * @param AbstractQuery|string $col A string that represents the name of the
+     * column that will be evaluated. This also can be an object of type
+     * 'AbstractQuery' in case the developer would like to build a sub-where
      * condition.
-     * 
-     * @param string $cond A string that represents the condition at which column 
-     * value will be evaluated against. Can be ignored if first parameter is of 
+     *
+     *
+     * @param mixed $val The value (or values) at which the column will be evaluated
+     * against. Can be ignored if first parameter is of
+     * type 'AbstractQuery'.
+     *
+     * @param string $cond A string that represents the condition at which column
+     * value will be evaluated against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      * 
-     * @param mixed $val The value (or values) at which the column will be evaluated 
-     * against. Can be ignored if first parameter is of 
-     * type 'AbstractQuery'.
-     * 
-     * @return AbstractQuery The method will return an instance of the class 
+     * @return AbstractQuery The method will return an instance of the class
      * 'AbstractQuery' which can be used to build SQL queries.
-     * 
-     * @since 1.0
+     *
+     * @throws DatabaseException
      */
-    public function andWhere($col, $val, $cond = '=') {
-        return $this->where($col, $val, $cond, 'and');
+    public function andWhere($col, $val, string $cond = '=') : AbstractQuery {
+        return $this->where($col, $val, $cond);
     }
     /**
      * Rest all attributes of the class to original values.
      * 
-     * @since 1.0
+     * 
      */
     public function clear() {
         $this->queries = [];
         $this->getQueryGenerator()->reset();
+    }
+    /**
+     * Creates a blueprint of a table that can be used to build table structure.
+     * 
+     * @param string $name The name of the table as it appears in the database.
+     * 
+     * @return Table the method will return an instance of the class 'Table'
+     * which will be based on the type of DBMS at which the instance is
+     * connected to. If connected to MySQL, an instance of 'MySQLTable' is
+     * returned. If connected to MSSQL, an instance of MSSQLTable is returned
+     * and so on.
+     */
+    public function createBlueprint(string $name) : Table {
+        $dbType = $this->getConnection()->getConnectionInfo()->getDatabaseType();
+
+        if ($dbType == 'mysql') {
+            $blueprint = new mysql\MySQLTable($name);
+        } else if ($dbType == 'mssql') {
+            $blueprint = new mssql\MSSQLTable($name);
+        }
+        $this->addTable($blueprint);
+
+        return $blueprint;
     }
     /**
      * Constructs a query which can be used to create selected database table.
@@ -173,9 +198,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function createTable() {
+    public function createTable() : AbstractQuery {
         return $this->getQueryGenerator()->createTable();
     }
     /**
@@ -184,13 +209,15 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0.1
+     * .1
      */
-    public function createTables() {
+    public function createTables() : AbstractQuery {
         $generatedQuery = '';
 
         foreach ($this->getTables() as $tableObj) {
-            $generatedQuery .= $tableObj->toSQL()."\n";
+            if ($tableObj->getColsCount() != 0) {
+                $generatedQuery .= $tableObj->toSQL()."\n";
+            }
         }
         $this->getQueryGenerator()->setQuery($generatedQuery, true);
 
@@ -203,9 +230,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function delete() {
+    public function delete() : AbstractQuery {
         $this->clear();
 
         return $this->getQueryGenerator()->delete();
@@ -216,9 +243,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function drop() {
+    public function drop() : AbstractQuery {
         $this->clear();
 
         return $this->getQueryGenerator()->drop();
@@ -237,7 +264,7 @@ class Database {
      * describe query, the method will return an object of type 'ResultSet' that 
      * holds fetched records. Other than that, the method will return null.
      * 
-     * @since 1.0
+     * 
      */
     public function execute() {
         $conn = $this->getConnection();
@@ -266,31 +293,21 @@ class Database {
      * If the connection is already active, the method will return it.
      * 
      * @return Connection The connection at which the instance will use to run SQL queries.
+     *
      * 
-     * @throws DatabaseException If no connection is active and the method tried 
-     * to initialize the connection but was not able to connect.
      * 
-     * @since 1.0
      */
-    public function getConnection() {
+    public function getConnection() : Connection {
         if ($this->connection === null) {
             $driver = $this->getConnectionInfo()->getDatabaseType();
             $connInfo = $this->getConnectionInfo();
 
             if ($driver == 'mysql') {
-                try {
-                    $conn = new MySQLConnection($connInfo);
-                    $this->setConnection($conn);
-                } catch (DatabaseException $ex) {
-                    throw new DatabaseException($ex->getMessage(), $ex->getCode());
-                }
+                $conn = new MySQLConnection($connInfo);
+                $this->setConnection($conn);
             } else if ($driver == 'mssql') {
-                try {
-                    $conn = new MSSQLConnection($connInfo);
-                    $this->setConnection($conn);
-                } catch (DatabaseException $ex) {
-                    throw new DatabaseException($ex->getMessage(), $ex->getCode());
-                }
+                $conn = new MSSQLConnection($connInfo);
+                $this->setConnection($conn);
             }
         }
 
@@ -301,19 +318,19 @@ class Database {
      * 
      * @return ConnectionInfo An object that holds connection information.
      * 
-     * @since 1.0
+     * 
      */
-    public function getConnectionInfo() {
+    public function getConnectionInfo() : ConnectionInfo {
         return $this->connectionInfo;
     }
+
     /**
      * Returns an indexed array that contains all executed SQL queries.
-     * 
+     *
      * @return array An indexed array that contains all executed SQL queries.
-     * 
-     * @since 1.0
+     *
      */
-    public function getExecutedQueries() {
+    public function getExecutedQueries() : array {
         return $this->getConnection()->getExecutedQueries();
     }
     /**
@@ -323,9 +340,9 @@ class Database {
      * The first one is 'message' which contains error message and the second one 
      * is 'code' which contains error code.
      * 
-     * @since 1.0
+     * 
      */
-    public function getLastError() {
+    public function getLastError() : array {
         if ($this->connection !== null) {
             return [
                 'message' => $this->connection->getLastErrMessage(),
@@ -343,19 +360,18 @@ class Database {
      * 
      * @return string Last generated SQL query as string.
      * 
-     * @since 1.0
+     * 
      */
-    public function getLastQuery() {
+    public function getLastQuery() : string {
         return trim($this->getQueryGenerator()->getQuery());
     }
+
     /**
-     * Returns the last result set which was generated from executing a query such 
+     * Returns the last result set which was generated from executing a query such
      * as a 'select' query.
-     * 
-     * @return ResultSet|null The last result set. If no result set is available, 
+     *
+     * @return ResultSet|null The last result set. If no result set is available,
      * the method will return null.
-     * 
-     * @since 1.0
      */
     public function getLastResultSet() {
         return $this->getConnection()->getLastResultSet();
@@ -365,9 +381,9 @@ class Database {
      * 
      * @return string The name of the database.
      * 
-     * @since 1.0
+     * 
      */
-    public function getName() {
+    public function getName() : string {
         return $this->getConnectionInfo()->getDBName();
     }
     /**
@@ -375,9 +391,9 @@ class Database {
      * 
      * @return array An indexed array that contains all generated SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function getQueries() {
+    public function getQueries() : array {
         return $this->queries;
     }
     /**
@@ -385,9 +401,9 @@ class Database {
      *  
      * @return AbstractQuery
      * 
-     * @since 1.0
+     * 
      */
-    public function getQueryGenerator() {
+    public function getQueryGenerator() : AbstractQuery {
         return $this->queryGenerator;
     }
     /**
@@ -395,13 +411,12 @@ class Database {
      * 
      * @param string $tblName The name of the table.
      * 
-     * @return Table|null If a table which has the given name is exist, it will
+     * @return Table|null If a table which has the given name is existed, it will
      * be returned as an object. Other than that, null is returned.
      * 
-     * 
-     * @since 1.0
+     *
      */
-    public function getTable($tblName) {
+    public function getTable(string $tblName) {
         $trimmed = trim($tblName);
 
         if (!isset($this->tablesArr[$trimmed])) {
@@ -416,9 +431,9 @@ class Database {
      * @return array The method will return an associative array. The indices 
      * of the array are tables names and the values are objects of type 'Table'.
      * 
-     * @since 1.0.1
+     * .1
      */
-    public function getTables() {
+    public function getTables() : array {
         return $this->tablesArr;
     }
     /**
@@ -429,9 +444,9 @@ class Database {
      * @return bool If the table exist, the method will return true. 
      * False if it does not exist.
      * 
-     * @since 1.0
+     * 
      */
-    public function hasTable($tableName) {
+    public function hasTable(string $tableName) : bool {
         return isset($this->tablesArr[$tableName]);
     }
     /**
@@ -445,9 +460,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function insert($colsAndVals) {
+    public function insert(array $colsAndVals) : AbstractQuery {
         $this->clear();
 
         return $this->getQueryGenerator()->insert($colsAndVals);
@@ -460,9 +475,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function limit($limit) {
+    public function limit(int $limit) : AbstractQuery {
         return $this->getQueryGenerator()->limit($limit);
     }
     /**
@@ -476,36 +491,37 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function offset($offset) {
+    public function offset(int $offset) : AbstractQuery {
         return $this->getQueryGenerator()->offset($offset);
     }
+
     /**
      * Build a 'where' expression.
-     * 
-     * This method can be used to append an 'or' condition to an already existing 
+     *
+     * This method can be used to append an 'or' condition to an already existing
      * 'where' condition.
-     * 
-     * @param AbstractQuery|string $col A string that represents the name of the 
-     * column that will be evaluated. This also can be an object of type 
-     * 'AbstractQuery' in case the developer would like to build a sub-where 
+     *
+     * @param AbstractQuery|string $col A string that represents the name of the
+     * column that will be evaluated. This also can be an object of type
+     * 'AbstractQuery' in case the developer would like to build a sub-where
      * condition.
-     * 
-     * @param string $cond A string that represents the condition at which column 
-     * value will be evaluated against. Can be ignored if first parameter is of 
+     *
+     * @param mixed $val The value (or values) at which the column will be evaluated
+     * against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      * 
-     * @param mixed $val The value (or values) at which the column will be evaluated 
-     * against. Can be ignored if first parameter is of 
+     * @param string $cond A string that represents the condition at which column
+     * value will be evaluated against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
-     * 
-     * @return AbstractQuery The method will return an instance of the class 
+     *
+     * @return AbstractQuery The method will return an instance of the class
      * 'AbstractQuery' which can be used to build SQL queries.
-     * 
-     * @since 1.0
+     *
+     * @throws DatabaseException
      */
-    public function orWhere(string $col, $val = null, string $cond = '=') {
+    public function orWhere(string $col, $val = null, string $cond = '=') : AbstractQuery {
         return $this->where($col, $val, $cond, 'or');
     }
     /**
@@ -514,15 +530,14 @@ class Database {
      * @param int $num Page number. It should be a number greater than or equals 
      * to 1.
      * 
-     * @param int $itemsCount Number of records per page. Must be a number greater 
-     * than or equals to 1.
+     * @param int $itemsCount Number of records per page. Must be a number greater than or equals to 1.
      * 
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function page($num, $itemsCount) {
+    public function page(int $num, int $itemsCount) : AbstractQuery {
         return $this->getQueryGenerator()->page($num, $itemsCount);
     }
     /**
@@ -534,9 +549,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function select($cols = ['*']) {
+    public function select(array $cols = ['*']) : AbstractQuery {
         $this->clear();
 
         return $this->getQueryGenerator()->select($cols);
@@ -546,7 +561,7 @@ class Database {
      * 
      * @param Connection $con An active connection.
      * 
-     * @since 1.0
+     * 
      */
     public function setConnection(Connection $con) {
         $this->connection = $con;
@@ -559,7 +574,7 @@ class Database {
      * @throws DatabaseException The method will throw an exception if database 
      * driver is not supported.
      * 
-     * @since 1.0
+     * 
      */
     public function setConnectionInfo(ConnectionInfo $info) {
         $driver = $info->getDatabaseType();
@@ -575,17 +590,18 @@ class Database {
         }
         $this->connectionInfo = $info;
     }
+
     /**
      * Sets the database query to a raw SQL query.
-     * 
+     *
      * @param string $query A string that represents the query.
-     * 
-     * @return Database The method will return the same instance at which the 
+     *
+     * @return Database The method will return the same instance at which the
      * method is called on.
-     * 
-     * @since 1.0.2
+     *
+     * @throws DatabaseException
      */
-    public function setQuery($query) {
+    public function setQuery(string $query) : Database {
         $t = $this->getQueryGenerator()->getTable();
 
         if ($t !== null) {
@@ -601,12 +617,12 @@ class Database {
      * 
      * @param string $tblName The name of the table.
      * 
-     * @return AbstractQuery|MySQLQuery The method will return an instance of the class 
+     * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function table($tblName) {
+    public function table(string $tblName) : AbstractQuery {
         return $this->getQueryGenerator()->table($tblName);
     }
     /**
@@ -615,9 +631,9 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function truncate() {
+    public function truncate() : AbstractQuery {
         $this->clear();
 
         return $this->getQueryGenerator()->truncate();
@@ -633,39 +649,40 @@ class Database {
      * @return AbstractQuery The method will return an instance of the class 
      * 'AbstractQuery' which can be used to build SQL queries.
      * 
-     * @since 1.0
+     * 
      */
-    public function update($newColsVals) {
+    public function update(array $newColsVals) : AbstractQuery {
         $this->clear();
 
         return $this->getQueryGenerator()->update($newColsVals);
     }
+
     /**
      * Build a where condition.
-     * 
-     * 
-     * @param AbstractQuery|string $col A string that represents the name of the 
-     * column that will be evaluated. This also can be an object of type 
-     * 'AbstractQuery' in case the developer would like to build a sub-where 
+     *
+     *
+     * @param AbstractQuery|string $col A string that represents the name of the
+     * column that will be evaluated. This also can be an object of type
+     * 'AbstractQuery' in case the developer would like to build a sub-where
      * condition.
-     * 
-     * @param string $cond A string that represents the condition at which column 
-     * value will be evaluated against. Can be ignored if first parameter is of 
+     *
+     * @param mixed $val The value (or values) at which the column will be evaluated
+     * against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      * 
-     * @param mixed $val The value (or values) at which the column will be evaluated 
-     * against. Can be ignored if first parameter is of 
+     * @param string $cond A string that represents the condition at which column
+     * value will be evaluated against. Can be ignored if first parameter is of
      * type 'AbstractQuery'.
      * 
-     * @param string $joinCond An optional string which can be used to join 
+     * @param string $joinCond An optional string which can be used to join
      * multiple where conditions. If not provided, 'and' will be used by default.
-     * 
-     * @return AbstractQuery The method will return an instance of the class 
+     *
+     * @return AbstractQuery The method will return an instance of the class
      * 'AbstractQuery' which can be used to build SQL queries.
-     * 
-     * @since 1.0
+     *
+     * @throws DatabaseException
      */
-    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') {
+    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         return $this->getQueryGenerator()->where($col, $val, $cond, $joinCond);
     }
 }

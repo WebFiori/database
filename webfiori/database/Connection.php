@@ -28,21 +28,21 @@ abstract class Connection {
     private $executedQueries;
     /**
      *
-     * @var type 
+     * @var string
      * 
      * @since 1.0
      */
     private $lastErrCode;
     /**
      *
-     * @var type 
+     * @var string
      * 
      * @since 1.0
      */
     private $lastErrMsg;
     /**
      *
-     * @var type 
+     * @var AbstractQuery|null
      * 
      * @since 1.0
      */

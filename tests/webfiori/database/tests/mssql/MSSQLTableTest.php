@@ -254,7 +254,7 @@ class MSSQLTableTest extends TestCase {
         ]);
         $t3->addReference($t1, ['user-id' => 'id'], 'user_loc_fk');
         $t3->addReference($t2, ['location' => 'id'], 'loc_fk');
-        $this->assertEquals(2, $t3->getForignKeysCount());
+        $this->assertEquals(2, $t3->getForeignKeysCount());
         $this->assertEquals("if not exists (select * from sysobjects where name='user_location' and xtype='U')\n"
                 . "create table [user_location] (\n"
                 . "    [user_id] [int] not null,\n"
@@ -263,6 +263,74 @@ class MSSQLTableTest extends TestCase {
                 . "    constraint user_loc_fk foreign key ([user_id]) references [users] ([id]) on update set null on delete set null,\n"
                 . "    constraint loc_fk foreign key ([location]) references [locations] ([id]) on update set null on delete set null\n"
                 . ")\n", $t3->toSQL());
+    }
+    public function testMap00() {
+        $table = new MSSQLTable('users');
+        $table->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+            'username' => [
+                'type' => 'varchar',
+                'size' => 20,
+                'is-unique' => true
+            ],
+            'password' => [
+                'type' => 'varchar',
+                'size' => 256
+            ],
+            'created-on' => [
+                'type' => 'datetime2',
+                'default' => 'now',
+            ],
+        ]);
+        $table2 = new MSSQLTable('t');
+        $table2->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'auto-inc' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+                'is-unique' => true
+            ],
+        ]);
+        $table2->addReference($table, ['user-id', 'email'], 'fk_ok', 'cascade', 'cascade');
+        $key = $table2->getForeignKey('fk_ok');
+        $this->assertEquals(2, count($key->getSourceCols()));
+        $this->assertEquals("if not exists (select * from sysobjects where name='t' and xtype='U')\n"
+                . "create table [t] (\n"
+                . "    [user_id] [int] not null,\n"
+                . "    [email] [varchar](256) not null,\n"
+                . "    constraint t_pk primary key clustered([user_id]) on [PRIMARY],\n"
+                . "    constraint fk_ok foreign key ([user_id], [email]) references [users] ([user_id], [email]) on update cascade on delete cascade,\n"
+                . "    constraint AK_t unique (email)\n"
+                . ")\n"
+                . "", $table2->toSQL());
+        
+        $mappedInstance = \webfiori\database\Table::map('mysql', $table2);
+        $this->assertTrue($mappedInstance instanceof \webfiori\database\mysql\MySQLTable);
+        $this->assertEquals('`t`', $mappedInstance->getName());
+        $this->assertEquals("create table if not exists `t` (\n"
+                . "    `user_id` int not null unique,\n"
+                . "    `email` varchar(256) not null unique collate utf8mb4_unicode_520_ci,\n"
+                . "    constraint `t_pk` primary key (`user_id`),\n"
+                . "    constraint `fk_ok` foreign key (`user_id`, `email`) references `users` (`user_id`, `email`) on update cascade on delete cascade\n"
+                . ")\n"
+                . "engine = InnoDB\n"
+                . "default charset = utf8mb4\n"
+                . "collate = utf8mb4_unicode_520_ci;", $mappedInstance->toSQL());
     }
     /**
      * 
@@ -472,11 +540,11 @@ class MSSQLTableTest extends TestCase {
             ]
         ]);
         $table->addReference($table2, ['user-id'], 'hello_fk');
-        $this->assertEquals(1, $table->getForignKeysCount());
+        $this->assertEquals(1, $table->getForeignKeysCount());
         $this->assertNull($table->removeReference('not-exist'));
         $obj = $table->removeReference('hello_fk');
         $this->assertEquals('hello_fk', $obj->getKeyName());
-        $this->assertEquals(0, $table->getForignKeysCount());
+        $this->assertEquals(0, $table->getForeignKeysCount());
     }
     /**
      * @test
