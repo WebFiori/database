@@ -229,7 +229,7 @@ class MySQLTableTest extends TestCase {
     public function testAddColumn01() {
         $table = new MySQLTable();
         $this->assertTrue($table->addColumn(' new-col ', new MySQLColumn()));
-        $this->assertFalse($table->addColumn('invalid key', new MySQLColumn('col_2')));
+        $this->assertTrue($table->addColumn('valid key', new MySQLColumn('col_')));
         $this->assertFalse($table->addColumn('-', new MySQLColumn('col_2')));
         $this->assertFalse($table->addColumn('--', new MySQLColumn('col_2')));
 

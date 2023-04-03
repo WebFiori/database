@@ -823,7 +823,7 @@ abstract class Table {
         for ($x = 0 ; $x < $keyLen ; $x++) {
             $ch = $key[$x];
 
-            if ($ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')) {
+            if (in_array($ch, ['-', ' ']) || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')) {
                 if ($ch == '-') {
                     $actualKeyLen--;
                 }
