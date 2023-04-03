@@ -113,7 +113,7 @@ abstract class Table {
         $trimmidKey = str_replace('_', '-', trim($key));
         $colName = $colObj->getNormalName();
 
-        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->_isKeyNameValid($trimmidKey)) {
+        if (!$this->hasColumn($colName) && !$this->hasColumnWithKey($trimmidKey) && $this->isKeyNameValid($trimmidKey)) {
             $colObj->setOwner($this);
             $this->colsArr[$trimmidKey] = $colObj;
 
@@ -745,7 +745,7 @@ abstract class Table {
      * @return bool
      * @since 1.6.1
      */
-    private function _isKeyNameValid($key) {
+    private function isKeyNameValid($key) {
         $keyLen = strlen($key);
 
         if ($keyLen == 0) {
@@ -756,7 +756,7 @@ abstract class Table {
         for ($x = 0 ; $x < $keyLen ; $x++) {
             $ch = $key[$x];
 
-            if ($ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')) {
+            if (in_array($ch, ['-', ' ']) || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')) {
                 if ($ch == '-') {
                     $actualKeyLen--;
                 }

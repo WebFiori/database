@@ -19,7 +19,8 @@ class MSSQLTableTest extends TestCase {
         $this->assertFalse($table->addColumn('new-col-2', new MSSQLColumn()));
         $this->assertTrue($table->addColumn('new-col-2', new MSSQLColumn('col_2', 'varchar')));
         $this->assertFalse($table->addColumn('new-col-2', new MSSQLColumn('col_3', 'varchar')));
-
+        $this->assertTrue($table->addColumn('new col-2', new MSSQLColumn('new col-2', 'varchar')));
+        
         return $table;
     }
     /**
@@ -28,7 +29,7 @@ class MSSQLTableTest extends TestCase {
     public function testAddColumn01() {
         $table = new MSSQLTable();
         $this->assertTrue($table->addColumn(' new-col ', new MSSQLColumn()));
-        $this->assertFalse($table->addColumn('invalid key', new MSSQLColumn('col_2')));
+        $this->assertTrue($table->addColumn('valid key', new MSSQLColumn('col_2')));
         $this->assertFalse($table->addColumn('-', new MSSQLColumn('col_2')));
         $this->assertFalse($table->addColumn('--', new MSSQLColumn('col_2')));
 
@@ -41,12 +42,15 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable();
         $table->addColumns([
             'id' => new MSSQLColumn('col-01'),
-            'name' => new MSSQLColumn('col-02', 'int')
+            'name' => new MSSQLColumn('col-02', 'int'),
+            'Other Col' => []
         ]);
         $this->assertTrue($table->hasColumnWithKey('id'));
         $this->assertTrue($table->hasColumnWithKey('name'));
+        $this->assertTrue($table->hasColumnWithKey('Other Col'));
         $this->assertTrue($table->hasColumn('col-01'));
         $this->assertTrue($table->hasColumn('col-02'));
+        $this->assertTrue($table->hasColumn('Other Col'));
 
         return $table;
     }
@@ -338,13 +342,16 @@ class MSSQLTableTest extends TestCase {
     }
     /**
      * 
-     * @param MySQLTable $table
+     * @param MSSQLTable $table
      * @depends testAddColumn00
      */
     public function testHasCol00($table) {
         $this->assertTrue($table->hasColumnWithKey('new-col'));
         $this->assertTrue($table->hasColumnWithKey(' new-col '));
         $this->assertTrue($table->hasColumnWithKey('new-col-2'));
+        $this->assertTrue($table->hasColumnWithKey('new col-2'));
+        $col = $table->getColByKey('new col-2');
+        $this->assertEquals('[new col-2]', $col->getName());
     }
     /**
      * 
@@ -354,6 +361,7 @@ class MSSQLTableTest extends TestCase {
     public function testHasCol01($table) {
         $this->assertTrue($table->hasColumnWithKey('new-col'));
         $this->assertFalse($table->hasColumnWithKey('invalid key'));
+        
     }
     /**
      * @test

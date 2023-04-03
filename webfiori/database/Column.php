@@ -585,13 +585,12 @@ abstract class Column {
 
         if ($this instanceof MySQLColumn) {
             $this->name = trim($name, '`');
+        } else if ($this instanceof MSSQLColumn) {
+            $this->name = trim(trim($name, '['), ']');
         } else {
-            if ($this instanceof MSSQLColumn) {
-                $this->name = trim(trim($name, '['), ']');
-            } else {
-                $this->name = trim($name);
-            }
+            $this->name = trim($name);
         }
+        
     }
     /**
      * Sets or unset the owner table of the column.
