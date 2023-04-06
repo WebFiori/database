@@ -481,7 +481,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function unionTest00() {
+    public function testUnion00() {
         $schema = new MySQLTestSchema();
         $schema->table('users')
                 ->select(['id' => [
@@ -495,7 +495,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function unionTest01() {
+    public function testUnion01() {
         $schema = new MySQLTestSchema();
         $schema->table('users')
                 ->select(['id' => [
@@ -510,15 +510,16 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function unionTest02() {
+    public function testUnion02() {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users');
                 $q->select(['id' => [
                     'alias' => 'user_id'
                 ], 'first-name'])
-                ->where('id', 44, '!=')
-                ->union($q->table('users_privileges')->select())
-                ->union($q->table('users_tasks')->select(), true);
+                ->where('id', 44, '!=');
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44", $schema->getLastQuery());     
+        $q->union($q->table('users_privileges')->select())
+            ->union($q->table('users_tasks')->select(), true);
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != 44"
                 . "\nunion\n"
                 . "select * from `users_privileges`"

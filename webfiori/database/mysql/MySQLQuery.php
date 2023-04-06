@@ -580,4 +580,29 @@ class MySQLQuery extends AbstractQuery {
             $this->setQuery($this->createInsertStm($colsAndVals, $isReplace));
         }
     }
+    /**
+     * Creates and returns a copy of the builder.
+     * 
+     * The information that will be copied includes:
+     * <ul>
+     * <li>Limit.</li>
+     * <li>Offset.</li>
+     * <li>Linked table.</li>
+     * <li>Linked schema.</li>
+     * </ul>
+     * 
+     * @return AbstractQuery
+     * 
+     * @since 1.0
+     */
+    public function copyQuery(): AbstractQuery {
+        $copy = new MySQLQuery();
+        $copy->limit($this->getLimit());
+        $copy->offset($this->getOffset());
+        $copy->setTable($this->getTable(), false);
+        $copy->setSchema($this->getSchema());
+
+        return $copy;
+    }
+
 }
