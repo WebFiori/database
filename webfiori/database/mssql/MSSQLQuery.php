@@ -48,6 +48,29 @@ class MSSQLQuery extends AbstractQuery {
         return $this;
     }
     /**
+     * Creates and returns a copy of the builder.
+     * 
+     * The information that will be copied includes:
+     * <ul>
+     * <li>Limit.</li>
+     * <li>Offset.</li>
+     * <li>Linked table.</li>
+     * <li>Linked schema.</li>
+     * </ul>
+     * 
+     * @return AbstractQuery
+     * 
+     * @since 1.0
+     */
+    public function copyQuery() : AbstractQuery {
+        
+        $copy = new MSSQLQuery();
+        $copy->setTable($this->getTable(), false);
+        $copy->setSchema($this->getSchema());
+
+        return $copy;
+    }
+    /**
      * Constructs a query that can be used to add a primary key to the active table.
      * 
      * @return MSSQLQuery The method will return the same instance at which the 

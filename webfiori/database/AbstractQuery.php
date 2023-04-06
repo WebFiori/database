@@ -216,29 +216,11 @@ abstract class AbstractQuery {
      * <li>Linked schema.</li>
      * </ul>
      * 
-     * @return MySQLQuery
+     * @return AbstractQuery
      * 
      * @since 1.0
      */
-    public function copyQuery() {
-        $driver = $this->getSchema()->getConnectionInfo()->getDatabaseType();
-
-        if ($driver == 'mysql') {
-            $copy = new MySQLQuery();
-            $copy->limit = $this->limit;
-            $copy->offset = $this->offset;
-            $copy->associatedTbl = $this->associatedTbl;
-            $copy->schema = $this->schema;
-
-            return $copy;
-        } else if ($driver == 'mssql') {
-            $copy = new MSSQLQuery();
-            $copy->associatedTbl = $this->associatedTbl;
-            $copy->schema = $this->schema;
-
-            return $copy;
-        }
-    }
+    public abstract function copyQuery() : AbstractQuery ;
     /**
      * Constructs a query which when executed will create the table in the database. 
      * 
@@ -1009,12 +991,15 @@ abstract class AbstractQuery {
     /**
      * Associate a table with the query builder.
      * 
-     * @param Table $table The table that will be associated.
+     * @param Table|null $table The table that will be associated.
+     * 
+     * @param bool $clearSelect If set to true, select statement of the table
+     * will be cleared.
      * 
      * @since 1.0
      */
-    public function setTable(Table $table) {
-        if ($table !== null) {
+    public function setTable(Table $table = null, bool $clearSelect = true) {
+        if ($table !== null && $clearSelect) {
             $table->getSelect()->clear();
         }
         $this->associatedTbl = $table;
