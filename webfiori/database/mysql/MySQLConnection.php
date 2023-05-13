@@ -69,6 +69,7 @@ class MySQLConnection extends Connection {
      */
     public function connect() : bool {
         $test = false;
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
         $connInfo = $this->getConnectionInfo();
 
         $host = $connInfo->getHost();
@@ -80,17 +81,13 @@ class MySQLConnection extends Connection {
         if (!function_exists('mysqli_connect')) {
             throw new DatabaseException('mysqli extension is missing.');
         }
-        set_error_handler(function($no, $message)
-        {
-            throw new DatabaseException($message, $no);
-        });
+
         try {
             $this->link = mysqli_connect($host, $user, $pass, null, $port);
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
             $this->setErrMessage($ex->getCode());
         }
-        restore_error_handler();
 
         if ($this->link instanceof mysqli) {
             $test = mysqli_select_db($this->link, $dbName);
