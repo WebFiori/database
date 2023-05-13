@@ -136,7 +136,7 @@ class MSSQLTable extends Table {
 
         return "exec $sp\n"
                 ."@name = N'MS_Description',\n"
-                ."@value = '$comment',\n"
+                ."@value = '". str_replace("'", "''", $comment)."',\n"
                 ."@level0type = N'Schema',\n"
                 ."@level0name = 'dbo',\n"
                 ."@level1type = N'Table',\n"
