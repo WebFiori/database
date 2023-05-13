@@ -58,7 +58,7 @@ class MSSQLTestSchema extends Database {
         $this->addTable($table01);
         
         $table02 = new MSSQLTable('users_tasks');
-        $table02->setComment('A table used to hold users tasks.');
+        $table02->setComment("A table used to hold 'users' tasks.");
         $table02->addColumns([
             'task-id' => [
                 'type' => 'int',
@@ -68,7 +68,7 @@ class MSSQLTestSchema extends Database {
             'user-id' => [
                 'type' => 'int',
                 'size' => '5',
-                'comment' => 'The ID of the user who must perform the activity.'
+                'comment' => "The ID of the user who must perform the 'activity'."
             ],
             'created-on' => [
                 'type' => 'datetime2',
