@@ -133,14 +133,23 @@ class MSSQLTable extends Table {
         } else {
             $sp = 'sp_addextendedproperty';
         }
-
-        return "exec $sp\n"
-                ."@name = N'MS_Description',\n"
-                ."@value = '". str_replace("'", "''", $comment)."',\n"
-                ."@level0type = N'Schema',\n"
-                ."@level0name = 'dbo',\n"
-                ."@level1type = N'Table',\n"
-                ."@level1name = '$tableName';";
+        $query = "exec $sp\n"
+                    ."@name = N'MS_Description',\n"
+                    ."@value = '". str_replace("'", "''", $comment)."',\n"
+                    ."@level0type = N'Schema',\n"
+                    ."@level0name = 'dbo',\n"
+                    ."@level1type = N'Table',\n"
+                    ."@level1name = '$tableName';";
+        if ($spType == 'add') {
+            return "if not exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0){\n"
+                    .$query."}";
+                
+        } else if ($spType == 'update') {
+            return "if exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0){\n"
+                    .$query."}";
+        } else {
+            return $query;
+        }
     }
     /**
      * Returns the name of the table.
