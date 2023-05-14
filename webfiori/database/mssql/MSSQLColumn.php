@@ -160,7 +160,7 @@ class MSSQLColumn extends Column {
             $sp = 'sp_addextendedproperty';
         }
 
-        return "exec $sp\n"
+        $query = "exec $sp\n"
                 ."@name = N'MS_Description',\n"
                 ."@value = '". str_replace("'", "''", $comment)."',\n"
                 ."@level0type = N'Schema',\n"
@@ -169,6 +169,19 @@ class MSSQLColumn extends Column {
                 ."@level1name = '$tableName',\n"
                 ."@level2type = N'Column',\n"
                 ."@level2name = '$colName';";
+         
+        if ($spType == 'add') {
+            return "if not exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') "
+                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."'))){\n"
+                    .$query."}";
+                
+        } else if ($spType == 'update') {
+            return "if exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') "
+                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."'))){\n"
+                    .$query."}";
+        } else {
+            return $query;
+        }
     }
     /**
      * Creates an instance of the class 'Column' given an array of options.
