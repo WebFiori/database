@@ -141,12 +141,12 @@ class MSSQLTable extends Table {
                     ."@level1type = N'Table',\n"
                     ."@level1name = '$tableName';";
         if ($spType == 'add') {
-            return "if not exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0){\n"
-                    .$query."}";
+            return "if not exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0)\n"
+                    .$query."";
                 
         } else if ($spType == 'update') {
-            return "if exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0){\n"
-                    .$query."}";
+            return "if exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0)\n"
+                    .$query."";
         } else {
             return $query;
         }
