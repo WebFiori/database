@@ -172,13 +172,13 @@ class MSSQLColumn extends Column {
          
         if ($spType == 'add') {
             return "if not exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') "
-                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."'))){\n"
-                    .$query."}";
+                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."')))\n"
+                    .$query."";
                 
         } else if ($spType == 'update') {
             return "if exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') "
-                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."'))){\n"
-                    .$query."}";
+                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."')))\n"
+                    .$query."";
         } else {
             return $query;
         }
