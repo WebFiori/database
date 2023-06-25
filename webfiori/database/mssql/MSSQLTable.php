@@ -22,6 +22,13 @@ use webfiori\database\Table;
 class MSSQLTable extends Table {
     private $uniqueConstName;
     /**
+     * A boolean which is used to indicate if create SQL query will have extended
+     * properties included or not.
+     * 
+     * @var bool
+     */
+    private $withExtendedProps;
+    /**
      * Creates a new instance of the class.
      * 
      * @param string $name The name of the table. If empty string is given, 
@@ -31,6 +38,25 @@ class MSSQLTable extends Table {
      */
     public function __construct($name = 'new_table') {
         parent::__construct($name);
+        $this->setWithExtendedProps(false);
+    }
+    /**
+     * Sets the value of the property which is used to indicate if extended property
+     * will be included in 'create table' statement.
+     * 
+     * @param bool $bool True to include it. False to not.
+     */
+    public function setWithExtendedProps(bool $bool) {
+        $this->withExtendedProps = $bool;
+    }
+    /**
+     * Checks if extended property will be included in in 'create table' statement.
+     * 
+     * @return bool True if they will be included. False if not. Default return
+     * value is false.
+     */
+    public function isWithExtendedProps() : bool {
+        return $this->withExtendedProps;
     }
     /**
      * Adds new column to the table.
@@ -122,7 +148,7 @@ class MSSQLTable extends Table {
     public function createTableCommentCommand(string $spType = 'add') {
         $comment = $this->getComment();
 
-        if ($comment === null) {
+        if ($comment === null || !$this->isWithExtendedProps()) {
             return '';
         }
 
