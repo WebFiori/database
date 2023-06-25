@@ -22,6 +22,13 @@ use webfiori\database\DateTimeValidator;
  */
 class MSSQLColumn extends Column {
     /**
+     * A boolean which is used to indicate if create SQL query will have extended
+     * properties included or not.
+     * 
+     * @var bool
+     */
+    private $withExtendedProps;
+    /**
      * A boolean which can be set to true in order to auto-update any 
      * date datatype column..
      * 
@@ -54,6 +61,7 @@ class MSSQLColumn extends Column {
         parent::__construct($name);
         $this->isAutoUpdate = false;
         $this->isIdintity = false;
+        $this->setWithExtendedProps(false);
         $this->setSupportedTypes([
             'int',
             'bigint',
@@ -78,6 +86,24 @@ class MSSQLColumn extends Column {
         if (!$this->setSize($size)) {
             $this->setSize(1);
         }
+    }
+    /**
+     * Sets the value of the property which is used to indicate if extended property
+     * will be included in 'create table' statement.
+     * 
+     * @param bool $bool True to include it. False to not.
+     */
+    public function setWithExtendedProps(bool $bool) {
+        $this->withExtendedProps = false;
+    }
+    /**
+     * Checks if extended property will be included in in 'create table' statement.
+     * 
+     * @return bool True if they will be included. False if not. Default return
+     * value is false.
+     */
+    public function isWithExtendedProps() : bool {
+        return $this->withExtendedProps;
     }
     /**
      * Returns a string that represents the column.
@@ -143,7 +169,7 @@ class MSSQLColumn extends Column {
     public function createColCommentCommand(string $spType = 'add') {
         $comment = $this->getComment();
 
-        if ($comment === null) {
+        if ($comment === null || !$this->isWithExtendedProps()) {
             return '';
         }
         $table = $this->getOwner();
