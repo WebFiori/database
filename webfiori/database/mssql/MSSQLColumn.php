@@ -94,7 +94,7 @@ class MSSQLColumn extends Column {
      * @param bool $bool True to include it. False to not.
      */
     public function setWithExtendedProps(bool $bool) {
-        $this->withExtendedProps = false;
+        $this->withExtendedProps = $bool;
     }
     /**
      * Checks if extended property will be included in in 'create table' statement.
