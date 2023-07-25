@@ -22,6 +22,11 @@ use webfiori\database\mysql\MySQLQuery;
  */
 abstract class AbstractQuery {
     /**
+     * 
+     * @var InsertHelper
+     */
+    private $insertHelper;
+    /**
      *
      * @var Table|null 
      * 
@@ -496,7 +501,17 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public abstract function insert(array $colsAndVals);
+    public function insert(array $colsAndVals) {
+        $this->insertHelper = new InsertBuilder($this->getTable(), $colsAndVals);
+        $this->setQuery($this->insertHelper->getQuery());
+    }
+    /**
+     * 
+     * @return InsertBuilder|null
+     */
+    public function getInsertBuilder() {
+        return $this->insertHelper;
+    }
     /**
      * Checks if the query represents a multi-query.
      * 

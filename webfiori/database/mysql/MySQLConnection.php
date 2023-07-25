@@ -193,7 +193,7 @@ class MySQLConnection extends Connection {
 
         try {
             if ($qType == 'insert' || $qType == 'update') {
-                return $this->runInsertQuery();
+                return $this->runInsertQuery($query);
             } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
                 return $this->runSelectQuery();
             } else {
@@ -212,12 +212,12 @@ class MySQLConnection extends Connection {
     }
     private function runInsertQuery() {
         $query = $this->getLastQuery();
+        $sqlStatement = mysqli_prepare($this->link, $query);
+        $insertParams = $query->getInsertBuilder()->getQueryParams()['bind'];
+        $values = array_merge($query->getInsertBuilder()->getQueryParams()['values']);
+        $sqlStatement->bind_param($insertParams, $values);
+        $r = $sqlStatement->execute();
 
-        if ($query->isPrepareBeforeExec()) {
-            $r = $this->bindAndExcute();
-        } else {
-            $r = mysqli_query($this->link, $query->getQuery());
-        }
         $retVal = false;
 
         if (!$r) {

@@ -5,6 +5,7 @@
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./webfiori/database/mysql</directory>
+            <directory suffix=".php">./webfiori/database/mssql</directory>
             <directory suffix=".php">./webfiori/database/AbstractQuery.php</directory>
             <directory suffix=".php">./webfiori/database/Column.php</directory>
             <directory suffix=".php">./webfiori/database/Condition.php</directory>
@@ -19,6 +20,7 @@
             <directory suffix=".php">./webfiori/database/Table.php</directory>
             <directory suffix=".php">./webfiori/database/WhereExpression.php</directory>
             <directory suffix=".php">./webfiori/database/RecordMapper.php</directory>
+            <directory suffix=".php">./webfiori/database/InsertBuilder.php</directory>
         </whitelist>
     </filter>
     <logging>
@@ -33,8 +35,6 @@
         </testsuite>
         <testsuite name="MSSQL Tests">
             <directory>./tests/webfiori/database/tests/mssql</directory>
-            <exclude>./tests/webfiori/database/tests/mssql/MSSQLQueryBuilderTest.php</exclude>
-            <exclude>./tests/webfiori/database/tests/mssql/MSSQLTestSchema.php</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
