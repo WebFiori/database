@@ -22,6 +22,10 @@ namespace webfiori\database;
  */
 abstract class Column {
     /**
+     * An array that holds names of values which represents boolean type.
+     */
+    const BOOL_TYPES = ['bool', 'boolean'];
+    /**
      *
      * @var string|null
      * 
@@ -512,7 +516,7 @@ abstract class Column {
             throw new DatabaseException('Column datatype not supported: \''.$trimmed.'\'.');
         }
 
-        if ($trimmed == 'bool' || $trimmed == 'boolean') {
+        if (in_array($trimmed, Column::BOOL_TYPES)) {
             $this->setIsNull(false);
         }
 
@@ -548,7 +552,7 @@ abstract class Column {
     public function setIsNull(bool $bool) : bool {
         $colDatatype = $this->getDatatype();
 
-        if (!($colDatatype == 'bool' || $colDatatype == 'boolean') && !$this->isPrimary()) {
+        if (!(in_array($colDatatype, Column::BOOL_TYPES)) && !$this->isPrimary()) {
             $this->isNull = $bool === true;
 
             return true;

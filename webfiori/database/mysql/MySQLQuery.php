@@ -530,7 +530,7 @@ class MySQLQuery extends AbstractQuery {
                     $colsNamesArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
 
-                    if ($type == 'boolean' || $type == 'bool') {
+                    if (in_array($type, Column::BOOL_TYPES)) {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
                     } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now' || $defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
                         $valsArr[] = "'".date('Y-m-d H:i:s')."'";
