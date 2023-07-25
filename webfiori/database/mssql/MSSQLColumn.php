@@ -12,6 +12,7 @@ namespace webfiori\database\mssql;
 
 use webfiori\database\Column;
 use webfiori\database\ColumnFactory;
+use webfiori\database\DatabaseException;
 use webfiori\database\DateTimeValidator;
 /**
  * A class that represents a column in MSSQL table.
@@ -295,7 +296,7 @@ class MSSQLColumn extends Column {
                 }
             } else if ($dt == 'int' || $dt == 'bigint') {
                 $retVal = intval($defaultVal);
-            } else if ($dt == 'boolean') {
+            } else if (in_array($dt, Column::BOOL_TYPES)) {
                 return $defaultVal === 1 || $defaultVal === true;
             } else if ($dt == 'float' || $dt == 'decimal' || $dt == 'money') {
                 $retVal = floatval($defaultVal);
@@ -337,7 +338,7 @@ class MSSQLColumn extends Column {
     public function getPHPType() : string {
         $colType = $this->getDatatype();
 
-        if ($colType == 'boolean') {
+        if (in_array($colType, Column::BOOL_TYPES)) {
             $isNullStr = '';
         } else {
             $isNullStr = $this->isNull() ? '|null' : '';
@@ -347,7 +348,7 @@ class MSSQLColumn extends Column {
             return 'int'.$isNullStr;
         } else if ($colType == 'decimal' || $colType == 'float' || $colType == 'money') {
             return 'float'.$isNullStr;
-        } else if ($colType == 'boolean' || $colType == 'bool') {
+        } else if (in_array($colType, Column::BOOL_TYPES)) {
             return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'nvarchar'
                 || $colType == 'datetime2' || $colType == 'date'
@@ -408,6 +409,7 @@ class MSSQLColumn extends Column {
      * column type is not supported.
      */
     public function setDatatype(string $type) {
+        
         parent::setDatatype($type);
 
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
@@ -500,7 +502,7 @@ class MSSQLColumn extends Column {
             return null;
         } else if ($colDatatype == 'int' || $colDatatype == 'bigint') {
             $cleanedVal = intval($val);
-        } else if ($colDatatype == 'boolean') {
+        } else if (in_array($colDatatype, Column::BOOL_TYPES)) {
             if ($val === true) {
                 $cleanedVal = 1;
             } else {
@@ -528,7 +530,7 @@ class MSSQLColumn extends Column {
                 $cleanedVal = filter_var(addslashes($val));
             } else if ($valType == 'double') {
                 $cleanedVal = "'".floatval($val)."'";
-            } else if ($valType == 'boolean') {
+            } else if (in_array($colDatatype, Column::BOOL_TYPES)) {
                 if ($val === true) {
                     $cleanedVal = 1;
                 } else {
@@ -572,7 +574,7 @@ class MSSQLColumn extends Column {
         $colDefault = $this->getDefault();
 
         if ($colDefault !== null) {
-            if ($colDataType == 'boolean') {
+            if (in_array($colDataType, Column::BOOL_TYPES)) {
                 if ($this->getDefault() === true) {
                     return 'default 1 ';
                 } else {
@@ -602,7 +604,7 @@ class MSSQLColumn extends Column {
                 || $colDataType == 'char' || $colDataType == 'nchar'
                 || $colDataType == 'binary' || $colDataType == 'varbinary') {
             $retVal .= $colDataTypeSq.'('.$this->getSize().') ';
-        } else if ($colDataType == 'boolean') {
+        } else if (in_array($colDataType, Column::BOOL_TYPES)) {
             $retVal .= '[bit] ';
         } else if ($colDataType == 'decimal') {
             if ($this->getSize() != 0) {
@@ -626,7 +628,7 @@ class MSSQLColumn extends Column {
     private function nullPartString() {
         $colDataType = $this->getDatatype();
 
-        if (!$this->isNull() || $colDataType == 'boolean') {
+        if (!$this->isNull() || in_array($colDataType, Column::BOOL_TYPES)) {
             return 'not null ';
         } else {
             return 'null ';

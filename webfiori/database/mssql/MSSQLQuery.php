@@ -199,7 +199,7 @@ class MSSQLQuery extends AbstractQuery {
         $tblName = $this->getTable()->getName();
         $colObj = $this->getTable()->getColByKey($colKey);
 
-        if (!($colObj instanceof MySQLColumn)) {
+        if (!($colObj instanceof MSSQLColumn)) {
             throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
         }
 
@@ -416,7 +416,7 @@ class MSSQLQuery extends AbstractQuery {
                     $colsNamesArr[] = $colObj->getName();
                     $type = $colObj->getDatatype();
 
-                    if ($type == 'boolean' || $type == 'bool') {
+                    if (in_array($type, Column::BOOL_TYPES)) {
                         $valsArr[] = $colObj->cleanValue($defaultVal);
                     } else if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {
                         if ($type == 'datetime2') {

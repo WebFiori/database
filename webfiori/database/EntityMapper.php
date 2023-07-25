@@ -576,7 +576,7 @@ class EntityMapper {
             ."     **/\n"
             .'    public function '.$setterName.'($'.$attrName.") {\n";
 
-        if ($colDatatype == 'boolean' || $colDatatype == 'bool') {
+        if (in_array($colDatatype, Column::BOOL_TYPES)) {
             $this->classStr .= '        $this->'.$attrName.' = $'.$attrName." === true || $".$attrName." == 'Y' || $".$attrName." == 1;\n";
         } else {
             $this->classStr .= '        $this->'.$attrName.' = $'.$attrName.";\n";

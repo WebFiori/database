@@ -273,7 +273,7 @@ class MySQLColumn extends Column {
                 }
             } else if ($dt == 'int') {
                 $retVal = intval($defaultVal);
-            } else if ($dt == 'boolean' || $dt == 'bool') {
+            } else if (in_array($dt, Column::BOOL_TYPES)) {
                 return $defaultVal === "b'1'" || $defaultVal === true;
             } else if ($dt == 'mixed') {
                 $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
@@ -326,7 +326,7 @@ class MySQLColumn extends Column {
     public function getPHPType() : string {
         $colType = $this->getDatatype();
 
-        if ($colType == 'bool' || $colType == 'boolean') {
+        if (in_array($colType, Column::BOOL_TYPES)) {
             $isNullStr = '';
         } else {
             $isNullStr = $this->isNull() ? '|null' : '';
@@ -336,7 +336,7 @@ class MySQLColumn extends Column {
             return 'int'.$isNullStr;
         } else  if ($colType == 'decimal' || $colType == 'double' || $colType == 'float') {
             return 'float'.$isNullStr;
-        } else  if ($colType == 'boolean' || $colType == 'bool') {
+        } else  if (in_array($colType, Column::BOOL_TYPES)) {
             return 'bool'.$isNullStr;
         } else if ($colType == 'varchar' || $colType == 'datetime'
                 || $colType == 'timestamp' || $colType == 'blob'
@@ -450,7 +450,7 @@ class MySQLColumn extends Column {
      * @since 1.0
      */
     public function setIsAutoInc(bool $bool) {
-        if ($this->isPrimary() && gettype($bool) == 'boolean' && $this->getDatatype() == 'int') {
+        if ($this->isPrimary() && $this->getDatatype() == 'int') {
             $this->isAutoInc = $bool;
 
             return true;
@@ -584,7 +584,7 @@ class MySQLColumn extends Column {
         $type = $this->getDatatype();
         $retVal = false;
 
-        if ($type == 'boolean' || $type == 'bool') {
+        if (in_array($type, Column::BOOL_TYPES)) {
             $retVal = parent::setSize(1);
         } else if ($type == 'varchar' || $type == 'text') {
             $retVal = $this->textTypeSize($size);
@@ -606,7 +606,7 @@ class MySQLColumn extends Column {
             return null;
         } else if ($colDatatype == 'int') {
             $cleanedVal = intval($val);
-        } else if ($colDatatype == 'bool' || $colDatatype == 'boolean') {
+        } else if (in_array($colDatatype, Column::BOOL_TYPES)) {
             if ($val === true) {
                 return "b'1'";
             } else {
@@ -645,7 +645,7 @@ class MySQLColumn extends Column {
                 $cleanedVal = "'".filter_var(addslashes($val))."'";
             } else if ($valType == 'double') {
                 $cleanedVal = "'".floatval($val)."'";
-            } else if ($valType == 'boolean') {
+            } else if (in_array($valType, Column::BOOL_TYPES)) {
                 if ($val === true) {
                     $cleanedVal = "b'1'";
                 } else {
@@ -694,7 +694,7 @@ class MySQLColumn extends Column {
         $colDefault = $this->getDefault();
 
         if ($colDefault !== null) {
-            if ($colDataType == 'boolean' || $colDataType == 'bool') {
+            if (in_array($colDataType, Column::BOOL_TYPES)) {
                 if ($this->getDefault() === true) {
                     return 'default b\'1\' ';
                 } else {
@@ -729,7 +729,7 @@ class MySQLColumn extends Column {
             }
         } else if ($colDataType == 'varchar' || $colDataType == 'text') {
             $retVal .= $colDataType.'('.$this->getSize().') ';
-        } else if ($colDataType == 'boolean' || $colDataType == 'bool') {
+        } else if (in_array($colDataType, Column::BOOL_TYPES)) {
             $retVal .= 'bit(1) ';
         } else if ($colDataType == 'decimal' || $colDataType == 'float' || $colDataType == 'double') {
             if ($this->getSize() != 0) {
@@ -762,7 +762,7 @@ class MySQLColumn extends Column {
     private function nullPart() {
         $colDataType = $this->getDatatype();
 
-        if (!$this->isNull() || $colDataType == 'boolean' || $colDataType == 'bool') {
+        if (!$this->isNull() || in_array($colDataType, Column::BOOL_TYPES)) {
             return 'not null ';
         } else {
             return 'null ';
