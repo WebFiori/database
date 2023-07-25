@@ -295,7 +295,7 @@ class MSSQLColumn extends Column {
                 }
             } else if ($dt == 'int' || $dt == 'bigint') {
                 $retVal = intval($defaultVal);
-            } else if ($dt == 'boolean') {
+            } else if ($dt == 'boolean' || $dt == 'bool') {
                 return $defaultVal === 1 || $defaultVal === true;
             } else if ($dt == 'float' || $dt == 'decimal' || $dt == 'money') {
                 $retVal = floatval($defaultVal);
@@ -337,7 +337,7 @@ class MSSQLColumn extends Column {
     public function getPHPType() : string {
         $colType = $this->getDatatype();
 
-        if ($colType == 'boolean') {
+        if ($colType == 'boolean' || $colType == 'bool') {
             $isNullStr = '';
         } else {
             $isNullStr = $this->isNull() ? '|null' : '';
@@ -408,6 +408,7 @@ class MSSQLColumn extends Column {
      * column type is not supported.
      */
     public function setDatatype(string $type) {
+        
         parent::setDatatype($type);
 
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
@@ -500,7 +501,7 @@ class MSSQLColumn extends Column {
             return null;
         } else if ($colDatatype == 'int' || $colDatatype == 'bigint') {
             $cleanedVal = intval($val);
-        } else if ($colDatatype == 'boolean') {
+        } else if ($colDatatype == 'boolean' || $colDatatype == 'bool') {
             if ($val === true) {
                 $cleanedVal = 1;
             } else {
@@ -528,7 +529,7 @@ class MSSQLColumn extends Column {
                 $cleanedVal = filter_var(addslashes($val));
             } else if ($valType == 'double') {
                 $cleanedVal = "'".floatval($val)."'";
-            } else if ($valType == 'boolean') {
+            } else if ($valType == 'boolean' || $colDatatype == 'bool') {
                 if ($val === true) {
                     $cleanedVal = 1;
                 } else {
@@ -572,7 +573,7 @@ class MSSQLColumn extends Column {
         $colDefault = $this->getDefault();
 
         if ($colDefault !== null) {
-            if ($colDataType == 'boolean') {
+            if ($colDataType == 'boolean' || $colDataType == 'bool') {
                 if ($this->getDefault() === true) {
                     return 'default 1 ';
                 } else {
@@ -602,7 +603,7 @@ class MSSQLColumn extends Column {
                 || $colDataType == 'char' || $colDataType == 'nchar'
                 || $colDataType == 'binary' || $colDataType == 'varbinary') {
             $retVal .= $colDataTypeSq.'('.$this->getSize().') ';
-        } else if ($colDataType == 'boolean') {
+        } else if ($colDataType == 'boolean' || $colDataType == 'bool') {
             $retVal .= '[bit] ';
         } else if ($colDataType == 'decimal') {
             if ($this->getSize() != 0) {
@@ -626,7 +627,7 @@ class MSSQLColumn extends Column {
     private function nullPartString() {
         $colDataType = $this->getDatatype();
 
-        if (!$this->isNull() || $colDataType == 'boolean') {
+        if (!$this->isNull() || $colDataType == 'boolean' || $colDataType == 'bool') {
             return 'not null ';
         } else {
             return 'null ';
