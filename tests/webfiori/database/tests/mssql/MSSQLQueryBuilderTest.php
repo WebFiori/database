@@ -91,7 +91,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->createTables();
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [first_name] [nvarchar](15) not null,\n"
                 . "    [last_name] [nvarchar](20) not null,\n"
                 . "    [age] [int] not null,\n"
@@ -100,24 +100,24 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "\n"
                 . "if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
                 . "    [can_change_username] [bit] not null,\n"
                 . "    [can_do_anything] [bit] not null,\n"
                 . "    constraint users_privileges_pk primary key clustered([id]) on [PRIMARY],\n"
-                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")\n"
                 . "\n"
                 . "if not exists (select * from sysobjects where name='users_tasks' and xtype='U')\n"
                 . "create table [users_tasks] (\n"
-                . "    [task_id] [int] not null,\n"
+                . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
                 . "    [created_on] [datetime2] not null default getdate(),\n"
                 . "    [last_updated] [datetime2] null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
                 . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
-                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")\n"
                 . "\n"
                 . "if not exists (select * from sysobjects where name='profile_pics' and xtype='U')\n"
@@ -125,7 +125,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [user_id] [int] not null,\n"
                 . "    [pic] [binary](1) not null,\n"
                 . "    constraint profile_pics_pk primary key clustered([user_id]) on [PRIMARY],\n"
-                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
     }
@@ -142,7 +142,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [first_name] [nvarchar](15) not null,\n"
                 . "    [last_name] [nvarchar](20) not null,\n"
                 . "    [age] [int] not null,\n"
@@ -154,12 +154,12 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users_privileges')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
                 . "    [can_change_username] [bit] not null,\n"
                 . "    [can_do_anything] [bit] not null,\n"
                 . "    constraint users_privileges_pk primary key clustered([id]) on [PRIMARY],\n"
-                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
         $schema->execute();
@@ -167,14 +167,14 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users_tasks')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users_tasks' and xtype='U')\n"
                 . "create table [users_tasks] (\n"
-                . "    [task_id] [int] not null,\n"
+                . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
                 . "    [created_on] [datetime2] not null default getdate(),\n"
                 . "    [last_updated] [datetime2] null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
-                . "    [details] [nvarchar](1500) not null,\n"
+                . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
-                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
         $schema->execute();
@@ -185,7 +185,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [user_id] [int] not null,\n"
                 . "    [pic] [binary](1) not null,\n"
                 . "    constraint profile_pics_pk primary key clustered([user_id]) on [PRIMARY],\n"
-                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
         $schema->execute();
