@@ -262,12 +262,12 @@ abstract class InsertBuilder {
                 
                 if ($defaultVal !== null) {
                     $colsArr[] = $colObj->getName();
-                    $this->checkColDefault($colObj->getDatatype(), $defaultVal);
+                    $this->checkColDefault($colObj->getDatatype(), $key, $defaultVal);
                 }
             }
         }
     }
-    private function checkColDefault(string $type, $defaultVal) {
+    private function checkColDefault(string $type, string $key, $defaultVal) {
 
         if (in_array($type, Column::BOOL_TYPES)) {
             $this->defaultVals[$key] = $defaultVal ? 1 : 0;
