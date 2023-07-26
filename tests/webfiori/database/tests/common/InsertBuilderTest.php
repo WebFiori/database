@@ -133,7 +133,7 @@ class InsertBuilderTest extends TestCase {
             ]
         ]);
         
-        $this->assertEquals('insert into `users` (`user_id`, `created_on`, `is_active`) values (?), (?), (?);', $helper->getQuery());
+        $this->assertEquals("insert into `users` (`user_id`, `created_on`, `is_active`)\nvalues\n(?),\n(?),\n(?);", $helper->getQuery());
         $this->assertEquals([
             'bind' => 'isiisiisi',
             'values' => [
