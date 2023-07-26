@@ -436,7 +436,7 @@ class MySQLQuery extends AbstractQuery {
         return $copy;
     }
     public function insert(array $colsAndVals): AbstractQuery {
-        $this->setInsertBuilder(new MySQLLInsertBuilder($this->getTable(), $colsAndVals));
+        $this->setInsertBuilder(new MySQLInsertBuilder($this->getTable(), $colsAndVals));
         
         return $this;
     }
