@@ -12,17 +12,13 @@ namespace webfiori\database\mysql;
 
 use webfiori\database\Column;
 use webfiori\database\InsertBuilder;
-use webfiori\database\Table;
 
 /**
- * Description of MySQLInsertBuilder
+ * A class which is used to construct insert query for MySQL database.
  *
  * @author Ibrahim
  */
 class MySQLInsertBuilder extends InsertBuilder {
-    public function __construct(Table $table, array $colsAndVals) {
-        parent::__construct($table, $colsAndVals);
-    }
     public function parseValues(array $values) {
         $index = 0;
         $queryParams = [
