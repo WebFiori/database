@@ -11,7 +11,7 @@ use webfiori\database\mssql\MSSQLTable;
  */
 class MSSQLTestSchema extends Database {
     public function __construct() {
-        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost'));
+        parent::__construct(new ConnectionInfo('mssql','sa2', '1234567890@Eu', 'testing_db', 'localhost'));
         
         $table00 = new MSSQLTable('users');
         $table00->setComment('This table is used to hold users info.');
@@ -20,6 +20,7 @@ class MSSQLTestSchema extends Database {
                 'type' => 'int',
                 'size' => 5,
                 'is-primary' => true,
+                'identity' => true
             ],
             'first-name' => [
                 'size' => '15',
@@ -41,7 +42,8 @@ class MSSQLTestSchema extends Database {
             'id' => [
                 'type' => 'int',
                 'size' => 5,
-                'is-primary' => true
+                'is-primary' => true,
+                'identity' => true
             ],
             'can-edit-price' => [
                 'type' => 'boolean',
@@ -54,7 +56,7 @@ class MSSQLTestSchema extends Database {
                 'type' => 'boolean'
             ]
         ]);
-        $table01->addReference($table00, ['id'], 'user_privilege_fk', 'cascade', 'cascade');
+        $table01->addReference($table00, ['id'], 'user_privilege_fk', 'no action', 'no action');
         $this->addTable($table01);
         
         $table02 = new MSSQLTable('users_tasks');
@@ -64,6 +66,7 @@ class MSSQLTestSchema extends Database {
                 'type' => 'int',
                 'size' => 5,
                 'is-primary' => true,
+                'identity' => true
             ],
             'user-id' => [
                 'type' => 'int',
@@ -89,7 +92,7 @@ class MSSQLTestSchema extends Database {
                 'type' => 'varchar'
             ]
         ]);
-        $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'cascade', 'cascade');
+        $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'no action', 'no action');
         $this->addTable($table02);
         
         $table03 = new MSSQLTable('profile_pics');
@@ -104,7 +107,7 @@ class MSSQLTestSchema extends Database {
                 'siize' => 100
             ]
         ]);
-        $table03->addReference($table00, ['user-id'=>'id'], 'user_profile_pic_fk', 'cascade', 'cascade');
+        $table03->addReference($table00, ['user-id'=>'id'], 'user_profile_pic_fk', 'no action', 'no action');
         $this->addTable($table03);
     }
 }
