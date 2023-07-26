@@ -1,14 +1,22 @@
 <?php
-
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2023 Ibrahim BinAlshikh
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
 namespace webfiori\database;
 
-use webfiori\database\mssql\MSSQLColumn;
-use webfiori\database\mssql\MSSQLQuery;
+use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLTable;
 
 /**
- * Description of InsertBuilder
+ * A class which is used to build insert SQL queries for diffrent database engines.
  *
- * @author I.BINALSHIKH
+ * @author Ibrahim
  */
 class InsertBuilder {
     private $query;
@@ -24,9 +32,18 @@ class InsertBuilder {
      */
     private $table;
     /**
+     * Creates new instance of the class.
      * 
-     * @param Table $table
-     * @param array $colsAndVals
+     * @param Table $table The table at which the statement is based on.
+     * 
+     * @param array $colsAndVals An array that holds the values that
+     * will be inserted. The array can have two structures. If it is 
+     * used to insert a single record, then the array must be associative. The
+     * indices of the array are columns names and at each index is the value that
+     * will be inserted. For multi-record insert, the array must have two
+     * indices, 'cols' and 'values'. The index 'cols' is used to hold
+     * columns names and the index 'values' is used to hold the records
+     * that will be inserted as sub-arrays.
      */
     public function __construct(Table $table, array $colsAndVals) {
         $this->paramPlaceholder = '?';
@@ -35,6 +52,21 @@ class InsertBuilder {
         
         $this->build();
     }
+    /**
+     * Construct an insert statement.
+     * 
+     * @param array $colsAndVals An array that holds the values that
+     * will be inserted. The array can have two structures. If it is 
+     * used to insert a single record, then the array must be associative. The
+     * indices of the array are columns names and at each index is the value that
+     * will be inserted. For multi-record insert, the array must have two
+     * indices, 'cols' and 'values'. The index 'cols' is used to hold
+     * columns names and the index 'values' is used to hold the records
+     * that will be inserted as sub-arrays.
+     * 
+     * @param Table $table The table at which the insert query will be
+     * based on.
+     */
     public function insert(array $colsAndVals, Table $table = null) {
         if ($table !== null) {
             $this->table = $table;
@@ -42,9 +74,23 @@ class InsertBuilder {
         $this->data = $colsAndVals;
         $this->build();
     }
+    /**
+     * Returns the character which is used as placeholder for building prepared
+     * query.
+     * 
+     * @return string A string such as '?' or '$'.
+     */
     public function getPlaceholder() : string {
         return $this->paramPlaceholder;
     }
+    /**
+     * Returns an array that holds the values which is used in binding with the
+     * prepared query.
+     * 
+     * Depending on database engine, the structure of the array may differ.
+     * 
+     * @return array
+     */
     public function getQueryParams() : array {
         return $this->queryParams;
     }
@@ -90,6 +136,29 @@ class InsertBuilder {
             $this->query .= ' values ('.$values.');';
             
         }
+        if ($this->getTable() instanceof MySQLTable) {
+            $this->buildMySQLValues();
+        } else if ($this->getTable() instanceof MSSQLTable) {
+            $this->buildMSSQLValues();
+        }
+    }
+    private function buildMSSQLValues() {
+        $index = 0;
+        $arr = [];
+        
+        foreach ($this->vals as $valsArr) {
+            $valsArr = array_merge($valsArr, $this->defaultVals);
+            foreach ($valsArr as $col => $val) {
+                
+                $colObj = $this->getTable()->getColByKey($col);
+                $arr[] = array_merge([$val, SQLSRV_PARAM_IN], $colObj->getTypeArr());
+                
+            }
+            $index++;
+        }
+        $this->queryParams = $arr;
+    }
+    private function buildMySQLValues() {
         $index = 0;
         foreach ($this->vals as $valsArr) {
             $this->queryParams['values'][] = [];
@@ -110,9 +179,22 @@ class InsertBuilder {
             $index++;
         }
     }
+    /**
+     * Returns the generated insert query.
+     * 
+     * @return string The generated SQL query.
+     */
     public function getQuery() : string {
         return $this->query;
     }
+    /**
+     * Returns the table instance at which the insert query is based on.
+     * 
+     * The goal of the table is to make sure that the binding between
+     * the values and the data types of database columns is correct.
+     * 
+     * @return Table The table instance at which the insert query is based on.
+     */
     public function getTable() : Table {
         return $this->table;
     }
