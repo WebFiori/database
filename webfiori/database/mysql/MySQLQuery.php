@@ -185,24 +185,6 @@ class MySQLQuery extends AbstractQuery {
         return $query;
     }
     /**
-     * Constructs a query which can be used to add new record.
-     * 
-     * @param array $colsAndVals An associative array. The indices are columns 
-     * keys and the value of each index is the value of the column. This also
-     * can be one big indexed array of sub associative arrays. This approach can 
-     * be used to build multiple insert queries.
-     * 
-     * @return MySQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @since 1.0
-     */
-    public function insert(array $colsAndVals) {
-        $this->insertHelper1($colsAndVals);
-
-        return $this;
-    }
-    /**
      * Checks if the query represents a blob insert or update.
      * 
      * The aim of this method is to fix an issue with setting the collation 
@@ -298,7 +280,9 @@ class MySQLQuery extends AbstractQuery {
      * @since 1.0.2
      */
     public function replace(array $colsAndVals) {
-        $this->insertHelper1($colsAndVals, true);
+        $this->insert($colsAndVals);
+        $query = $this->getInsertBuilder()->getQuery();
+        $this->setQuery(str_replace('insert', 'replace', $query));
 
         return $this;
     }
