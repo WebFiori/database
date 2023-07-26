@@ -11,18 +11,13 @@
 namespace webfiori\database\mssql;
 
 use webfiori\database\InsertBuilder;
-use webfiori\database\Table;
 
 /**
- * Description of MSSQLInsertBuilder
+ * A class which is used to construct insert query for MSSQL server.
  *
  * @author Ibrahim
  */
 class MSSQLInsertBuilder extends InsertBuilder {
-    public function __construct(Table $table, array $colsAndVals) {
-        parent::__construct($table, $colsAndVals);
-    }
-
     public function parseValues(array $values) {
         $index = 0;
         $arr = [];
