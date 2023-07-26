@@ -13,6 +13,9 @@ namespace webfiori\database\mssql;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Column;
 use webfiori\database\DatabaseException;
+use webfiori\database\mssql\MSSQLColumn;
+use webfiori\database\mssql\MSSQLInsertBuilder;
+use webfiori\database\mssql\MSSQLQuery;
 /**
  * A class which is used to build MSSQL queries.
  *
@@ -388,5 +391,11 @@ class MSSQLQuery extends AbstractQuery {
             'cols' => implode(', ', $colsNamesArr),
             'vals' => implode(', ', $valsArr)
         ];
+    }
+
+    public function insert(array $colsAndVals): AbstractQuery {
+        $this->setInsertBuilder(new MSSQLInsertBuilder($this->getTable(), $colsAndVals));
+        
+        return $this;
     }
 }
