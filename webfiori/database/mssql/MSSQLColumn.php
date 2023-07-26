@@ -287,13 +287,9 @@ class MSSQLColumn extends Column {
             if ($dt == 'varchar' || $dt == 'nvarchar' || $dt == 'mediumtext' || 
                     $dt == 'char' || $dt == 'nchar'
             ) {
-                $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
+                $retVal = $defaultVal;
             } else if ($dt == 'datetime2' || $dt == 'date') {
-                if (!($defaultVal == 'now' || $defaultVal == 'current_timestamp')) {
-                    $retVal = substr($defaultVal, 1, strlen($defaultVal) - 2);
-                } else {
-                    $retVal = $defaultVal;
-                }
+                $retVal = $defaultVal;
             } else if ($dt == 'int' || $dt == 'bigint') {
                 $retVal = intval($defaultVal);
             } else if (in_array($dt, Column::BOOL_TYPES)) {
@@ -438,11 +434,16 @@ class MSSQLColumn extends Column {
         if ($this->getDatatype() == 'mixed' && $default !== null) {
             $default .= '';
         }
-        parent::setDefault($this->cleanValue($default));
+        
+        parent::setDefault($default);
         $type = $this->getDatatype();
 
-        if (($type == 'datetime2' || $type == 'date') && $this->getDefault() !== null && strlen($this->getDefault()) == 0) {
-            parent::setDefault(null);
+        if ($default !== null && ($default != 'now' && $default != 'now()' && $default != 'current_timestamp') && ($type == 'datetime2' || $type == 'date' || $type == 'time')) {
+            $isValdDate = DateTimeValidator::isValidDate($default) || DateTimeValidator::isValidDateTime($default) || DateTimeValidator::isValidTime($default);
+            
+            if (!$isValdDate) {
+                parent::setDefault(null);
+            }
         }
     }
     /**
@@ -520,10 +521,10 @@ class MSSQLColumn extends Column {
         // The @!@ used as replacement for single qut since MSSQL
         // use it as escape character
         } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
-            if ($val != 'now' && $val != 'current_timestamp') {
+            if ($val != 'now' && $val != 'current_timestamp' && $val != 'now()') {
                 $cleanedVal = $this->dateCleanUp($val);
             } else {
-                $cleanedVal = $val;
+                $cleanedVal = date('Y-m-d H:i:s');
             }
         } else if ($colDatatype == 'mixed') {
             if ($valType == 'string') {
@@ -584,17 +585,35 @@ class MSSQLColumn extends Column {
                 if ($colDefault == 'now' || $colDefault == 'current_timestamp') {
                     return 'default getdate() ';
                 } else {
-                    return 'default '.$this->cleanValue($colDefault).' ';
+                    return "default '$colDefault' ";
                 }
-            } else if ($colDataType == 'mixed') {
-                return "default ".$colDefault." ";
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
         }
     }
 
-
+    public function getTypeArr() {
+        switch ($this->getDatatype()) {
+            case 'int' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_INT];
+            case 'bigint' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIGINT];
+            case 'varchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARCHAR];
+            case 'nvarchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_NVARCHAR];
+            case 'char' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_CHAR];
+            case 'nchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_NCHAR];
+            case 'binary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_BINARY];
+            case 'varbinary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARBINARY];
+            case 'date' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATE];
+            case 'datetime2' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATETIME2];
+            case 'time' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_TIME];
+            case 'money' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_MONEY];
+            case 'bit' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
+            case 'decimal' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_DECIMAL];
+            case 'float' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_FLOAT];
+            case 'bool' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
+            case 'boolean' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
+        }
+    }
     private function firstColPartString() {
         $retVal = MSSQLQuery::squareBr($this->getName()).' ';
         $colDataTypeSq = MSSQLQuery::squareBr($this->getDatatype());
