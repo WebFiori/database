@@ -117,48 +117,6 @@ class MySQLConnection extends Connection {
     public function getMysqli() {
         return $this->link;
     }
-    /**
-     * Prepare and bind SQL statement.
-     * 
-     * @param array $queryParams An array that holds sub associative arrays that holds 
-     * values. Each sub array must have two indices:
-     * <ul>
-     * <li><b>value</b>: The value to bind.</li>
-     * <li><b>type</b>: The type of the value as a character. can be one of 4 values: 
-     * <ul>
-     * <li>i: corresponding variable has type integer</li>
-     * <li>d: corresponding variable has type double</li>
-     * <li>s: corresponding variable has type string</li>
-     * <li>b: corresponding variable is a blob and will be sent in packets</li>
-     * </ul>
-     * </li>
-     * <ul>
-     * 
-     * @return bool|mysqli_stmt If the statement was successfully prepared, the method 
-     * will return true. If an error happens, the method will return false.
-     * 
-     * @since 1.0.2
-     */
-    public function prepare(array $queryParams = []) {
-        $queryObj = $this->getLastQuery();
-
-        if ($queryObj !== null) {
-            $queryStr = $queryObj->getQuery();
-            $sqlStatement = mysqli_prepare($this->link, $queryStr);
-
-            if (gettype($sqlStatement) == 'object') {
-                foreach ($queryParams as $subArr) {
-                    $value = isset($subArr['value']) ? $subArr['value'] : null;
-                    $type = isset($subArr['type']) ? $subArr['type'] : 's';
-                    $sqlStatement->bind_param("$type", $value);
-                }
-
-                return $sqlStatement;
-            }
-        }
-
-        return false;
-    }
 
     /**
      * Execute MySQL query.
@@ -204,11 +162,6 @@ class MySQLConnection extends Connection {
             $this->setErrMessage($ex->getMessage());
             throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode());
         }
-    }
-    private function bindAndExcute() {
-        $stm = $this->prepare($this->getLastQuery()->getParams());
-
-        return $stm->execute();
     }
     private function runInsertQuery() {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
