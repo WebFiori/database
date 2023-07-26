@@ -91,77 +91,41 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->createTables();
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [first_name] [nvarchar](15) not null,\n"
                 . "    [last_name] [nvarchar](20) not null,\n"
                 . "    [age] [int] not null,\n"
                 . "    constraint users_pk primary key clustered([id]) on [PRIMARY]\n"
                 . ")\n"
-                . "if not exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('users') and name = N'MS_Description' and minor_id = 0)\n"
-                . "exec sp_addextendedproperty\n"
-                . "@name = N'MS_Description',\n"
-                . "@value = 'This table is used to hold users info.',\n"
-                . "@level0type = N'Schema',\n"
-                . "@level0name = 'dbo',\n"
-                . "@level1type = N'Table',\n"
-                . "@level1name = 'users';\n"
                 . "\n"
                 . "if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
                 . "    [can_change_username] [bit] not null,\n"
                 . "    [can_do_anything] [bit] not null,\n"
                 . "    constraint users_privileges_pk primary key clustered([id]) on [PRIMARY],\n"
-                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")\n"
                 . "\n"
                 . "if not exists (select * from sysobjects where name='users_tasks' and xtype='U')\n"
                 . "create table [users_tasks] (\n"
-                . "    [task_id] [int] not null,\n"
+                . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
                 . "    [created_on] [datetime2] not null default getdate(),\n"
                 . "    [last_updated] [datetime2] null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
                 . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
-                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")\n"
-                . "if not exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('users_tasks') and name = N'MS_Description' and minor_id = 0)\n"
-                . "exec sp_addextendedproperty\n"
-                . "@name = N'MS_Description',\n"
-                . "@value = 'A table used to hold ''users'' tasks.',\n"
-                . "@level0type = N'Schema',\n"
-                . "@level0name = 'dbo',\n"
-                . "@level1type = N'Table',\n"
-                . "@level1name = 'users_tasks';\n"
-                . "if not exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('users_tasks') and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = 'user_id' and [object_id] = OBJECT_ID('users_tasks')))\n"
-                . "exec sp_addextendedproperty\n"
-                . "@name = N'MS_Description',\n"
-                . "@value = 'The ID of the user who must perform the ''activity''.',\n"
-                . "@level0type = N'Schema',\n"
-                . "@level0name = 'dbo',\n"
-                . "@level1type = N'Table',\n"
-                . "@level1name = 'users_tasks',\n"
-                . "@level2type = N'Column',\n"
-                . "@level2name = 'user_id';\n"
-                . "if not exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('users_tasks') and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = 'last_updated' and [object_id] = OBJECT_ID('users_tasks')))\n"
-                . "exec sp_addextendedproperty\n"
-                . "@name = N'MS_Description',\n"
-                . "@value = 'The last time this record was updated at.',\n"
-                . "@level0type = N'Schema',\n"
-                . "@level0name = 'dbo',\n"
-                . "@level1type = N'Table',\n"
-                . "@level1name = 'users_tasks',\n"
-                . "@level2type = N'Column',\n"
-                . "@level2name = 'last_updated';}\n"
                 . "\n"
                 . "if not exists (select * from sysobjects where name='profile_pics' and xtype='U')\n"
                 . "create table [profile_pics] (\n"
                 . "    [user_id] [int] not null,\n"
                 . "    [pic] [binary](1) not null,\n"
                 . "    constraint profile_pics_pk primary key clustered([user_id]) on [PRIMARY],\n"
-                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
     }
@@ -178,7 +142,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [first_name] [nvarchar](15) not null,\n"
                 . "    [last_name] [nvarchar](20) not null,\n"
                 . "    [age] [int] not null,\n"
@@ -190,12 +154,12 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users_privileges')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
-                . "    [id] [int] not null,\n"
+                . "    [id] [int] identity(1,1) not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
                 . "    [can_change_username] [bit] not null,\n"
                 . "    [can_do_anything] [bit] not null,\n"
                 . "    constraint users_privileges_pk primary key clustered([id]) on [PRIMARY],\n"
-                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
         $schema->execute();
@@ -203,14 +167,14 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users_tasks')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users_tasks' and xtype='U')\n"
                 . "create table [users_tasks] (\n"
-                . "    [task_id] [int] not null,\n"
+                . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
                 . "    [created_on] [datetime2] not null default getdate(),\n"
                 . "    [last_updated] [datetime2] null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
-                . "    [details] [nvarchar](1500) not null,\n"
+                . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
-                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
         $schema->execute();
@@ -221,7 +185,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [user_id] [int] not null,\n"
                 . "    [pic] [binary](1) not null,\n"
                 . "    constraint profile_pics_pk primary key clustered([user_id]) on [PRIMARY],\n"
-                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update cascade on delete cascade\n"
+                . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
         $schema->execute();
@@ -274,6 +238,97 @@ class MSSQLQueryBuilderTest extends TestCase{
     }
     /**
      * @test
+     * @param MSSQLTestSchema $schema
+     * @depends testCreateTable
+     */
+    public function testInsert03(MSSQLTestSchema $schema) {
+        $schema->table('users')->insert([
+            'first-name' => 'Ibrahim',
+            'last-name' => 'BinAlshikh',
+            'age' => 28
+        ])->execute();
+        $schema->table('users')->select()->execute();
+        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
+        return $schema;
+    }
+    /**
+     * @test
+     * @param MSSQLTestSchema $schema
+     * @depends testInsert03
+     */
+    public function testDropRecord00(MSSQLTestSchema $schema) {
+        $row = $schema->getLastResultSet()->getRows()[0];
+        $schema->table('users')->delete()->where('id', $row['id']);
+        $this->assertEquals('delete from [users] where [users].[id] = '.$row['id'], $schema->getLastQuery());
+        $schema->execute();
+        $schema->table('users')->select()->execute();
+        $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
+        return $schema;
+    }
+    /**
+     * 
+     * @test
+     * @param MSSQLTestSchema $schema
+     * @depends testDropRecord00
+     */
+    public function testInsert04(MSSQLTestSchema $schema) {
+        $schema->setQuery('set identity_insert users on;')->execute();
+        $schema->table('users')->insert([
+            'cols' => [
+                'id','first-name','last-name','age'
+            ],
+            'values' => [
+                [100,'Ali','Hassan',16],
+                [101,'Dabi','Jona',19]
+            ]
+        ]);
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name], [age])\nvalues\n"
+                . "(?, ?, ?, ?),\n"
+                . "(?, ?, ?, ?);", $schema->getLastQuery());
+        $schema->execute();
+        $schema->table('users')->select()->execute();
+        $resultSet = $schema->getLastResultSet();
+        $this->assertEquals(2, $resultSet->getRowsCount());
+        
+        
+        $this->assertEquals([
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+        ], $resultSet->getRows());
+        
+        $this->assertEquals([
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+        ], $resultSet->getRows());
+        $schema->table('users')->insert([
+            'cols' => [
+                'id','first-name','last-name','age'
+            ],
+            'values' => [
+                [102,'Jon','Mark',22],
+                [103,'Ibrahim','Ali',27]
+            ]
+        ])->execute();
+        $schema->table('users')->select()->execute();
+        $resultSet = $schema->getLastResultSet();
+        foreach ($resultSet as $row) {
+            if ($row['id'] == 100) {
+                $this->assertEquals('Ali', $row['first_name']);
+            }
+            if ($row['id'] == 101) {
+                $this->assertEquals('Dabi', $row['first_name']);
+            }
+            if ($row['id'] == 102) {
+                $this->assertEquals('Jon', $row['first_name']);
+            }
+            if ($row['id'] == 103) {
+                $this->assertEquals('Ibrahim', $row['first_name']);
+            }
+        }
+        return $schema;
+    }
+    /**
+     * @test
      */
     public function testInsert00() {
         $schema = new MSSQLTestSchema();
@@ -283,7 +338,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh'
         ]);
-        $this->assertEquals("insert into [users] ([id], [first_name], [last_name]) values (8, N'Ibrahim', N'BinAlshikh');", $schema->getLastQuery());
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name]) values (?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -301,9 +356,9 @@ class MSSQLQueryBuilderTest extends TestCase{
             ],
                 
         ]);
-        $this->assertEquals("insert into [users]\n([id], [first_name], [last_name])\nvalues\n"
-                . "(8, N'Ibrahim', N'BinAlshikh'),\n"
-                . "(9, N'Web', N'DB');", $schema->getLastQuery());
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name])\nvalues\n"
+                . "(?, ?, ?),\n"
+                . "(?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -317,7 +372,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ]);
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
-                . "values (6, 'OK task', '".date('Y-m-d H:i:s')."', 0);", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
         $q->insert([
             'user-id' => 6,
             'details' => 'OK task',
@@ -326,7 +381,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ]);
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
-                . "values (6, 'OK task', '2020-10-16 00:00:00', 1);", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -340,7 +395,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ]);
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
-                . "values (null, 'OK task', '".date('Y-m-d H:i:s')."', 0);", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test

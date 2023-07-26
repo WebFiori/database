@@ -474,7 +474,7 @@ abstract class Column {
      * @since 1.0
      */
     public function setComment(string $comment = null) {
-        $trimmed = trim($comment);
+        $trimmed = trim($comment.'');
 
         if (strlen($trimmed) != 0) {
             $this->comment = $trimmed;

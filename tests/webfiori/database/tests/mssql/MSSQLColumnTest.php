@@ -284,8 +284,8 @@ class MSSQLColumnTest extends TestCase {
     public function testSetDefault00() {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('2019-11-09');
-        $this->assertEquals('2019-11-09 00:00:00',$col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null default \'2019-11-09 00:00:00\'',$col.'');
+        $this->assertEquals('2019-11-09',$col->getDefault());
+        $this->assertEquals('[date] [datetime2] not null default \'2019-11-09\'',$col.'');
     }
     /**
      * @test
@@ -400,7 +400,7 @@ class MSSQLColumnTest extends TestCase {
     public function testSetDefault09() {
         $col = new MSSQLColumn('mix', 'mixed');
         $col->setDefault('2019-11-09');
-        $this->assertEquals("N'2019-11-09'",$col->getDefault());
+        $this->assertEquals("2019-11-09",$col->getDefault());
         $this->assertEquals("[mix] [nvarchar](256) not null default N'2019-11-09'",$col.'');
     }
     /**
@@ -409,7 +409,7 @@ class MSSQLColumnTest extends TestCase {
     public function testSetDefault10() {
         $col = new MSSQLColumn('mix', 'mixed');
         $col->setDefault(1);
-        $this->assertEquals("N'1'",$col->getDefault());
+        $this->assertEquals(1,$col->getDefault());
         $this->assertEquals("[mix] [nvarchar](256) not null default N'1'",$col.'');
     }
     /**
@@ -476,7 +476,7 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals('datetime2',$col->getDatatype());
         $this->assertEquals(1,$col->getSize());
         $col->setDefault('2019-01-11');
-        $this->assertSame('2019-01-11 00:00:00',$col->getDefault());
+        $this->assertSame('2019-01-11',$col->getDefault());
     }
     /**
      * @test
@@ -488,9 +488,9 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals('datetime2',$col->getDatatype());
         $this->assertEquals(1,$col->getSize());
         $this->assertNull($col->getDefault());
-        $col->setDefault('2019-13-11 00:00:00');
+        $col->setDefault('2019-13-11');
         $this->assertNull($col->getDefault());
-        $col->setDefault('2019-04-44 00:00:00');
+        $col->setDefault('2019-04-44');
         $this->assertNull($col->getDefault());
         
     }

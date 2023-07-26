@@ -157,22 +157,6 @@ abstract class Connection {
         return $this->resultSet;
     }
     /**
-     * Creates a prepared SQL statement from the query.
-     * 
-     * The implementation of this method should execute a prepare statement 
-     * on the database engine. An example is MySQL. In this case, the developer 
-     * must use the method mysqli::prepare(). After the statement is prepared, 
-     * then the developer can bind parameters values using the 
-     * method mysqli_stmt::bind_param().
-     * 
-     * @param array $queryParams An optional array of parameters to bind with the 
-     * prepared query. The structure of the array will depend on the type of 
-     * database engine that will be used.
-     * 
-     * @since 1.0.1
-     */
-    public abstract function prepare(array $queryParams = []);
-    /**
      * Sets the last query and execute it.
      * 
      * This method should be implemented in a way that it accepts null or an 

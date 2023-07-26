@@ -29,6 +29,11 @@ abstract class AbstractQuery {
      */
     private $associatedTbl;
     /**
+     * 
+     * @var InsertHelper
+     */
+    private $insertHelper;
+    /**
      *
      * @var boolean
      * 
@@ -349,8 +354,15 @@ abstract class AbstractQuery {
             return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
             $errQuery = $this->getSchema()->getLastQuery();
-            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery);
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery, $ex);
         }
+    }
+    /**
+     * 
+     * @return InsertBuilder|null
+     */
+    public function getInsertBuilder() {
+        return $this->insertHelper;
     }
     /**
      * Returns the type of last generated SQL query.
@@ -923,6 +935,10 @@ abstract class AbstractQuery {
         }
 
         return $this;
+    }
+    public function setInsertBuilder(InsertBuilder $builder) {
+        $this->insertHelper = $builder;
+        $this->setQuery($builder->getQuery());
     }
     /**
      * Sets the parameters which will be used in case the query will be prepared.

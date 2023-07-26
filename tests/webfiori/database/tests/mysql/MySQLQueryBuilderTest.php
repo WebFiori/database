@@ -537,7 +537,7 @@ class MySQLQueryBuilderTest extends TestCase {
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh'
         ]);
-        $this->assertEquals("replace into `users` (`id`, `first_name`, `last_name`) values (8, 'Ibrahim', 'BinAlshikh');", $schema->getLastQuery());
+        $this->assertEquals("replace into `users` (`id`, `first_name`, `last_name`) values (?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -555,9 +555,9 @@ class MySQLQueryBuilderTest extends TestCase {
             ],
                 
         ]);
-        $this->assertEquals("replace into `users`\n(`id`, `first_name`, `last_name`)\nvalues\n"
-                . "(8, 'Ibrahim', 'BinAlshikh'),\n"
-                . "(9, 'Web', 'DB');", $schema->getLastQuery());
+        $this->assertEquals("replace into `users` (`id`, `first_name`, `last_name`)\nvalues\n"
+                . "(?, ?, ?),\n"
+                . "(?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -571,7 +571,7 @@ class MySQLQueryBuilderTest extends TestCase {
         ]);
         $this->assertEquals("replace into `users_tasks` "
                 . "(`user_id`, `details`, `created_on`, `is_finished`) "
-                . "values (6, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
         $q->replace([
             'user-id' => 6,
             'details' => 'OK task',
@@ -580,7 +580,7 @@ class MySQLQueryBuilderTest extends TestCase {
         ]);
         $this->assertEquals("replace into `users_tasks` "
                 . "(`user_id`, `details`, `created_on`, `is_finished`) "
-                . "values (6, 'OK task', '2020-10-16 00:00:00', b'1');", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -594,7 +594,7 @@ class MySQLQueryBuilderTest extends TestCase {
         ]);
         $this->assertEquals("replace into `users_tasks` "
                 . "(`user_id`, `details`, `created_on`, `is_finished`) "
-                . "values (null, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -607,7 +607,7 @@ class MySQLQueryBuilderTest extends TestCase {
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh'
         ]);
-        $this->assertEquals("insert into `users` (`id`, `first_name`, `last_name`) values (8, 'Ibrahim', 'BinAlshikh');", $schema->getLastQuery());
+        $this->assertEquals("insert into `users` (`id`, `first_name`, `last_name`) values (?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -625,9 +625,9 @@ class MySQLQueryBuilderTest extends TestCase {
             ],
                 
         ]);
-        $this->assertEquals("insert into `users`\n(`id`, `first_name`, `last_name`)\nvalues\n"
-                . "(8, 'Ibrahim', 'BinAlshikh'),\n"
-                . "(9, 'Web', 'DB');", $schema->getLastQuery());
+        $this->assertEquals("insert into `users` (`id`, `first_name`, `last_name`)\nvalues\n"
+                . "(?, ?, ?),\n"
+                . "(?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -641,7 +641,7 @@ class MySQLQueryBuilderTest extends TestCase {
         ]);
         $this->assertEquals("insert into `users_tasks` "
                 . "(`user_id`, `details`, `created_on`, `is_finished`) "
-                . "values (6, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
         $q->insert([
             'user-id' => 6,
             'details' => 'OK task',
@@ -650,7 +650,7 @@ class MySQLQueryBuilderTest extends TestCase {
         ]);
         $this->assertEquals("insert into `users_tasks` "
                 . "(`user_id`, `details`, `created_on`, `is_finished`) "
-                . "values (6, 'OK task', '2020-10-16 00:00:00', b'1');", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -664,7 +664,7 @@ class MySQLQueryBuilderTest extends TestCase {
         ]);
         $this->assertEquals("insert into `users_tasks` "
                 . "(`user_id`, `details`, `created_on`, `is_finished`) "
-                . "values (null, 'OK task', '".date('Y-m-d H:i:s')."', b'0');", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -896,9 +896,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 [101,'Dabi','Jona',19]
             ]
         ]);
-        $this->assertEquals("insert into `users`\n(`id`, `first_name`, `last_name`, `age`)\nvalues\n"
-                . "(100, 'Ali', 'Hassan', 16),\n"
-                . "(101, 'Dabi', 'Jona', 19);", $schema->getLastQuery());
+        $this->assertEquals("insert into `users` (`id`, `first_name`, `last_name`, `age`)\nvalues\n"
+                . "(?, ?, ?, ?),\n"
+                . "(?, ?, ?, ?);", $schema->getLastQuery());
         $schema->execute();
         $schema->table('users')->select()->execute();
         $resultSet = $schema->getLastResultSet();
