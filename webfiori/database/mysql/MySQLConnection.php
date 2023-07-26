@@ -211,11 +211,17 @@ class MySQLConnection extends Connection {
         return $stm->execute();
     }
     private function runInsertQuery() {
-        $query = $this->getLastQuery();
-        $sqlStatement = mysqli_prepare($this->link, $query);
-        $insertParams = $query->getInsertBuilder()->getQueryParams()['bind'];
-        $values = array_merge($query->getInsertBuilder()->getQueryParams()['values']);
-        $sqlStatement->bind_param($insertParams, $values);
+        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        $sqlStatement = mysqli_prepare($this->link, $insertBuilder->getQuery());
+        $insertParams = $insertBuilder->getQueryParams()['bind'];
+        $values = array_merge($insertBuilder->getQueryParams()['values']);
+        $bindValues = [];
+        foreach ($values as $valuesArr) {
+            foreach ($valuesArr as $val) {
+                $bindValues[] = $val;
+            }
+        }
+        $sqlStatement->bind_param($insertParams, ...$bindValues);
         $r = $sqlStatement->execute();
 
         $retVal = false;
@@ -224,7 +230,7 @@ class MySQLConnection extends Connection {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
 
-            $r = mysqli_multi_query($this->link, $query->getQuery());
+            $r = mysqli_multi_query($this->link, $this->getLastQuery()->getQuery());
 
             if ($r) {
                 $this->setErrMessage('NO ERRORS');
@@ -235,7 +241,7 @@ class MySQLConnection extends Connection {
         } else {
             $retVal = true;
         }
-        $query->setIsBlobInsertOrUpdate(false);
+        $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
 
         return $retVal;
     }
