@@ -354,7 +354,7 @@ abstract class AbstractQuery {
             return $this->getSchema()->execute();
         } catch (DatabaseException $ex) {
             $errQuery = $this->getSchema()->getLastQuery();
-            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery);
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery, $ex);
         }
     }
     /**
@@ -504,6 +504,8 @@ abstract class AbstractQuery {
     public function insert(array $colsAndVals) {
         $this->insertHelper = new InsertBuilder($this->getTable(), $colsAndVals);
         $this->setQuery($this->insertHelper->getQuery());
+        
+        return $this;
     }
     /**
      * 
