@@ -253,6 +253,82 @@ class MSSQLQueryBuilderTest extends TestCase{
     }
     /**
      * @test
+     * @param MSSQLTestSchema $schema
+     * @depends testInsert03
+     */
+    public function testDropRecord00(MSSQLTestSchema $schema) {
+        $row = $schema->getLastResultSet()->getRows()[0];
+        $schema->table('users')->delete()->where('id', $row['id']);
+        $this->assertEquals('delete from [users] where [users].[id] = '.$row['id'], $schema->getLastQuery());
+        $schema->execute();
+        $schema->table('users')->select()->execute();
+        $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
+        return $schema;
+    }
+    /**
+     * 
+     * @test
+     * @param MSSQLTestSchema $schema
+     * @depends testDropRecord00
+     */
+    public function testInsert04(MSSQLTestSchema $schema) {
+        $schema->setQuery('set identity_insert users on;')->execute();
+        $schema->table('users')->insert([
+            'cols' => [
+                'id','first-name','last-name','age'
+            ],
+            'values' => [
+                [100,'Ali','Hassan',16],
+                [101,'Dabi','Jona',19]
+            ]
+        ]);
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name], [age])\nvalues\n"
+                . "(?, ?, ?, ?),\n"
+                . "(?, ?, ?, ?);", $schema->getLastQuery());
+        $schema->execute();
+        $schema->table('users')->select()->execute();
+        $resultSet = $schema->getLastResultSet();
+        $this->assertEquals(2, $resultSet->getRowsCount());
+        
+        
+        $this->assertEquals([
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+        ], $resultSet->getRows());
+        
+        $this->assertEquals([
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+        ], $resultSet->getRows());
+        $schema->table('users')->insert([
+            'cols' => [
+                'id','first-name','last-name','age'
+            ],
+            'values' => [
+                [102,'Jon','Mark',22],
+                [103,'Ibrahim','Ali',27]
+            ]
+        ])->execute();
+        $schema->table('users')->select()->execute();
+        $resultSet = $schema->getLastResultSet();
+        foreach ($resultSet as $row) {
+            if ($row['id'] == 100) {
+                $this->assertEquals('Ali', $row['first_name']);
+            }
+            if ($row['id'] == 101) {
+                $this->assertEquals('Dabi', $row['first_name']);
+            }
+            if ($row['id'] == 102) {
+                $this->assertEquals('Jon', $row['first_name']);
+            }
+            if ($row['id'] == 103) {
+                $this->assertEquals('Ibrahim', $row['first_name']);
+            }
+        }
+        return $schema;
+    }
+    /**
+     * @test
      */
     public function testInsert00() {
         $schema = new MSSQLTestSchema();
