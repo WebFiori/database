@@ -75,10 +75,10 @@ class InsertBuilder {
             }
             $this->vals = $temp;
             
-            $this->query .= ' '.$this->buildColsArr().' values ';
+            $this->query .= ' '.$this->buildColsArr()."\nvalues\n";
             
             $values = trim(str_repeat('?, ', count($this->cols)),', ');
-            $multiVals = trim(str_repeat('('.$values.'), ', count($this->vals)), ', ');
+            $multiVals = trim(str_repeat('('.$values."),\n", count($this->vals)), ",\n");
             $this->query .= $multiVals.';';
         } else {
             $this->cols = array_keys($colsAndVals);
