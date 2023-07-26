@@ -1,0 +1,53 @@
+<?php
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2023 Ibrahim BinAlshikh
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
+namespace webfiori\database\mysql;
+
+use webfiori\database\Column;
+use webfiori\database\InsertBuilder;
+use webfiori\database\Table;
+
+/**
+ * Description of MySQLInsertBuilder
+ *
+ * @author Ibrahim
+ */
+class MySQLInsertBuilder extends InsertBuilder {
+    public function __construct(Table $table, array $colsAndVals) {
+        parent::__construct($table, $colsAndVals);
+    }
+    public function parseValues(array $values) {
+        $index = 0;
+        $queryParams = [
+            'bind' => '',
+            'values' => []
+        ];
+        
+        foreach ($values as $valsArr) {
+            $queryParams['values'][] = [];
+            
+            foreach ($valsArr as $col => $val) {
+                $colObj = $this->getTable()->getColByKey($col);
+                $colType = $colObj->getDatatype();
+                $queryParams['values'][$index][] = $val;
+
+                if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
+                    $queryParams['bind'] .= 'i';
+                } else if ($colType == 'decimal' || $colType == 'float') {
+                    $queryParams['bind'] .= 'd';
+                } else {
+                    $queryParams['bind'] .= 's';
+                }
+            }
+            $index++;
+        }
+        $this->setQueryParams($queryParams);
+    }
+}
