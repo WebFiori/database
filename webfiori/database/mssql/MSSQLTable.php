@@ -41,24 +41,6 @@ class MSSQLTable extends Table {
         $this->setWithExtendedProps(false);
     }
     /**
-     * Sets the value of the property which is used to indicate if extended property
-     * will be included in 'create table' statement.
-     * 
-     * @param bool $bool True to include it. False to not.
-     */
-    public function setWithExtendedProps(bool $bool) {
-        $this->withExtendedProps = $bool;
-    }
-    /**
-     * Checks if extended property will be included in in 'create table' statement.
-     * 
-     * @return bool True if they will be included. False if not. Default return
-     * value is false.
-     */
-    public function isWithExtendedProps() : bool {
-        return $this->withExtendedProps;
-    }
-    /**
      * Adds new column to the table.
      * 
      * @param string $key Key name of the column. A valid key must follow following
@@ -161,15 +143,15 @@ class MSSQLTable extends Table {
         }
         $query = "exec $sp\n"
                     ."@name = N'MS_Description',\n"
-                    ."@value = '". str_replace("'", "''", $comment)."',\n"
+                    ."@value = '".str_replace("'", "''", $comment)."',\n"
                     ."@level0type = N'Schema',\n"
                     ."@level0name = 'dbo',\n"
                     ."@level1type = N'Table',\n"
                     ."@level1name = '$tableName';";
+
         if ($spType == 'add') {
             return "if not exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0)\n"
                     .$query."";
-                
         } else if ($spType == 'update') {
             return "if exists (select null from sys.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') and name = N'MS_Description' and minor_id = 0)\n"
                     .$query."";
@@ -222,6 +204,15 @@ class MSSQLTable extends Table {
         return false;
     }
     /**
+     * Checks if extended property will be included in in 'create table' statement.
+     * 
+     * @return bool True if they will be included. False if not. Default return
+     * value is false.
+     */
+    public function isWithExtendedProps() : bool {
+        return $this->withExtendedProps;
+    }
+    /**
      * Sets the name of the unique constraint.
      * 
      * @param string $name The name of the unique constraint. Must be non-empty
@@ -235,6 +226,15 @@ class MSSQLTable extends Table {
         if (strlen($trimmed) != 0) {
             $this->uniqueConstName = $trimmed;
         }
+    }
+    /**
+     * Sets the value of the property which is used to indicate if extended property
+     * will be included in 'create table' statement.
+     * 
+     * @param bool $bool True to include it. False to not.
+     */
+    public function setWithExtendedProps(bool $bool) {
+        $this->withExtendedProps = $bool;
     }
     /**
      * Returns SQL query which can be used to create the table.

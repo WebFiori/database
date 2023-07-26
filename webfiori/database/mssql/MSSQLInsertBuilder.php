@@ -23,7 +23,6 @@ class MSSQLInsertBuilder extends InsertBuilder {
         $arr = [];
 
         foreach ($values as $valsArr) {
-
             foreach ($valsArr as $col => $val) {
                 $colObj = $this->getTable()->getColByKey($col);
                 $arr[] = array_merge([$val, SQLSRV_PARAM_IN], $colObj->getTypeArr());

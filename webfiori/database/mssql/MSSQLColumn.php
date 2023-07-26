@@ -23,13 +23,6 @@ use webfiori\database\DateTimeValidator;
  */
 class MSSQLColumn extends Column {
     /**
-     * A boolean which is used to indicate if create SQL query will have extended
-     * properties included or not.
-     * 
-     * @var bool
-     */
-    private $withExtendedProps;
-    /**
      * A boolean which can be set to true in order to auto-update any 
      * date datatype column..
      * 
@@ -45,6 +38,13 @@ class MSSQLColumn extends Column {
      * @var bool
      */
     private $isIdintity;
+    /**
+     * A boolean which is used to indicate if create SQL query will have extended
+     * properties included or not.
+     * 
+     * @var bool
+     */
+    private $withExtendedProps;
     /**
      * Creates new instance of the class.
      * 
@@ -87,24 +87,6 @@ class MSSQLColumn extends Column {
         if (!$this->setSize($size)) {
             $this->setSize(1);
         }
-    }
-    /**
-     * Sets the value of the property which is used to indicate if extended property
-     * will be included in 'create table' statement.
-     * 
-     * @param bool $bool True to include it. False to not.
-     */
-    public function setWithExtendedProps(bool $bool) {
-        $this->withExtendedProps = $bool;
-    }
-    /**
-     * Checks if extended property will be included in in 'create table' statement.
-     * 
-     * @return bool True if they will be included. False if not. Default return
-     * value is false.
-     */
-    public function isWithExtendedProps() : bool {
-        return $this->withExtendedProps;
     }
     /**
      * Returns a string that represents the column.
@@ -189,22 +171,21 @@ class MSSQLColumn extends Column {
 
         $query = "exec $sp\n"
                 ."@name = N'MS_Description',\n"
-                ."@value = '". str_replace("'", "''", $comment)."',\n"
+                ."@value = '".str_replace("'", "''", $comment)."',\n"
                 ."@level0type = N'Schema',\n"
                 ."@level0name = 'dbo',\n"
                 ."@level1type = N'Table',\n"
                 ."@level1name = '$tableName',\n"
                 ."@level2type = N'Column',\n"
                 ."@level2name = '$colName';";
-         
+
         if ($spType == 'add') {
             return "if not exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') "
-                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."')))\n"
+                    ."and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."')))\n"
                     .$query."";
-                
         } else if ($spType == 'update') {
             return "if exists (select null from SYS.EXTENDED_PROPERTIES where major_id = OBJECT_ID('".$tableName."') "
-                    . "and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."')))\n"
+                    ."and [name] = N'MS_Description' and minor_id = (select column_id from SYS.COLUMNS where name = '".$colName."' and [object_id] = OBJECT_ID('".$tableName."')))\n"
                     .$query."";
         } else {
             return $query;
@@ -354,6 +335,28 @@ class MSSQLColumn extends Column {
             return parent::getPHPType().$isNullStr;
         }
     }
+
+    public function getTypeArr() {
+        switch ($this->getDatatype()) {
+            case 'int' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_INT];
+            case 'bigint' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIGINT];
+            case 'varchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARCHAR];
+            case 'nvarchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_NVARCHAR];
+            case 'char' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_CHAR];
+            case 'nchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_NCHAR];
+            case 'binary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_BINARY];
+            case 'varbinary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARBINARY];
+            case 'date' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATE];
+            case 'datetime2' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATETIME2];
+            case 'time' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_TIME];
+            case 'money' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_MONEY];
+            case 'bit' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
+            case 'decimal' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_DECIMAL];
+            case 'float' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_FLOAT];
+            case 'bool' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
+            case 'boolean' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
+        }
+    }
     /**
      * Returns the value of the property 'isAutoUpdate'.
      * 
@@ -376,6 +379,15 @@ class MSSQLColumn extends Column {
      */
     public function isIdentity () : bool {
         return $this->isIdintity;
+    }
+    /**
+     * Checks if extended property will be included in in 'create table' statement.
+     * 
+     * @return bool True if they will be included. False if not. Default return
+     * value is false.
+     */
+    public function isWithExtendedProps() : bool {
+        return $this->withExtendedProps;
     }
     /**
      * Sets the value of the property 'isAutoUpdate'.
@@ -405,7 +417,6 @@ class MSSQLColumn extends Column {
      * column type is not supported.
      */
     public function setDatatype(string $type) {
-        
         parent::setDatatype($type);
 
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
@@ -434,13 +445,13 @@ class MSSQLColumn extends Column {
         if ($this->getDatatype() == 'mixed' && $default !== null) {
             $default .= '';
         }
-        
+
         parent::setDefault($default);
         $type = $this->getDatatype();
 
         if ($default !== null && ($default != 'now' && $default != 'now()' && $default != 'current_timestamp') && ($type == 'datetime2' || $type == 'date' || $type == 'time')) {
             $isValdDate = DateTimeValidator::isValidDate($default) || DateTimeValidator::isValidDateTime($default) || DateTimeValidator::isValidTime($default);
-            
+
             if (!$isValdDate) {
                 parent::setDefault(null);
             }
@@ -492,6 +503,15 @@ class MSSQLColumn extends Column {
         }
 
         return false;
+    }
+    /**
+     * Sets the value of the property which is used to indicate if extended property
+     * will be included in 'create table' statement.
+     * 
+     * @param bool $bool True to include it. False to not.
+     */
+    public function setWithExtendedProps(bool $bool) {
+        $this->withExtendedProps = $bool;
     }
 
     private function cleanValueHelper($val) {
@@ -590,28 +610,6 @@ class MSSQLColumn extends Column {
             } else {
                 return 'default '.$this->cleanValue($colDefault).' ';
             }
-        }
-    }
-
-    public function getTypeArr() {
-        switch ($this->getDatatype()) {
-            case 'int' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_INT];
-            case 'bigint' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIGINT];
-            case 'varchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARCHAR];
-            case 'nvarchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_NVARCHAR];
-            case 'char' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_CHAR];
-            case 'nchar' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_NCHAR];
-            case 'binary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_BINARY];
-            case 'varbinary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARBINARY];
-            case 'date' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATE];
-            case 'datetime2' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATETIME2];
-            case 'time' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_TIME];
-            case 'money' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_MONEY];
-            case 'bit' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
-            case 'decimal' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_DECIMAL];
-            case 'float' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_FLOAT];
-            case 'bool' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
-            case 'boolean' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
         }
     }
     private function firstColPartString() {

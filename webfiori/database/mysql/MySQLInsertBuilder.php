@@ -25,10 +25,10 @@ class MySQLInsertBuilder extends InsertBuilder {
             'bind' => '',
             'values' => []
         ];
-        
+
         foreach ($values as $valsArr) {
             $queryParams['values'][] = [];
-            
+
             foreach ($valsArr as $col => $val) {
                 $colObj = $this->getTable()->getColByKey($col);
                 $colType = $colObj->getDatatype();

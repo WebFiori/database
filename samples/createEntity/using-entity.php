@@ -9,7 +9,8 @@ $resultSet = $database->table('users_information')
         ->select()
         ->execute();
 
-$mappedSet = $resultSet->map(function (array $record) {
+$mappedSet = $resultSet->map(function (array $record)
+{
     return UserInformation::map($record);
 });
 

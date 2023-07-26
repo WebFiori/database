@@ -13,9 +13,6 @@ namespace webfiori\database\mssql;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Column;
 use webfiori\database\DatabaseException;
-use webfiori\database\mssql\MSSQLColumn;
-use webfiori\database\mssql\MSSQLInsertBuilder;
-use webfiori\database\mssql\MSSQLQuery;
 /**
  * A class which is used to build MSSQL queries.
  *
@@ -51,29 +48,6 @@ class MSSQLQuery extends AbstractQuery {
         return $this;
     }
     /**
-     * Creates and returns a copy of the builder.
-     * 
-     * The information that will be copied includes:
-     * <ul>
-     * <li>Limit.</li>
-     * <li>Offset.</li>
-     * <li>Linked table.</li>
-     * <li>Linked schema.</li>
-     * </ul>
-     * 
-     * @return AbstractQuery
-     * 
-     * @since 1.0
-     */
-    public function copyQuery() : AbstractQuery {
-        
-        $copy = new MSSQLQuery();
-        $copy->setTable($this->getTable(), false);
-        $copy->setSchema($this->getSchema());
-
-        return $copy;
-    }
-    /**
      * Constructs a query that can be used to add a primary key to the active table.
      * 
      * @return MSSQLQuery The method will return the same instance at which the 
@@ -98,6 +72,28 @@ class MSSQLQuery extends AbstractQuery {
         $this->setQuery($stm);
 
         return $this;
+    }
+    /**
+     * Creates and returns a copy of the builder.
+     * 
+     * The information that will be copied includes:
+     * <ul>
+     * <li>Limit.</li>
+     * <li>Offset.</li>
+     * <li>Linked table.</li>
+     * <li>Linked schema.</li>
+     * </ul>
+     * 
+     * @return AbstractQuery
+     * 
+     * @since 1.0
+     */
+    public function copyQuery() : AbstractQuery {
+        $copy = new MSSQLQuery();
+        $copy->setTable($this->getTable(), false);
+        $copy->setSchema($this->getSchema());
+
+        return $copy;
     }
     /**
      * Build a query which is used to drop primary key of linked table.
@@ -133,6 +129,12 @@ class MSSQLQuery extends AbstractQuery {
         }
 
         return $query;
+    }
+
+    public function insert(array $colsAndVals): AbstractQuery {
+        $this->setInsertBuilder(new MSSQLInsertBuilder($this->getTable(), $colsAndVals));
+
+        return $this;
     }
     /**
      * Build a query which can be used to modify a column in associated table.
@@ -391,11 +393,5 @@ class MSSQLQuery extends AbstractQuery {
             'cols' => implode(', ', $colsNamesArr),
             'vals' => implode(', ', $valsArr)
         ];
-    }
-
-    public function insert(array $colsAndVals): AbstractQuery {
-        $this->setInsertBuilder(new MSSQLInsertBuilder($this->getTable(), $colsAndVals));
-        
-        return $this;
     }
 }

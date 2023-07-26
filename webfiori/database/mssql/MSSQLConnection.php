@@ -135,9 +135,8 @@ class MSSQLConnection extends Connection {
         }
     }
     private function runInsertQuery() {
-
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
-        
+
         $stm = sqlsrv_prepare($this->link, $insertBuilder->getQuery(), $insertBuilder->getQueryParams());
         $r = sqlsrv_execute($stm);
 

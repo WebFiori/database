@@ -169,6 +169,7 @@ class MySQLConnection extends Connection {
         $insertParams = $insertBuilder->getQueryParams()['bind'];
         $values = array_merge($insertBuilder->getQueryParams()['values']);
         $bindValues = [];
+
         foreach ($values as $valuesArr) {
             foreach ($valuesArr as $val) {
                 $bindValues[] = $val;

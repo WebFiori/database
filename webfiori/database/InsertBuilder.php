@@ -18,6 +18,26 @@ namespace webfiori\database;
 abstract class InsertBuilder {
     /**
      * 
+     * @var array
+     */
+    private $cols;
+    /**
+     * 
+     * @var array
+     */
+    private $data;
+    /**
+     * 
+     * @var array
+     */
+    private $defaultVals;
+    /**
+     * 
+     * @var string
+     */
+    private $paramPlaceholder;
+    /**
+     * 
      * @var string
      */
     private $query;
@@ -28,34 +48,14 @@ abstract class InsertBuilder {
     private $queryParams;
     /**
      * 
-     * @var string
+     * @var Table
      */
-    private $paramPlaceholder;
-    /**
-     * 
-     * @var array
-     */
-    private $data;
-    /**
-     * 
-     * @var array
-     */
-    private $cols;
+    private $table;
     /**
      * 
      * @var array
      */
     private $vals;
-    /**
-     * 
-     * @var array
-     */
-    private $defaultVals;
-    /**
-     * 
-     * @var Table
-     */
-    private $table;
     /**
      * Creates new instance of the class.
      * 
@@ -75,6 +75,66 @@ abstract class InsertBuilder {
         $this->table = $table;
         $this->data = $colsAndVals;
         $this->build();
+    }
+    /**
+     * Returns an array that holds default values for columns that was not
+     * specified in the insert.
+     * 
+     * @return array The indices of the array are columns names and the value
+     * of each index is the default value.
+     */
+    public function getDefaultValues() : array {
+        return $this->defaultVals;
+    }
+    /**
+     * Returns the character which is used as placeholder for building prepared
+     * query.
+     * 
+     * @return string A string such as '?' or '$'.
+     */
+    public function getPlaceholder() : string {
+        return $this->paramPlaceholder;
+    }
+    /**
+     * Returns the generated insert query.
+     * 
+     * @return string The generated SQL query.
+     */
+    public function getQuery() : string {
+        return $this->query;
+    }
+    /**
+     * Returns an array that holds the values which is used in binding with the
+     * prepared query.
+     * 
+     * Depending on database engine, the structure of the array may differ.
+     * 
+     * @return array
+     */
+    public function getQueryParams() : array {
+        return $this->queryParams;
+    }
+    /**
+     * Returns an array that holds sub-associative arrays which has original
+     * passed values.
+     * 
+     * @return array The array will hold sub-associative arrays. The indices
+     * of sub-associative arrays are columns keys and each index will have
+     * the value of the column.
+     */
+    public function getRawValues() : array {
+        return $this->vals;
+    }
+    /**
+     * Returns the table instance at which the insert query is based on.
+     * 
+     * The goal of the table is to make sure that the binding between
+     * the values and the data types of database columns is correct.
+     * 
+     * @return Table The table instance at which the insert query is based on.
+     */
+    public function getTable() : Table {
+        return $this->table;
     }
     /**
      * Construct an insert statement.
@@ -99,26 +159,6 @@ abstract class InsertBuilder {
         $this->build();
     }
     /**
-     * Returns the character which is used as placeholder for building prepared
-     * query.
-     * 
-     * @return string A string such as '?' or '$'.
-     */
-    public function getPlaceholder() : string {
-        return $this->paramPlaceholder;
-    }
-    /**
-     * Returns an array that holds the values which is used in binding with the
-     * prepared query.
-     * 
-     * Depending on database engine, the structure of the array may differ.
-     * 
-     * @return array
-     */
-    public function getQueryParams() : array {
-        return $this->queryParams;
-    }
-    /**
      * Construct the array of values which will be used in binding.
      * 
      * The method must be implemented in a way that it returns a structured
@@ -127,39 +167,11 @@ abstract class InsertBuilder {
      */
     abstract function parseValues(array $values);
     /**
-     * Returns an array that holds sub-associative arrays which has original
-     * passed values.
      * 
-     * @return array The array will hold sub-associative arrays. The indices
-     * of sub-associative arrays are columns keys and each index will have
-     * the value of the column.
+     * @param array $arr
      */
-    public function getRawValues() : array {
-        return $this->vals;
-    }
-    private function initValsArr() {
-        $colsAndVals = $this->data;
-        
-        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $cols = $colsAndVals['cols'];
-            $tempVals = $colsAndVals['values'];
-            $temp = [];
-            $topIndex = 0;
-            foreach ($tempVals as $valsArr) {
-                $index = 0;
-                $temp[] = [];
-                foreach ($cols as $colKey) {
-                    $temp[$topIndex][$colKey] = $valsArr[$index];
-                    $index++;
-                }
-                $topIndex++;
-            }
-            $this->vals = $temp;
-            $this->cols = $cols;
-        } else {
-            $this->cols = array_keys($colsAndVals);
-            $this->vals = [$colsAndVals];
-        }
+    public function setQueryParams(array $arr) {
+        $this->queryParams = $arr;
     }
     private function build() {
         $this->queryParams = [];
@@ -169,9 +181,8 @@ abstract class InsertBuilder {
         $this->query = 'insert into '.$this->getTable()->getName();
         $colsAndVals = $this->data;
         $this->initValsArr();
-        
-        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
 
+        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
             $this->query .= ' '.$this->buildColsArr()."\nvalues\n";
             $values = trim(str_repeat('?, ', count($this->cols)),', ');
             $multiVals = trim(str_repeat('('.$values."),\n", count($this->vals)), ",\n");
@@ -183,46 +194,11 @@ abstract class InsertBuilder {
             $this->query .= ' values ('.$values.');';
         }
         $toPass = [];
+
         foreach ($this->getRawValues() as $arr) {
             $toPass[] = array_merge($arr, $this->getDefaultValues());
         }
         $this->parseValues($toPass);
-    }
-    /**
-     * Returns an array that holds default values for columns that was not
-     * specified in the insert.
-     * 
-     * @return array The indices of the array are columns names and the value
-     * of each index is the default value.
-     */
-    public function getDefaultValues() : array {
-        return $this->defaultVals;
-    }
-    /**
-     * 
-     * @param array $arr
-     */
-    public function setQueryParams(array $arr) {
-        $this->queryParams = $arr;
-    }
-    /**
-     * Returns the generated insert query.
-     * 
-     * @return string The generated SQL query.
-     */
-    public function getQuery() : string {
-        return $this->query;
-    }
-    /**
-     * Returns the table instance at which the insert query is based on.
-     * 
-     * The goal of the table is to make sure that the binding between
-     * the values and the data types of database columns is correct.
-     * 
-     * @return Table The table instance at which the insert query is based on.
-     */
-    public function getTable() : Table {
-        return $this->table;
     }
     private function buildColsArr() {
         $colsArr = [];
@@ -242,8 +218,23 @@ abstract class InsertBuilder {
             $colsArr[] = $colObj->getName();
         }
         $this->checkColsWithNoVals($this->cols, $colsArr);
-        return '('.implode(', ', $colsArr).')';
 
+        return '('.implode(', ', $colsArr).')';
+    }
+    private function checkColDefault(string $type, string $key, $defaultVal) {
+        if (in_array($type, Column::BOOL_TYPES)) {
+            $this->defaultVals[$key] = $defaultVal ? 1 : 0;
+        } else if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {
+            if ($type == 'datetime2' || $type == 'timestamp' || $type == 'datetime') {
+                $this->defaultVals[$key] = date('Y-m-d H:i:s');
+            } else if ($type == 'time') {
+                $this->defaultVals[$key] = date('H:i:s');
+            } else if ($type == 'date') {
+                $this->defaultVals[$key] = date('Y-m-d');
+            }
+        } else {
+            $this->defaultVals[$key] = $defaultVal;
+        }
     }
     /**
      * Verify and check the columns with no values but have a default value.
@@ -259,7 +250,7 @@ abstract class InsertBuilder {
             if (!in_array($key, $columnsWithVals)) {
                 $colObj = $this->getTable()->getColByKey($key);
                 $defaultVal = $colObj->getDefault();
-                
+
                 if ($defaultVal !== null) {
                     $colsArr[] = $colObj->getName();
                     $this->checkColDefault($colObj->getDatatype(), $key, $defaultVal);
@@ -267,20 +258,30 @@ abstract class InsertBuilder {
             }
         }
     }
-    private function checkColDefault(string $type, string $key, $defaultVal) {
+    private function initValsArr() {
+        $colsAndVals = $this->data;
 
-        if (in_array($type, Column::BOOL_TYPES)) {
-            $this->defaultVals[$key] = $defaultVal ? 1 : 0;
-        } else if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {
-            if ($type == 'datetime2' || $type == 'timestamp' || $type == 'datetime') {
-                $this->defaultVals[$key] = date('Y-m-d H:i:s');
-            } else if ($type == 'time') {
-                $this->defaultVals[$key] = date('H:i:s');
-            } else if ($type == 'date') {
-                $this->defaultVals[$key] = date('Y-m-d');
+        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
+            $cols = $colsAndVals['cols'];
+            $tempVals = $colsAndVals['values'];
+            $temp = [];
+            $topIndex = 0;
+
+            foreach ($tempVals as $valsArr) {
+                $index = 0;
+                $temp[] = [];
+
+                foreach ($cols as $colKey) {
+                    $temp[$topIndex][$colKey] = $valsArr[$index];
+                    $index++;
+                }
+                $topIndex++;
             }
+            $this->vals = $temp;
+            $this->cols = $cols;
         } else {
-            $this->defaultVals[$key] = $defaultVal;
+            $this->cols = array_keys($colsAndVals);
+            $this->vals = [$colsAndVals];
         }
     }
 }

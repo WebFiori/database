@@ -113,6 +113,31 @@ class MySQLQuery extends AbstractQuery {
 
         return '';
     }
+
+    /**
+     * Creates and returns a copy of the builder.
+     * 
+     * The information that will be copied includes:
+     * <ul>
+     * <li>Limit.</li>
+     * <li>Offset.</li>
+     * <li>Linked table.</li>
+     * <li>Linked schema.</li>
+     * </ul>
+     * 
+     * @return AbstractQuery
+     * 
+     * @since 1.0
+     */
+    public function copyQuery(): AbstractQuery {
+        $copy = new MySQLQuery();
+        $copy->limit($this->getLimit());
+        $copy->offset($this->getOffset());
+        $copy->setTable($this->getTable(), false);
+        $copy->setSchema($this->getSchema());
+
+        return $copy;
+    }
     /**
      * Constructs a query which can be used to remove a record from the associated 
      * table.
@@ -183,6 +208,11 @@ class MySQLQuery extends AbstractQuery {
         }
 
         return $query;
+    }
+    public function insert(array $colsAndVals): AbstractQuery {
+        $this->setInsertBuilder(new MySQLInsertBuilder($this->getTable(), $colsAndVals));
+
+        return $this;
     }
     /**
      * Checks if the query represents a blob insert or update.
@@ -394,35 +424,5 @@ class MySQLQuery extends AbstractQuery {
             }
         }
         $this->setQuery($stm.';');
-    }
-   
-    /**
-     * Creates and returns a copy of the builder.
-     * 
-     * The information that will be copied includes:
-     * <ul>
-     * <li>Limit.</li>
-     * <li>Offset.</li>
-     * <li>Linked table.</li>
-     * <li>Linked schema.</li>
-     * </ul>
-     * 
-     * @return AbstractQuery
-     * 
-     * @since 1.0
-     */
-    public function copyQuery(): AbstractQuery {
-        $copy = new MySQLQuery();
-        $copy->limit($this->getLimit());
-        $copy->offset($this->getOffset());
-        $copy->setTable($this->getTable(), false);
-        $copy->setSchema($this->getSchema());
-
-        return $copy;
-    }
-    public function insert(array $colsAndVals): AbstractQuery {
-        $this->setInsertBuilder(new MySQLInsertBuilder($this->getTable(), $colsAndVals));
-        
-        return $this;
     }
 }

@@ -22,17 +22,17 @@ use webfiori\database\mysql\MySQLQuery;
  */
 abstract class AbstractQuery {
     /**
-     * 
-     * @var InsertHelper
-     */
-    private $insertHelper;
-    /**
      *
      * @var Table|null 
      * 
      * @since 1.0
      */
     private $associatedTbl;
+    /**
+     * 
+     * @var InsertHelper
+     */
+    private $insertHelper;
     /**
      *
      * @var boolean
@@ -103,10 +103,6 @@ abstract class AbstractQuery {
         $this->query = '';
         $this->params = [];
         $this->isPrepare = false;
-    }
-    public function setInsertBuilder(InsertBuilder $builder) {
-        $this->insertHelper = $builder;
-        $this->setQuery($builder->getQuery());
     }
     /**
      * Constructs a query that can be used to add a column to a database table.
@@ -362,6 +358,13 @@ abstract class AbstractQuery {
         }
     }
     /**
+     * 
+     * @return InsertBuilder|null
+     */
+    public function getInsertBuilder() {
+        return $this->insertHelper;
+    }
+    /**
      * Returns the type of last generated SQL query.
      * 
      * @return string The method will return a string such as 'select' or 'update'.
@@ -506,13 +509,6 @@ abstract class AbstractQuery {
      * @since 1.0
      */
     public abstract function insert(array $colsAndVals);
-    /**
-     * 
-     * @return InsertBuilder|null
-     */
-    public function getInsertBuilder() {
-        return $this->insertHelper;
-    }
     /**
      * Checks if the query represents a multi-query.
      * 
@@ -939,6 +935,10 @@ abstract class AbstractQuery {
         }
 
         return $this;
+    }
+    public function setInsertBuilder(InsertBuilder $builder) {
+        $this->insertHelper = $builder;
+        $this->setQuery($builder->getQuery());
     }
     /**
      * Sets the parameters which will be used in case the query will be prepared.
