@@ -4,6 +4,7 @@ namespace webfiori\database\tests\common;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\database\InsertBuilder;
+use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLTable;
 
 /**
@@ -149,5 +150,72 @@ class InsertBuilderTest extends TestCase {
             ]
         ], $helper->getQueryParams());
         
+    }
+    /**
+     * @test
+     */
+    public function test03() {
+        $table = new MSSQLTable('users');
+        $table->addColumns([
+            'user-id' => [
+                'type' => 'int',
+                'size' => 11,
+                'primary' => true,
+                'identity' => true
+            ],
+            'email' => [
+                'type' => 'varchar',
+                'size' => 256,
+            ],
+            'username' => [
+                'type' => 'varchar',
+                'size' => 20,
+            ],
+            'password' => [
+                'type' => 'varchar',
+                'size' => 256
+            ],
+            'age' => [
+                'type' => 'decimal'
+            ],
+            'created-on' => [
+                'type' => 'datetime2',
+                'default' => 'now()',
+            ],
+            'is-active' => [
+                'type' => 'bool',
+                'default' => true
+            ]
+        ]);
+        
+        $helper = new InsertBuilder($table, [
+            'user-id' => 1
+        ]);
+        
+        $this->assertEquals('insert into [users] ([user_id], [created_on], [is_active]) values (?, ?, ?);', $helper->getQuery());
+        $this->assertEquals([
+            [1, 1, 2, 4],
+            [date('Y-m-d H:i:s'), 1, 5, 8648668765],
+            [1, 1, 2, -7]
+        ], $helper->getQueryParams());
+        $helper->insert([
+            'user-id' => 1,
+            'email' => 'test@example.com',
+            'username' => 'warrior',
+            'password' => 'abcd',
+            'age' => 33.3,
+        ]);
+        
+        $this->assertEquals('insert into [users] ([user_id], [email], [username], [password], [age], [created_on], [is_active]) values (?, ?, ?, ?, ?, ?, ?);', $helper->getQuery());
+        $encoded = $helper->getQueryParams()[1][2];
+        $this->assertEquals([
+            [1, 1, 2, 4],
+            ['test@example.com', 1, $encoded, 12 ],
+            ['warrior', 1, $encoded, 12],
+            ['abcd', 1, $encoded, 12],
+            [33.3, 1, 3, 3],
+            [date('Y-m-d H:i:s'), 1, 5, 8648668765],
+            [1, 1, 2, -7],
+        ], $helper->getQueryParams());
     }
 }
