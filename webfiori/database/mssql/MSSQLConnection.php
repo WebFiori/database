@@ -164,11 +164,11 @@ class MSSQLConnection extends Connection {
         return $stm->execute();
     }
     private function runInsertQuery() {
-        if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->bindAndExcute();
-        } else {
-            $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
-        }
+
+        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        
+        $stm = sqlsrv_prepare($this->link, $insertBuilder->getQuery(), $insertBuilder->getQueryParams());
+        $r = $stm->execute();
 
         if (!is_resource($r)) {
             $this->setSqlErr();
