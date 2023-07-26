@@ -3,8 +3,9 @@
 namespace webfiori\database\tests\common;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\database\InsertBuilder;
+use webfiori\database\mssql\MSSQLInsertBuilder;
 use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLInsertBuilder;
 use webfiori\database\mysql\MySQLTable;
 
 /**
@@ -51,7 +52,7 @@ class InsertBuilderTest extends TestCase {
             ]
         ]);
         
-        $helper = new InsertBuilder($table, [
+        $helper = new MySQLInsertBuilder($table, [
             'user-id' => 1
         ]);
         
@@ -125,7 +126,7 @@ class InsertBuilderTest extends TestCase {
             ]
         ]);
         
-        $helper = new InsertBuilder($table, [
+        $helper = new MySQLInsertBuilder($table, [
             'cols' => [
                 'user-id'
             ],
@@ -188,7 +189,7 @@ class InsertBuilderTest extends TestCase {
             ]
         ]);
         
-        $helper = new InsertBuilder($table, [
+        $helper = new MSSQLInsertBuilder($table, [
             'user-id' => 1
         ]);
         
