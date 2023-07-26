@@ -106,6 +106,7 @@ abstract class AbstractQuery {
     }
     public function setInsertBuilder(InsertBuilder $builder) {
         $this->insertHelper = $builder;
+        $this->setQuery($builder->getQuery());
     }
     /**
      * Constructs a query that can be used to add a column to a database table.
