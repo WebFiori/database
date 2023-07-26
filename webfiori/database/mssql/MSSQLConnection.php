@@ -108,30 +108,6 @@ class MSSQLConnection extends Connection {
         return $this->sqlState;
     }
     /**
-     * Prepares SQL statement for execution.
-     * 
-     * @param array $params An array that holds query parameters. The parameters 
-     * can have similar structure to the ones which are used by the 
-     * function 'sqlsrv_prepare'.
-     * 
-     * @return bool|resource If the statement is prepared, the method will return 
-     * a resource that can be used to run the query. If it fails, the 
-     * method will return false.
-     * 
-     * @since 1.0
-     */
-    public function prepare(array $params = []) {
-        $stm = sqlsrv_prepare($this->link, $this->getLastQuery()->getQuery(), $params);
-
-        if (!$stm) {
-            $this->setSqlErr();
-
-            return false;
-        }
-
-        return $stm;
-    }
-    /**
      * Execute MSSQL query.
      * 
      * @param AbstractQuery $query A query builder that has the generated MSSQL 
@@ -158,19 +134,14 @@ class MSSQLConnection extends Connection {
             }
         }
     }
-    private function bindAndExcute() {
-        $stm = $this->prepare($this->getLastQuery()->getParams());
-
-        return $stm->execute();
-    }
     private function runInsertQuery() {
 
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
         
         $stm = sqlsrv_prepare($this->link, $insertBuilder->getQuery(), $insertBuilder->getQueryParams());
-        $r = $stm->execute();
+        $r = sqlsrv_execute($stm);
 
-        if (!is_resource($r)) {
+        if (!$r) {
             $this->setSqlErr();
 
             return false;
