@@ -238,6 +238,21 @@ class MSSQLQueryBuilderTest extends TestCase{
     }
     /**
      * @test
+     * @param MSSQLTestSchema $schema
+     * @depends testCreateTable
+     */
+    public function testInsert03(MSSQLTestSchema $schema) {
+        $schema->table('users')->insert([
+            'first-name' => 'Ibrahim',
+            'last-name' => 'BinAlshikh',
+            'age' => 28
+        ])->execute();
+        $schema->table('users')->select()->execute();
+        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
+        return $schema;
+    }
+    /**
+     * @test
      */
     public function testInsert00() {
         $schema = new MSSQLTestSchema();
