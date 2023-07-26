@@ -195,7 +195,7 @@ class InsertBuilderTest extends TestCase {
         $this->assertEquals('insert into [users] ([user_id], [created_on], [is_active]) values (?, ?, ?);', $helper->getQuery());
         $this->assertEquals([
             [1, 1, 2, 4],
-            [date('Y-m-d H:i:s'), 1, 5, 8648668765],
+            [date('Y-m-d H:i:s'), 1, 5, 58734173],
             [1, 1, 2, -7]
         ], $helper->getQueryParams());
         $helper->insert([
@@ -214,7 +214,7 @@ class InsertBuilderTest extends TestCase {
             ['warrior', 1, $encoded, 12],
             ['abcd', 1, $encoded, 12],
             [33.3, 1, 3, 3],
-            [date('Y-m-d H:i:s'), 1, 5, 8648668765],
+            [date('Y-m-d H:i:s'), 1, 5, 58734173],
             [1, 1, 2, -7],
         ], $helper->getQueryParams());
     }
