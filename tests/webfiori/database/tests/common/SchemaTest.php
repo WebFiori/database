@@ -47,7 +47,7 @@ class SchemaTest extends TestCase{
             'pass' => 'rand_pass'
         ]);
         $this->assertEquals('insert into '.$table->getName().' (`user_id`, `username`, `password`) '
-                . "values (33, 'Ibrahim', 'rand_pass');", $s->getLastQuery());
+                . "values (?, ?, ?);", $s->getLastQuery());
         $s->table('hello')->select();
         $this->assertEquals('select * from `hello`',$s->getLastQuery());
         $s->where('user-id', 66);
@@ -91,7 +91,7 @@ class SchemaTest extends TestCase{
             'pass' => 'rand_pass'
         ]);
         $this->assertEquals('insert into `hello` (`user_id`, `username`, `password`) '
-                . "values (33, 'Ibrahim', 'rand_pass');", $s->getLastQuery());
+                . "values (?, ?, ?);", $s->getLastQuery());
         $s->table('hello')->select();
         $this->assertEquals('select * from `hello`',$s->getLastQuery());
         $s->where('user-id', 66);
@@ -153,7 +153,7 @@ class SchemaTest extends TestCase{
             'pass' => 'rand_pass'
         ]);
         $this->assertEquals('insert into `hello` (`user_id`, `username`, `password`) '
-                . "values (33, 'Ibrahim', 'rand_pass');", $s->getLastQuery());
+                . "values (?, ?, ?);", $s->getLastQuery());
     }
     /**
      * @test
