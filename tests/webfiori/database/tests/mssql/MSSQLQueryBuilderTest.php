@@ -247,7 +247,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh'
         ]);
-        $this->assertEquals("insert into [users] ([id], [first_name], [last_name]) values (8, N'Ibrahim', N'BinAlshikh');", $schema->getLastQuery());
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name]) values (?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -265,9 +265,9 @@ class MSSQLQueryBuilderTest extends TestCase{
             ],
                 
         ]);
-        $this->assertEquals("insert into [users]\n([id], [first_name], [last_name])\nvalues\n"
-                . "(8, N'Ibrahim', N'BinAlshikh'),\n"
-                . "(9, N'Web', N'DB');", $schema->getLastQuery());
+        $this->assertEquals("insert into [users] ([id], [first_name], [last_name])\nvalues\n"
+                . "(?, ?, ?),\n"
+                . "(?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -281,7 +281,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ]);
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
-                . "values (6, 'OK task', '".date('Y-m-d H:i:s')."', 0);", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
         $q->insert([
             'user-id' => 6,
             'details' => 'OK task',
@@ -290,7 +290,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ]);
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
-                . "values (6, 'OK task', '2020-10-16 00:00:00', 1);", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -304,7 +304,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         ]);
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
-                . "values (null, 'OK task', '".date('Y-m-d H:i:s')."', 0);", $schema->getLastQuery());
+                . "values (?, ?, ?, ?);", $schema->getLastQuery());
     }
     /**
      * @test
@@ -726,7 +726,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         if (PHP_MAJOR_VERSION == 5) {
             $this->markTestSkipped('PHP 5 has no MSSQL driver in selected setup.');
         } else {
-            $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost');
+            $connInfo = new ConnectionInfo('mssql','sa2', '1234567890@Eu', 'testing_db', 'localhost');
             $conn = new MSSQLConnection($connInfo);
             $schema = new MSSQLTestSchema();
             $schema->setConnection($conn);
