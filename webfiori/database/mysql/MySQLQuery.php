@@ -410,160 +410,7 @@ class MySQLQuery extends AbstractQuery {
             return "insert into $tblName $cols values $vals;";
         }
     }
-    /**
-     * Build a string that holds the values that will be inserted.
-     * 
-     * @param array $colsKeysArr An array that holds the keys of the 
-     * columns of the record that will be inserted.
-     * 
-     * @param array $valuesToInsert An array that holds the values that will be 
-     * inserted.
-     * 
-     * @return array The method will return an associative array with two indices. 
-     * The index 'vals' will contain a string which represents the 
-     * 'values' part of the query and 'cols' which holds the names of columns 
-     * names as string.
-     * 
-     * @throws DatabaseException
-     */
-    private function insertHelper(array $colsKeysArr, array $valuesToInsert) {
-        $valsArr = [];
-        $columnsWithVals = [];
-        $colsNamesArr = [];
-        $valIndex = 0;
-
-        foreach ($colsKeysArr as $colKey) {
-            $column = $this->getTable()->getColByKey($colKey);
-
-            if ($column === null) {
-                $this->getTable()->addColumns([
-                    $colKey => []
-                ]);
-                $column = $this->getTable()->getColByKey($colKey);
-            }
-
-            if ($column instanceof MySQLColumn) {
-                $columnsWithVals[] = $colKey;
-                $colsNamesArr[] = $column->getName();
-                $type = $column->getDatatype();
-
-                if (isset($valuesToInsert[$colKey])) {
-                    $val = $valuesToInsert[$colKey];
-                } else {
-                    if (isset($valuesToInsert[$valIndex])) {
-                        $val = $valuesToInsert[$valIndex];
-                    } else {
-                        $val = null;
-                    }
-                }
-
-                if ($val !== null) {
-                    $cleanedVal = $column->cleanValue($val);
-
-                    if ($type == 'tinyblob' || $type == 'mediumblob' || $type == 'longblob') {
-                        //chr(0) to remove null bytes in path.
-                        $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
-                        set_error_handler(function($no, $message)
-                        {
-                            throw new DatabaseException($message, $no);
-                        });
-                        $this->setIsBlobInsertOrUpdate(true);
-
-                        if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
-                            $file = fopen($fixedPath, 'r');
-                            $data = '';
-
-                            if ($file !== false) {
-                                $fileContent = fread($file, filesize($fixedPath));
-
-                                if ($fileContent !== false) {
-                                    $data = '\''.addslashes($fileContent).'\'';
-                                    $valsArr[] = $data;
-                                } else {
-                                    $valsArr[] = 'null';
-                                }
-                                fclose($file);
-                            } else {
-                                $data = '\''.addslashes($val).'\'';
-                                $valsArr[] = $data;
-                            }
-                        } else {
-                            $data = '\''.addslashes($cleanedVal).'\'';
-                            $valsArr[] = $data;
-                        }
-                        restore_error_handler();
-                    } else {
-                        $valsArr[] = $cleanedVal;
-                    }
-                } else {
-                    $valsArr[] = 'null';
-                }
-            } else {
-                $tblName = $this->getTable()->getName();
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
-            }
-            $valIndex++;
-        }
-
-        foreach ($this->getTable()->getColsKeys() as $key) {
-            if (!in_array($key, $columnsWithVals)) {
-                $colObj = $this->getTable()->getColByKey($key);
-                $defaultVal = $colObj->getDefault();
-
-                if ($defaultVal !== null) {
-                    $colsNamesArr[] = $colObj->getName();
-                    $type = $colObj->getDatatype();
-
-                    if (in_array($type, Column::BOOL_TYPES)) {
-                        $valsArr[] = $colObj->cleanValue($defaultVal);
-                    } else if (($type == 'datetime' || $type == 'timestamp') && ($defaultVal == 'now' || $defaultVal == 'now()' || $defaultVal == 'current_timestamp')) {
-                        $valsArr[] = "'".date('Y-m-d H:i:s')."'";
-                    } else {
-                        $valsArr[] = $colObj->cleanValue($defaultVal);
-                    }
-                }
-            }
-        }
-
-        return [
-            'cols' => implode(', ', $colsNamesArr),
-            'vals' => implode(', ', $valsArr)
-        ];
-    }
-    private function insertHelper1(array $colsAndVals, $isReplace = false) {
-        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $colsArr = [];
-            $tblName = $this->getTable()->getName();
-
-            foreach ($colsAndVals['cols'] as $colKey) {
-                $colObj = $this->getTable()->getColByKey($colKey);
-
-                if ($colObj === null) {
-                    $this->getTable()->addColumns([
-                        $colKey => []
-                    ]);
-                    $colObj = $this->getTable()->getColByKey($colKey);
-                }
-                $colObj->setWithTablePrefix(false);
-                $colsArr[] = $colObj->getName();
-            }
-            $colsStr = '('.implode(', ', $colsArr).')';
-            $suberValsArr = [];
-
-            foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = '('.$this->insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
-            }
-            $valsStr = implode(",\n", $suberValsArr);
-
-            if ($isReplace) {
-                $this->setQuery("replace into $tblName\n$colsStr\nvalues\n$valsStr;");
-            } else {
-                $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
-            }
-        } else {
-            $this->setQuery($this->createInsertStm($colsAndVals, $isReplace));
-        }
-    }
+   
     /**
      * Creates and returns a copy of the builder.
      * 
@@ -588,5 +435,9 @@ class MySQLQuery extends AbstractQuery {
 
         return $copy;
     }
-
+    public function insert(array $colsAndVals): AbstractQuery {
+        $this->setInsertBuilder(new MySQLLInsertBuilder($this->getTable(), $colsAndVals));
+        
+        return $this;
+    }
 }
