@@ -132,55 +132,6 @@ class MSSQLQuery extends AbstractQuery {
         return $query;
     }
     /**
-     * Constructs a query which can be used to add new record.
-     * 
-     * @param array $colsAndVals An associative array. The indices are columns 
-     * keys and the value of each index is the value of the column. This also
-     * can be one big indexed array of sub associative arrays. This approach can 
-     * be used to build multiple insert queries.
-     * 
-     * @return MSSQLQuery The method will return the same instance at which the 
-     * method is called on.
-     * 
-     * @since 1.0
-     */
-    public function insert(array $colsAndVals) {
-        $tblName = $this->getTable()->getName();
-
-        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $colsArr = [];
-
-
-            foreach ($colsAndVals['cols'] as $colKey) {
-                $colObj = $this->getTable()->getColByKey($colKey);
-
-                if ($colObj === null) {
-                    $this->getTable()->addColumns([
-                        $colKey => []
-                    ]);
-                    $colObj = $this->getTable()->getColByKey($colKey);
-                }
-                $colObj->setWithTablePrefix(false);
-                $colsArr[] = $colObj->getName();
-            }
-            $colsStr = '('.implode(', ', $colsArr).')';
-            $suberValsArr = [];
-
-            foreach ($colsAndVals['values'] as $valsArr) {
-                $suberValsArr[] = '('.$this->insertHelper($colsAndVals['cols'], $valsArr)['vals'].')';
-            }
-            $valsStr = implode(",\n", $suberValsArr);
-            $this->setQuery("insert into $tblName\n$colsStr\nvalues\n$valsStr;");
-        } else {
-            $data = $this->insertHelper(array_keys($colsAndVals), $colsAndVals);
-            $cols = '('.$data['cols'].')';
-            $vals = '('.$data['vals'].')';
-            $this->setQuery("insert into $tblName $cols values $vals;");
-        }
-
-        return $this;
-    }
-    /**
      * Build a query which can be used to modify a column in associated table.
      * 
      * @param string $colKey The key of the column taken from the table.
