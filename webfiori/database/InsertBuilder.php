@@ -10,15 +10,12 @@
  */
 namespace webfiori\database;
 
-use webfiori\database\mssql\MSSQLTable;
-use webfiori\database\mysql\MySQLTable;
-
 /**
  * A class which is used to build insert SQL queries for diffrent database engines.
  *
  * @author Ibrahim
  */
-class InsertBuilder {
+abstract class InsertBuilder {
     private $query;
     private $queryParams;
     private $paramPlaceholder;
@@ -94,6 +91,42 @@ class InsertBuilder {
     public function getQueryParams() : array {
         return $this->queryParams;
     }
+    abstract function parseValues(array $values);
+    /**
+     * Returns an array that holds sub-associative arrays which has original
+     * passed values.
+     * 
+     * @return array The array will hold sub-associative arrays. The indices
+     * of sub-associative arrays are columns keys and each index will have
+     * the value of the column.
+     */
+    public function getRawValues() : array {
+        return $this->vals;
+    }
+    private function initValsArr() {
+        $colsAndVals = $this->data;
+        
+        if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
+            $cols = $colsAndVals['cols'];
+            $tempVals = $colsAndVals['values'];
+            $temp = [];
+            $topIndex = 0;
+            foreach ($tempVals as $valsArr) {
+                $index = 0;
+                $temp[] = [];
+                foreach ($cols as $colKey) {
+                    $temp[$topIndex][$colKey] = $valsArr[$index];
+                    $index++;
+                }
+                $topIndex++;
+            }
+            $this->vals = $temp;
+            $this->cols = $cols;
+        } else {
+            $this->cols = array_keys($colsAndVals);
+            $this->vals = [$colsAndVals];
+        }
+    }
     private function build() {
         $this->queryParams = [
             'bind' => '',
@@ -104,80 +137,42 @@ class InsertBuilder {
         $this->defaultVals = [];
         $this->query = 'insert into '.$this->getTable()->getName();
         $colsAndVals = $this->data;
+        $this->initValsArr();
         
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $this->cols = $colsAndVals['cols'];
-            $this->vals = $colsAndVals['values'];
-            $temp = [];
-            $topIndex = 0;
-            foreach ($this->vals as $valsArr) {
-                $index = 0;
-                $temp[] = [];
-                foreach ($this->cols as $colKey) {
-                    $temp[$topIndex][$colKey] = $valsArr[$index];
-                    $index++;
-                }
-                $topIndex++;
-            }
-            $this->vals = $temp;
-            
+
             $this->query .= ' '.$this->buildColsArr()."\nvalues\n";
-            
             $values = trim(str_repeat('?, ', count($this->cols)),', ');
             $multiVals = trim(str_repeat('('.$values."),\n", count($this->vals)), ",\n");
             $this->query .= $multiVals.';';
         } else {
-            $this->cols = array_keys($colsAndVals);
-            $this->vals = [$colsAndVals];
-            
             $this->query .= ' '.$this->buildColsArr();
             $this->cols = array_merge($this->cols, array_keys($this->defaultVals));
             $values = trim(str_repeat('?, ', count($this->cols)),', ');
             $this->query .= ' values ('.$values.');';
-            
         }
-        if ($this->getTable() instanceof MySQLTable) {
-            $this->buildMySQLValues();
-        } else if ($this->getTable() instanceof MSSQLTable) {
-            $this->buildMSSQLValues();
+        $toPass = [];
+        foreach ($this->getRawValues() as $arr) {
+            $toPass[] = array_merge($arr, $this->getDefaultValues());
         }
+        $this->parseValues($toPass);
     }
-    private function buildMSSQLValues() {
-        $index = 0;
-        $arr = [];
-        
-        foreach ($this->vals as $valsArr) {
-            $valsArr = array_merge($valsArr, $this->defaultVals);
-            foreach ($valsArr as $col => $val) {
-                
-                $colObj = $this->getTable()->getColByKey($col);
-                $arr[] = array_merge([$val, SQLSRV_PARAM_IN], $colObj->getTypeArr());
-                
-            }
-            $index++;
-        }
+    /**
+     * Returns an array that holds default values for columns that was not
+     * specified in the insert.
+     * 
+     * @return array The indices of the array are columns names and the value
+     * of each index is the default value.
+     */
+    public function getDefaultValues() : array {
+        return $this->defaultVals;
+    }
+    /**
+     * 
+     * @param array $arr
+     */
+    public function setQueryParams(array $arr) {
         $this->queryParams = $arr;
-    }
-    private function buildMySQLValues() {
-        $index = 0;
-        foreach ($this->vals as $valsArr) {
-            $this->queryParams['values'][] = [];
-            $valsArr = array_merge($valsArr, $this->defaultVals);
-            foreach ($valsArr as $col => $val) {
-                $colObj = $this->getTable()->getColByKey($col);
-                $colType = $colObj->getDatatype();
-                $this->queryParams['values'][$index][] = $val;
-
-                if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
-                    $this->queryParams['bind'] .= 'i';
-                } else if ($colType == 'decimal' || $colType == 'float') {
-                    $this->queryParams['bind'] .= 'd';
-                } else {
-                    $this->queryParams['bind'] .= 's';
-                }
-            }
-            $index++;
-        }
     }
     /**
      * Returns the generated insert query.
