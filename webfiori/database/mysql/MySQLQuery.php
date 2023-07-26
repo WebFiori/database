@@ -395,21 +395,6 @@ class MySQLQuery extends AbstractQuery {
         }
         $this->setQuery($stm.';');
     }
-    private function createInsertStm($colsAndVals, $replace = false) {
-        $tblName = $this->getTable()->getName();
-
-        $data = $this->insertHelper(array_keys($colsAndVals), $colsAndVals);
-
-
-        $cols = '('.$data['cols'].')';
-        $vals = '('.$data['vals'].')';
-
-        if ($replace === true) {
-            return "replace into $tblName $cols values $vals;";
-        } else {
-            return "insert into $tblName $cols values $vals;";
-        }
-    }
    
     /**
      * Creates and returns a copy of the builder.
