@@ -16,12 +16,40 @@ namespace webfiori\database;
  * @author Ibrahim
  */
 abstract class InsertBuilder {
+    /**
+     * 
+     * @var string
+     */
     private $query;
+    /**
+     * 
+     * @var array
+     */
     private $queryParams;
+    /**
+     * 
+     * @var string
+     */
     private $paramPlaceholder;
+    /**
+     * 
+     * @var array
+     */
     private $data;
+    /**
+     * 
+     * @var array
+     */
     private $cols;
+    /**
+     * 
+     * @var array
+     */
     private $vals;
+    /**
+     * 
+     * @var array
+     */
     private $defaultVals;
     /**
      * 
@@ -46,7 +74,6 @@ abstract class InsertBuilder {
         $this->paramPlaceholder = '?';
         $this->table = $table;
         $this->data = $colsAndVals;
-        
         $this->build();
     }
     /**
@@ -91,6 +118,13 @@ abstract class InsertBuilder {
     public function getQueryParams() : array {
         return $this->queryParams;
     }
+    /**
+     * Construct the array of values which will be used in binding.
+     * 
+     * The method must be implemented in a way that it returns a structured
+     * array of values and bindings based on how the database driver
+     * binds values in prepared query.
+     */
     abstract function parseValues(array $values);
     /**
      * Returns an array that holds sub-associative arrays which has original
@@ -128,10 +162,7 @@ abstract class InsertBuilder {
         }
     }
     private function build() {
-        $this->queryParams = [
-            'bind' => '',
-            'values' => []
-        ];
+        $this->queryParams = [];
         $this->cols = [];
         $this->vals = [];
         $this->defaultVals = [];
@@ -211,36 +242,45 @@ abstract class InsertBuilder {
             $colsArr[] = $colObj->getName();
         }
         $this->checkColsWithNoVals($this->cols, $colsArr);
-        $colsStr = '('.implode(', ', $colsArr).')';
+        return '('.implode(', ', $colsArr).')';
 
-        return $colsStr;
     }
-    private function checkColsWithNoVals(array $columnsWithVals, &$colsArr) {
+    /**
+     * Verify and check the columns with no values but have a default value.
+     * 
+     * The main aim of this method is to place default values for the columns
+     * which have no value provided.
+     * 
+     * @param array $columnsWithVals
+     * @param array $colsArr
+     */
+    private function checkColsWithNoVals(array $columnsWithVals, array &$colsArr) {
         foreach ($this->getTable()->getColsKeys() as $key) {
             if (!in_array($key, $columnsWithVals)) {
                 $colObj = $this->getTable()->getColByKey($key);
                 $defaultVal = $colObj->getDefault();
                 
-                
                 if ($defaultVal !== null) {
                     $colsArr[] = $colObj->getName();
-                    $type = $colObj->getDatatype();
-                    
-                    if (in_array($type, Column::BOOL_TYPES)) {
-                        $this->defaultVals[$key] = $defaultVal ? 1 : 0;
-                    } else if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {
-                        if ($type == 'datetime2' || $type == 'timestamp' || $type == 'datetime') {
-                            $this->defaultVals[$key] = date('Y-m-d H:i:s');
-                        } else if ($type == 'time') {
-                            $this->defaultVals[$key] = date('H:i:s');
-                        } else if ($type == 'date') {
-                            $this->defaultVals[$key] = date('Y-m-d');
-                        }
-                    } else {
-                        $this->defaultVals[$key] = $defaultVal;
-                    }
+                    $this->checkColDefault($colObj->getDatatype(), $defaultVal);
                 }
             }
+        }
+    }
+    private function checkColDefault(string $type, $defaultVal) {
+
+        if (in_array($type, Column::BOOL_TYPES)) {
+            $this->defaultVals[$key] = $defaultVal ? 1 : 0;
+        } else if ($defaultVal == 'now' || $defaultVal == 'current_timestamp' || $defaultVal == 'now()') {
+            if ($type == 'datetime2' || $type == 'timestamp' || $type == 'datetime') {
+                $this->defaultVals[$key] = date('Y-m-d H:i:s');
+            } else if ($type == 'time') {
+                $this->defaultVals[$key] = date('H:i:s');
+            } else if ($type == 'date') {
+                $this->defaultVals[$key] = date('Y-m-d');
+            }
+        } else {
+            $this->defaultVals[$key] = $defaultVal;
         }
     }
 }
