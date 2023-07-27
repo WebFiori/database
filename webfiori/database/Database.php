@@ -168,6 +168,7 @@ class Database {
     public function clear() {
         $this->queries = [];
         $this->getQueryGenerator()->reset();
+        $this->getQueryGenerator()->resetBinding();
     }
     /**
      * Creates a blueprint of a table that can be used to build table structure.
