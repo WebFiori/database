@@ -258,7 +258,7 @@ class MSSQLQuery extends AbstractQuery {
                 $updateArr[] = "$colName = null";
             } else {
                 $valClean = $colObj->cleanValue($newVal);
-                $updateArr[] = "$colName = $valClean";
+                $updateArr[] = "$colName = ?";
             }
             $colsWithVals[] = $colKey;
         }
@@ -268,7 +268,7 @@ class MSSQLQuery extends AbstractQuery {
                 $colObj = $this->getTable()->getColByKey($key);
 
                 if (($colObj->getDatatype() == 'datetime2') && $colObj->isAutoUpdate()) {
-                    $updateArr[] = $colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                    $updateArr[] = $colObj->getName()." = ?";
                 }
             }
         }
