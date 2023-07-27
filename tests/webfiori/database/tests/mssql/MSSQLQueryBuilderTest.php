@@ -197,11 +197,11 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users')
                 ->delete()
                 ->where('id', 88);
-        $this->assertEquals("delete from [users] where [users].[id] = 88", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[id] = ?", $schema->getLastQuery());
         $schema->where('id', 55);
-        $this->assertEquals("delete from [users] where [users].[id] = 88 and [users].[id] = 55", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[id] = ? and [users].[id] = ?", $schema->getLastQuery());
         $schema->orWhere('id', '8', '!=');
-        $this->assertEquals("delete from [users] where [users].[id] = 88 and [users].[id] = 55 or [users].[id] != 8", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[id] = ? and [users].[id] = ? or [users].[id] != ?", $schema->getLastQuery());
     }
     public function testDelete04() {
         $schema = new MSSQLTestSchema();
@@ -211,16 +211,16 @@ class MSSQLQueryBuilderTest extends TestCase{
         ->orWhere(
                 $q->orWhere('first-name', 'Ibrahim')
                 ->andWhere('last-name', 'BinAlshikh'));
-        $this->assertEquals("delete from [users] where ([users].[first_name] = N'Ibrahim' and [users].[last_name] = N'BinAlshikh')", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where ([users].[first_name] = ? and [users].[last_name] = ?)", $schema->getLastQuery());
     }
     public function testDelete03() {
         $schema = new MSSQLTestSchema();
         $q = $schema->table('users')
                 ->delete()
                 ->where('id', 88);
-        $this->assertEquals("delete from [users] where [users].[id] = 88", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[id] = ?", $schema->getLastQuery());
         $q->where('id', 55);
-        $this->assertEquals("delete from [users] where [users].[id] = 88 and [users].[id] = 55", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[id] = ? and [users].[id] = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -230,11 +230,11 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users')
                 ->delete()
                 ->where('x-id', 88);
-        $this->assertEquals("delete from [users] where [users].[x_id] = 88", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[x_id] = ?", $schema->getLastQuery());
         $schema->table('users')
                 ->delete()
                 ->where('x-id', '88');
-        $this->assertEquals("delete from [users] where [users].[x_id] = N'88'", $schema->getLastQuery());
+        $this->assertEquals("delete from [users] where [users].[x_id] = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -259,7 +259,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testDropRecord00(MSSQLTestSchema $schema) {
         $row = $schema->getLastResultSet()->getRows()[0];
         $schema->table('users')->delete()->where('id', $row['id']);
-        $this->assertEquals('delete from [users] where [users].[id] = '.$row['id'], $schema->getLastQuery());
+        $this->assertEquals('delete from [users] where [users].[id] = ?', $schema->getLastQuery());
         $schema->execute();
         $schema->table('users')->select()->execute();
         $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
@@ -411,7 +411,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLeft01() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 2, '=', 'hello');
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 2) = 'hello'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 2) = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -419,7 +419,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLeft02() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '*', 'good');
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) = 'good'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -427,7 +427,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLeft03() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', 'good');
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) != 'good'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) != ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -435,7 +435,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLeft04() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, 'in', 'good');
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) in('good')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) in(?)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -445,9 +445,9 @@ class MSSQLQueryBuilderTest extends TestCase{
         $q = $schema->getQueryGenerator();
         $q->table('users_tasks')->select()
                 ->whereLeft('details', 8, 'not in', ['good']);
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) not in('good')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) not in(?)", $schema->getLastQuery());
         $q->andWhere('user-id', 9);
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) not in('good') and [users_tasks].[user_id] = 9", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) not in(?) and [users_tasks].[user_id] = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -455,7 +455,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLeft06() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, 'not in', ['good', 'bad']);
-        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) not in('good', 'bad')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where left([users_tasks].[details], 8) not in(?, ?)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -473,9 +473,9 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema = new MSSQLTestSchema();
         $q = $schema->getQueryGenerator();
         $q->table('users_tasks')->select()->whereBetween('created-on', '2020-01-01', '2020-04-01');
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[created_on] between \'2020-01-01 00:00:00\' and \'2020-04-01 00:00:00\')', $q->getQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[created_on] between ? and ?)', $q->getQuery());
         $q->whereLeft('details', 5, '=', 'ok ok', 'or');
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[created_on] between \'2020-01-01 00:00:00\' and \'2020-04-01 00:00:00\') or left([users_tasks].[details], 5) = \'ok ok\'', $q->getQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[created_on] between ? and ?) or left([users_tasks].[details], 5) = ?', $q->getQuery());
     }
     /**
      * @test
@@ -491,7 +491,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLike01() {
         $schema = new MSSQLTestSchema();
         $schema->table('users')->select()->whereLike('first-name', '%Ibra%');
-        $this->assertEquals("select * from [users] where [users].[first_name] like N'%Ibra%'", $schema->getLastQuery()); 
+        $this->assertEquals("select * from [users] where [users].[first_name] like ?", $schema->getLastQuery()); 
     }
     /**
      * @test
@@ -499,7 +499,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLike02() {
         $schema = new MSSQLTestSchema();
         $schema->table('users')->select()->whereNotLike('first-name', '%Ibra%');
-        $this->assertEquals("select * from [users] where [users].[first_name] not like N'%Ibra%'", $schema->getLastQuery()); 
+        $this->assertEquals("select * from [users] where [users].[first_name] not like ?", $schema->getLastQuery()); 
     }
     /**
      * @test
@@ -507,7 +507,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testLike03() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereNotLike('first-naome', '%Ibra%');
-        $this->assertEquals("select * from [users_tasks] where [users_tasks].[first_naome] not like N'%Ibra%'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where [users_tasks].[first_naome] not like ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -515,7 +515,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testRight01() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereRight('details', 2, '=', 'hello');
-        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 2) = 'hello'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 2) = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -523,7 +523,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testRight02() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereRight('details', 8, '*', 'good');
-        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) = 'good'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -531,7 +531,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testRight03() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereRight('details', 8, '!=', 'good');
-        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) != 'good'", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) != ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -539,7 +539,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testRight04() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereRight('details', 8, 'in', 'good');
-        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) in('good')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) in(?)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -547,7 +547,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testRight05() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereRight('details', 8, 'not in', ['good']);
-        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) not in('good')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) not in(?)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -555,7 +555,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testRight06() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereRight('details', 8, 'not in', ['good', 'bad']);
-        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) not in('good', 'bad')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where right([users_tasks].[details], 8) not in(?, ?)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -572,13 +572,13 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testSelectWithWhere000() {
         $schema = new MSSQLTestSchema();
         $bulder = $schema->table('users')->select()->where('id', 66);
-        $this->assertEquals('select * from [users] where [users].[id] = 66', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ?', $schema->getLastQuery());
         $bulder->groupBy('first-name');
-        $this->assertEquals('select * from [users] where [users].[id] = 66 group by [users].[first_name]', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? group by [users].[first_name]', $schema->getLastQuery());
         $bulder->groupBy(['first-name','last-name']);
-        $this->assertEquals('select * from [users] where [users].[id] = 66 group by [users].[first_name], [users].[last_name]', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? group by [users].[first_name], [users].[last_name]', $schema->getLastQuery());
         $bulder->orderBy(['last-name'=>'a']);
-        $this->assertEquals('select * from [users] where [users].[id] = 66 group by [users].[first_name], [users].[last_name] order by [users].[last_name] asc', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? group by [users].[first_name], [users].[last_name] order by [users].[last_name] asc', $schema->getLastQuery());
     }
     /**
      * @test
@@ -588,9 +588,9 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users')->select()->where(
             $schema->where('id', 7)
         );
-        $this->assertEquals('select * from [users] where [users].[id] = 7', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ?', $schema->getLastQuery());
         $schema->orWhere('first-name', 'Ibrahim');
-        $this->assertEquals('select * from [users] where [users].[id] = 7 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? or [users].[first_name] = ?', $schema->getLastQuery());
         $schema->clear();
     }
     
@@ -605,9 +605,9 @@ class MSSQLQueryBuilderTest extends TestCase{
                 $q->where('id', 7)
             )
         );
-        $this->assertEquals('select * from [users] where [users].[id] = 7', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ?', $schema->getLastQuery());
         $schema->orWhere('first-name', 'Ibrahim');
-        $this->assertEquals('select * from [users] where [users].[id] = 7 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? or [users].[first_name] = ?', $schema->getLastQuery());
         $schema->clear();
     }
     
@@ -628,10 +628,10 @@ class MSSQLQueryBuilderTest extends TestCase{
             $q->where('first-name', 'Ibrahim')
             ->andWhere('last-name', 'BinAlshikh')//This will create one big cond
         );
-        '((id = 7) and f_n = ibrahim)';
+        
         $this->assertEquals('select * from [users] '
-                . 'where (([users].[id] = 7 or [users].[id] = 8) '
-                . 'or ([users].[first_name] = N\'Ibrahim\' and [users].[last_name] = N\'BinAlshikh\'))', $schema->getLastQuery());
+                . 'where (([users].[id] = ? or [users].[id] = ?) '
+                . 'or ([users].[first_name] = ? and [users].[last_name] = ?))', $schema->getLastQuery());
     }
     /**
      * @test
@@ -645,11 +645,11 @@ class MSSQLQueryBuilderTest extends TestCase{
         )->where('id', 8)
          ->orWhere('id', 88);
         
-        $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8 or [users].[id] = 88', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? and [users].[id] = ? or [users].[id] = ?', $schema->getLastQuery());
         $schema->orWhere('first-name', 'Ibrahim');
         
-        $this->assertEquals('select * from [users] where [users].[id] = 7 '
-                . 'and [users].[id] = 8 or [users].[id] = 88 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? '
+                . 'and [users].[id] = ? or [users].[id] = ? or [users].[first_name] = ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -668,8 +668,8 @@ class MSSQLQueryBuilderTest extends TestCase{
         // Expr(Cond) Cond Expr
         // (id = 7) and f_n = Ibrahim
         $this->assertEquals('select * from [users] '
-                . 'where [users].[id] = 7 '
-                . 'or [users].[first_name] = N\'Ibrahim\' and [users].[last_name] = N\'BinAlshikh\'', $schema->getLastQuery());
+                . 'where [users].[id] = ? '
+                . 'or [users].[first_name] = ? and [users].[last_name] = ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -688,7 +688,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             )->where('id', 8)
         );
         // Expr(Expr(Cond) Cond)
-        $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? and [users].[id] = ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -727,7 +727,7 @@ class MSSQLQueryBuilderTest extends TestCase{
              ->where('id', 100)
              ->where('first-name', 44)
         );
-        $this->assertEquals('select * from [users] where ([users].[id] = 7 and ([users].[id] = 8 and [users].[id] = 100 and [users].[first_name] = N\'44\'))', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where ([users].[id] = ? and ([users].[id] = ? and [users].[id] = ? and [users].[first_name] = ?))', $schema->getLastQuery());
     }
     
     /**
@@ -745,9 +745,9 @@ class MSSQLQueryBuilderTest extends TestCase{
                 $q->where('id', 8)
             )
         );
-        $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? and [users].[id] = ?', $schema->getLastQuery());
         $schema->orWhere('first-name', 'Ibrahim');
-        $this->assertEquals('select * from [users] where [users].[id] = 7 and [users].[id] = 8 or [users].[first_name] = N\'Ibrahim\'', $schema->getLastQuery());
+        $this->assertEquals('select * from [users] where [users].[id] = ? and [users].[id] = ? or [users].[first_name] = ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -762,11 +762,11 @@ class MSSQLQueryBuilderTest extends TestCase{
                 ->andWhere('id', 30)
                 ->andWhere('first-name', 'Ibr', '!=');
         $this->assertEquals('select * from [users] where '
-                . '[users].[id] = 2 or '
-                . '[users].[id] != 9 or '
-                . '[users].[id] = 10 and '
-                . '[users].[id] = 30 and '
-                . '[users].[first_name] != N\'Ibr\'', $schema->getLastQuery());
+                . '[users].[id] = ? or '
+                . '[users].[id] != ? or '
+                . '[users].[id] = ? and '
+                . '[users].[id] = ? and '
+                . '[users].[first_name] != ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -781,11 +781,11 @@ class MSSQLQueryBuilderTest extends TestCase{
                 ->andWhere('id', 30)
                 ->andWhere('first-name', 'Ibr', '!='));
         $this->assertEquals('select * from [users] where ('
-                . '[users].[id] = 2 or '
-                . '[users].[id] != 9 or '
-                . '[users].[id] = 10 and '
-                . '[users].[id] = 30 and '
-                . '[users].[first_name] != N\'Ibr\')', $schema->getLastQuery());
+                . '[users].[id] = ? or '
+                . '[users].[id] != ? or '
+                . '[users].[id] = ? and '
+                . '[users].[id] = ? and '
+                . '[users].[first_name] != ?)', $schema->getLastQuery());
     }
     /**
      * @test
@@ -800,11 +800,11 @@ class MSSQLQueryBuilderTest extends TestCase{
                 ->andWhere('id', 30)
                 ->andWhere('first-name', 'Ibr', '!=')));
         $this->assertEquals('select * from [users] where ('
-                . '[users].[id] = 2 or '
-                . '[users].[id] != 9 or '
-                . '[users].[id] = 10 and '
-                . '[users].[id] = 30 and '
-                . '[users].[first_name] != N\'Ibr\')', $schema->getLastQuery());
+                . '[users].[id] = ? or '
+                . '[users].[id] != ? or '
+                . '[users].[id] = ? and '
+                . '[users].[id] = ? and '
+                . '[users].[first_name] != ?)', $schema->getLastQuery());
     }
     
 
@@ -849,7 +849,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             'details' => 'OKKKKKKKk'
         ]);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update [users_tasks] set [details] = 'OKKKKKKKk', [last_updated] = '$date'", $schema->getLastQuery());
+        $this->assertEquals("update [users_tasks] set [details] = ?, [last_updated] = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -862,10 +862,10 @@ class MSSQLQueryBuilderTest extends TestCase{
             'details' => 'OKKKKKKKk'
         ])->where('task-id', 77);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update [users_tasks] set [details] = 'OKKKKKKKk', [last_updated] = '$date' where [users_tasks].[task_id] = 77", $schema->getLastQuery());
+        $this->assertEquals("update [users_tasks] set [details] = ?, [last_updated] = ? where [users_tasks].[task_id] = ?", $schema->getLastQuery());
         $q->andWhere('user-id', 6);
-        $this->assertEquals("update [users_tasks] set [details] = 'OKKKKKKKk', [last_updated] = '$date' "
-                . "where [users_tasks].[task_id] = 77 and [users_tasks].[user_id] = 6", $schema->getLastQuery());
+        $this->assertEquals("update [users_tasks] set [details] = ?, [last_updated] = ? "
+                . "where [users_tasks].[task_id] = ? and [users_tasks].[user_id] = ?", $schema->getLastQuery());
     }
      /**
      * @test
@@ -878,10 +878,10 @@ class MSSQLQueryBuilderTest extends TestCase{
             'details' => null
         ])->where('task-id', 77);
         $date = date('Y-m-d H:i:s');
-        $this->assertEquals("update [users_tasks] set [details] = null, [last_updated] = '$date' where [users_tasks].[task_id] = 77", $schema->getLastQuery());
+        $this->assertEquals("update [users_tasks] set [details] = null, [last_updated] = ? where [users_tasks].[task_id] = ?", $schema->getLastQuery());
         $q->andWhere('user-id', 6);
-        $this->assertEquals("update [users_tasks] set [details] = null, [last_updated] = '$date' "
-                . "where [users_tasks].[task_id] = 77 and [users_tasks].[user_id] = 6", $schema->getLastQuery());
+        $this->assertEquals("update [users_tasks] set [details] = null, [last_updated] = ? "
+                . "where [users_tasks].[task_id] = ? and [users_tasks].[user_id] = ?", $schema->getLastQuery());
     }
      /**
      * @test
@@ -895,10 +895,10 @@ class MSSQLQueryBuilderTest extends TestCase{
         ])->where('last-updated', '2021-07-13');
         $date = date('Y-m-d H:i:s');
         $this->assertEquals("update [users_tasks] set [details] = null, "
-                . "[last_updated] = '$date' where [users_tasks].[last_updated] = '2021-07-13 00:00:00'", $schema->getLastQuery());
+                . "[last_updated] = ? where [users_tasks].[last_updated] = ?", $schema->getLastQuery());
         $q->andWhere('user-id', 6);
-        $this->assertEquals("update [users_tasks] set [details] = null, [last_updated] = '$date' "
-                . "where [users_tasks].[last_updated] = '2021-07-13 00:00:00' and [users_tasks].[user_id] = 6", $schema->getLastQuery());
+        $this->assertEquals("update [users_tasks] set [details] = null, [last_updated] = ? "
+                . "where [users_tasks].[last_updated] = ? and [users_tasks].[user_id] = ?", $schema->getLastQuery());
     }
     /**
      * @test
@@ -906,9 +906,9 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testWhereBetween00() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereBetween('task-id', 0, 33);
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] between 0 and 33)', $schema->getLastQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] between ? and ?)', $schema->getLastQuery());
         $schema->andWhere('user-id', 88);
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] between 0 and 33) and [users_tasks].[user_id] = 88', $schema->getLastQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] between ? and ?) and [users_tasks].[user_id] = ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -916,9 +916,9 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testWhereBetween01() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
-        $this->assertEquals("select * from [users_tasks] where ([users_tasks].[task_idx] between 0 and 33)", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where ([users_tasks].[task_idx] between ? and ?)", $schema->getLastQuery());
         $schema->table('users_tasks')->select()->whereBetween('task-idx', '0', '33');
-        $this->assertEquals("select * from [users_tasks] where ([users_tasks].[task_idx] between N'0' and N'33')", $schema->getLastQuery());
+        $this->assertEquals("select * from [users_tasks] where ([users_tasks].[task_idx] between ? and ?)", $schema->getLastQuery());
     }
     /**
      * @test
@@ -934,9 +934,9 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testWhereBetween03() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereNotBetween('task-id', 0, 33);
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] not between 0 and 33)', $schema->getLastQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] not between ? and ?)', $schema->getLastQuery());
         $schema->getQueryGenerator()->andWhere('user-id', 88);
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] not between 0 and 33) and [users_tasks].[user_id] = 88', $schema->getLastQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] not between ? and ?) and [users_tasks].[user_id] = ?', $schema->getLastQuery());
     }
     /**
      * @test
@@ -944,7 +944,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testWhereBetween04() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereNotBetween('task-id', 0, 33);
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] not between 0 and 33)', $schema->getLastQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[task_id] not between ? and ?)', $schema->getLastQuery());
     }
     /**
      * @test
@@ -952,7 +952,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testWhereBetween05() {
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereBetween('last-updated', '2020-01-02 01:30:00', '2020-02-15');
-        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[last_updated] between \'2020-01-02 01:30:00\' and \'2020-02-15 00:00:00\')', $schema->getLastQuery());
+        $this->assertEquals('select * from [users_tasks] where ([users_tasks].[last_updated] between ? and ?)', $schema->getLastQuery());
     }
     /**
      * @test
