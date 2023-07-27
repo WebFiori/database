@@ -160,9 +160,9 @@ class SelectExpression extends Expression {
      */
     public function addLike(string $colName, string $val, string $join = 'and', bool $not = false) {
         if ($not === true) {
-            $expr = new Expression($colName." not like $val");
+            $expr = new Expression($colName." not like ?");
         } else {
-            $expr = new Expression($colName." like $val");
+            $expr = new Expression($colName." like ?");
         }
 
         if ($this->whereExp === null) {
@@ -232,7 +232,7 @@ class SelectExpression extends Expression {
                 if ($this->whereExp === null) {
                     $this->whereExp = new WhereExpression();
                 }
-                $condition = new Condition($leftOpOrExp, $rightOp, $cond);
+                $condition = new Condition($leftOpOrExp, '?', $cond);
                 $this->whereExp->addCondition($condition, $join);
             }
         }
@@ -258,7 +258,7 @@ class SelectExpression extends Expression {
      * @since 1.0.1
      */
     public function addWhereBetween(string $colName, $firstVal, $secVal, string $join = 'and', bool $not = false) {
-        $cond = new Condition($firstVal, $secVal, 'and');
+        $cond = new Condition('?', '?', 'and');
 
         if ($not === true) {
             $expr = new Expression('('.$colName.' not between '.$cond.')');
@@ -290,11 +290,12 @@ class SelectExpression extends Expression {
      */
     public function addWhereIn(string $colName, array $values, string $join = 'and', bool $not = false) {
         $valuesStr = implode(', ', $values);
-
+        
+        $placeholders = trim(str_repeat('?, ', count($values)), ', ');
         if ($not === true) {
-            $expr = new Expression($colName." not in($valuesStr)");
+            $expr = new Expression($colName." not in($placeholders)");
         } else {
-            $expr = new Expression($colName." in($valuesStr)");
+            $expr = new Expression($colName." in($placeholders)");
         }
 
         if ($this->whereExp === null) {
@@ -711,12 +712,13 @@ class SelectExpression extends Expression {
 
         if ($xCond == 'in' || $xCond == 'not in') {
             if (gettype($val) == 'array') {
-                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".implode(", ", $val).")");
+                $placeholder = trim(str_repeat('?, ', count($val)), ', ');
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."($placeholder)");
             } else {
-                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".$val.")");
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(?)");
             }
         } else {
-            $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' '.$val);
+            $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' ?');
         }
 
         if ($this->whereExp === null) {
