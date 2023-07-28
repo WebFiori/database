@@ -402,18 +402,6 @@ abstract class AbstractQuery {
         return $this->offset;
     }
     /**
-     * Returns an array that contains the values at which the prepared query 
-     * will be bind to.
-     * 
-     * @return array An array that contains the values at which the prepared query 
-     * will be bind to.
-     * 
-     * @since 1.0.2
-     */
-    public function getParams() {
-        return $this->params;
-    }
-    /**
      * Returns the previously lined query builder.
      * 
      * @return AbstractQuery|null
@@ -944,18 +932,6 @@ abstract class AbstractQuery {
         $this->setQuery($builder->getQuery());
     }
     /**
-     * Sets the parameters which will be used in case the query will be prepared.
-     * 
-     * @param array $parameters An array that holds the parameters. The structure of 
-     * the array depends on how the developer have implemented the method 
-     * Connection::bind().
-     * 
-     * @since 1.0.2
-     */
-    public function setParams(array $parameters) {
-        $this->params = $parameters;
-    }
-    /**
      * Sets the value of the property which is used to tell if the query 
      * will be prepared query or not.
      * 
@@ -1045,7 +1021,8 @@ abstract class AbstractQuery {
         }
         $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
-
+        $this->prevQueryObj->resetBinding();
+        
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
             $this->reset();
