@@ -394,4 +394,20 @@ class MSSQLQuery extends AbstractQuery {
             'vals' => implode(', ', $valsArr)
         ];
     }
+
+    public function addBinding(Column $col, $value) {
+        
+    }
+
+    public function getBindings(): array {
+        
+    }
+
+    public function resetBinding() {
+        
+    }
+
+    public function setBindings(array $binding, string $merge = 'none') {
+        
+    }
 }
