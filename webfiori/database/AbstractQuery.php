@@ -21,6 +21,7 @@ use webfiori\database\mysql\MySQLQuery;
  * @version 1.0.4
  */
 abstract class AbstractQuery {
+    private $tempBinding;
     /**
      *
      * @var Table|null 
@@ -102,10 +103,12 @@ abstract class AbstractQuery {
         $this->offset = -1;
         $this->query = '';
         $this->params = [];
+        $this->tempBinding = [];
     }
     public abstract function addBinding(Column $col, $value);
     public abstract function getBindings() : array ;
     public abstract function resetBinding();
+    public abstract function setBindings(array $binding, string $merge = 'none');
     /**
      * Constructs a query that can be used to add a column to a database table.
      * 
@@ -1064,6 +1067,8 @@ abstract class AbstractQuery {
             $uAll = $all === true;
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
+            
+            $this->setBindings($this->getTempBinding(), 'first');
         }
 
         return $this;
