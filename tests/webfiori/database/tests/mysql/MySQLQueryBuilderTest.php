@@ -190,7 +190,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function selectTest000() {
+    public function testSelect000() {
         $schema = new MySQLTestSchema();
         $bulder = $schema->table('users')->select();
         $this->assertEquals('select * from `users`', $schema->getLastQuery());
@@ -698,8 +698,12 @@ class MySQLQueryBuilderTest extends TestCase {
                 44,
             ]
         ], $schema->getQueryGenerator()->getBindings());
-        $q->union($q->table('users_privileges')->select())
-            ->union($q->table('users_tasks')->select(), true);
+        $q->union($q->table('users_privileges')->select());
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
+                . "\nunion\n"
+                . "select * from `users_privileges`"
+                . "\nunion all\n", $schema->getLastQuery());
+        $q->union($q->table('users_tasks')->select(), true);
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
                 . "select * from `users_privileges`"
@@ -709,6 +713,28 @@ class MySQLQueryBuilderTest extends TestCase {
             'bind' => 'i',
             'values' => [
                 44,
+            ]
+        ], $schema->getQueryGenerator()->getBindings());
+    }
+    /**
+     * @test
+     */
+    public function testUnion03() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')
+                ->select(['id' => [
+                    'as' => 'user_id'
+                ], 'first-name'])
+                ->where('id', 44, '!=')
+                ->union($schema->table('users_privileges')->select()->where('can-edit_price', true));
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
+                . "\nunion\n"
+                . "select * from `users_privileges` where `users_privileges`.`can_edit_price` = ?", $schema->getLastQuery());
+        $this->assertEquals([
+            'bind' => 'ii',
+            'values' => [
+                44,
+                1
             ]
         ], $schema->getQueryGenerator()->getBindings());
     }
