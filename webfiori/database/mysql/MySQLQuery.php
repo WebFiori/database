@@ -453,8 +453,23 @@ class MySQLQuery extends AbstractQuery {
             'values' => []
         ];
     }
-    public function setBindings(array $bindings) {
-        $this->bindings = $bindings;
+    public function setBindings(array $bindings, string $merge = 'none') {
+        $currentBinding = $this->bindings['bind'];
+        $values = $this->bindings['values'];
+        
+        if ($merge == 'first') {
+            $this->bindings = [
+                'bind' => $bindings['bind'].$currentBinding,
+                'values' => array_merge($bindings['values'], $values)
+            ];
+        } else if ($merge == 'end') {
+            $this->bindings = [
+                'bind' => $currentBinding.$bindings['bind'],
+                'values' => array_merge($values, $bindings['values'])
+            ];
+        } else {
+            $this->bindings = $bindings;
+        }
     }
     public function getBindings(): array {
         return $this->bindings;
