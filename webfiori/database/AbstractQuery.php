@@ -1024,7 +1024,7 @@ abstract class AbstractQuery {
         }
         $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
-        $this->prevQueryObj->resetBinding();
+        $this->resetBinding();
         
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
@@ -1068,7 +1068,7 @@ abstract class AbstractQuery {
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
             
-            $this->setBindings($this->getTempBinding(), 'first');
+            $this->setBindings($query->getBindings(), 'first');
         }
 
         return $this;
