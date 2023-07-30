@@ -162,6 +162,7 @@ class MySQLConnection extends Connection {
             $this->setErrMessage($ex->getMessage());
             throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode(), $this->getLastQuery()->getQuery(), $ex);
         }
+        $query->resetBinding();
     }
     private function runInsertQuery() {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
