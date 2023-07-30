@@ -18,6 +18,7 @@ namespace webfiori\database;
  * @version 1.0
  */
 class WhereExpression extends Expression {
+    private $isCompiled;
     /**
      * An array that contains sub-where expressions.
      * 
@@ -69,6 +70,7 @@ class WhereExpression extends Expression {
         $this->children = [];
         $this->joinCond = '';
         $this->conditionsCount = 0;
+        $this->isCompiled = false;
     }
     /**
      * Adds a condition to the expression and chain it with existing conditions. 
@@ -96,6 +98,7 @@ class WhereExpression extends Expression {
         } else if ($condition instanceof Expression) {
             $this->conditionsChain = new Condition($condition, null, $joinOp);
         }
+        $this->isCompiled = false;
         $this->conditionsCount++;
     }
     /**
@@ -143,6 +146,9 @@ class WhereExpression extends Expression {
      * @since 1.0
      */
     public function getValue() : string {
+        if ($this->isCompiled) {
+            return parent::getValue();
+        }
         $val = '';
 
         foreach ($this->children as $chWhere) {
@@ -167,7 +173,9 @@ class WhereExpression extends Expression {
             }
         }
 
-        return trim($val);
+        parent::setValue(trim($val));
+        $this->isCompiled = true;
+        return parent::getValue();
     }
     /**
      * Sets the condition at which the expression will use to combine with children 
@@ -179,6 +187,7 @@ class WhereExpression extends Expression {
      */
     public function setJoinCondition(string $cond) {
         $this->joinCond = $cond;
+        $this->isCompiled = false;
     }
     /**
      * Sets the parent of the expression.
