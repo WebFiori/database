@@ -21,6 +21,11 @@ use webfiori\database\DatabaseException;
  * @version 1.0
  */
 class MSSQLQuery extends AbstractQuery {
+    private $bindings;
+    public function __construct() {
+        parent::__construct();
+        $this->bindings = [];
+    }
     /**
      * Build a query which can be used to add a column to associated table.
      * 
@@ -396,18 +401,25 @@ class MSSQLQuery extends AbstractQuery {
     }
 
     public function addBinding(Column $col, $value) {
-        
+        $this->bindings[] = array_merge([$value, SQLSRV_PARAM_IN], $col->getTypeArr());
     }
 
     public function getBindings(): array {
-        
+        return $this->bindings;
     }
 
     public function resetBinding() {
-        
+        $this->bindings = [];
     }
 
     public function setBindings(array $binding, string $merge = 'none') {
         
+        if ($merge == 'first') {
+            $this->bindings = array_merge($binding, $this->bindings);
+        } else if ($merge == 'end') {
+            $this->bindings = array_merge($this->bindings, $binding);
+        } else {
+            $this->bindings = $binding;
+        }
     }
 }
