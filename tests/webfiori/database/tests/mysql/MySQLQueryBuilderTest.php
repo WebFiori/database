@@ -85,7 +85,6 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
-        $schema->execute();
     }
     /**
      * 
@@ -1762,7 +1761,7 @@ class MySQLQueryBuilderTest extends TestCase {
     }
     /**
      * @test
-     * @depends testCreateTables
+     * @depends testInsert04
      */
     public function testTransaction00() {
         $schema = new MySQLTestSchema();
@@ -1800,7 +1799,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 104,
+                'user_id' => $userId,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -1827,14 +1826,14 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 104,
+                'user_id' => $userId,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
-                'user_id' => 104,
+                'user_id' => $userId,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -1853,14 +1852,14 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 104,
+                'user_id' => $userId,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
-                'user_id' => 104,
+                'user_id' => $userId,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -1892,7 +1891,7 @@ class MySQLQueryBuilderTest extends TestCase {
             $this->assertEquals(1364, $ex->getCode());
             $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
             $this->assertEquals([
-                'id' => 104,
+                'id' => $userId,
                 'first_name' => 'Ibrahim',
                 'last_name' => 'BinAlshikh',
                 'age' => 30
