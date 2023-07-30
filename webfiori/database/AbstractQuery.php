@@ -1067,8 +1067,11 @@ abstract class AbstractQuery {
             $uAll = $all === true;
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
-            
-            $this->setBindings($this->getTempBinding(), 'first');
+            $whereExpr = $query->getTable()->getSelect()->getWhereExpr();
+            if ($whereExpr !== null) {
+                $whereExpr->setValue('');
+            }
+            //$this->setBindings($this->getTempBinding(), 'first');
         }
 
         return $this;
