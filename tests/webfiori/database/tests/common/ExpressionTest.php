@@ -19,7 +19,7 @@ class ExpressionTest extends TestCase {
     public function test00() {
         $exp = new Expression('x = y');
         $this->assertEquals('x = y', $exp->getValue());
-        $exp->setVal('z != 9');
+        $exp->setValue('z != 9');
         $this->assertEquals('z != 9', $exp->getValue());
     }
     /**
@@ -29,7 +29,7 @@ class ExpressionTest extends TestCase {
         $exp0 = new Expression('x = y');
         $exp1 = new Expression('x = y');
         $this->assertTrue($exp0->equals($exp1));
-        $exp0->setVal('z != 9');
+        $exp0->setValue('z != 9');
         $this->assertFalse($exp1->equals($exp0));
     }
     /**
