@@ -102,6 +102,16 @@ class Database {
         ];
     }
     /**
+     * Reset the bindings which was set by building and executing a query.
+     * 
+     * @return Database The method will return the instance at which the method
+     * is called on.
+     */
+    public function resetBinding() : Database {
+        $this->getQueryGenerator()->resetBinding();
+        return $this;
+    }
+    /**
      * Adds a table to the instance.
      * 
      * @param Table $table the table that will be added.
@@ -168,7 +178,7 @@ class Database {
     public function clear() {
         $this->queries = [];
         $this->getQueryGenerator()->reset();
-        $this->getQueryGenerator()->resetBinding();
+        $this->resetBinding();
     }
     /**
      * Creates a blueprint of a table that can be used to build table structure.
