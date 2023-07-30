@@ -1498,7 +1498,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function renameColTest00() {
+    public function testRenameCol00() {
         $schema = new MySQLTestSchema();
         $schema->getTable('users')->getColByKey('id')->setName('user_id');
         
@@ -1509,7 +1509,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function renameColTest01() {
+    public function testRenameCol01() {
         $this->expectException(DatabaseException::class);
         $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
         $schema = new MySQLTestSchema();
@@ -1518,7 +1518,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function renameColTest02() {
+    public function testRenameCol02() {
         $schema = new MySQLTestSchema();
         $schema->table('users')->renameCol('id');
         $this->assertEquals('alter table `users` rename column `id` to `id`;', $schema->getLastQuery());
