@@ -1353,6 +1353,8 @@ class MySQLQueryBuilderTest extends TestCase {
                 3,
             ]
         ], $schema->getQueryGenerator()->getBindings());
+        
+        $queryBuilder->resetBinding();
         $queryBuilder->table('users')->select(['id'])->join(
             $queryBuilder->table('users_privileges')->select()->where('id', 3)
         )->on('id', 'id')->select([
@@ -1658,6 +1660,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 33
             ]
         ], $schema->getQueryGenerator()->getBindings());
+        $schema->resetBinding();
         $schema->table('users_tasks')->getTable()->getColByKey('task-idx')->setDatatype('varchar');
         $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
         $this->assertEquals("select * from `users_tasks` where (`users_tasks`.`task_idx` between ? and ?)", $schema->getLastQuery());
