@@ -43,7 +43,6 @@ class MSSQLTestSchema extends Database {
                 'type' => 'int',
                 'size' => 5,
                 'is-primary' => true,
-                'identity' => true
             ],
             'can-edit-price' => [
                 'type' => 'boolean',
@@ -76,11 +75,13 @@ class MSSQLTestSchema extends Database {
             'created-on' => [
                 'type' => 'datetime2',
                 'default' => 'now',
+                'size' => 0
             ],
             'last-updated' => [
                 'type' => 'datetime2',
                 'is-null' => true,
                 'auto-update' => true,
+                'size' => 0,
                 'comment' => 'The last time this record was updated at.'
             ],
             'is-finished' => [

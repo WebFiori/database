@@ -83,6 +83,44 @@ class Database {
         $this->tablesArr = [];
     }
     /**
+     * Start SQL transaction.
+     * 
+     * @param callable $transaction A function that holds the logic of the transaction.
+     * The function must return true or null for success. If false is
+     * returned, it means the transaction failed and will be rolled back.
+     * 
+     * @param array $transactionArgs An optional array of parameters to be passed
+     * to the transaction.
+     * 
+     * @return bool If the transaction completed without errors, the method will
+     * return true. False otherwise.
+     * 
+     * @throws DatabaseException The method will throw an exception if it was
+     * rolled back due to an error.
+     */
+    public function transaction(callable $transaction, array $transactionArgs = []) : bool {
+        $conn = $this->getConnection();
+        $name = 'transation_'. rand();
+        
+        try {
+            
+            $args = array_merge([$this], $transactionArgs);
+            $conn->beginTransaction($name);
+            $result = call_user_func_array($transaction, $args);
+            
+            if ($result === null || $result === true) {
+                $conn->commit($name);
+                return true;
+            } else {
+                $conn->rollBack($name);
+                return false;
+            }
+        } catch (DatabaseException $ex) {
+            $conn->rollBack($name);
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $ex->getSQLQuery(), $ex);
+        }
+    }
+    /**
      * Adds a database query to the set of queries at which they were executed.
      * 
      * This method is called internally by the library to add the query. The 

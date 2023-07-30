@@ -581,6 +581,9 @@ class MySQLColumn extends Column {
      * @since 1.0
      */
     public function setSize(int $size) : bool {
+        if ($size <= 0) {
+            return false;
+        }
         $type = $this->getDatatype();
         $retVal = false;
 

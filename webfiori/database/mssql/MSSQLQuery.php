@@ -263,6 +263,7 @@ class MSSQLQuery extends AbstractQuery {
                 $updateArr[] = "$colName = null";
             } else {
                 $updateArr[] = "$colName = ?";
+                $this->addBinding($colObj, $newVal);
             }
             $colsWithVals[] = $colKey;
         }
@@ -273,6 +274,7 @@ class MSSQLQuery extends AbstractQuery {
 
                 if (($colObj->getDatatype() == 'datetime2') && $colObj->isAutoUpdate()) {
                     $updateArr[] = $colObj->getName()." = ?";
+                    $this->addBinding($colObj, date('Y-m-d H:i:s'));
                 }
             }
         }
@@ -400,7 +402,7 @@ class MSSQLQuery extends AbstractQuery {
     }
 
     public function addBinding(Column $col, $value) {
-        $this->bindings[] = array_merge([$value, SQLSRV_PARAM_IN], $col->getTypeArr());
+        $this->bindings[] = $value;
     }
 
     public function getBindings(): array {

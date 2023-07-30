@@ -13,6 +13,7 @@ namespace webfiori\database\mssql;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
 use webfiori\database\ConnectionInfo;
+use webfiori\database\DatabaseException;
 use webfiori\database\ResultSet;
 /**
  * A class that represents a connection to MSSQL server.
@@ -136,9 +137,23 @@ class MSSQLConnection extends Connection {
     }
     private function runInsertQuery() {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        $sql = $this->getLastQuery()->getQuery();
+        if ($insertBuilder !== null) {
+            
+            $params = $insertBuilder->getQueryParams();
 
-        $stm = sqlsrv_prepare($this->link, $insertBuilder->getQuery(), $insertBuilder->getQueryParams());
-        $r = sqlsrv_execute($stm);
+            $stm = sqlsrv_prepare($this->link, $sql, $params);
+            $r = sqlsrv_execute($stm);
+        } else {
+            $params = $this->getLastQuery()->getBindings();
+             
+            if (count($params) != 0) {
+                $stm = sqlsrv_prepare($this->link, $sql, $params);
+                $r = sqlsrv_execute($stm);
+            } else {
+                $r = sqlsrv_query($this->link, $sql);
+            }
+        }
 
         if (!$r) {
             $this->setSqlErr();
@@ -159,9 +174,6 @@ class MSSQLConnection extends Connection {
 
             return false;
         }
-        
-
-        
 
         return true;
     }
@@ -200,6 +212,33 @@ class MSSQLConnection extends Connection {
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
             $this->setErrCode($lastErr['code']);
+        }
+    }
+
+    public function beginTransaction(string $name = null) {
+        $r = sqlsrv_begin_transaction($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+    }
+
+    public function commit(string $name = null) {
+        $r = sqlsrv_commit($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+    }
+
+    public function rollBack(string $name = null) {
+        $r = sqlsrv_rollback($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
         }
     }
 }
