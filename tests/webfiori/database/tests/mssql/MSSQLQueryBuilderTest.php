@@ -149,7 +149,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $this->expectException(DatabaseException::class);
         $schema = new MSSQLTestSchema();
         $q = $schema->table('users_tasks');
-        $q->addCol('details', 'not-exist');
+        $q->addCol('details-y', 'not-exist');
         $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
     }
     /**
