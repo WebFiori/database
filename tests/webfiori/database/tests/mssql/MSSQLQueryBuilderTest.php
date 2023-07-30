@@ -86,6 +86,169 @@ class MSSQLQueryBuilderTest extends TestCase{
         $q->table('users')->selectCount('id');
         $this->assertEquals('select count([users].[id]) as [count] from [users]', $q->getQuery());
     }
+    /**
+     * @test
+     */
+    public function testRenameCol00() {
+        $schema = new MSSQLTestSchema();
+        $schema->getTable('users')->getColByKey('id')->setName('user_id');
+        
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->renameCol('id');
+        $this->assertEquals("exec sp_rename 'users.[id]', 'user_id', 'COLUMN'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRenameCol01() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("The table users has no column with key 'not-exist'");
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->renameCol('not-exist');
+        $this->assertEquals("exec sp_rename 'users.[not_exist]', 'user_id', 'COLUMN'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRenameCol02() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->renameCol('id');
+        $this->assertEquals("exec sp_rename 'users.[id]', 'id', 'COLUMN'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn00() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn01() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details', 'first');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn02() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details', 'is-finished');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn03() {
+        $this->expectException(DatabaseException::class);
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details', 'not-exist');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddFk00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->addForeignKey('user_task_fk');
+        $this->assertEquals("alter table [users_tasks] add constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action;", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddFk01() {
+        $schema = new MSSQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("No such foreign key: 'xyz'.");
+        $schema->table('users_tasks')->addForeignKey('xyz');
+    }
+    /**
+     * @test
+     */
+    public function testAddPrimaryKey00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->addPrimaryKey('my_key', ['id']);
+        $this->assertEquals('alter table [users] add constraint my_key primary key clustered ([id]);', $schema->getLastQuery());
+        $schema->table('users')->addPrimaryKey('my_key', ['first-name', 'last-name']);
+        $this->assertEquals('alter table [users] add constraint my_key primary key clustered ([first_name], [last_name]);', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropCol00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->dropCol('id');
+        $this->assertEquals('alter table [users] drop column [id];', $schema->getLastQuery());
+        $schema->table('users')->dropCol('first-name ');
+        $this->assertEquals('alter table [users] drop column [first_name];', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropCol01() {
+        $schema = new MSSQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('The table [users] has no column with key \'not-exist\'.');
+        $schema->table('users')->dropCol('not-exist');
+    }
+    /**
+     * @test
+     */
+    public function testDropFk00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->dropForeignKey('user_task_fk');
+        $this->assertEquals("alter table [users_tasks] drop constraint user_task_fk;", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropPrimaryKey00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->dropPrimaryKey('pk');
+        $this->assertEquals('alter table [users] drop constraint pk', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->select()->whereIn('task-id', [7,"9","100"]);
+        $this->assertEquals("select * from [users_tasks] where [users_tasks].[task_id] in(?, ?, ?)", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn01() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->select()->whereNotIn('task-id', [7,"9","100"]);
+        $this->assertEquals("select * from [users_tasks] where [users_tasks].[task_id] not in(?, ?, ?)", $schema->getLastQuery()); 
+        $this->assertEquals([
+                [7, 1, 2, 4],
+                ['9', 1, 2, 4],
+                ['100', 1, 2, 4]
+        ], $schema->getQueryGenerator()->getBindings());
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn02() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->select()->whereNotIn('first-name', [7,"9","100"]);
+        $this->assertEquals("select * from [users] where [users].[first_name] not in(?, ?, ?)", $schema->getLastQuery()); 
+        $num = $schema->getQueryGenerator()->getBindings()[0][2];
+        $this->assertEquals([
+                [7, 1, $num, -9],
+                ['9', 1, $num, -9],
+                ['100', 1, $num, -9]
+        ], $schema->getQueryGenerator()->getBindings());
+    }
     public function testCreateTables() {
         $schema = new MSSQLTestSchema();
         $schema->createTables();
