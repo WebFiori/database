@@ -769,7 +769,6 @@ abstract class AbstractQuery {
         $this->lastQueryType = '';
         $this->limit = -1;
         $this->offset = -1;
-        //$this->resetBinding();
     }
     /**
      * Perform a right join query.
@@ -1071,7 +1070,6 @@ abstract class AbstractQuery {
             if ($whereExpr !== null) {
                 $whereExpr->setValue('');
             }
-            //$this->setBindings($this->getTempBinding(), 'first');
         }
 
         return $this;
@@ -1495,7 +1493,7 @@ abstract class AbstractQuery {
                 $secCleanVal = $options['second-value'];
                 $this->addBinding($colObj, $firstCleanVal);
                 $this->addBinding($colObj, $secCleanVal);
-                $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
+                $this->getTable()->getSelect()->addWhereBetween($colName, $joinCond, $not);
             } else if ($options['func'] == 'in') {
                 if (count($options['values']) != 0) {
                     foreach ($options['values'] as $val) {
@@ -1525,7 +1523,7 @@ abstract class AbstractQuery {
 
                 if (gettype($cleanVal) == 'string') {
                     $this->addBinding($colObj, $cleanVal);
-                    $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
+                    $this->getTable()->getSelect()->addLike($colName, $joinCond, $not);
                 }
             } else if ($options['func'] == 'null') {
                 $this->getTable()->getSelect()->addWhereNull($colName, $joinCond, $not);

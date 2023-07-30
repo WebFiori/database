@@ -147,7 +147,6 @@ class SelectExpression extends Expression {
      * @param string $colName The name of the column that the condition will be 
      * based on as it appears in the database.
      * 
-     * @param string $val The value of the 'like' condition.
      * 
      * @param string $join An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
@@ -158,7 +157,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0.1
      */
-    public function addLike(string $colName, string $val, string $join = 'and', bool $not = false) {
+    public function addLike(string $colName, string $join = 'and', bool $not = false) {
         if ($not === true) {
             $expr = new Expression($colName." not like ?");
         } else {
@@ -243,10 +242,6 @@ class SelectExpression extends Expression {
      * @param string $colName The name of the column that the condition will be 
      * based on as it appears in the database.
      * 
-     * @param mixed $firstVal The left hand side operand of the between condition.
-     * 
-     * @param mixed $secVal The right hand side operand of the between condition.
-     * 
      * @param string $join An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
@@ -257,7 +252,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0.1
      */
-    public function addWhereBetween(string $colName, $firstVal, $secVal, string $join = 'and', bool $not = false) {
+    public function addWhereBetween(string $colName, string $join = 'and', bool $not = false) {
         $cond = new Condition('?', '?', 'and');
 
         if ($not === true) {
@@ -289,7 +284,6 @@ class SelectExpression extends Expression {
      * @since 1.0.1
      */
     public function addWhereIn(string $colName, array $values, string $join = 'and', bool $not = false) {
-        $valuesStr = implode(', ', $values);
         
         $placeholders = trim(str_repeat('?, ', count($values)), ', ');
         if ($not === true) {

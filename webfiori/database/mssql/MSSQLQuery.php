@@ -262,7 +262,6 @@ class MSSQLQuery extends AbstractQuery {
             if ($newVal === null) {
                 $updateArr[] = "$colName = null";
             } else {
-                $valClean = $colObj->cleanValue($newVal);
                 $updateArr[] = "$colName = ?";
             }
             $colsWithVals[] = $colKey;
