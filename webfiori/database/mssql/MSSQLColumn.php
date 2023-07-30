@@ -89,6 +89,22 @@ class MSSQLColumn extends Column {
         }
     }
     /**
+     * Sets the size of the data that will be stored by the column.
+     * 
+     * @param int $size A positive number that represents the size. must be greater than 0 
+     * (except for datetime2).
+     * 
+     * @return bool If the size is set, the method will return true. Other than 
+     * that, it will return false.
+     * 
+     */
+    public function setSize(int $size)  : bool {
+        if (($this->getDatatype() == 'datetime2' && $size == 0) || $size > 0)  {
+            return parent::setSize($size);
+        }
+        return false;
+    }
+    /**
      * Returns a string that represents the column.
      * 
      * The string can be used to alter or add the column to a table.
@@ -422,6 +438,9 @@ class MSSQLColumn extends Column {
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
             $this->isIdintity = false;
         }
+        if (!($this->getDatatype() == 'datetime2' && $this->getSize() == 0)) {
+            parent::setSize(1);
+        }
     }
     /**
      * Sets the default value for the column to use in case of insert.
@@ -629,6 +648,12 @@ class MSSQLColumn extends Column {
             } else {
                 $retVal .= $colDataTypeSq.'(18,0) ';
             }
+        } else if ($colDataType == 'datetime2') {
+            $size = $this->getSize();
+            if (!($size >= 0 && $size <= 7)) {
+                $size = 2;
+            }
+            $retVal .= $colDataTypeSq."($size) " ;
         } else if ($colDataType == 'mixed') {
             //Treat mixed as nvarchar datatype when creating the column.
             $retVal .= MSSQLQuery::squareBr('nvarchar').'(256) ';
