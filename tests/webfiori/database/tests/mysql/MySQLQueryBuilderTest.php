@@ -1800,7 +1800,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -1827,14 +1827,14 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -1853,14 +1853,14 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -1892,7 +1892,7 @@ class MySQLQueryBuilderTest extends TestCase {
             $this->assertEquals(1364, $ex->getCode());
             $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
             $this->assertEquals([
-                'id' => 1,
+                'id' => 104,
                 'first_name' => 'Ibrahim',
                 'last_name' => 'BinAlshikh',
                 'age' => 30
