@@ -514,17 +514,6 @@ abstract class AbstractQuery {
         return $this->isMultiQuery;
     }
     /**
-     * Checks if the query will be prepared before execution or not.
-     * 
-     * @return bool The method will return true if the query will be prepared 
-     * before execution. False if not.
-     * 
-     * @since 1.0.2
-     */
-    public function isPrepareBeforeExec() {
-        return $this->isPrepare;
-    }
-    /**
      * Perform a join query.
      * 
      * @param AbstractQuery $query The query at which the current query 
