@@ -149,22 +149,28 @@ class MSSQLConnection extends Connection {
         return true;
     }
     private function runOtherQuery() {
-        $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
-
+        $sql = $this->getLastQuery()->getQuery();
+        $queryBulder = $this->getLastQuery();
+        
+        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+            
         if (!is_resource($r)) {
             $this->setSqlErr();
 
             return false;
         }
+        
+
+        
 
         return true;
     }
     private function runSelectQuery() {
-        if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->bindAndExcute();
-        } else {
-            $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
-        }
+        $queryBulder = $this->getLastQuery();
+        $sql = $queryBulder->getQuery();
+        
+        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+        
 
         if (is_resource($r)) {
             $data = [];
