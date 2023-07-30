@@ -85,6 +85,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
                 . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
+        $schema->execute();
     }
     /**
      * 
