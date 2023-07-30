@@ -147,7 +147,6 @@ class SelectExpression extends Expression {
      * @param string $colName The name of the column that the condition will be 
      * based on as it appears in the database.
      * 
-     * @param string $val The value of the 'like' condition.
      * 
      * @param string $join An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
@@ -158,11 +157,11 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0.1
      */
-    public function addLike(string $colName, string $val, string $join = 'and', bool $not = false) {
+    public function addLike(string $colName, string $join = 'and', bool $not = false) {
         if ($not === true) {
-            $expr = new Expression($colName." not like $val");
+            $expr = new Expression($colName." not like ?");
         } else {
-            $expr = new Expression($colName." like $val");
+            $expr = new Expression($colName." like ?");
         }
 
         if ($this->whereExp === null) {
@@ -232,7 +231,7 @@ class SelectExpression extends Expression {
                 if ($this->whereExp === null) {
                     $this->whereExp = new WhereExpression();
                 }
-                $condition = new Condition($leftOpOrExp, $rightOp, $cond);
+                $condition = new Condition($leftOpOrExp, '?', $cond);
                 $this->whereExp->addCondition($condition, $join);
             }
         }
@@ -242,10 +241,6 @@ class SelectExpression extends Expression {
      * 
      * @param string $colName The name of the column that the condition will be 
      * based on as it appears in the database.
-     * 
-     * @param mixed $firstVal The left hand side operand of the between condition.
-     * 
-     * @param mixed $secVal The right hand side operand of the between condition.
      * 
      * @param string $join An optional string which could be used to join 
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
@@ -257,8 +252,8 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0.1
      */
-    public function addWhereBetween(string $colName, $firstVal, $secVal, string $join = 'and', bool $not = false) {
-        $cond = new Condition($firstVal, $secVal, 'and');
+    public function addWhereBetween(string $colName, string $join = 'and', bool $not = false) {
+        $cond = new Condition('?', '?', 'and');
 
         if ($not === true) {
             $expr = new Expression('('.$colName.' not between '.$cond.')');
@@ -289,12 +284,12 @@ class SelectExpression extends Expression {
      * @since 1.0.1
      */
     public function addWhereIn(string $colName, array $values, string $join = 'and', bool $not = false) {
-        $valuesStr = implode(', ', $values);
-
+        
+        $placeholders = trim(str_repeat('?, ', count($values)), ', ');
         if ($not === true) {
-            $expr = new Expression($colName." not in($valuesStr)");
+            $expr = new Expression($colName." not in($placeholders)");
         } else {
-            $expr = new Expression($colName." in($valuesStr)");
+            $expr = new Expression($colName." in($placeholders)");
         }
 
         if ($this->whereExp === null) {
@@ -711,12 +706,13 @@ class SelectExpression extends Expression {
 
         if ($xCond == 'in' || $xCond == 'not in') {
             if (gettype($val) == 'array') {
-                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".implode(", ", $val).")");
+                $placeholder = trim(str_repeat('?, ', count($val)), ', ');
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."($placeholder)");
             } else {
-                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(".$val.")");
+                $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond."(?)");
             }
         } else {
-            $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' '.$val);
+            $expr = new Expression($func.'('.$colName.', '.$charsCount.') '.$xCond.' ?');
         }
 
         if ($this->whereExp === null) {

@@ -160,8 +160,9 @@ class MySQLConnection extends Connection {
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
             $this->setErrMessage($ex->getMessage());
-            throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode());
+            throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode(), $this->getLastQuery()->getQuery(), $ex);
         }
+        $query->resetBinding();
     }
     private function runInsertQuery() {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
@@ -202,14 +203,24 @@ class MySQLConnection extends Connection {
     private function runOtherQuery() {
         $query = $this->getLastQuery()->getQuery();
         $retVal = false;
-
-        if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->bindAndExcute();
-        } else if (!$this->getLastQuery()->isMultiQuery()) {
-            $r = mysqli_query($this->link, $query);
+        
+        $sql = $this->getLastQuery()->getQuery();
+        $params = $this->getLastQuery()->getBindings()['bind'];
+        $values = array_merge($this->getLastQuery()->getBindings()['values']);
+        
+        if (count($values) != 0) {
+            $sqlStatement = mysqli_prepare($this->link, $sql);
+            $sqlStatement->bind_param($params, ...$values);
+            $r = $sqlStatement->execute();
         } else {
-            $r = mysqli_multi_query($this->link, $query);
+            if (!$this->getLastQuery()->isMultiQuery()) {
+                $r = mysqli_query($this->link, $query);
+            } else {
+                $r = mysqli_multi_query($this->link, $query);
+            }
         }
+        
+        
 
         if (!$r) {
             $this->setErrMessage($this->link->error);
@@ -228,11 +239,20 @@ class MySQLConnection extends Connection {
         return $retVal;
     }
     private function runSelectQuery() {
-        if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->bindAndExcute();
+        
+        $sql = $this->getLastQuery()->getQuery();
+        $params = $this->getLastQuery()->getBindings()['bind'];
+        $values = array_merge($this->getLastQuery()->getBindings()['values']);
+        
+        if (count($values) != 0) {
+            $sqlStatement = mysqli_prepare($this->link, $sql);
+            $sqlStatement->bind_param($params, ...$values);
+            $r = $sqlStatement->execute();
         } else {
             $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
         }
+        
+        
 
         if ($r) {
             $this->setErrCode(0);

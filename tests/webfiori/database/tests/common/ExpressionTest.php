@@ -19,7 +19,7 @@ class ExpressionTest extends TestCase {
     public function test00() {
         $exp = new Expression('x = y');
         $this->assertEquals('x = y', $exp->getValue());
-        $exp->setVal('z != 9');
+        $exp->setValue('z != 9');
         $this->assertEquals('z != 9', $exp->getValue());
     }
     /**
@@ -29,7 +29,7 @@ class ExpressionTest extends TestCase {
         $exp0 = new Expression('x = y');
         $exp1 = new Expression('x = y');
         $this->assertTrue($exp0->equals($exp1));
-        $exp0->setVal('z != 9');
+        $exp0->setValue('z != 9');
         $this->assertFalse($exp1->equals($exp0));
     }
     /**
@@ -153,20 +153,6 @@ class ExpressionTest extends TestCase {
         $expression->groupBy('not-exist-2');
         $this->assertEquals(' order by `new_table`.`not_exist_1`', $expression->getOrderBy());
         $this->assertEquals(' group by `new_table`.`not_exist_2`', $expression->getGroupBy());
-    }
-    /**
-     * @test
-     */
-    public function testSelectExpression03() {
-        $t = new MySQLTable();
-        $t->addColumns([
-            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
-        ]);
-        $expression = new SelectExpression($t);
-        $expression->addWhere('col-1', 'col-2', '=');
-        $this->assertEquals(' where col-1 = col-2', $expression->getWhereStr());
-        $expression->addWhere('A', 'B', '!=', 'super');
-        $this->assertEquals(' where col-1 = col-2 and A != B', $expression->getWhereStr());
     }
     /**
      * @test

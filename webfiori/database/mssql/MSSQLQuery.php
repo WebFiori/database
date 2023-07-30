@@ -21,6 +21,11 @@ use webfiori\database\DatabaseException;
  * @version 1.0
  */
 class MSSQLQuery extends AbstractQuery {
+    private $bindings;
+    public function __construct() {
+        parent::__construct();
+        $this->bindings = [];
+    }
     /**
      * Build a query which can be used to add a column to associated table.
      * 
@@ -257,8 +262,7 @@ class MSSQLQuery extends AbstractQuery {
             if ($newVal === null) {
                 $updateArr[] = "$colName = null";
             } else {
-                $valClean = $colObj->cleanValue($newVal);
-                $updateArr[] = "$colName = $valClean";
+                $updateArr[] = "$colName = ?";
             }
             $colsWithVals[] = $colKey;
         }
@@ -268,7 +272,7 @@ class MSSQLQuery extends AbstractQuery {
                 $colObj = $this->getTable()->getColByKey($key);
 
                 if (($colObj->getDatatype() == 'datetime2') && $colObj->isAutoUpdate()) {
-                    $updateArr[] = $colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                    $updateArr[] = $colObj->getName()." = ?";
                 }
             }
         }
@@ -393,5 +397,28 @@ class MSSQLQuery extends AbstractQuery {
             'cols' => implode(', ', $colsNamesArr),
             'vals' => implode(', ', $valsArr)
         ];
+    }
+
+    public function addBinding(Column $col, $value) {
+        $this->bindings[] = array_merge([$value, SQLSRV_PARAM_IN], $col->getTypeArr());
+    }
+
+    public function getBindings(): array {
+        return $this->bindings;
+    }
+
+    public function resetBinding() {
+        $this->bindings = [];
+    }
+
+    public function setBindings(array $binding, string $merge = 'none') {
+        
+        if ($merge == 'first') {
+            $this->bindings = array_merge($binding, $this->bindings);
+        } else if ($merge == 'end') {
+            $this->bindings = array_merge($this->bindings, $binding);
+        } else {
+            $this->bindings = $binding;
+        }
     }
 }

@@ -21,6 +21,7 @@ use webfiori\database\mysql\MySQLQuery;
  * @version 1.0.4
  */
 abstract class AbstractQuery {
+    private $tempBinding;
     /**
      *
      * @var Table|null 
@@ -102,8 +103,12 @@ abstract class AbstractQuery {
         $this->offset = -1;
         $this->query = '';
         $this->params = [];
-        $this->isPrepare = false;
+        $this->tempBinding = [];
     }
+    public abstract function addBinding(Column $col, $value);
+    public abstract function getBindings() : array ;
+    public abstract function resetBinding();
+    public abstract function setBindings(array $binding, string $merge = 'none');
     /**
      * Constructs a query that can be used to add a column to a database table.
      * 
@@ -398,18 +403,6 @@ abstract class AbstractQuery {
      */
     public function getOffset() {
         return $this->offset;
-    }
-    /**
-     * Returns an array that contains the values at which the prepared query 
-     * will be bind to.
-     * 
-     * @return array An array that contains the values at which the prepared query 
-     * will be bind to.
-     * 
-     * @since 1.0.2
-     */
-    public function getParams() {
-        return $this->params;
     }
     /**
      * Returns the previously lined query builder.
@@ -941,18 +934,6 @@ abstract class AbstractQuery {
         $this->setQuery($builder->getQuery());
     }
     /**
-     * Sets the parameters which will be used in case the query will be prepared.
-     * 
-     * @param array $parameters An array that holds the parameters. The structure of 
-     * the array depends on how the developer have implemented the method 
-     * Connection::bind().
-     * 
-     * @since 1.0.2
-     */
-    public function setParams(array $parameters) {
-        $this->params = $parameters;
-    }
-    /**
      * Sets the value of the property which is used to tell if the query 
      * will be prepared query or not.
      * 
@@ -1042,7 +1023,8 @@ abstract class AbstractQuery {
         }
         $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
-
+        $this->prevQueryObj->resetBinding();
+        
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
             $this->reset();
@@ -1084,6 +1066,10 @@ abstract class AbstractQuery {
             $uAll = $all === true;
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
+            $whereExpr = $query->getTable()->getSelect()->getWhereExpr();
+            if ($whereExpr !== null) {
+                $whereExpr->setValue('');
+            }
         }
 
         return $this;
@@ -1136,13 +1122,16 @@ abstract class AbstractQuery {
 
                 if ($colObj === null) {
                     $table->addColumns([
-                        $col => []
+                        $col => ['type' => $this->getColType($val)]
                     ]);
                     $colObj = $table->getColByKey($col);
                 }
                 $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
+                if ($val !== null) {
+                    $this->addBinding($colObj, $val);
+                }
                 $table->getSelect()->addWhere($colName, $cleanVal, $cond, $joinCond);
             } else {
                 throw new DatabaseException("Last query must be a 'select', delete' or 'update' in order to add a 'where' condition.");
@@ -1462,6 +1451,18 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    private function getColType($phpVar) {
+        $type = gettype($phpVar);
+        if ($type == 'integer') {
+            return 'int';
+        } else if ($type == 'double') {
+            return 'decimal';
+        } else if ($type == 'boolean') {
+            return $type;
+        } else {
+            return 'varchar';
+        }
+    }
     private function addWhereHelper($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
@@ -1472,10 +1473,15 @@ abstract class AbstractQuery {
 
         if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
             $colObj = $table->getColByKey($col);
-
+            $val = '';
+            if (isset($options['value'])) {
+                $val = $options['value'];
+            } else if (isset ($options['first-value'])) {
+                $val = $options['first-value'];
+            }
             if ($colObj === null) {
                 $table->addColumns([
-                    $col => []
+                    $col => ['type' => $this->getColType($val)]
                 ]);
                 $colObj = $table->getColByKey($col);
             }
@@ -1483,39 +1489,58 @@ abstract class AbstractQuery {
             $colName = $colObj->getName();
 
             if ($options['func'] == 'between') {
-                $firstCleanVal = $colObj->cleanValue($options['first-value']);
-                $secCleanVal = $colObj->cleanValue($options['second-value']);
-                $this->getTable()->getSelect()->addWhereBetween($colName, $firstCleanVal, $secCleanVal, $joinCond, $not);
+                $firstCleanVal = $options['first-value'];
+                $secCleanVal = $options['second-value'];
+                $this->addBinding($colObj, $firstCleanVal);
+                $this->addBinding($colObj, $secCleanVal);
+                $this->getTable()->getSelect()->addWhereBetween($colName, $joinCond, $not);
             } else if ($options['func'] == 'in') {
-                $cleanedVals = $colObj->cleanValue($options['values']);
-
-                if (count($cleanedVals) != 0) {
-                    $this->getTable()->getSelect()->addWhereIn($colName, $cleanedVals, $joinCond, $not);
+                if (count($options['values']) != 0) {
+                    foreach ($options['values'] as $val) {
+                        $this->addBinding($colObj, $val);
+                    }
+                
+                    $this->getTable()->getSelect()->addWhereIn($colName, $options['values'], $joinCond, $not);
                 }
             } else if ($options['func'] == 'left') {
-                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanVal = $options['value'];
                 $cleanType = gettype($cleanVal);
                 $charsCount = $options['count'];
                 $cond = $options['condition'];
 
                 if ($cleanType == 'string' || $cleanType == 'array') {
+                    if ($cleanType == 'string') {
+                        $this->addBinding($colObj, $cleanVal);
+                    } else {
+                        foreach ($cleanVal as $val) {
+                            $this->addBinding($colObj, $val);
+                        }
+                    }
                     $this->getTable()->getSelect()->addLeft($colName, $charsCount, $cond, $cleanVal, $joinCond);
                 }
             } else if ($options['func'] == 'like') {
-                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanVal = $options['value'];
 
                 if (gettype($cleanVal) == 'string') {
-                    $this->getTable()->getSelect()->addLike($colName, $cleanVal, $joinCond, $not);
+                    $this->addBinding($colObj, $cleanVal);
+                    $this->getTable()->getSelect()->addLike($colName, $joinCond, $not);
                 }
             } else if ($options['func'] == 'null') {
                 $this->getTable()->getSelect()->addWhereNull($colName, $joinCond, $not);
             } else if ($options['func'] == 'right') {
-                $cleanVal = $colObj->cleanValue($options['value']);
+                $cleanVal = $options['value'];
                 $cleanType = gettype($cleanVal);
                 $charsCount = $options['count'];
                 $cond = $options['condition'];
 
                 if ($cleanType == 'string' || $cleanType == 'array') {
+                    if ($cleanType == 'string') {
+                        $this->addBinding($colObj, $cleanVal);
+                    } else {
+                        foreach ($cleanVal as $val) {
+                            $this->addBinding($colObj, $val);
+                        }
+                    }
                     $this->getTable()->getSelect()->addRight($colName, $charsCount, $cond, $cleanVal, $joinCond);
                 }
             }

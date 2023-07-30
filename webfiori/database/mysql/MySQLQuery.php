@@ -59,6 +59,13 @@ class MySQLQuery extends AbstractQuery {
 
         return $this;
     }
+    public function __construct() {
+        parent::__construct();
+        $this->bindings = [
+            'bind' => '',
+            'values' => []
+        ];
+    }
     /**
      * Constructs a query that can be used to add a primary key to the active table.
      * 
@@ -135,7 +142,7 @@ class MySQLQuery extends AbstractQuery {
         $copy->offset($this->getOffset());
         $copy->setTable($this->getTable(), false);
         $copy->setSchema($this->getSchema());
-
+        $copy->setBindings($this->getBindings());
         return $copy;
     }
     /**
@@ -356,7 +363,7 @@ class MySQLQuery extends AbstractQuery {
 
             if (!$colObj instanceof MySQLColumn) {
                 $table->addColumns([
-                    $colKey => []
+                    $colKey => ['type' => $this->getColType($newVal)]
                 ]);
                 $colObj = $table->getColByKey($colKey);
             }
@@ -365,8 +372,8 @@ class MySQLQuery extends AbstractQuery {
             if ($newVal === null) {
                 $updateArr[] = "$colName = null";
             } else {
-                $valClean = $colObj->cleanValue($newVal);
-                $updateArr[] = "$colName = $valClean";
+                $this->addBinding($colObj, $newVal);
+                $updateArr[] = "$colName = ?";
             }
             $colsWithVals[] = $colKey;
         }
@@ -376,7 +383,8 @@ class MySQLQuery extends AbstractQuery {
                 $colObj = $this->getTable()->getColByKey($key);
 
                 if (($colObj->getDatatype() == 'datetime' || $colObj->getDatatype() == 'timestamp') && $colObj->isAutoUpdate()) {
-                    $updateArr[] = $colObj->getName()." = ".$colObj->cleanValue(date('Y-m-d H:i:s'));
+                    $updateArr[] = $colObj->getName()." = ?";
+                    $this->addBinding($colObj, date('Y-m-d H:i:s'));
                 }
             }
         }
@@ -424,5 +432,46 @@ class MySQLQuery extends AbstractQuery {
             }
         }
         $this->setQuery($stm.';');
+    }
+    private $bindings;
+    public function addBinding(Column $col, $value) {
+        $colType = $col->getDatatype();
+        
+        $this->bindings['values'][] = $value;
+
+        if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
+            $this->bindings['bind'] .= 'i';
+        } else if ($colType == 'decimal' || $colType == 'float') {
+            $this->bindings['bind'] .= 'd';
+        } else {
+            $this->bindings['bind'] .= 's';
+        }
+    }
+    public function resetBinding() {
+        $this->bindings = [
+            'bind' => '',
+            'values' => []
+        ];
+    }
+    public function setBindings(array $bindings, string $merge = 'none') {
+        $currentBinding = $this->bindings['bind'];
+        $values = $this->bindings['values'];
+        
+        if ($merge == 'first') {
+            $this->bindings = [
+                'bind' => $bindings['bind'].$currentBinding,
+                'values' => array_merge($bindings['values'], $values)
+            ];
+        } else if ($merge == 'end') {
+            $this->bindings = [
+                'bind' => $currentBinding.$bindings['bind'],
+                'values' => array_merge($values, $bindings['values'])
+            ];
+        } else {
+            $this->bindings = $bindings;
+        }
+    }
+    public function getBindings(): array {
+        return $this->bindings;
     }
 }
