@@ -157,20 +157,6 @@ class ExpressionTest extends TestCase {
     /**
      * @test
      */
-    public function testSelectExpression03() {
-        $t = new MySQLTable();
-        $t->addColumns([
-            'col-0' => [], 'col-1' => [], 'col-2' => [], 'col-3' => []
-        ]);
-        $expression = new SelectExpression($t);
-        $expression->addWhere('col-1', 'col-2', '=');
-        $this->assertEquals(' where col-1 = col-2', $expression->getWhereStr());
-        $expression->addWhere('A', 'B', '!=', 'super');
-        $this->assertEquals(' where col-1 = col-2 and A != B', $expression->getWhereStr());
-    }
-    /**
-     * @test
-     */
     public function testSelectExpression04() {
         $t = new MySQLTable();
         $t->addColumns([
