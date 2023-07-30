@@ -701,8 +701,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $q->union($q->table('users_privileges')->select());
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
-                . "select * from `users_privileges`"
-                . "\nunion all\n", $schema->getLastQuery());
+                . "select * from `users_privileges`", $schema->getLastQuery());
         $q->union($q->table('users_tasks')->select(), true);
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
@@ -725,8 +724,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 ->select(['id' => [
                     'as' => 'user_id'
                 ], 'first-name'])
-                ->where('id', 44, '!=')
-                ->union($schema->table('users_privileges')->select()->where('can-edit_price', true));
+                ->where('id', 44, '!=');
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?", $schema->getLastQuery());
+        $schema->getQueryGenerator()->union($schema->table('users_privileges')->select()->where('can-edit_price', true));
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
                 . "select * from `users_privileges` where `users_privileges`.`can_edit_price` = ?", $schema->getLastQuery());
