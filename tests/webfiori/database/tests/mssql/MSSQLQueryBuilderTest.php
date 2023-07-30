@@ -156,16 +156,16 @@ class MSSQLQueryBuilderTest extends TestCase{
     }
         /**
      * @test
-     * @depends testCreateTables
+     * @depends testInsert04
      */
     public function testTransaction00() {
         $schema = new MSSQLTestSchema();
         $schema->transaction(function (Database $db) {
             $q = $db->table('users');
             $q->insert([
-                'first-name' => 'Ibrahim',
-                'last-name' => 'BinAlshikh',
-                'age' => 30
+                'first-name' => 'IbrahimX',
+                'last-name' => 'BinAlshikhX',
+                'age' => 33
             ])->execute();
             $userId = $q->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
             $q->table('users_privileges')
@@ -194,7 +194,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -221,14 +221,14 @@ class MSSQLQueryBuilderTest extends TestCase{
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -247,14 +247,14 @@ class MSSQLQueryBuilderTest extends TestCase{
         $this->assertEquals([
             [
                 'task_id' => 1,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
-                'user_id' => 1,
+                'user_id' => 104,
                 'created_on' => date('Y-m-d H:i:s'),
                 'last_updated' => null,
                 'is_finished' => 0,
@@ -286,10 +286,10 @@ class MSSQLQueryBuilderTest extends TestCase{
             $this->assertEquals(515, $ex->getCode());
             $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
             $this->assertEquals([
-                'id' => 1,
-                'first_name' => 'Ibrahim',
-                'last_name' => 'BinAlshikh',
-                'age' => 30
+                'id' => 104,
+                'first_name' => 'IbrahimX',
+                'last_name' => 'BinAlshikhX',
+                'age' => 33
             ], $user);
         }
         
@@ -436,7 +436,6 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
                 . ")"
                 , $schema->getLastQuery());
-        $schema->execute();
     }
     /**
      * 
@@ -557,15 +556,10 @@ class MSSQLQueryBuilderTest extends TestCase{
             'age' => 28
         ])->execute();
         $schema->table('users')->select()->execute();
-        $this->assertEquals(2, $schema->getLastResultSet()->getRowsCount());
+        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
         $this->assertEquals([
             [
                 'id' => 1,
-                'first_name' => 'Ibrahim',
-                'last_name' => 'BinAlshikh',
-                'age' => 30
-            ],[
-                'id' => 3,
                 'first_name' => 'Ibrahim',
                 'last_name' => 'BinAlshikh',
                 'age' => 28
@@ -613,7 +607,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         
         
         $this->assertEquals([
-            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'BinAlshikh','age'=>30],
+            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'BinAlshikh','age'=>28],
             ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
             ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
         ], $resultSet->getRows());
