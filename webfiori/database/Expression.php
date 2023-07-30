@@ -80,7 +80,7 @@ class Expression {
      * 
      * @since 1.0
      */
-    public function setVal(string $val) {
+    public function setValue(string $val) {
         $this->expr = $val;
     }
 }
