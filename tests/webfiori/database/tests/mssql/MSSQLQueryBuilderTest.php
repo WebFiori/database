@@ -391,6 +391,9 @@ class MSSQLQueryBuilderTest extends TestCase{
                 '100'
         ], $schema->getQueryGenerator()->getBindings());
     }
+    /**
+     * @test
+     */
     public function testCreateTables() {
         $schema = new MSSQLTestSchema();
         $schema->createTables();
