@@ -277,4 +277,27 @@ foreach ($mappedSet as $record) {
 echo '</ul>';
 ```
 
+### Transaction
+
+Suppose that in the database there are 3 tables, `user_info`, `user_login` and `user_contact`. In order to have a full user profile, user information must exist on the 3 tables at same time. Suppose that record creation in the first and second table was a success. But due some error, the record was not created in the last table. This would cause data interty error. To resolve this, the insertion process must be rolled back. In such cases, database transactions can be of great help.
+
+A database transaction is a unit of work which consist of multiple operations that must be performed togather. If one operation fail, then all operations must be rolled back. A transaction can be initiated using the method `Database::transaction()`. The method has two arguments, first one is the logic of the transaction as closure and second one is an optional array of arguments to be passed to the cloasure. The first parameter of the closure will be always an instance of `Database`.
+
+If the closure returns `false` or the closure throws a `DatabaseException`, the transaction is rolled back.
+
+``` php
+$this->transaction(function (Database $db, User $toAdd) {
+    $db->table('users')->insert([
+        'full-name' => $toAdd->getFullName(),
+        'email' => $toAdd->getEmail(),
+        'created-by' => $toAdd->getCreatedBy(),
+        'is-refresh' => 0
+    ])->execute();
+
+//Assuming such methods exist on calling class
+    $addedUserId = $db->getLastUserID();
+    $toAdd->getLoginInformation()->setUserId($addedUserId);
+    $db->addUserLoginInfo($toAdd->getLoginInformation());
+}, [$entity]);
+```
 
