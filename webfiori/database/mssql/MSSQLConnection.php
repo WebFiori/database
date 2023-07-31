@@ -145,6 +145,7 @@ class MSSQLConnection extends Connection {
         } else {
             $r = sqlsrv_query($this->link, $sql);
         }
+        return $this->checkInsertOrUpdateResult($r);
     }
     private function checkInsertOrUpdateResult($r) {
         if (!$r) {
