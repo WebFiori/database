@@ -125,36 +125,28 @@ class MSSQLConnection extends Connection {
 
         $qType = $query->getLastQueryType();
 
-        if ($qType == 'insert' || $qType == 'update') {
+        if ($qType == 'insert') {
             return $this->runInsertQuery();
+        } else if ($qType == 'update') {
+            return $this->runUpdateQuery();
+        } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
+            return $this->runSelectQuery();
         } else {
-            if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
-                return $this->runSelectQuery();
-            } else {
-                return $this->runOtherQuery();
-            }
+            return $this->runOtherQuery();
         }
     }
-    private function runInsertQuery() {
-        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+    private function runUpdateQuery() {
+        $params = $this->getLastQuery()->getBindings();
         $sql = $this->getLastQuery()->getQuery();
-        if ($insertBuilder !== null) {
-            
-            $params = $insertBuilder->getQueryParams();
-
+        
+        if (count($params) != 0) {
             $stm = sqlsrv_prepare($this->link, $sql, $params);
             $r = sqlsrv_execute($stm);
         } else {
-            $params = $this->getLastQuery()->getBindings();
-             
-            if (count($params) != 0) {
-                $stm = sqlsrv_prepare($this->link, $sql, $params);
-                $r = sqlsrv_execute($stm);
-            } else {
-                $r = sqlsrv_query($this->link, $sql);
-            }
+            $r = sqlsrv_query($this->link, $sql);
         }
-
+    }
+    private function checkInsertOrUpdateResult($r) {
         if (!$r) {
             $this->setSqlErr();
 
@@ -162,6 +154,22 @@ class MSSQLConnection extends Connection {
         }
 
         return true;
+    }
+    private function runInsertQuery() {
+        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        $sql = $this->getLastQuery()->getQuery();
+        if ($insertBuilder === null) {
+            
+            return false;
+        }
+        
+        $params = $insertBuilder->getQueryParams();
+
+        $stm = sqlsrv_prepare($this->link, $sql, $params);
+        $r = sqlsrv_execute($stm);
+            
+        return $this->checkInsertOrUpdateResult($r);
+        
     }
     private function runOtherQuery() {
         $sql = $this->getLastQuery()->getQuery();
