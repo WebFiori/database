@@ -1881,10 +1881,12 @@ class MySQLQueryBuilderTest extends TestCase {
                     'age' => 32
                 ])->where('id', $uId)->execute();
 
-                $db->table('users')->insert([
-                    'first-name' => 'Ibrahim',
-                    'last-name' => 'BinAlshikh',
-                ])->execute();
+                $db->transaction(function (Database $db) {
+                    $db->table('users')->insert([
+                        'first-name' => 'Ibrahim',
+                        'last-name' => 'BinAlshikh',
+                    ])->execute();
+                });
             }, [$userId]);
         } catch (DatabaseException $ex) {
             $this->assertEquals("1364 - Field 'age' doesn't have a default value", $ex->getMessage());
@@ -1892,9 +1894,9 @@ class MySQLQueryBuilderTest extends TestCase {
             $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
             $this->assertEquals([
                 'id' => $userId,
-                'first_name' => 'Ibrahim',
+                'first_name' => 'Ali',
                 'last_name' => 'BinAlshikh',
-                'age' => 30
+                'age' => 32
             ], $user);
         }
         

@@ -276,10 +276,12 @@ class MSSQLQueryBuilderTest extends TestCase{
                     'age' => 32
                 ])->where('id', $uId)->execute();
 
-                $db->table('users')->insert([
-                    'first-name' => 'Ibrahim',
-                    'last-name' => 'BinAlshikh',
-                ])->execute();
+                $db->transaction(function (Database $db) {
+                    $db->table('users')->insert([
+                        'first-name' => 'Ibrahim',
+                        'last-name' => 'BinAlshikh',
+                    ])->execute();
+                });
             }, [$userId]);
         } catch (DatabaseException $ex) {
             $this->assertEquals("515 - [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'age', table 'testing_db.dbo.users'; column does not allow nulls. INSERT fails.", $ex->getMessage());
