@@ -10,10 +10,13 @@
  */
 namespace webfiori\database;
 
+use Exception;
 use webfiori\database\mssql\MSSQLConnection;
 use webfiori\database\mssql\MSSQLQuery;
+use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mysql\MySQLTable;
 /**
  * A class which is used to represent the structure of the database 
  * (database schema). 
@@ -85,6 +88,8 @@ class Database {
     /**
      * Start SQL transaction.
      * 
+     * This will disable auto-commit.
+     * 
      * @param callable $transaction A function that holds the logic of the transaction.
      * The function must return true or null for success. If false is
      * returned, it means the transaction failed and will be rolled back.
@@ -115,7 +120,7 @@ class Database {
                 $conn->rollBack($name);
                 return false;
             }
-        } catch (DatabaseException $ex) {
+        } catch (Exception $ex) {
             $conn->rollBack($name);
             throw new DatabaseException($ex->getMessage(), $ex->getCode(), $ex->getSQLQuery(), $ex);
         }
@@ -233,9 +238,9 @@ class Database {
         $dbType = $this->getConnection()->getConnectionInfo()->getDatabaseType();
 
         if ($dbType == 'mysql') {
-            $blueprint = new mysql\MySQLTable($name);
+            $blueprint = new MySQLTable($name);
         } else if ($dbType == 'mssql') {
-            $blueprint = new mssql\MSSQLTable($name);
+            $blueprint = new MSSQLTable($name);
         }
         $this->addTable($blueprint);
 
