@@ -282,18 +282,17 @@ abstract class AbstractQuery {
      * 
      * @return MSSQLQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
-     * 
-     * @throws DatabaseException If no column which has the given key, the method 
-     * will throw an exception.
-     * 
-     * @since 1.0
      */
     public function dropCol($colKey) {
-        $tblName = $this->getTable()->getName();
-        $colObj = $this->getTable()->getColByKey($colKey);
+        $table = $this->getTable();
+        $tblName = $table->getName();
+        $colObj = $table->getColByKey($colKey);
 
-        if (!($colObj instanceof Column)) {
-            throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
+        if ($colObj === null) {
+            $table->addColumns([
+                $colKey => ['type' => 'varchar']
+            ]);
+            $colObj = $table->getColByKey($colKey);
         }
         $withTick = $colObj->getName();
         $stm = "alter table $tblName drop column $withTick;";
@@ -624,39 +623,39 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function on($leftCol, $rightCol, $cond = '=', $joinWith = 'and') {
+    public function on(string $leftCol, string $rightCol, $cond = '=', $joinWith = 'and') {
         $table = $this->getTable();
 
         if ($table instanceof JoinTable) {
-            $leftCol = $table->getLeft()->getColByKey($leftCol);
-
-            if ($leftCol instanceof Column) {
-                $leftCol->setWithTablePrefix(false);
-
-                if ($leftCol->getOwner() instanceof JoinTable && $leftCol->getAlias() !== null) {
-                    $leftCol->setName($leftCol->getAlias());
-                }
-                $leftColName = $leftCol->getOwner()->getName().'.'.$leftCol->getOldName();
-
-                $rightCol = $table->getRight()->getColByKey($rightCol);
-
-                if ($rightCol instanceof Column) {
-                    $rightCol->setWithTablePrefix(false);
-                    $rightColName = $rightCol->getOwner()->getName().'.'.$rightCol->getOldName();
-                    $cond = new Condition($leftColName, $rightColName, $cond);
-                    $table->addJoinCondition($cond, $joinWith);
-                } else {
-                    $tableName = $table->getName();
-                    $colsKeys = $table->getColsKeys();
-                    $message = "The table '$tableName' has no column with key '$rightCol'. Available columns: ".implode(',', $colsKeys);
-                    throw new DatabaseException($message);
-                }
-            } else {
-                $tableName = $table->getName();
-                $colsKeys = $table->getColsKeys();
-                $message = "The table '$tableName' has no column with key '$leftCol'. Available columns: ".implode(',', $colsKeys);
-                throw new DatabaseException($message);
+            $leftColObj = $table->getLeft()->getColByKey($leftCol);
+            
+            if ($leftColObj === null) {
+                $table->getLeft()->addColumns([
+                    $leftCol => ['type' => 'varchar']
+                ]);
+                $leftColObj = $table->getColByKey($leftCol);
             }
+
+            $leftColObj->setWithTablePrefix(false);
+
+            if ($leftColObj->getOwner() instanceof JoinTable && $leftColObj->getAlias() !== null) {
+                $leftColObj->setName($leftColObj->getAlias());
+            }
+            $leftColName = $leftColObj->getOwner()->getName().'.'.$leftColObj->getOldName();
+
+            $rightColObj = $table->getRight()->getColByKey($rightCol);
+
+            if ($rightColObj === null) {
+                $table->getRight()->addColumns([
+                    $rightCol => ['type' => 'varchar']
+                ]);
+                $rightColObj = $table->getColByKey($rightCol);
+            }
+            $rightColObj->setWithTablePrefix(false);
+            $rightColName = $rightColObj->getOwner()->getName().'.'.$rightColObj->getOldName();
+            $cond = new Condition($leftColName, $rightColName, $cond);
+            $table->addJoinCondition($cond, $joinWith);
+            
         } else {
             throw new DatabaseException("The 'on' condition can be only used with join tables.");
         }
@@ -1149,8 +1148,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
      * 
      * @since 1.0.3
      */
@@ -1184,10 +1181,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.3
      */
     public function whereIn($col, array $vals, $joinCond = 'and', $not = false) {
         $this->addWhereHelper([
@@ -1224,10 +1217,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
      */
     public function whereLeft($col, $charsCount, $cond, $val, $joinCond = 'and') {
         $this->addWhereHelper([
@@ -1261,10 +1250,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
      */
     public function whereLike($col, $val, $joinCond = 'and', $not = false) {
         $this->addWhereHelper([
@@ -1294,10 +1279,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.3
      */
     public function whereNotBetween($col, $firstVal, $secVal, $joinCond = 'and') {
         return $this->whereBetween($col, $firstVal, $secVal, $joinCond, true);
@@ -1317,10 +1298,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.3
      */
     public function whereNotIn($col, array $vals, $joinCond = 'and') {
         return $this->whereIn($col, $vals, $joinCond, true);
@@ -1342,8 +1319,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
      */
     public function whereNotLike($col, $val, $joinCond = 'and') {
         return $this->whereLike($col, $val, $joinCond, true);
@@ -1361,10 +1336,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
      */
     public function whereNotNull($col, $join = 'and') {
         return $this->whereNull($col, $join, true);
@@ -1385,10 +1356,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
      */
     public function whereNull($col, $join = 'and', $not = false) {
         $this->addWhereHelper([
@@ -1423,10 +1390,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @throws DatabaseException If the table has no column with given key name, 
-     * the method will throw an exception.
-     * 
-     * @since 1.0.4
      */
     public function whereRight($col, $charsCount, $cond, $val, $joinCond = 'and') {
         $this->addWhereHelper([

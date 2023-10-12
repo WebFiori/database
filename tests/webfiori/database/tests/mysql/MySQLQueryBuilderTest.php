@@ -1276,9 +1276,8 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testDropCol01() {
         $schema = new MySQLTestSchema();
-        $this->expectException(DatabaseException::class);
-        $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
         $schema->table('users')->dropCol('not-exist');
+        $this->assertEquals('alter table `users` drop column `not_exist`;', $schema->getLastQuery());
     }
     /**
      * @test
