@@ -633,7 +633,7 @@ abstract class AbstractQuery {
                 $table->getLeft()->addColumns([
                     $leftCol => ['type' => 'varchar']
                 ]);
-                $leftColObj = $table->getColByKey($leftCol);
+                $leftColObj = $table->getLeft()->getColByKey($leftCol);
             }
 
             $leftColObj->setWithTablePrefix(false);
@@ -649,7 +649,7 @@ abstract class AbstractQuery {
                 $table->getRight()->addColumns([
                     $rightCol => ['type' => 'varchar']
                 ]);
-                $rightColObj = $table->getColByKey($rightCol);
+                $rightColObj = $table->getRight()->getColByKey($rightCol);
             }
             $rightColObj->setWithTablePrefix(false);
             $rightColName = $rightColObj->getOwner()->getName().'.'.$rightColObj->getOldName();
