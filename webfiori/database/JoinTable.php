@@ -10,8 +10,10 @@
  */
 namespace webfiori\database;
 
+use webfiori\database\mssql\MSSQLColumn;
 use webfiori\database\mssql\MSSQLQuery;
 use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLColumn;
 use webfiori\database\mysql\MySQLQuery;
 use webfiori\database\mysql\MySQLTable;
 /**
@@ -98,6 +100,67 @@ class JoinTable extends Table {
             $newCond = new Condition($this->joinConditions, $cond, $joinOp);
             $this->joinConditions = $newCond;
         }
+    }
+    /**
+     * Adds multiple columns at once.
+     * 
+     * @param array $colsArr An associative array. The keys will act as column 
+     * key in the table. The value of the key can be an object of type 'MSSQLColumn' or 'MySQLColumn'
+     * or be an associative array of column options. The available options 
+     * are: 
+     * <ul>
+     * <li><b>name</b>: The name of the column in the database. If not provided, 
+     * the name of the key will be used but with every '-' replaced by '_'.</li>
+     * <li><b>datatype</b>: The datatype of the column.  If not provided, 'varchar' 
+     * will be used. Note that the value 'type' can be used as an 
+     * alias to this index.</li>
+     * <li><b>size</b>: Size of the column (if datatype does support size). 
+     * If not provided, 1 will be used.</li>
+     * <li><b>default</b>: A default value for the column if its value 
+     * is not present in case of insert.</li>
+     * <li><b>is-null</b>: A boolean. If the column allows null values, this should 
+     * be set to true. Default is false.</li>
+     * <li><b>is-primary</b>: A boolean. It must be set to true if the column 
+     * represents a primary key. Note that the column will be set as unique 
+     * once its set as a primary.</li>
+     * <li><b>is-unique</b>: A boolean. If set to true, a unique index will 
+     * be created for the column.</li>
+     * <li><b>auto-update</b>: A boolean. If the column datatype is 
+     * 'datetime' or similar type and this parameter is set to true, the time of update will 
+     * change automatically without having to change it manually.</li>
+     * <li><b>scale</b>: Number of numbers to the left of the decimal 
+     * point. Only supported for decimal datatype.</li>
+     * </ul>
+     * 
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
+     */
+    public function addColumns(array $colsArr) : Table {
+        $arrToAdd = [];
+
+        foreach ($colsArr as $key => $arrOrObj) {
+            if ($arrOrObj instanceof Column) {
+                $arrToAdd[$key] = $arrOrObj;
+            } else {
+                if (gettype($arrOrObj) == 'array') {
+                    if (!isset($arrOrObj['name'])) {
+                        $arrOrObj['name'] = str_replace('-', '_', $key);
+                    }
+                    if ($this->getLeft() instanceof MSSQLTable) {
+                        $colObj = MSSQLColumn::createColObj($arrOrObj);
+                    } else {
+                        $colObj = MySQLColumn::createColObj($arrOrObj);
+                    }
+
+                    if ($colObj instanceof Column) {
+                        $arrToAdd[$key] = $colObj;
+                    }
+                }
+            }
+        }
+
+        return parent::addColumns($arrToAdd);
     }
     /**
      * Returns a string which represents the join condition of the two tables.
@@ -214,10 +277,10 @@ class JoinTable extends Table {
         }
     }
     private function copyCol(Column $column) {
-        if ($column instanceof mysql\MySQLColumn) {
-            $copyCol = new mysql\MySQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+        if ($column instanceof MySQLColumn) {
+            $copyCol = new MySQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
         } else {
-            $copyCol = new mssql\MSSQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
+            $copyCol = new MSSQLColumn($column->getName(), $column->getDatatype(), $column->getSize());
         }
         $copyCol->setOwner($column->getOwner());
         $copyCol->setCustomFilter($column->getCustomCleaner());
