@@ -122,7 +122,8 @@ class Database {
             }
         } catch (Exception $ex) {
             $conn->rollBack($name);
-            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $ex->getSQLQuery(), $ex);
+            $query = $ex instanceof DatabaseException ? $ex->getSQLQuery() : '';
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query, $ex);
         }
     }
     /**
