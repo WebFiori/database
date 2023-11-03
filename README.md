@@ -62,7 +62,7 @@ Database abstraction layer of WebFiori framework.
 * Database abstraction which makes it easy to migrate your system to different DBMS.
 
 ## Installation
-To install the library using composer, add following dependency to `composer.json`: `"webfiori/database":"0.7.1"
+To install the library using composer, add following dependency to `composer.json`: `"webfiori/database":"*"
 
 ## Usage
 
