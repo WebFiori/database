@@ -227,12 +227,14 @@ class MSSQLTableTest extends TestCase {
                 'size' => 128
             ],
             'added-by' => [
-                'type' => 'int'
+                'type' => 'int',
+                'fk' => [
+                    'table' => $t1,
+                    'col' => 'id',
+                    'name' => 'added_by_fk'
+                ]
             ]
         ]);
-        $t2->addReference($t1, [
-            'added-by' => 'id'
-        ], 'added_by_fk');
         $this->assertEquals("if not exists (select * from sysobjects where name='locations' and xtype='U')\n"
                 . "create table [locations] (\n"
                 . "    [id] [int] not null,\n"

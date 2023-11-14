@@ -108,7 +108,8 @@ class MySQLTable extends Table {
      */
     public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
-
+        $fksArr = [];
+        
         foreach ($colsArr as $key => $arrOrObj) {
             if ($arrOrObj instanceof MySQLColumn) {
                 $arrToAdd[$key] = $arrOrObj;
@@ -121,12 +122,21 @@ class MySQLTable extends Table {
 
                     if ($colObj instanceof MySQLColumn) {
                         $arrToAdd[$key] = $colObj;
+                        if (isset($colsArr['fk'])) {
+                            $fksArr[$key] =  $arrOrObj['fk'];
+                        }
                     }
                 }
             }
         }
 
-        return parent::addColumns($arrToAdd);
+        parent::addColumns($arrToAdd);
+        
+        foreach ($fksArr as $col => $fkArr) {
+            $this->addReferenceFromArray($col, $fkArr);
+        }
+        
+        return $this;
     }
     /**
      * Returns the character set that is used by the table.
