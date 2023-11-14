@@ -19,7 +19,7 @@ namespace webfiori\database;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
+ * @deprecated Use the class FK.
  */
 class ForeignKey {
     /**

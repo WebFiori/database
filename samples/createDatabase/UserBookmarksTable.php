@@ -1,6 +1,6 @@
 <?php
 
-
+use webfiori\database\FK;
 use webfiori\database\mysql\MySQLTable;
 
 class UserBookmarksTable extends MySQLTable {
@@ -27,12 +27,15 @@ class UserBookmarksTable extends MySQLTable {
             ],
             'user_id' => [
                 'type' => 'int',
-                'size' => 5
+                'size' => 5,
+                'fk' => [
+                    'table' => UserInformation::class,
+                    'name' => 'user_id_fk',
+                    'col' => 'id',
+                    'on-update' => FK::CASCADE,
+                    'on-delete' => FK::RESTRICT
+                ]
             ],
         ]);
-
-        $this->addReference(UserInformationTable::class, [
-            'user-id' => 'id'
-        ], 'user_id_fk', 'cascade', 'restrict');
     }
 }

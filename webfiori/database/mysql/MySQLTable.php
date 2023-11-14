@@ -121,6 +121,9 @@ class MySQLTable extends Table {
 
                     if ($colObj instanceof MySQLColumn) {
                         $arrToAdd[$key] = $colObj;
+                        if (isset($colsArr['fk'])) {
+                            $this->addReferenceFromArray($key, $arrOrObj['fk']);
+                        }
                     }
                 }
             }

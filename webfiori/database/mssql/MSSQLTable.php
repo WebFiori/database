@@ -109,6 +109,10 @@ class MSSQLTable extends Table {
 
                     if ($colObj instanceof MSSQLColumn) {
                         $arrToAdd[$key] = $colObj;
+                        
+                        if (isset($arrOrObj['fk'])) {
+                            $this->addReferenceFromArray($key, $arrOrObj['fk']);
+                        }
                     }
                 }
             }
