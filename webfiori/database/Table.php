@@ -172,10 +172,10 @@ abstract class Table {
             return $this;
         }
         $table = $this->getRefTable($keyProps['table']);
-        $keyName = isset($keyProps['name']) ?? '';
-        $col = isset($keyProps['col']);
-        $onUpdate = isset($keyProps['on-update']) ?? FK::SET_NULL;
-        $onDelete = isset($keyProps['on-delete']) ?? FK::SET_NULL;
+        $keyName = $keyProps['name'] ?? '';
+        $col = $keyProps['col'] ?? '';
+        $onUpdate = $keyProps['on-update'] ?? FK::SET_NULL;
+        $onDelete = $keyProps['on-delete'] ?? FK::SET_NULL;
         
         return $this->addReference($table, [$colName => $col], $keyName, $onUpdate, $onDelete);
     }
@@ -249,6 +249,7 @@ abstract class Table {
                 }
             }
         }
+        return $refTable;
     }
     /**
      * Returns a column given its index.

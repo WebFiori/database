@@ -19,7 +19,7 @@ namespace webfiori\database;
  * 
  * @author Ibrahim
  */
-class FK extends webfiori\database\ForeignKey {
+class FK extends ForeignKey {
     /**
      * An action that can be performed on update or delete.
      * 
@@ -50,6 +50,24 @@ class FK extends webfiori\database\ForeignKey {
      * @var string
      */
     const RESTRICT = 'restrict';
+    /**
+     * Creates new foreign key.
+     *
+     * @param string $name The name of the key. It must be a string, and it's not empty.
+     * Also, it must not contain any spaces or any characters other than A-Z, a-z and
+     * underscore. The default value is 'key_name'.
+     *
+     * @param Table $ownerTable The table that will contain the key.
+     *
+     * @param Table $sourceTable The name of the table that contains the
+     * original values.
+     *
+     * @param array $cols An associative array that contains the names of key
+     * columns. The indices must be columns in the owner table and the values are
+     * columns in the source table.
+     *
+     * @throws DatabaseException If one of the tables of the foreign key is not set.
+     */
     public function __construct(string $name = 'key_name', Table $ownerTable = null, Table $sourceTable = null, array $cols = []) {
         parent::__construct($name, $ownerTable, $sourceTable, $cols);
     }
