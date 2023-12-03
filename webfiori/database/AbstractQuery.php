@@ -633,7 +633,7 @@ abstract class AbstractQuery {
                 $table->getLeft()->addColumns([
                     $leftCol => ['type' => 'varchar']
                 ]);
-                $leftColObj = $table->getColByKey($leftCol);
+                $leftColObj = $table->getLeft()->getColByKey($leftCol);
             }
 
             $leftColObj->setWithTablePrefix(false);
@@ -649,7 +649,7 @@ abstract class AbstractQuery {
                 $table->getRight()->addColumns([
                     $rightCol => ['type' => 'varchar']
                 ]);
-                $rightColObj = $table->getColByKey($rightCol);
+                $rightColObj = $table->getRight()->getColByKey($rightCol);
             }
             $rightColObj->setWithTablePrefix(false);
             $rightColName = $rightColObj->getOwner()->getName().'.'.$rightColObj->getOldName();
@@ -1011,7 +1011,7 @@ abstract class AbstractQuery {
         }
         $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
-        $this->resetBinding();
+        $this->prevQueryObj->resetBinding();
         
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
@@ -1054,9 +1054,6 @@ abstract class AbstractQuery {
             $uAll = $all === true;
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
-            
-            $this->setBindings($query->getBindings(), 'first');
-            
             $whereExpr = $query->getTable()->getSelect()->getWhereExpr();
             if ($whereExpr !== null) {
                 $whereExpr->setValue('');
