@@ -144,6 +144,7 @@ class MySQLQuery extends AbstractQuery {
         $copy->setSchema($this->getSchema());
         $copy->setBindings($this->getBindings());
        // $copy->setBindings($this->getBindings());
+        
         return $copy;
     }
     /**

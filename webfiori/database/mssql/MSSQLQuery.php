@@ -21,6 +21,11 @@ use webfiori\database\DatabaseException;
  * @version 1.0
  */
 class MSSQLQuery extends AbstractQuery {
+    private $bindings;
+    public function __construct() {
+        parent::__construct();
+        $this->bindings = [];
+    }
     /**
      * Build a query which can be used to add a column to associated table.
      * 
@@ -249,16 +254,19 @@ class MSSQLQuery extends AbstractQuery {
         foreach ($newColsVals as $colKey => $newVal) {
             $colObj = $this->getTable()->getColByKey($colKey);
 
-            if (!$colObj instanceof MSSQLColumn) {
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+            if ($colObj === null) {
+                $this->getTable()->addColumns([
+                    $colKey => []
+                ]);
+                $colObj = $this->getTable()->getColByKey($colKey);
             }
             $colName = $colObj->getName();
 
             if ($newVal === null) {
                 $updateArr[] = "$colName = null";
             } else {
-                $valClean = $colObj->cleanValue($newVal);
                 $updateArr[] = "$colName = ?";
+                $this->addBinding($colObj, $newVal);
             }
             $colsWithVals[] = $colKey;
         }
@@ -269,6 +277,7 @@ class MSSQLQuery extends AbstractQuery {
 
                 if (($colObj->getDatatype() == 'datetime2') && $colObj->isAutoUpdate()) {
                     $updateArr[] = $colObj->getName()." = ?";
+                    $this->addBinding($colObj, date('Y-m-d H:i:s'));
                 }
             }
         }
@@ -301,65 +310,62 @@ class MSSQLQuery extends AbstractQuery {
                 $column = $this->getTable()->getColByKey($colKey);
             }
 
-            if ($column instanceof MSSQLColumn) {
-                $columnsWithVals[] = $colKey;
-                $colsNamesArr[] = $column->getName();
-                $type = $column->getDatatype();
 
-                if (isset($valuesToInsert[$colKey])) {
-                    $val = $valuesToInsert[$colKey];
+            $columnsWithVals[] = $colKey;
+            $colsNamesArr[] = $column->getName();
+            $type = $column->getDatatype();
+
+            if (isset($valuesToInsert[$colKey])) {
+                $val = $valuesToInsert[$colKey];
+            } else {
+                if (isset($valuesToInsert[$valIndex])) {
+                    $val = $valuesToInsert[$valIndex];
                 } else {
-                    if (isset($valuesToInsert[$valIndex])) {
-                        $val = $valuesToInsert[$valIndex];
-                    } else {
-                        $val = null;
-                    }
+                    $val = null;
                 }
+            }
 
-                if ($val !== null) {
-                    $cleanedVal = $column->cleanValue($val);
+            if ($val !== null) {
+                $cleanedVal = $column->cleanValue($val);
 
-                    if ($type == 'binary' || $type == 'varbinary') {
-                        //chr(0) to remove null bytes in path.
-                        $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
-                        set_error_handler(function (int $no, string $message)
-                        {
-                            throw new DatabaseException($message, $no);
-                        });
+                if ($type == 'binary' || $type == 'varbinary') {
+                    //chr(0) to remove null bytes in path.
+                    $fixedPath = str_replace('\\', '/', str_replace(chr(0), '', $val));
+                    set_error_handler(function (int $no, string $message)
+                    {
+                        throw new DatabaseException($message, $no);
+                    });
 
-                        if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
-                            $file = fopen($fixedPath, 'r');
-                            $data = '';
+                    if (strlen($fixedPath) != 0 && file_exists($fixedPath)) {
+                        $file = fopen($fixedPath, 'r');
+                        $data = '';
 
-                            if ($file !== false) {
-                                $fileContent = fread($file, filesize($fixedPath));
+                        if ($file !== false) {
+                            $fileContent = fread($file, filesize($fixedPath));
 
-                                if ($fileContent !== false) {
-                                    $data = '0x'.bin2hex($fileContent);
-                                    $valsArr[] = $data;
-                                } else {
-                                    $valsArr[] = 'null';
-                                }
-                                fclose($file);
-                            } else {
-                                $data = '0x'.bin2hex($val);
+                            if ($fileContent !== false) {
+                                $data = '0x'.bin2hex($fileContent);
                                 $valsArr[] = $data;
+                            } else {
+                                $valsArr[] = 'null';
                             }
+                            fclose($file);
                         } else {
-                            $data = '0x'.bin2hex($cleanedVal).'';
+                            $data = '0x'.bin2hex($val);
                             $valsArr[] = $data;
                         }
-                        restore_error_handler();
                     } else {
-                        $valsArr[] = $cleanedVal;
+                        $data = '0x'.bin2hex($cleanedVal).'';
+                        $valsArr[] = $data;
                     }
+                    restore_error_handler();
                 } else {
-                    $valsArr[] = 'null';
+                    $valsArr[] = $cleanedVal;
                 }
             } else {
-                $tblName = $this->getTable()->getName();
-                throw new DatabaseException("The table '$tblName' has no column with key '$colKey'.");
+                $valsArr[] = 'null';
             }
+
             $valIndex++;
         }
 
@@ -396,18 +402,25 @@ class MSSQLQuery extends AbstractQuery {
     }
 
     public function addBinding(Column $col, $value) {
-        
+        $this->bindings[] = $value;
     }
 
     public function getBindings(): array {
-        
+        return $this->bindings;
     }
 
     public function resetBinding() {
-        
+        $this->bindings = [];
     }
 
     public function setBindings(array $binding, string $merge = 'none') {
         
+        if ($merge == 'first') {
+            $this->bindings = array_merge($binding, $this->bindings);
+        } else if ($merge == 'end') {
+            $this->bindings = array_merge($this->bindings, $binding);
+        } else {
+            $this->bindings = $binding;
+        }
     }
 }

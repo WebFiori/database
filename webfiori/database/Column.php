@@ -652,10 +652,9 @@ abstract class Column {
      * @return bool If the size is set, the method will return true. Other than 
      * that, it will return false.
      * 
-     * @since 1.0
      */
     public function setSize(int $size) : bool {
-        if ($size > 0) {
+        if ($size >= 0) {
             $this->size = $size;
 
             return true;

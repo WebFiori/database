@@ -2,12 +2,14 @@
 
 namespace webfiori\database\tests\mssql;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use webfiori\database\tests\mssql\MSSQLTestSchema;
 use webfiori\database\ConnectionInfo;
-use webfiori\database\mssql\MSSQLConnection;
+use webfiori\database\Database;
 use webfiori\database\DatabaseException;
 use webfiori\database\Expression;
+use webfiori\database\mssql\MSSQLConnection;
+use webfiori\database\tests\mssql\MSSQLTestSchema;
 /**
  * Description of MSSQLQueryBuilderTest
  *
@@ -86,6 +88,313 @@ class MSSQLQueryBuilderTest extends TestCase{
         $q->table('users')->selectCount('id');
         $this->assertEquals('select count([users].[id]) as [count] from [users]', $q->getQuery());
     }
+    /**
+     * @test
+     */
+    public function testRenameCol00() {
+        $schema = new MSSQLTestSchema();
+        $schema->getTable('users')->getColByKey('id')->setName('user_id');
+        
+        $queryBuilder = $schema->getQueryGenerator();
+        $queryBuilder->table('users')->renameCol('id');
+        $this->assertEquals("exec sp_rename 'users.[id]', 'user_id', 'COLUMN'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRenameCol01() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("The table users has no column with key 'not-exist'");
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->renameCol('not-exist');
+        $this->assertEquals("exec sp_rename 'users.[not_exist]', 'user_id', 'COLUMN'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testRenameCol02() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->renameCol('id');
+        $this->assertEquals("exec sp_rename 'users.[id]', 'id', 'COLUMN'", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn00() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn01() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details', 'first');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn02() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details', 'is-finished');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddColumn03() {
+        $this->expectException(DatabaseException::class);
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->addCol('details-y', 'not-exist');
+        $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
+    }
+        /**
+     * @test
+     * @depends testInsert04
+     */
+    public function testTransaction00() {
+        $schema = new MSSQLTestSchema();
+        $schema->transaction(function (Database $db) {
+            $q = $db->table('users');
+            $q->insert([
+                'first-name' => 'IbrahimX',
+                'last-name' => 'BinAlshikhX',
+                'age' => 33
+            ])->execute();
+            $userId = $q->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
+            $q->table('users_privileges')
+                ->insert([
+                    'id' => $userId,
+                    'can-edit-price' => 1,
+                    'can-change-username' => 0,
+                    'can-do-anything' => 1
+                ])->execute();
+            $q->table('users_tasks')
+                ->insert([
+                    'user-id' => $userId,
+                    'details' => 'This task is about testing if transactions work as intended.',
+                ])->execute();
+            return true;
+        });
+        $userId = $schema->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
+        $privileges = $schema->table('users_privileges')->select()->where('id', $userId)->execute()->getRows()[0];
+        $this->assertEquals([
+            'id' => $userId,
+            'can_edit_price' => 1,
+            'can_change_username' => 0,
+            'can_do_anything' => 1
+        ], $privileges);
+        $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
+        $this->assertEquals([
+            [
+                'task_id' => 1,
+                'user_id' => 104,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This task is about testing if transactions work as intended.',
+            ]
+        ], $tasks);
+        return intval($userId);
+    }
+    /**
+     * @test
+     * @depends testTransaction00
+     */
+    public function testTransaction01(int $userId) {
+        $schema = new MSSQLTestSchema();
+        $schema->transaction(function (Database $db, int $uId) {
+            $db->table('users_tasks')
+                ->insert([
+                    'user-id' => $uId,
+                    'details' => 'This another task.',
+                ])->execute();
+            return true;
+        }, [$userId]);
+        $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
+        $this->assertEquals([
+            [
+                'task_id' => 1,
+                'user_id' => 104,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This task is about testing if transactions work as intended.',
+            ], [
+                'task_id' => 2,
+                'user_id' => 104,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This another task.',
+            ]
+        ], $tasks);
+        $schema->transaction(function (Database $db, int $uId) {
+            $db->table('users_tasks')
+                ->insert([
+                    'user-id' => $uId,
+                    'details' => 'This third task.',
+                ])->execute();
+            return false;
+        }, [$userId]);
+        $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
+        $this->assertEquals([
+            [
+                'task_id' => 1,
+                'user_id' => 104,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This task is about testing if transactions work as intended.',
+            ], [
+                'task_id' => 2,
+                'user_id' => 104,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This another task.',
+            ]
+        ], $tasks);
+        return $userId;
+    }
+    /**
+     * @test
+     * @depends testTransaction01
+     */
+    public function testTransaction02(int $userId) {
+        $schema = new MSSQLTestSchema();
+        try {
+            $schema->transaction(function (Database $db, $uId) {
+                $db->table('users')->update([
+                    'first-name' => 'Ali',
+                    'age' => 32
+                ])->where('id', $uId)->execute();
+
+                $db->transaction(function (Database $db) {
+                    $db->table('users')->insert([
+                        'first-name' => 'Ibrahim',
+                        'last-name' => 'BinAlshikh',
+                    ])->execute();
+                });
+            }, [$userId]);
+        } catch (DatabaseException $ex) {
+            $this->assertEquals("515 - [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'age', table 'testing_db.dbo.users'; column does not allow nulls. INSERT fails.", $ex->getMessage());
+            $this->assertEquals(515, $ex->getCode());
+            $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
+            $this->assertEquals([
+                'id' => 104,
+                'first_name' => 'IbrahimX',
+                'last_name' => 'BinAlshikhX',
+                'age' => 33
+            ], $user);
+        }
+        
+    }
+    /**
+     * @test
+     */
+    public function testAddFk00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->addForeignKey('user_task_fk');
+        $this->assertEquals("alter table [users_tasks] add constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action;", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testAddFk01() {
+        $schema = new MSSQLTestSchema();
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("No such foreign key: 'xyz'.");
+        $schema->table('users_tasks')->addForeignKey('xyz');
+    }
+    /**
+     * @test
+     */
+    public function testAddPrimaryKey00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->addPrimaryKey('my_key', ['id']);
+        $this->assertEquals('alter table [users] add constraint my_key primary key clustered ([id]);', $schema->getLastQuery());
+        $schema->table('users')->addPrimaryKey('my_key', ['first-name', 'last-name']);
+        $this->assertEquals('alter table [users] add constraint my_key primary key clustered ([first_name], [last_name]);', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropCol00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->dropCol('id');
+        $this->assertEquals('alter table [users] drop column [id];', $schema->getLastQuery());
+        $schema->table('users')->dropCol('first-name ');
+        $this->assertEquals('alter table [users] drop column [first_name];', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropCol01() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->dropCol('not-exist');
+        $this->assertEquals('alter table [users] drop column [not_exist];', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropFk00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->dropForeignKey('user_task_fk');
+        $this->assertEquals("alter table [users_tasks] drop constraint user_task_fk;", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testDropPrimaryKey00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->dropPrimaryKey('pk');
+        $this->assertEquals('alter table [users] drop constraint pk', $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn00() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->select()->whereIn('task-id', [7,"9","100"]);
+        $this->assertEquals("select * from [users_tasks] where [users_tasks].[task_id] in(?, ?, ?)", $schema->getLastQuery()); 
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn01() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users_tasks')->select()->whereNotIn('task-id', [7,"9","100"]);
+        $this->assertEquals("select * from [users_tasks] where [users_tasks].[task_id] not in(?, ?, ?)", $schema->getLastQuery()); 
+        $this->assertEquals([
+                7,
+                '9',
+                '100',
+        ], $schema->getQueryGenerator()->getBindings());
+    }
+    /**
+     * @test
+     */
+    public function testWhereIn02() {
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->select()->whereNotIn('first-name', [7,"9","100"]);
+        $this->assertEquals("select * from [users] where [users].[first_name] not in(?, ?, ?)", $schema->getLastQuery()); 
+
+        $this->assertEquals([
+                7,
+                '9',
+                '100'
+        ], $schema->getQueryGenerator()->getBindings());
+    }
+    /**
+     * @test
+     */
     public function testCreateTables() {
         $schema = new MSSQLTestSchema();
         $schema->createTables();
@@ -100,7 +409,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "\n"
                 . "if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
-                . "    [id] [int] identity(1,1) not null,\n"
+                . "    [id] [int] not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
                 . "    [can_change_username] [bit] not null,\n"
                 . "    [can_do_anything] [bit] not null,\n"
@@ -112,8 +421,8 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "create table [users_tasks] (\n"
                 . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
-                . "    [created_on] [datetime2] not null default getdate(),\n"
-                . "    [last_updated] [datetime2] null,\n"
+                . "    [created_on] [datetime2](0) not null default getdate(),\n"
+                . "    [last_updated] [datetime2](0) null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
                 . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
@@ -154,7 +463,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->table('users_privileges')->createTable();
         $this->assertEquals("if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
-                . "    [id] [int] identity(1,1) not null,\n"
+                . "    [id] [int] not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
                 . "    [can_change_username] [bit] not null,\n"
                 . "    [can_do_anything] [bit] not null,\n"
@@ -169,8 +478,8 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "create table [users_tasks] (\n"
                 . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
-                . "    [created_on] [datetime2] not null default getdate(),\n"
-                . "    [last_updated] [datetime2] null,\n"
+                . "    [created_on] [datetime2](0) not null default getdate(),\n"
+                . "    [last_updated] [datetime2](0) null,\n"
                 . "    [is_finished] [bit] not null default 0,\n"
                 . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
@@ -249,6 +558,14 @@ class MSSQLQueryBuilderTest extends TestCase{
         ])->execute();
         $schema->table('users')->select()->execute();
         $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
+        $this->assertEquals([
+            [
+                'id' => 1,
+                'first_name' => 'Ibrahim',
+                'last_name' => 'BinAlshikh',
+                'age' => 28
+            ]
+        ], $schema->table('users')->select()->execute()->getRows());
         return $schema;
     }
     /**
@@ -257,12 +574,11 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @depends testInsert03
      */
     public function testDropRecord00(MSSQLTestSchema $schema) {
-        $row = $schema->getLastResultSet()->getRows()[0];
-        $schema->table('users')->delete()->where('id', $row['id']);
+        $schema->table('users')->delete()->where('id', 3);
         $this->assertEquals('delete from [users] where [users].[id] = ?', $schema->getLastQuery());
         $schema->execute();
         $schema->table('users')->select()->execute();
-        $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
+        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
         return $schema;
     }
     /**
@@ -288,18 +604,15 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->execute();
         $schema->table('users')->select()->execute();
         $resultSet = $schema->getLastResultSet();
-        $this->assertEquals(2, $resultSet->getRowsCount());
+        $this->assertEquals(3, $resultSet->getRowsCount());
         
         
         $this->assertEquals([
+            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'BinAlshikh','age'=>28],
             ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
             ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
         ], $resultSet->getRows());
         
-        $this->assertEquals([
-            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
-            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
-        ], $resultSet->getRows());
         $schema->table('users')->insert([
             'cols' => [
                 'id','first-name','last-name','age'
@@ -321,7 +634,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             if ($row['id'] == 102) {
                 $this->assertEquals('Jon', $row['first_name']);
             }
-            if ($row['id'] == 103) {
+            if ($row['id'] == 103 || $row['id'] == 1) {
                 $this->assertEquals('Ibrahim', $row['first_name']);
             }
         }
@@ -461,7 +774,7 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @test
      */
     public function testLeft07() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The value must be of type string since the condition is \'=\'.');
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '=', ['good', 'bad']);
@@ -561,7 +874,7 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @test
      */
     public function testRight07() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The value must be of type string since the condition is \'!=\'.');
         $schema = new MSSQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', ['good', 'bad']);

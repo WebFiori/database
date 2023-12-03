@@ -145,6 +145,41 @@ abstract class Table {
         return $this;
     }
     /**
+     * Adds a single-column foreign key to the table.
+     * 
+     * @param string $colName The name of the column that will reference the other table.
+     * 
+     * @param array $keyProps An array that will hold key properties. The array should
+     * have following indices: 
+     * <ul>
+     * <li><b>table</b>: It is the table that
+     * will contain original values. This value can be an object of type
+     * 'Table', an object of type 'AbstractQuery' or the namespace of a class which is a subclass of
+     * the class 'AbstractQuery' or the class 'Table'.</li>
+     * <li><b>col</b>: The name of the column that will be referenced.</li>
+     * <li><b>name</b>: The name of the key.</li>
+     * <li><b>on-update</b> [Optional] The 'on update' condition for the key.
+     * Default value is 'set null'.</li>
+     * <li><b>on-delete</b> [Optional] The 'on delete' condition for the key.
+     * Default value is 'set null'.</li>
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
+     * @throws DatabaseException
+     */
+    public function addReferenceFromArray(string $colName, array $keyProps) : Table {
+        if (!isset($keyProps['table'])) {
+            return $this;
+        }
+        $table = $this->getRefTable($keyProps['table']);
+        $keyName = $keyProps['name'] ?? '';
+        $col = $keyProps['col'] ?? '';
+        $onUpdate = $keyProps['on-update'] ?? FK::SET_NULL;
+        $onDelete = $keyProps['on-delete'] ?? FK::SET_NULL;
+        
+        return $this->addReference($table, [$colName => $col], $keyName, $onUpdate, $onDelete);
+    }
+    /**
      * Adds a foreign key to the table.
      *
      * @param Table|AbstractQuery|string $refTable The referenced table. It is the table that
@@ -188,30 +223,33 @@ abstract class Table {
      * @throws DatabaseException
      * @since 1.0
      */
-    public function addReference($refTable, array $cols, string $keyName, string $onUpdate = 'set null', string $onDelete = 'set null') : Table {
+    public function addReference($refTable, array $cols, string $keyName, string $onUpdate = FK::SET_NULL, string $onDelete = FK::SET_NULL) : Table {
+        
+        $this->createFk($this->getRefTable($refTable), $cols, $keyName, $onUpdate, $onDelete);
+
+        return $this;
+    }
+    private function getRefTable($refTable) {
         if (!($refTable instanceof Table)) {
             if ($refTable instanceof AbstractQuery) {
-                $refTable = $refTable->getTable();
+                return $refTable->getTable();
             } else if (class_exists($refTable)) {
                 $q = new $refTable();
 
                 if ($q instanceof AbstractQuery) {
-                    $refTable = $q->getTable();
+                    return $q->getTable();
                 } else if ($q instanceof Table) {
-                    $refTable = $q;
+                    return $q;
                 }
             } else {
                 $owner = $this->getOwner();
 
                 if ($owner !== null) {
-                    $refTable = $owner->getTable($refTable);
+                    return $owner->getTable($refTable);
                 }
             }
         }
-
-        $this->createFk($refTable, $cols, $keyName, $onUpdate, $onDelete);
-
-        return $this;
+        return $refTable;
     }
     /**
      * Returns a column given its index.
@@ -378,7 +416,7 @@ abstract class Table {
      * @param string $keyName The name of the foreign key as specified when it 
      * was added to the table.
      * 
-     * @return ForeignKey|null If a key with the given name exist, the method 
+     * @return FK|null If a key with the given name exist, the method 
      * will return an object that represent it. Other than that, the method will 
      * return null.
      * 
@@ -650,7 +688,7 @@ abstract class Table {
      * 
      * @param string $keyName The name of the foreign key.
      * 
-     * @return ForeignKey|null If the key was removed, the method will return the 
+     * @return FK|null If the key was removed, the method will return the 
      * removed key as an object. If nothing changed, the method will return null.
      * 
      * @since 1.0
@@ -744,36 +782,38 @@ abstract class Table {
     public abstract function toSQL();
 
     /**
+     * 
+     * @param \webfiori\database\Table $refTable
+     * @param type $cols
+     * @param type $keyName
+     * @param type $onUpdate
+     * @param type $onDelete
      * @throws DatabaseException
      */
-    private function createFk($refTable, $cols, $keyName, $onUpdate, $onDelete) {
-        if ($refTable instanceof Table) {
-            $fk = new ForeignKey();
-            $fk->setOwner($this);
-            $fk->setSource($refTable);
+    private function createFk(Table $refTable, $cols, $keyName, $onUpdate, $onDelete) {
+        $fk = new FK();
+        $fk->setOwner($this);
+        $fk->setSource($refTable);
 
-            if ($fk->setKeyName($keyName) === true) {
-                foreach ($cols as $target => $source) {
-                    if (gettype($target) == 'integer') {
-                        //indexed array. 
-                        //It means source and target columns have same name.
-                        $fk->addReference($source, $source);
-                    } else {
-                        //Associative. Probably two columns with different names.
-                        $fk->addReference($target, $source);
-                    }
+        if ($fk->setKeyName($keyName) === true) {
+            foreach ($cols as $target => $source) {
+                if (gettype($target) == 'integer') {
+                    //indexed array. 
+                    //It means source and target columns have same name.
+                    $fk->addReference($source, $source);
+                } else {
+                    //Associative. Probably two columns with different names.
+                    $fk->addReference($target, $source);
                 }
+            }
 
-                if (count($fk->getSourceCols()) != 0) {
-                    $fk->setOnUpdate($onUpdate);
-                    $fk->setOnDelete($onDelete);
-                    $this->foreignKeys[] = $fk;
-                }
-            } else {
-                throw new DatabaseException('Invalid FK name: \''.$keyName.'\'.');
+            if (count($fk->getSourceCols()) != 0) {
+                $fk->setOnUpdate($onUpdate);
+                $fk->setOnDelete($onDelete);
+                $this->foreignKeys[] = $fk;
             }
         } else {
-            throw new DatabaseException('Referenced table is not an instance of the class \'Table\'.');
+            throw new DatabaseException('Invalid Foreign Key name: \''.$keyName.'\'.');
         }
     }
 

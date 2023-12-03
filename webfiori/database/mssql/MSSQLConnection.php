@@ -13,6 +13,7 @@ namespace webfiori\database\mssql;
 use webfiori\database\AbstractQuery;
 use webfiori\database\Connection;
 use webfiori\database\ConnectionInfo;
+use webfiori\database\DatabaseException;
 use webfiori\database\ResultSet;
 /**
  * A class that represents a connection to MSSQL server.
@@ -22,11 +23,11 @@ use webfiori\database\ResultSet;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MSSQLConnection extends Connection {
     private $link;
     private $sqlState;
+    private $isTransactionStarted;
     /**
      * Creates new instance of the class.
      * 
@@ -36,15 +37,14 @@ class MSSQLConnection extends Connection {
      * @throws DatabaseException If the connection to the database fails, the method 
      * will throw an exception.
      * 
-     * @since 1.0
      */
     public function __construct(ConnectionInfo $connInfo) {
         parent::__construct($connInfo);
+        $this->isTransactionStarted = false;
     }
     /**
      * Close database connection.
      * 
-     * @since 1.0
      */
     public function __destruct() {
         sqlsrv_close($this->link);
@@ -55,7 +55,6 @@ class MSSQLConnection extends Connection {
      * @return bool If the connection was established, the method will return 
      * true. If the attempt to connect fails, the method will return false.
      * 
-     * @since 1.0
      */
     public function connect() : bool {
         if (!function_exists('sqlsrv_connect')) {
@@ -102,7 +101,6 @@ class MSSQLConnection extends Connection {
      * 
      * @return string|null
      * 
-     * @since 1.0
      */
     public function getSQLState() {
         return $this->sqlState;
@@ -116,7 +114,6 @@ class MSSQLConnection extends Connection {
      * @return bool If the query successfully executed, the method will return 
      * true. Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public function runQuery(AbstractQuery $query = null) {
         $this->addToExecuted($query->getQuery());
@@ -124,22 +121,29 @@ class MSSQLConnection extends Connection {
 
         $qType = $query->getLastQueryType();
 
-        if ($qType == 'insert' || $qType == 'update') {
+        if ($qType == 'insert') {
             return $this->runInsertQuery();
+        } else if ($qType == 'update') {
+            return $this->runUpdateQuery();
+        } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
+            return $this->runSelectQuery();
         } else {
-            if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
-                return $this->runSelectQuery();
-            } else {
-                return $this->runOtherQuery();
-            }
+            return $this->runOtherQuery();
         }
     }
-    private function runInsertQuery() {
-        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
-
-        $stm = sqlsrv_prepare($this->link, $insertBuilder->getQuery(), $insertBuilder->getQueryParams());
-        $r = sqlsrv_execute($stm);
-
+    private function runUpdateQuery() {
+        $params = $this->getLastQuery()->getBindings();
+        $sql = $this->getLastQuery()->getQuery();
+        
+        if (count($params) != 0) {
+            $stm = sqlsrv_prepare($this->link, $sql, $params);
+            $r = sqlsrv_execute($stm);
+        } else {
+            $r = sqlsrv_query($this->link, $sql);
+        }
+        return $this->checkInsertOrUpdateResult($r);
+    }
+    private function checkInsertOrUpdateResult($r) {
         if (!$r) {
             $this->setSqlErr();
 
@@ -148,9 +152,28 @@ class MSSQLConnection extends Connection {
 
         return true;
     }
-    private function runOtherQuery() {
-        $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
+    private function runInsertQuery() {
+        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        $sql = $this->getLastQuery()->getQuery();
+        if ($insertBuilder === null) {
+            
+            return false;
+        }
+        
+        $params = $insertBuilder->getQueryParams();
 
+        $stm = sqlsrv_prepare($this->link, $sql, $params);
+        $r = sqlsrv_execute($stm);
+            
+        return $this->checkInsertOrUpdateResult($r);
+        
+    }
+    private function runOtherQuery() {
+        $sql = $this->getLastQuery()->getQuery();
+        $queryBulder = $this->getLastQuery();
+        
+        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+            
         if (!is_resource($r)) {
             $this->setSqlErr();
 
@@ -160,11 +183,11 @@ class MSSQLConnection extends Connection {
         return true;
     }
     private function runSelectQuery() {
-        if ($this->getLastQuery()->isPrepareBeforeExec()) {
-            $r = $this->bindAndExcute();
-        } else {
-            $r = sqlsrv_query($this->link, $this->getLastQuery()->getQuery());
-        }
+        $queryBulder = $this->getLastQuery();
+        $sql = $queryBulder->getQuery();
+        
+        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+        
 
         if (is_resource($r)) {
             $data = [];
@@ -195,5 +218,71 @@ class MSSQLConnection extends Connection {
             $this->setErrMessage($lastErr['message']);
             $this->setErrCode($lastErr['code']);
         }
+    }
+    /**
+     * Starts SQL server transaction.
+     * 
+     * Note that calling this method multiple times will have no effect on number
+     * of created transactions.
+     * 
+     * @param string|null $name This parameter is ignored.
+     * 
+     * @throws DatabaseException If the method was not able to start the transaction.
+     */
+    public function beginTransaction(string $name = null) {
+        if ($this->isTransactionStarted) {
+            return;
+        }
+        $r = sqlsrv_begin_transaction($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+        $this->isTransactionStarted = true;
+    }
+    /**
+     * Commit transaction changes to database.
+     * 
+     * Note that if no transaction is started, calling this method will have
+     * no effect.
+     * 
+     * @param string|null $name This parameter is ignored.
+     * 
+     * @throws DatabaseException If the method was not able to commit the transaction.
+     */
+    public function commit(string $name = null) {
+        if (!$this->isTransactionStarted) {
+            return;
+        }
+        $r = sqlsrv_commit($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+        $this->isTransactionStarted = false;
+    }
+    /**
+     * Roll back a transaction.
+     * 
+     * Note that if no transaction is started, calling this method will have
+     * no effect.
+     * 
+     * @param string|null $name This parameter is ignored.
+     * 
+     * @throws DatabaseException If the method was not able to rollback the transaction.
+     */
+    public function rollBack(string $name = null) {
+        if (!$this->isTransactionStarted) {
+            return;
+        }
+        $r = sqlsrv_rollback($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+        $this->isTransactionStarted = false;
     }
 }

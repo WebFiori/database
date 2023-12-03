@@ -96,7 +96,8 @@ class MSSQLTable extends Table {
      */
     public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
-
+        $fksArr = [];
+        
         foreach ($colsArr as $key => $arrOrObj) {
             if ($arrOrObj instanceof MSSQLColumn) {
                 $arrToAdd[$key] = $arrOrObj;
@@ -109,12 +110,23 @@ class MSSQLTable extends Table {
 
                     if ($colObj instanceof MSSQLColumn) {
                         $arrToAdd[$key] = $colObj;
+                        
+                        if (isset($arrOrObj['fk'])) {
+                            $fksArr[$key] = $arrOrObj['fk'];
+                            
+                        }
                     }
                 }
             }
         }
 
-        return parent::addColumns($arrToAdd);
+        parent::addColumns($arrToAdd);
+        
+        foreach ($fksArr as $col => $fkArr) {
+            $this->addReferenceFromArray($col, $fkArr);
+        }
+        
+        return $this;
     }
     /**
      * Returns a string which can be used to add table comment as extended 

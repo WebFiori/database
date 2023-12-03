@@ -10,10 +10,13 @@
  */
 namespace webfiori\database;
 
+use Exception;
 use webfiori\database\mssql\MSSQLConnection;
 use webfiori\database\mssql\MSSQLQuery;
+use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\mysql\MySQLQuery;
+use webfiori\database\mysql\MySQLTable;
 /**
  * A class which is used to represent the structure of the database 
  * (database schema). 
@@ -83,6 +86,47 @@ class Database {
         $this->tablesArr = [];
     }
     /**
+     * Start SQL transaction.
+     * 
+     * This will disable auto-commit.
+     * 
+     * @param callable $transaction A function that holds the logic of the transaction.
+     * The function must return true or null for success. If false is
+     * returned, it means the transaction failed and will be rolled back.
+     * 
+     * @param array $transactionArgs An optional array of parameters to be passed
+     * to the transaction.
+     * 
+     * @return bool If the transaction completed without errors, the method will
+     * return true. False otherwise.
+     * 
+     * @throws DatabaseException The method will throw an exception if it was
+     * rolled back due to an error.
+     */
+    public function transaction(callable $transaction, array $transactionArgs = []) : bool {
+        $conn = $this->getConnection();
+        $name = 'transation_'. rand();
+        
+        try {
+            
+            $args = array_merge([$this], $transactionArgs);
+            $conn->beginTransaction($name);
+            $result = call_user_func_array($transaction, $args);
+            
+            if ($result === null || $result === true) {
+                $conn->commit($name);
+                return true;
+            } else {
+                $conn->rollBack($name);
+                return false;
+            }
+        } catch (Exception $ex) {
+            $conn->rollBack($name);
+            $query = $ex instanceof DatabaseException ? $ex->getSQLQuery() : '';
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query, $ex);
+        }
+    }
+    /**
      * Adds a database query to the set of queries at which they were executed.
      * 
      * This method is called internally by the library to add the query. The 
@@ -100,6 +144,16 @@ class Database {
             'type' => $type,
             'query' => $query
         ];
+    }
+    /**
+     * Reset the bindings which was set by building and executing a query.
+     * 
+     * @return Database The method will return the instance at which the method
+     * is called on.
+     */
+    public function resetBinding() : Database {
+        $this->getQueryGenerator()->resetBinding();
+        return $this;
     }
     /**
      * Adds a table to the instance.
@@ -168,7 +222,7 @@ class Database {
     public function clear() {
         $this->queries = [];
         $this->getQueryGenerator()->reset();
-        $this->getQueryGenerator()->resetBinding();
+        $this->resetBinding();
     }
     /**
      * Creates a blueprint of a table that can be used to build table structure.
@@ -185,9 +239,9 @@ class Database {
         $dbType = $this->getConnection()->getConnectionInfo()->getDatabaseType();
 
         if ($dbType == 'mysql') {
-            $blueprint = new mysql\MySQLTable($name);
+            $blueprint = new MySQLTable($name);
         } else if ($dbType == 'mssql') {
-            $blueprint = new mssql\MSSQLTable($name);
+            $blueprint = new MSSQLTable($name);
         }
         $this->addTable($blueprint);
 

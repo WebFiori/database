@@ -1,12 +1,14 @@
 <?php
 namespace webfiori\database\tests\mysql;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use webfiori\database\tests\mysql\MySQLTestSchema;
+use super\entity\UserEntity;
+use webfiori\database\ConnectionInfo;
+use webfiori\database\Database;
 use webfiori\database\DatabaseException;
 use webfiori\database\mysql\MySQLConnection;
-use webfiori\database\ConnectionInfo;
-use super\entity\UserEntity;
+use webfiori\database\tests\mysql\MySQLTestSchema;
 
 /**
  * Description of MySQLQueryBuilderTest
@@ -701,8 +703,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $q->union($q->table('users_privileges')->select());
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
-                . "select * from `users_privileges`"
-                . "\nunion all\n", $schema->getLastQuery());
+                . "select * from `users_privileges`", $schema->getLastQuery());
         $q->union($q->table('users_tasks')->select(), true);
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
@@ -725,8 +726,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 ->select(['id' => [
                     'as' => 'user_id'
                 ], 'first-name'])
-                ->where('id', 44, '!=')
-                ->union($schema->table('users_privileges')->select()->where('can-edit_price', true));
+                ->where('id', 44, '!=');
+        $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?", $schema->getLastQuery());
+        $schema->getQueryGenerator()->union($schema->table('users_privileges')->select()->where('can-edit_price', true));
         $this->assertEquals("select `users`.`id` as `user_id`, `users`.`first_name` from `users` where `users`.`id` != ?"
                 . "\nunion\n"
                 . "select * from `users_privileges` where `users_privileges`.`can_edit_price` = ?", $schema->getLastQuery());
@@ -1274,9 +1276,8 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testDropCol01() {
         $schema = new MySQLTestSchema();
-        $this->expectException(DatabaseException::class);
-        $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
         $schema->table('users')->dropCol('not-exist');
+        $this->assertEquals('alter table `users` drop column `not_exist`;', $schema->getLastQuery());
     }
     /**
      * @test
@@ -1353,6 +1354,8 @@ class MySQLQueryBuilderTest extends TestCase {
                 3,
             ]
         ], $schema->getQueryGenerator()->getBindings());
+        
+        $queryBuilder->resetBinding();
         $queryBuilder->table('users')->select(['id'])->join(
             $queryBuilder->table('users_privileges')->select()->where('id', 3)
         )->on('id', 'id')->select([
@@ -1496,7 +1499,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function renameColTest00() {
+    public function testRenameCol00() {
         $schema = new MySQLTestSchema();
         $schema->getTable('users')->getColByKey('id')->setName('user_id');
         
@@ -1507,7 +1510,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function renameColTest01() {
+    public function testRenameCol01() {
         $this->expectException(DatabaseException::class);
         $this->expectExceptionMessage('The table `users` has no column with key \'not-exist\'.');
         $schema = new MySQLTestSchema();
@@ -1516,7 +1519,7 @@ class MySQLQueryBuilderTest extends TestCase {
     /**
      * @test
      */
-    public function renameColTest02() {
+    public function testRenameCol02() {
         $schema = new MySQLTestSchema();
         $schema->table('users')->renameCol('id');
         $this->assertEquals('alter table `users` rename column `id` to `id`;', $schema->getLastQuery());
@@ -1658,6 +1661,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 33
             ]
         ], $schema->getQueryGenerator()->getBindings());
+        $schema->resetBinding();
         $schema->table('users_tasks')->getTable()->getColByKey('task-idx')->setDatatype('varchar');
         $schema->table('users_tasks')->select()->whereBetween('task-idx', 0, 33);
         $this->assertEquals("select * from `users_tasks` where (`users_tasks`.`task_idx` between ? and ?)", $schema->getLastQuery());
@@ -1756,6 +1760,148 @@ class MySQLQueryBuilderTest extends TestCase {
     }
     /**
      * @test
+     * @depends testInsert04
+     */
+    public function testTransaction00() {
+        $schema = new MySQLTestSchema();
+        $schema->transaction(function (Database $db) {
+            $q = $db->table('users');
+            $q->insert([
+                'first-name' => 'Ibrahim',
+                'last-name' => 'BinAlshikh',
+                'age' => 30
+            ])->execute();
+            $userId = $q->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
+            $q->table('users_privileges')
+                ->insert([
+                    'id' => $userId,
+                    'can-edit-price' => 1,
+                    'can-change-username' => 0,
+                    'can-do-anything' => 1
+                ])->execute();
+            $q->table('users_tasks')
+                ->insert([
+                    'user-id' => $userId,
+                    'details' => 'This task is about testing if transactions work as intended.',
+                ])->execute();
+            return true;
+        });
+        $userId = $schema->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
+        $privileges = $schema->table('users_privileges')->select()->where('id', $userId)->execute()->getRows()[0];
+        $this->assertEquals([
+            'id' => $userId,
+            'can_edit_price' => 1,
+            'can_change_username' => 0,
+            'can_do_anything' => 1
+        ], $privileges);
+        $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
+        $this->assertEquals([
+            [
+                'task_id' => 1,
+                'user_id' => $userId,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This task is about testing if transactions work as intended.',
+            ]
+        ], $tasks);
+        return intval($userId);
+    }
+    /**
+     * @test
+     * @depends testTransaction00
+     */
+    public function testTransaction01(int $userId) {
+        $schema = new MySQLTestSchema();
+        $schema->transaction(function (Database $db, int $uId) {
+            $db->table('users_tasks')
+                ->insert([
+                    'user-id' => $uId,
+                    'details' => 'This another task.',
+                ])->execute();
+            return true;
+        }, [$userId]);
+        $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
+        $this->assertEquals([
+            [
+                'task_id' => 1,
+                'user_id' => $userId,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This task is about testing if transactions work as intended.',
+            ], [
+                'task_id' => 2,
+                'user_id' => $userId,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This another task.',
+            ]
+        ], $tasks);
+        $schema->transaction(function (Database $db, int $uId) {
+            $db->table('users_tasks')
+                ->insert([
+                    'user-id' => $uId,
+                    'details' => 'This third task.',
+                ])->execute();
+            return false;
+        }, [$userId]);
+        $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
+        $this->assertEquals([
+            [
+                'task_id' => 1,
+                'user_id' => $userId,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This task is about testing if transactions work as intended.',
+            ], [
+                'task_id' => 2,
+                'user_id' => $userId,
+                'created_on' => date('Y-m-d H:i:s'),
+                'last_updated' => null,
+                'is_finished' => 0,
+                'details' => 'This another task.',
+            ]
+        ], $tasks);
+        return $userId;
+    }
+    /**
+     * @test
+     * @depends testTransaction01
+     */
+    public function testTransaction02(int $userId) {
+        $schema = new MySQLTestSchema();
+        try {
+            $schema->transaction(function (Database $db, $uId) {
+                $db->table('users')->update([
+                    'first-name' => 'Ali',
+                    'age' => 32
+                ])->where('id', $uId)->execute();
+
+                $db->transaction(function (Database $db) {
+                    $db->table('users')->insert([
+                        'first-name' => 'Ibrahim',
+                        'last-name' => 'BinAlshikh',
+                    ])->execute();
+                });
+            }, [$userId]);
+        } catch (DatabaseException $ex) {
+            $this->assertEquals("1364 - Field 'age' doesn't have a default value", $ex->getMessage());
+            $this->assertEquals(1364, $ex->getCode());
+            $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
+            $this->assertEquals([
+                'id' => $userId,
+                'first_name' => 'Ali',
+                'last_name' => 'BinAlshikh',
+                'age' => 32
+            ], $user);
+        }
+        
+    }
+    /**
+     * @test
      * @depends testTableNotExist01
      */
     public function testTableNotExist0(MySQLTestSchema $s) {
@@ -1835,7 +1981,7 @@ class MySQLQueryBuilderTest extends TestCase {
      * @test
      */
     public function testLeft07() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The value must be of type string since the condition is \'=\'.');
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '=', ['good', 'bad']);
@@ -1943,7 +2089,7 @@ class MySQLQueryBuilderTest extends TestCase {
      * @test
      */
     public function testRight07() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The value must be of type string since the condition is \'!=\'.');
         $schema = new MySQLTestSchema();
         $schema->table('users_tasks')->select()->whereLeft('details', 8, '!=', ['good', 'bad']);

@@ -150,8 +150,10 @@ class MySQLConnection extends Connection {
         $this->addToExecuted($query->getQuery());
 
         try {
-            if ($qType == 'insert' || $qType == 'update') {
-                return $this->runInsertQuery($query);
+            if ($qType == 'insert') {
+                return $this->runInsertQuery();
+            } else if ($qType == 'update') {
+                return $this->runUpdateQuery();
             } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
                 return $this->runSelectQuery();
             } else {
@@ -162,24 +164,20 @@ class MySQLConnection extends Connection {
             $this->setErrMessage($ex->getMessage());
             throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode(), $this->getLastQuery()->getQuery(), $ex);
         }
+        $query->resetBinding();
     }
-    private function runInsertQuery() {
-        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
-        $sqlStatement = mysqli_prepare($this->link, $insertBuilder->getQuery());
-        $insertParams = $insertBuilder->getQueryParams()['bind'];
-        $values = array_merge($insertBuilder->getQueryParams()['values']);
-        $bindValues = [];
-
-        foreach ($values as $valuesArr) {
-            foreach ($valuesArr as $val) {
-                $bindValues[] = $val;
-            }
+    private function runUpdateQuery() {
+        $sqlStatement = mysqli_prepare($this->link, $this->getLastQuery()->getQuery());
+        $params = $this->getLastQuery()->getBindings();
+        if (count($params['values']) != 0) {
+            $sqlStatement->bind_param($params['bind'], ...$params['values']);
         }
-        $sqlStatement->bind_param($insertParams, ...$bindValues);
         $r = $sqlStatement->execute();
-
+        return $this->chechInsertOrUpdateResult($r);
+    }
+    private function chechInsertOrUpdateResult($r) {
         $retVal = false;
-
+        
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
@@ -196,8 +194,31 @@ class MySQLConnection extends Connection {
             $retVal = true;
         }
         $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
-
         return $retVal;
+    }
+    private function runInsertQuery() {
+        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        if ($insertBuilder === null) {
+            return false;
+        } 
+        
+        $sqlStatement = mysqli_prepare($this->link, $insertBuilder->getQuery());
+        $insertParams = $insertBuilder->getQueryParams()['bind'];
+        $values = array_merge($insertBuilder->getQueryParams()['values']);
+        $bindValues = [];
+
+        foreach ($values as $valuesArr) {
+            foreach ($valuesArr as $val) {
+                $bindValues[] = $val;
+            }
+        }
+        $sqlStatement->bind_param($insertParams, ...$bindValues);
+        
+        $r = $sqlStatement->execute();
+
+        $retVal = false;
+
+        return $this->chechInsertOrUpdateResult($r);
     }
     private function runOtherQuery() {
         $query = $this->getLastQuery()->getQuery();
@@ -247,6 +268,9 @@ class MySQLConnection extends Connection {
             $sqlStatement = mysqli_prepare($this->link, $sql);
             $sqlStatement->bind_param($params, ...$values);
             $r = $sqlStatement->execute();
+            if ($r) {
+                $r = mysqli_stmt_get_result($sqlStatement);
+            }
         } else {
             $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
         }
@@ -256,11 +280,6 @@ class MySQLConnection extends Connection {
         if ($r) {
             $this->setErrCode(0);
             $rows = [];
-
-            if ($this->getLastQuery()->isPrepareBeforeExec()) {
-                $this->sqlStm->store_result();
-                $r = $this->sqlStm->get_result();
-            }
 
             if (function_exists('mysqli_fetch_all')) {
                 $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
@@ -277,6 +296,50 @@ class MySQLConnection extends Connection {
             $this->setErrCode($this->link->errno);
 
             return false;
+        }
+    }
+
+    public function beginTransaction(string $name = null) {
+        //The null check is for php<8
+        $message = 'Unable to start transaction.';
+        
+        if ($name !== null) {
+            if (!$this->link->begin_transaction(0, $name)) {
+                throw new DatabaseException($message);
+            }
+        } else {
+            if (!$this->link->begin_transaction()) {
+                throw new DatabaseException($message);
+            }
+        }
+    }
+
+    public function commit(string $name = null) {
+        //The null check is for php<8
+        $message = 'Unable to commit transaction.';
+        if ($name !== null) {
+            if (!$this->link->commit(0, $name)) {
+                throw new DatabaseException($message);
+            }
+        } else {
+            if (!$this->link->commit()) {
+                throw new DatabaseException($message);
+            }
+        }
+    }
+
+    public function rollBack(string $name = null) {
+        //The null check is for php<8
+        $message = 'Unable to roll back transaction.';
+        
+        if ($name !== null) {
+            if (!$this->link->rollback(0, $name)) {
+                throw new DatabaseException($message);
+            }
+        } else {
+            if (!$this->link->rollback()) {
+                throw new DatabaseException($message);
+            }
         }
     }
 }

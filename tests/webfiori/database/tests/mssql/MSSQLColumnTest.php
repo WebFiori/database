@@ -285,7 +285,7 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('2019-11-09');
         $this->assertEquals('2019-11-09',$col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null default \'2019-11-09\'',$col.'');
+        $this->assertEquals('[date] [datetime2](1) not null default \'2019-11-09\'',$col.'');
     }
     /**
      * @test
@@ -294,7 +294,7 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('2019-07-07 09:09:09');
         $this->assertEquals('2019-07-07 09:09:09',$col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null default \'2019-07-07 09:09:09\'',$col.'');
+        $this->assertEquals('[date] [datetime2](1) not null default \'2019-07-07 09:09:09\'',$col.'');
     }
     /**
      * @test
@@ -303,7 +303,7 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('');
         $this->assertNull($col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null',$col.'');
+        $this->assertEquals('[date] [datetime2](1) not null',$col.'');
     }
     /**
      * @test
@@ -312,7 +312,8 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('2019-07-07 09:09:09');
         $this->assertEquals('2019-07-07 09:09:09',$col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null default \'2019-07-07 09:09:09\'',$col.'');
+        $col->setSize(4);
+        $this->assertEquals('[date] [datetime2](4) not null default \'2019-07-07 09:09:09\'',$col.'');
     }
     /**
      * @test
@@ -321,10 +322,10 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('2019-15-07 09:09:09');
         $this->assertNull($col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null',$col.'');
+        $this->assertEquals('[date] [datetime2](1) not null',$col.'');
         $col->setDefault('2019-12-33 09:09:09');
         $this->assertNull($col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null',$col.'');
+        $this->assertEquals('[date] [datetime2](1) not null',$col.'');
         $col->setDefault('2019-12-31 24:09:09');
         $this->assertNull($col->getDefault());
         $col->setDefault('2019-12-31 23:60:09');
@@ -392,7 +393,7 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('date', 'datetime2');
         $col->setDefault('now');
         $this->assertEquals('now',$col->getDefault());
-        $this->assertEquals('[date] [datetime2] not null default getdate()',$col.'');
+        $this->assertEquals('[date] [datetime2](1) not null default getdate()',$col.'');
     }
     /**
      * @test
@@ -515,6 +516,19 @@ class MSSQLColumnTest extends TestCase {
         $this->assertEquals('now', $col->getDefault());
         $col->setDefault('current_timestamp');
         $this->assertEquals('current_timestamp', $col->getDefault());
+    }
+    /**
+     * @test
+     */
+    public function testSetType07() {
+        $col = new MSSQLColumn();
+        $col->setDatatype('datetime2');
+        $col->setSize(0);
+        $this->assertEquals(0, $col->getSize());
+        $col->setDatatype('datetime2');
+        $this->assertEquals(0, $col->getSize());
+        $col->setDatatype('int');
+        $this->assertEquals(1, $col->getSize());
     }
     /**
      * @test
