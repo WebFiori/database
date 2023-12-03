@@ -4,7 +4,7 @@ Database abstraction layer of WebFiori framework.
 
 <p style="text-align: center">
   <a href="https://github.com/WebFiori/database/actions">
-    <img alt="PHP 8 Build Status" src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.2/badge.svg?branch=main">
+    <img alt="PHP 8 Build Status" src="https://github.com/WebFiori/database/workflows/php83.yml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/database">
     <img alt="CodeCov" src="https://codecov.io/gh/WebFiori/database/branch/main/graph/badge.svg?token=cDF6CxGTFi" />
@@ -43,14 +43,15 @@ Database abstraction layer of WebFiori framework.
 ## Supported PHP Versions
 |                                                                                           Build Status                                                                                            |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php70.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207.0/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php71.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207.1/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php72.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207.2/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php73.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207.3/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%207.4/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.0/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.1/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/database/workflows/Build%20PHP%208.2/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php70.yml"><img src="https://github.com/WebFiori/database/workflows/php70.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php71.yml"><img src="https://github.com/WebFiori/database/workflows/php71.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php72.yml"><img src="https://github.com/WebFiori/database/workflows/php72.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php73.yml"><img src="https://github.com/WebFiori/database/workflows/php73.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/database/workflows/php74.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/database/workflows/php80.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/database/workflows/php81.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/database/workflows/php82.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php83.yml"><img src="https://github.com/WebFiori/database/workflows/php83.yml/badge.svg?branch=main"></a> |
 
 ## Supported Databases
 - MySQL
