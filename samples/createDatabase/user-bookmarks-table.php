@@ -4,25 +4,25 @@
 //Create Blueprint of second table.
 $database->createBlueprint('user_bookmarks')->addColumns([
     'id' => [
-        'type' => 'int',
-        'size' => 6
+        ColOption::TYPE => 'int',
+        ColOption::SIZE => 6
     ],
     'title' => [
-        'type' => 'varchar',
-        'size' => 128,
-        'default' => 'New Bookmark'
+        ColOption::TYPE => 'varchar',
+        ColOption::SIZE => 128,
+        ColOption::DEFAULT => 'New Bookmark'
     ],
     'url' => [
-        'type' => 'varchar',
-        'size' => 256
+        ColOption::TYPE => 'varchar',
+        ColOption::SIZE => 256
     ],
     'bookmarked-on' => [
-        'type' => 'timestamp',
-        'default' => 'current_timestamp'
+        ColOption::TYPE => 'timestamp',
+        ColOption::DEFAULT => 'current_timestamp'
     ],
     'user_id' => [
-        'type' => 'int',
-        'size' => 5
+        ColOption::TYPE => 'int',
+        ColOption::SIZE => 5
     ],
 ])->addReference('users_information', [
     'user-id' => 'id'

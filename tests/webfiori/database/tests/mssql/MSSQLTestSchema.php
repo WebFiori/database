@@ -1,8 +1,9 @@
 <?php
 namespace webfiori\database\tests\mssql;
 
-use webfiori\database\Database;
+use webfiori\database\ColOption;
 use webfiori\database\ConnectionInfo;
+use webfiori\database\Database;
 use webfiori\database\mssql\MSSQLTable;
 /**
  * Description of MSSQLTestSchema
@@ -17,22 +18,22 @@ class MSSQLTestSchema extends Database {
         $table00->setComment('This table is used to hold users info.');
         $table00->addColumns([
             'id' => [
-                'type' => 'int',
-                'size' => 5,
-                'is-primary' => true,
-                'identity' => true
+                ColOption::TYPE => 'int',
+                ColOption::SIZE => 5,
+                ColOption::PRIMARY => true,
+                ColOption::IDENTITY => true
             ],
             'first-name' => [
-                'size' => '15',
-                'type' => 'nvarchar'
+                ColOption::SIZE => '15',
+                ColOption::TYPE => 'nvarchar'
             ],
             'last-name' => [
-                'size' => 20,
-                'type' => 'nvarchar'
+                ColOption::SIZE => 20,
+                ColOption::TYPE => 'nvarchar'
             ],
             'age' => [
-                'type' => 'int',
-                'size' => 3
+                ColOption::TYPE => 'int',
+                ColOption::SIZE => 3
             ]
         ]);
         $this->addTable($table00);
@@ -40,19 +41,19 @@ class MSSQLTestSchema extends Database {
         $table01 = new MSSQLTable('users_privileges');
         $table01->addColumns([
             'id' => [
-                'type' => 'int',
-                'size' => 5,
-                'is-primary' => true,
+                ColOption::TYPE => 'int',
+                ColOption::SIZE => 5,
+                ColOption::PRIMARY => true,
             ],
             'can-edit-price' => [
-                'type' => 'boolean',
-                'default' => false
+                ColOption::TYPE => 'boolean',
+                ColOption::DEFAULT => false
             ],
             'can-change-username' => [
-                'type' => 'boolean'
+                ColOption::TYPE => 'boolean'
             ],
             'can-do-anything' => [
-                'type' => 'boolean'
+                ColOption::TYPE => 'boolean'
             ]
         ]);
         $table01->addReference($table00, ['id'], 'user_privilege_fk', 'no action', 'no action');
@@ -62,35 +63,35 @@ class MSSQLTestSchema extends Database {
         $table02->setComment("A table used to hold 'users' tasks.");
         $table02->addColumns([
             'task-id' => [
-                'type' => 'int',
-                'size' => 5,
-                'is-primary' => true,
-                'identity' => true
+                ColOption::TYPE => 'int',
+                ColOption::SIZE => 5,
+                ColOption::PRIMARY => true,
+                ColOption::IDENTITY => true
             ],
             'user-id' => [
-                'type' => 'int',
-                'size' => '5',
-                'comment' => "The ID of the user who must perform the 'activity'."
+                ColOption::TYPE => 'int',
+                ColOption::SIZE => '5',
+                ColOption::COMMENT => "The ID of the user who must perform the 'activity'."
             ],
             'created-on' => [
-                'type' => 'datetime2',
-                'default' => 'now',
-                'size' => 0
+                ColOption::TYPE => 'datetime2',
+                ColOption::DEFAULT => 'now',
+                ColOption::SIZE => 0
             ],
             'last-updated' => [
-                'type' => 'datetime2',
-                'is-null' => true,
-                'auto-update' => true,
-                'size' => 0,
-                'comment' => 'The last time this record was updated at.'
+                ColOption::TYPE => 'datetime2',
+                ColOption::NULL => true,
+                ColOption::AUTO_UPDATE => true,
+                ColOption::SIZE => 0,
+                ColOption::COMMENT => 'The last time this record was updated at.'
             ],
             'is-finished' => [
-                'type' => 'boolean',
-                'default' => false
+                ColOption::TYPE => 'boolean',
+                ColOption::DEFAULT => false
             ],
             'details' => [
-                'size' => 1500,
-                'type' => 'varchar'
+                ColOption::SIZE => 1500,
+                ColOption::TYPE => 'varchar'
             ]
         ]);
         $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'no action', 'no action');
@@ -99,13 +100,13 @@ class MSSQLTestSchema extends Database {
         $table03 = new MSSQLTable('profile_pics');
         $table03->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'size' => 5,
-                'primary' => true
+                ColOption::TYPE => 'int',
+                ColOption::SIZE => 5,
+                ColOption::PRIMARY => true
             ],
             'pic' => [
-                'type' => 'binary',
-                'siize' => 100
+                ColOption::TYPE => 'binary',
+                ColOption::SIZE => 100
             ]
         ]);
         $table03->addReference($table00, ['user-id'=>'id'], 'user_profile_pic_fk', 'no action', 'no action');
