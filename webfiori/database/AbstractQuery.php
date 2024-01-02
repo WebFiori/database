@@ -290,7 +290,7 @@ abstract class AbstractQuery {
 
         if ($colObj === null) {
             $table->addColumns([
-                $colKey => ['type' => 'varchar']
+                $colKey => ['type' => DataType::VARCHAR]
             ]);
             $colObj = $table->getColByKey($colKey);
         }
@@ -631,7 +631,7 @@ abstract class AbstractQuery {
             
             if ($leftColObj === null) {
                 $table->getLeft()->addColumns([
-                    $leftCol => ['type' => 'varchar']
+                    $leftCol => ['type' => DataType::VARCHAR]
                 ]);
                 $leftColObj = $table->getLeft()->getColByKey($leftCol);
             }
@@ -647,7 +647,7 @@ abstract class AbstractQuery {
 
             if ($rightColObj === null) {
                 $table->getRight()->addColumns([
-                    $rightCol => ['type' => 'varchar']
+                    $rightCol => ['type' => DataType::VARCHAR]
                 ]);
                 $rightColObj = $table->getRight()->getColByKey($rightCol);
             }

@@ -2,8 +2,12 @@
 namespace webfiori\database\tests\mssql;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\ColOption;
+use webfiori\database\DataType;
 use webfiori\database\mssql\MSSQLColumn;
+use webfiori\database\mssql\MSSQLTable;
+use webfiori\database\mysql\MySQLTable;
+use webfiori\database\Table;
 /**
  * Description of MSSQLTableTest
  *
@@ -79,42 +83,42 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
             'username' => [
-                'type' => 'varchar',
-                'size' => 20,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 20,
+                ColOption::UNIQUE => true
             ],
             'password' => [
-                'type' => 'varchar',
-                'size' => 256
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256
             ],
             'created-on' => [
-                'type' => 'datetime2',
-                'default' => 'now',
+                ColOption::TYPE => DataType::DATETIME2,
+                ColOption::DEFAULT => 'now',
             ],
         ]);
         $table2 = new MSSQLTable('t');
         $table2->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
         ]);
         $table2->addReference($table, ['user-id', 'email'], 'fk_ok', 'cascade', 'cascade');
@@ -137,42 +141,42 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
             'username' => [
-                'type' => 'varchar',
-                'size' => 20,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 20,
+                ColOption::UNIQUE => true
             ],
             'password' => [
-                'type' => 'varchar',
-                'size' => 256
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256
             ],
             'created-on' => [
-                'type' => 'datetime2',
-                'default' => 'now',
+                ColOption::TYPE => DataType::DATETIME2,
+                ColOption::DEFAULT => 'now',
             ],
         ]);
         
         $table2 = new MSSQLTable('t');
         $table2->addColumns([
             'user-id-super' => [
-                'type' => 'int',
-                'size' => 11,
-                'primary' => true,
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
             ],
             'email-x' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
         ]);
         $table2->addReference($table, [
@@ -193,19 +197,19 @@ class MSSQLTableTest extends TestCase {
         $t1 = new MSSQLTable('users');
         $t1->addColumns([
             'id' => [
-                'type' => 'int',
-                'primary' => true,
-                'identity' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true,
+                ColOption::IDENTITY => true
             ],
             'name' => [
-                'type' => 'nvarchar',
-                'size' => 128,
-                'unique' => true
+                ColOption::TYPE => DataType::NVARCHAR,
+                ColOption::SIZE => 128,
+                ColOption::UNIQUE => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ]
         ]);
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
@@ -219,19 +223,19 @@ class MSSQLTableTest extends TestCase {
         $t2 = new MSSQLTable('locations');
         $t2->addColumns([
             'id' => [
-                'type' => 'int',
-                'primary' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true
             ],
             'name' => [
-                'type' => 'nvarchar',
-                'size' => 128
+                ColOption::TYPE => DataType::NVARCHAR,
+                ColOption::SIZE => 128
             ],
             'added-by' => [
-                'type' => 'int',
-                'fk' => [
-                    'table' => $t1,
-                    'col' => 'id',
-                    'name' => 'added_by_fk'
+                ColOption::TYPE => DataType::INT,
+                ColOption::FK => [
+                    ColOption::FK_TABLE => $t1,
+                    ColOption::FK_COL => 'id',
+                    ColOption::FK_NAME => 'added_by_fk'
                 ]
             ]
         ]);
@@ -246,12 +250,12 @@ class MSSQLTableTest extends TestCase {
         $t3 = new MSSQLTable('user_location');
         $t3->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'primary' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true
             ],
             'location' => [
-                'type' => 'int',
-                'primary' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true
             ]
         ]);
         $t3->addReference($t1, ['user-id' => 'id'], 'user_loc_fk');
@@ -270,42 +274,42 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
             'username' => [
-                'type' => 'varchar',
-                'size' => 20,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 20,
+                ColOption::UNIQUE => true
             ],
             'password' => [
-                'type' => 'varchar',
-                'size' => 256
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256
             ],
             'created-on' => [
-                'type' => 'datetime2',
-                'default' => 'now',
+                ColOption::TYPE => DataType::DATETIME2,
+                ColOption::DEFAULT => 'now',
             ],
         ]);
         $table2 = new MSSQLTable('t');
         $table2->addColumns([
             'user-id' => [
-                'type' => 'int',
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'is-unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
         ]);
         $table2->addReference($table, ['user-id', 'email'], 'fk_ok', 'cascade', 'cascade');
@@ -321,8 +325,8 @@ class MSSQLTableTest extends TestCase {
                 . ")\n"
                 . "", $table2->toSQL());
         
-        $mappedInstance = \webfiori\database\Table::map('mysql', $table2);
-        $this->assertTrue($mappedInstance instanceof \webfiori\database\mysql\MySQLTable);
+        $mappedInstance = Table::map('mysql', $table2);
+        $this->assertTrue($mappedInstance instanceof MySQLTable);
         $this->assertEquals('`t`', $mappedInstance->getName());
         $this->assertEquals("create table if not exists `t` (\n"
                 . "    `user_id` int not null unique,\n"
@@ -342,20 +346,20 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable();
         $table->addColumns([
             'user-id' => [
-                'datatype' => 'int',
-                'size' => 11,
-                'is-primary' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true
             ],
             'username' => [
-                'size' => 20,
-                'is-unique' => true
+                ColOption::SIZE => 20,
+                ColOption::UNIQUE => true
             ],
             'email' => [
-                'size' => 150,
-                'is-unique' => true
+                ColOption::SIZE => 150,
+                ColOption::UNIQUE => true
             ],
             'password' => [
-                'size' => 64
+                ColOption::SIZE => 64
             ]
         ]);
         $this->assertEquals(4, $table->getColsCount());
@@ -382,23 +386,23 @@ class MSSQLTableTest extends TestCase {
         $t1 = new MSSQLTable('users');
         $t1->addColumns([
             'id' => [
-                'type' => 'int',
-                'primary' => true,
-                'identity' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true,
+                ColOption::IDENTITY => true
             ],
             'name' => [
-                'type' => 'nvarchar',
-                'size' => 128,
-                'unique' => true
+                ColOption::TYPE => DataType::NVARCHAR,
+                ColOption::SIZE => 128,
+                ColOption::UNIQUE => true
             ],
             'email' => [
-                'type' => 'varchar',
-                'size' => 256,
-                'unique' => true
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
+                ColOption::UNIQUE => true
             ],
             'age' => [
-                'datatype' => 'int',
-                'identity' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::IDENTITY => true
             ]
         ]);
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
@@ -440,8 +444,8 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable('hello');
         $table->addColumns([
             'id-col'=>[
-            'is-primary' => true,
-            'size' => 3
+                ColOption::PRIMARY => true,
+                ColOption::SIZE => 3
             ]
         ]);
         $this->assertEquals(1, $table->getPrimaryKeyColsCount());
@@ -455,7 +459,7 @@ class MSSQLTableTest extends TestCase {
     public function testPrimaryKey01($table) {
         $table->addColumns([
             'id-col-2'=>[
-                'is-primary' => true
+                ColOption::PRIMARY => true
             ]
         ]);
         $this->assertFalse($table->getColByKey('id-col')->isUnique());
@@ -470,25 +474,25 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable('active_or_not');
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'username' => [
-                'size' => 50
+                ColOption::SIZE => 50
             ],
             'is-active' => [
-                'type' => 'boolean'
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $table2 = new MSSQLTable('user_info');
         $table2->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'first-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ],
             'last-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ]
         ]);
         $table2->addReference($table, [
@@ -508,10 +512,10 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'is-active' => [
-                'type' => 'boolean'
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $this->assertNull($table->removeReference('not-exist'));
@@ -523,22 +527,22 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable('active_or_not');
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'is-active' => [
-                'type' => 'boolean'
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $table2 = new MSSQLTable('user_info');
         $table2->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'first-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ],
             'last-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ]
         ]);
         $table->addReference($table2, ['user-id'], 'hello_fk');
@@ -555,10 +559,10 @@ class MSSQLTableTest extends TestCase {
         $table = new MSSQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'is-active' => [
-                'type' => 'boolean'
+                ColOption::TYPE => 'boolean'
             ]
         ]);
         $this->assertEquals('boolean',$table->getColByKey('is-active')->getDatatype());

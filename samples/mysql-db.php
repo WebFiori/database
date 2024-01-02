@@ -13,6 +13,7 @@ use webfiori\database\ConnectionInfo;
 use webfiori\database\Database;
 use webfiori\database\DatabaseException;
 use webfiori\database\ResultSet;
+use webfiori\database\ColOption;
 
 function getDatabaseInstance() : Database {
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
