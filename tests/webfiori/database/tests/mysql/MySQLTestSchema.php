@@ -1,10 +1,10 @@
 <?php
 namespace webfiori\database\tests\mysql;
 
-use webfiori\database\mysql\MySQLTable;
-use webfiori\database\Database;
-use webfiori\database\mysql\MySQLConnection;
 use webfiori\database\ConnectionInfo;
+use webfiori\database\Database;
+use webfiori\database\DataType;
+use webfiori\database\mysql\MySQLTable;
 
 /**
  * Description of MySQLTestSchema
@@ -18,21 +18,21 @@ class MySQLTestSchema extends Database {
         $table00 = new MySQLTable('users');
         $table00->addColumns([
             'id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 5,
                 'is-primary' => true,
                 'auto-inc' => true
             ],
             'first-name' => [
                 'size' => '15',
-                'type' => 'varchar'
+                'type' => DataType::VARCHAR
             ],
             'last-name' => [
                 'size' => 20,
-                'type' => 'varchar'
+                'type' => DataType::VARCHAR
             ],
             'age' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 3
             ]
         ]);
@@ -41,19 +41,19 @@ class MySQLTestSchema extends Database {
         $table01 = new MySQLTable('users_privileges');
         $table01->addColumns([
             'id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 5,
                 'is-primary' => true
             ],
             'can-edit-price' => [
-                'type' => 'bool',
+                'type' => DataType::BOOL,
                 'default' => false
             ],
             'can-change-username' => [
-                'type' => 'boolean'
+                'type' => DataType::BOOL
             ],
             'can-do-anything' => [
-                'type' => 'bool'
+                'type' => DataType::BOOL
             ]
         ]);
         $table01->addReference($table00, ['id'], 'user_privilege_fk', 'cascade', 'restrict');
@@ -62,32 +62,32 @@ class MySQLTestSchema extends Database {
         $table02 = new MySQLTable('users_tasks');
         $table02->addColumns([
             'task-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 5,
                 'is-primary' => true,
                 'auto-inc' => true
             ],
             'user-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => '5',
                 'comment' => 'The ID of the user who must perform the activity.'
             ],
             'created-on' => [
-                'type' => 'timestamp',
+                'type' => DataType::TIMESTAMP,
                 'default' => 'now()',
             ],
             'last-updated' => [
-                'type' => 'datetime',
+                'type' => DataType::DATETIME,
                 'is-null' => true,
                 'auto-update' => true
             ],
             'is-finished' => [
-                'type' => 'boolean',
+                'type' => DataType::BOOL,
                 'default' => false
             ],
             'details' => [
                 'size' => 1500,
-                'type' => 'varchar'
+                'type' => DataType::VARCHAR
             ]
         ]);
         $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'cascade', 'restrict');
@@ -97,7 +97,7 @@ class MySQLTestSchema extends Database {
         $table03 = new MySQLTable('profile_pics');
         $table03->addColumns([
             'user-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 5,
                 'primary' => true
             ],

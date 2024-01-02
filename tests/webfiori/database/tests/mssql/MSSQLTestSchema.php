@@ -4,6 +4,7 @@ namespace webfiori\database\tests\mssql;
 use webfiori\database\ColOption;
 use webfiori\database\ConnectionInfo;
 use webfiori\database\Database;
+use webfiori\database\DataType;
 use webfiori\database\mssql\MSSQLTable;
 /**
  * Description of MSSQLTestSchema
@@ -18,21 +19,21 @@ class MSSQLTestSchema extends Database {
         $table00->setComment('This table is used to hold users info.');
         $table00->addColumns([
             'id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 5,
                 ColOption::PRIMARY => true,
                 ColOption::IDENTITY => true
             ],
             'first-name' => [
                 ColOption::SIZE => '15',
-                ColOption::TYPE => 'nvarchar'
+                ColOption::TYPE => DataType::NVARCHAR
             ],
             'last-name' => [
                 ColOption::SIZE => 20,
-                ColOption::TYPE => 'nvarchar'
+                ColOption::TYPE => DataType::NVARCHAR
             ],
             'age' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 3
             ]
         ]);
@@ -41,19 +42,19 @@ class MSSQLTestSchema extends Database {
         $table01 = new MSSQLTable('users_privileges');
         $table01->addColumns([
             'id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 5,
                 ColOption::PRIMARY => true,
             ],
             'can-edit-price' => [
-                ColOption::TYPE => 'boolean',
+                ColOption::TYPE => DataType::BOOL,
                 ColOption::DEFAULT => false
             ],
             'can-change-username' => [
-                ColOption::TYPE => 'boolean'
+                ColOption::TYPE => DataType::BOOL
             ],
             'can-do-anything' => [
-                ColOption::TYPE => 'boolean'
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $table01->addReference($table00, ['id'], 'user_privilege_fk', 'no action', 'no action');
@@ -63,35 +64,35 @@ class MSSQLTestSchema extends Database {
         $table02->setComment("A table used to hold 'users' tasks.");
         $table02->addColumns([
             'task-id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 5,
                 ColOption::PRIMARY => true,
                 ColOption::IDENTITY => true
             ],
             'user-id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => '5',
                 ColOption::COMMENT => "The ID of the user who must perform the 'activity'."
             ],
             'created-on' => [
-                ColOption::TYPE => 'datetime2',
+                ColOption::TYPE => DataType::DATETIME2,
                 ColOption::DEFAULT => 'now',
                 ColOption::SIZE => 0
             ],
             'last-updated' => [
-                ColOption::TYPE => 'datetime2',
+                ColOption::TYPE => DataType::DATETIME2,
                 ColOption::NULL => true,
                 ColOption::AUTO_UPDATE => true,
                 ColOption::SIZE => 0,
                 ColOption::COMMENT => 'The last time this record was updated at.'
             ],
             'is-finished' => [
-                ColOption::TYPE => 'boolean',
+                ColOption::TYPE => DataType::BOOL,
                 ColOption::DEFAULT => false
             ],
             'details' => [
                 ColOption::SIZE => 1500,
-                ColOption::TYPE => 'varchar'
+                ColOption::TYPE => DataType::VARCHAR
             ]
         ]);
         $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'no action', 'no action');
@@ -100,7 +101,7 @@ class MSSQLTestSchema extends Database {
         $table03 = new MSSQLTable('profile_pics');
         $table03->addColumns([
             'user-id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 5,
                 ColOption::PRIMARY => true
             ],

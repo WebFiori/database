@@ -4,6 +4,7 @@ namespace webfiori\database\tests\common;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\database\ColOption;
+use webfiori\database\DataType;
 use webfiori\database\mssql\MSSQLInsertBuilder;
 use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLInsertBuilder;
@@ -21,34 +22,34 @@ class InsertBuilderTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 11,
                 ColOption::PRIMARY => true,
                 ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 256,
                 ColOption::UNIQUE => true
             ],
             'username' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 20,
                 ColOption::UNIQUE => true
             ],
             'password' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 256
             ],
             'age' => [
                 ColOption::TYPE => 'decimal'
             ],
             'created-on' => [
-                ColOption::TYPE => 'timestamp',
+                ColOption::TYPE => DataType::TIMESTAMP,
                 ColOption::DEFAULT => 'now()',
             ],
             'is-active' => [
-                ColOption::TYPE => 'bool',
+                ColOption::TYPE => DataType::BOOL,
                 ColOption::DEFAULT => true
             ]
         ]);
@@ -95,34 +96,34 @@ class InsertBuilderTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 11,
                 ColOption::PRIMARY => true,
                 ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 256,
                 ColOption::UNIQUE => true
             ],
             'username' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 20,
                 ColOption::UNIQUE => true
             ],
             'password' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 256
             ],
             'age' => [
                 ColOption::TYPE => 'decimal'
             ],
             'created-on' => [
-                ColOption::TYPE => 'timestamp',
+                ColOption::TYPE => DataType::TIMESTAMP,
                 ColOption::DEFAULT => 'now()',
             ],
             'is-active' => [
-                ColOption::TYPE => 'bool',
+                ColOption::TYPE => DataType::BOOL,
                 ColOption::DEFAULT => true
             ]
         ]);
@@ -160,32 +161,32 @@ class InsertBuilderTest extends TestCase {
         $table = new MSSQLTable('users');
         $table->addColumns([
             'user-id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 11,
                 ColOption::PRIMARY => true,
                 ColOption::IDENTITY => true
             ],
             'email' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 256,
             ],
             'username' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 20,
             ],
             'password' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 256
             ],
             'age' => [
                 ColOption::TYPE => 'decimal'
             ],
             'created-on' => [
-                ColOption::TYPE => 'datetime2',
+                ColOption::TYPE => DataType::DATETIME2,
                 ColOption::DEFAULT => 'now()',
             ],
             'is-active' => [
-                ColOption::TYPE => 'bool',
+                ColOption::TYPE => DataType::BOOL,
                 ColOption::DEFAULT => true
             ]
         ]);

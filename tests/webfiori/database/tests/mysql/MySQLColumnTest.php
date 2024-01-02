@@ -281,7 +281,7 @@ class MySQLColumnTest extends TestCase {
     public function testCreateCol01() {
         $colObj = MySQLColumn::createColObj([
             'name' => 'my_col',
-            'type' => 'varchar',
+            'type' => DataType::VARCHAR,
             'validator' => function ($orgVal, $cleaned) {
                 return 'Hello '.$cleaned;
             }

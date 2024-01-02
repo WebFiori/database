@@ -1,6 +1,8 @@
 <?php
 
 use webfiori\database\ColOption;
+use webfiori\database\DataType;
+use webfiori\database\DataTypes;
 use webfiori\database\FK;
 use webfiori\database\mysql\MySQLTable;
 
@@ -10,11 +12,11 @@ class UserBookmarksTable extends MySQLTable {
 
         $this->addColumns([
             'id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 6
             ],
             'title' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 128,
                 ColOption::DEFAULT => 'New Bookmark'
             ],
@@ -23,11 +25,11 @@ class UserBookmarksTable extends MySQLTable {
                 ColOption::SIZE => 256
             ],
             'bookmarked-on' => [
-                ColOption::TYPE => 'timestamp',
+                ColOption::TYPE => DataType::TIMESTAMP,
                 ColOption::DEFAULT => 'current_timestamp'
             ],
             'user_id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 5,
                 ColOption::FK => [
                     ColOption::FK_TABLE => UserInformation::class,

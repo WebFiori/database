@@ -1,6 +1,7 @@
 <?php
 
 use webfiori\database\ColOption;
+use webfiori\database\DataType;
 use webfiori\database\mysql\MySQLTable;
 
 class UserInformationTable extends MySQLTable {
@@ -9,21 +10,21 @@ class UserInformationTable extends MySQLTable {
 
         $this->addColumns([
             'id' => [
-                ColOption::TYPE => 'int',
+                ColOption::TYPE => DataType::INT,
                 ColOption::SIZE => 5,
                 ColOption::PRIMARY => true,
                 'auto-inc' => true
             ],
             'first-name' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 15
             ],
             'last-name' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 15
             ],
             'email' => [
-                ColOption::TYPE => 'varchar',
+                ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 128
             ]
         ]);

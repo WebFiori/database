@@ -9,6 +9,7 @@
 namespace webfiori\database\tests\mysql;
 
 use PHPUnit\Framework\TestCase;
+use webfiori\database\DataType;
 use webfiori\database\mssql\MSSQLTable;
 use webfiori\database\mysql\MySQLColumn;
 use webfiori\database\mysql\MySQLTable;
@@ -26,27 +27,27 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 11,
                 'primary' => true,
                 'auto-inc' => true
             ],
             'email' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256,
                 'is-unique' => true
             ],
             'username' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 20,
                 'is-unique' => true
             ],
             'password' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256
             ],
             'created-on' => [
-                'type' => 'timestamp',
+                'type' => DataType::TIMESTAMP,
                 'default' => 'now()',
             ],
         ]);
@@ -54,13 +55,13 @@ class MySQLTableTest extends TestCase {
         $table2 = new MySQLTable('t');
         $table2->addColumns([
             'user-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 11,
                 'primary' => true,
                 'auto-inc' => true
             ],
             'email' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256,
                 'is-unique' => true
             ],
@@ -86,27 +87,27 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 11,
                 'primary' => true,
                 'auto-inc' => true
             ],
             'email' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256,
                 'is-unique' => true
             ],
             'username' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 20,
                 'is-unique' => true
             ],
             'password' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256
             ],
             'created-on' => [
-                'type' => 'timestamp',
+                'type' => DataType::TIMESTAMP,
                 'default' => 'now()',
             ],
         ]);
@@ -114,13 +115,13 @@ class MySQLTableTest extends TestCase {
         $table2 = new MySQLTable('t');
         $table2->addColumns([
             'user-id-super' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 11,
                 'primary' => true,
                 'auto-inc' => true
             ],
             'email-x' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256,
                 'is-unique' => true
             ],
@@ -146,27 +147,27 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 11,
                 'primary' => true,
                 'auto-inc' => true
             ],
             'email' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256,
                 'is-unique' => true
             ],
             'username' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 20,
                 'is-unique' => true
             ],
             'password' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256
             ],
             'created-on' => [
-                'type' => 'timestamp',
+                'type' => DataType::TIMESTAMP,
                 'default' => 'now()',
             ],
         ]);
@@ -174,13 +175,13 @@ class MySQLTableTest extends TestCase {
         $table2 = new MySQLTable('t');
         $table2->addColumns([
             'user-id-super' => [
-                'type' => 'int',
+                'type' => DataType::INT,
                 'size' => 11,
                 'primary' => true,
                 'auto-inc' => true
             ],
             'email-x' => [
-                'type' => 'varchar',
+                'type' => DataType::VARCHAR,
                 'size' => 256,
                 'is-unique' => true
             ],
@@ -284,7 +285,7 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable();
         $table->addColumns([
             'user-id' => [
-                'datatype' => 'int',
+                'datatype' => DataType::INT,
                 'size' => 11,
                 'is-primary' => true
             ],
@@ -453,7 +454,7 @@ class MySQLTableTest extends TestCase {
                 'size' => 15
             ],
             'is-active' => [
-                'type' => 'bool'
+                'type' => DataType::BOOL
             ]
         ]);
         $this->assertEquals('bool',$table->getColByKey('is-active')->getDatatype());
@@ -479,7 +480,7 @@ class MySQLTableTest extends TestCase {
         $this->assertNull($table->removeReference('not-exist'));
         $this->assertEquals([
             'user-id' => 'mixed',
-            'is-active' => 'bool'
+            'is-active' => DataType::BOOL
         ], $table->getColsDataTypes());
     }
     /**
@@ -492,7 +493,7 @@ class MySQLTableTest extends TestCase {
                 'size' => 15
             ],
             'is-active' => [
-                'type' => 'bool'
+                'type' => DataType::BOOL
             ]
         ]);
         $table2 = new MySQLTable('user_info');
@@ -524,7 +525,7 @@ class MySQLTableTest extends TestCase {
                 'size' => 50
             ],
             'is-active' => [
-                'type' => 'bool'
+                'type' => DataType::BOOL
             ]
         ]);
         $table2 = new MySQLTable('user_info');

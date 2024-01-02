@@ -1,6 +1,10 @@
 <?php
 namespace webfiori\database\tests\common;
+
 use PHPUnit\Framework\TestCase;
+use UserClass;
+use webfiori\database\ColOption;
+use webfiori\database\DataType;
 use webfiori\database\EntityMapper;
 use webfiori\database\tests\mysql\MySQLTestSchema;
 
@@ -18,7 +22,7 @@ class EntityMapperTest extends TestCase {
         $t = $schema->getTable('users');
         $t->addColumns([
             'c-x-file' => [
-                'type' => 'bool'
+            ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $entityMapper = new EntityMapper($t, 'UserClass');
@@ -136,7 +140,7 @@ class EntityMapperTest extends TestCase {
             'last_name' => 'BinAlshikh',
             'age' => 28
         ]);
-        $this->assertTrue($obj instanceof \UserClass);
+        $this->assertTrue($obj instanceof UserClass);
         $this->assertEquals(55, $obj->getId());
         $this->assertEquals('Ibrahim', $obj->getFirstName());
         $this->assertEquals('BinAlshikh', $obj->getLastName());
