@@ -10,6 +10,7 @@ namespace webfiori\database\tests\mysql;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\database\ColumnFactory;
+use webfiori\database\DataType;
 use webfiori\database\mssql\MSSQLColumn;
 use webfiori\database\mysql\MySQLColumn;
 /**
