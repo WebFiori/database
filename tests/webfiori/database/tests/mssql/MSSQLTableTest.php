@@ -562,7 +562,7 @@ class MSSQLTableTest extends TestCase {
                 ColOption::SIZE => 15
             ],
             'is-active' => [
-                ColOption::TYPE => DataType::BOOL
+                ColOption::TYPE => 'boolean'
             ]
         ]);
         $this->assertEquals('boolean',$table->getColByKey('is-active')->getDatatype());
