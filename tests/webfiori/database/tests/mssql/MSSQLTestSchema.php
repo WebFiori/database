@@ -106,7 +106,7 @@ class MSSQLTestSchema extends Database {
             ],
             'pic' => [
                 ColOption::TYPE => 'binary',
-                ColOption::SIZE => 100
+                ColOption::SIZE => 1
             ]
         ]);
         $table03->addReference($table00, ['user-id'=>'id'], 'user_profile_pic_fk', 'no action', 'no action');
