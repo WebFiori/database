@@ -168,14 +168,14 @@ abstract class Table {
      * @throws DatabaseException
      */
     public function addReferenceFromArray(string $colName, array $keyProps) : Table {
-        if (!isset($keyProps['table'])) {
+        if (!isset($keyProps[ColOption::FK_TABLE])) {
             return $this;
         }
-        $table = $this->getRefTable($keyProps['table']);
-        $keyName = $keyProps['name'] ?? '';
-        $col = $keyProps['col'] ?? '';
-        $onUpdate = $keyProps['on-update'] ?? FK::SET_NULL;
-        $onDelete = $keyProps['on-delete'] ?? FK::SET_NULL;
+        $table = $this->getRefTable($keyProps[ColOption::FK_TABLE]);
+        $keyName = $keyProps[ColOption::FK_NAME] ?? '';
+        $col = $keyProps[ColOption::FK_COL] ?? '';
+        $onUpdate = $keyProps[ColOption::FK_ON_UPDATE] ?? FK::SET_NULL;
+        $onDelete = $keyProps[ColOption::FK_ON_DELETE] ?? FK::SET_NULL;
         
         return $this->addReference($table, [$colName => $col], $keyName, $onUpdate, $onDelete);
     }

@@ -10,6 +10,7 @@
  */
 namespace webfiori\database\mssql;
 
+use webfiori\database\ColOption;
 use webfiori\database\Column;
 use webfiori\database\Table;
 /**
@@ -103,16 +104,16 @@ class MSSQLTable extends Table {
                 $arrToAdd[$key] = $arrOrObj;
             } else {
                 if (gettype($arrOrObj) == 'array') {
-                    if (!isset($arrOrObj['name'])) {
-                        $arrOrObj['name'] = str_replace('-', '_', $key);
+                    if (!isset($arrOrObj[ColOption::NAME])) {
+                        $arrOrObj[ColOption::NAME] = str_replace('-', '_', $key);
                     }
                     $colObj = MSSQLColumn::createColObj($arrOrObj);
 
                     if ($colObj instanceof MSSQLColumn) {
                         $arrToAdd[$key] = $colObj;
                         
-                        if (isset($arrOrObj['fk'])) {
-                            $fksArr[$key] = $arrOrObj['fk'];
+                        if (isset($arrOrObj[ColOption::FK])) {
+                            $fksArr[$key] = $arrOrObj[ColOption::FK];
                             
                         }
                     }

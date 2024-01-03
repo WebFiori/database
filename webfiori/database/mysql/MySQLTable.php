@@ -10,6 +10,7 @@
  */
 namespace webfiori\database\mysql;
 
+use webfiori\database\ColOption;
 use webfiori\database\Column;
 use webfiori\database\Table;
 /**
@@ -115,15 +116,15 @@ class MySQLTable extends Table {
                 $arrToAdd[$key] = $arrOrObj;
             } else {
                 if (gettype($arrOrObj) == 'array') {
-                    if (!isset($arrOrObj['name'])) {
-                        $arrOrObj['name'] = str_replace('-', '_', $key);
+                    if (!isset($arrOrObj[ColOption::NAME])) {
+                        $arrOrObj[ColOption::NAME] = str_replace('-', '_', $key);
                     }
                     $colObj = MySQLColumn::createColObj($arrOrObj);
 
                     if ($colObj instanceof MySQLColumn) {
                         $arrToAdd[$key] = $colObj;
-                        if (isset($colsArr['fk'])) {
-                            $fksArr[$key] =  $arrOrObj['fk'];
+                        if (isset($arrOrObj[ColOption::FK])) {
+                            $fksArr[$key] =  $arrOrObj[ColOption::FK];
                         }
                     }
                 }
