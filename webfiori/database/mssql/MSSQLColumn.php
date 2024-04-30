@@ -632,6 +632,7 @@ class MSSQLColumn extends Column {
         }
     }
     private function firstColPartString() {
+        $this->setWithTablePrefix(false);
         $retVal = MSSQLQuery::squareBr($this->getName()).' ';
         $colDataTypeSq = MSSQLQuery::squareBr($this->getDatatype());
         $colDataType = $this->getDatatype();
