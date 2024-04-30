@@ -299,11 +299,13 @@ class MSSQLTable extends Table {
             $sourceCols = [];
 
             foreach ($fkObj->getSourceCols() as $colObj) {
+                $colObj->setWithTablePrefix(false);
                 $sourceCols[] = ''.$colObj->getName().'';
             }
             $targetCols = [];
 
             foreach ($fkObj->getOwnerCols() as $colObj) {
+                $colObj->setWithTablePrefix(false);
                 $targetCols[] = ''.$colObj->getName().'';
             }
             $fkConstraint .= "    constraint ".$fkObj->getKeyName().' '
