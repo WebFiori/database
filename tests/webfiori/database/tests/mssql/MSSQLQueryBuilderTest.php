@@ -1024,6 +1024,16 @@ class MSSQLQueryBuilderTest extends TestCase{
     }
     /**
      * @test
+     */
+    public function testSelectWithWhere000() {
+        $schema = new MSSQLTestSchema();
+        $bulder = $schema->table('users')->select()->where('id', 66);
+        $this->assertEquals('select * from [users] where [users].[id] = ?', $schema->getLastQuery());
+        $bulder->getTable()->getSelect()->addWhere(new Expression('year(x)'), new Expression('in(300)'));
+        $this->assertEquals('select * from [users] where [users].[id] = ? and year(x) in(300) group by [users].[first_name], [users].[last_name]', $schema->getLastQuery());
+    }
+    /**
+     * @test
      * 
      */
     public function testSelectWithWhere009() {
