@@ -882,7 +882,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     /**
      * @test
      */
-    public function testSelectWithWhere000() {
+    public function testSelectWithWhere013() {
         $schema = new MSSQLTestSchema();
         $bulder = $schema->table('users')->select()->where('id', 66);
         $this->assertEquals('select * from [users] where [users].[id] = ?', $schema->getLastQuery());
