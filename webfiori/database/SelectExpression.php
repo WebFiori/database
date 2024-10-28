@@ -225,7 +225,9 @@ class SelectExpression extends Expression {
 
             $this->whereExp = $parentWhere;
         } else {
-            if ($rightOp === null) {
+            if ($leftOpOrExp instanceof Expression && $rightOp === null) {
+                $this->whereExp->addCondition($leftOpOrExp, $join);
+            } else if ($rightOp === null) {
                 $this->addWhereNull($leftOpOrExp, $join, !($cond == '='));
             } else {
                 if ($this->whereExp === null) {
