@@ -201,6 +201,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 'details' => 'This task is about testing if transactions work as intended.',
             ]
         ], $tasks);
+        
         return intval($userId);
     }
     /**
@@ -284,7 +285,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 });
             }, [$userId]);
         } catch (DatabaseException $ex) {
-            $this->assertEquals("515 - [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'age', table 'testing_db.dbo.users'; column does not allow nulls. INSERT fails.", $ex->getMessage());
+            $this->assertEquals("515 - The statement has been terminated due to following: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'age', table 'testing_db.dbo.users'; column does not allow nulls. INSERT fails.", $ex->getMessage());
             $this->assertEquals(515, $ex->getCode());
             $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
             $this->assertEquals([
@@ -548,9 +549,10 @@ class MSSQLQueryBuilderTest extends TestCase{
     /**
      * @test
      * @param MSSQLTestSchema $schema
-     * @depends testCreateTable
      */
-    public function testInsert03(MSSQLTestSchema $schema) {
+    public function testInsert03() {
+        $schema = new MSSQLTestSchema();
+        $schema->createTables()->execute();
         $schema->table('users')->insert([
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh',
@@ -709,6 +711,24 @@ class MSSQLQueryBuilderTest extends TestCase{
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
                 . "values (?, ?, ?, ?);", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testInsert06() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("207 - Statement(s) could not be prepared due to the following: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'not_exist'.");
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->insert([
+            'user-id' => null,
+            'details' => 'OK task',
+            'not-exist' => 7
+        ]);
+        $this->assertEquals("insert into [users_tasks] "
+                . "([user_id], [details], [not_exist], [created_on], [is_finished]) "
+                . "values (?, ?, ?, ?, ?);", $schema->getLastQuery());
+        $q->execute();
     }
     /**
      * @test
@@ -1144,7 +1164,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         if (PHP_MAJOR_VERSION == 5) {
             $this->markTestSkipped('PHP 5 has no MSSQL driver in selected setup.');
         } else {
-            $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost');
+            $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST);
             $conn = new MSSQLConnection($connInfo);
             $schema = new MSSQLTestSchema();
             $schema->setConnection($conn);

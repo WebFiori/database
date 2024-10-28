@@ -4,6 +4,7 @@
 ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
+define('SQL_SERVER_HOST', 'localhost');
 $stderr = fopen('php://stderr', 'w');
 $testsDirName = 'tests';
 $rootDir = substr(__DIR__, 0, strlen(__DIR__) - strlen($testsDirName));
@@ -104,7 +105,7 @@ register_shutdown_function(function()
     } else {
         echo "Dropping test tables from MSSQL Server...\n";
         try{
-            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost');
+            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST);
             $mssqlConn = new MSSQLConnection($mssqlConnInfo);
             $mssqlSchema = new MSSQLTestSchema();
             $mssqlSchema->setConnection($mssqlConn);
