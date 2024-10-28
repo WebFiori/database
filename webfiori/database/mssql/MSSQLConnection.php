@@ -208,17 +208,17 @@ class MSSQLConnection extends Connection {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);
         $lastErr = $allErrs[count($allErrs) - 1];
 
-        if (strpos($lastErr['message'], 'The statement has been terminated') === false) {
+        if (strpos($lastErr['message'], 'The statement has been terminated') === true) {
+            $lastErr = $allErrs[count($allErrs) - 2];
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
-            $this->setErrCode($lastErr['code']);
         } else if (strpos($lastErr['message'], 'Statement(s) could not be prepared') === true) {
             $lastErr = $allErrs[count($allErrs) - 1];
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage('Statement(s) could not be prepared: '.$lastErr['message']);
             $this->setErrCode($lastErr['code']);
         } else {
-            $lastErr = $allErrs[count($allErrs) - 2];
+            $this->setErrCode($lastErr['code']);
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
             $this->setErrCode($lastErr['code']);
