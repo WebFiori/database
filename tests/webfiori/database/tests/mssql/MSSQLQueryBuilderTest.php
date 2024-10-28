@@ -201,6 +201,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 'details' => 'This task is about testing if transactions work as intended.',
             ]
         ], $tasks);
+        
         return intval($userId);
     }
     /**
@@ -709,6 +710,22 @@ class MSSQLQueryBuilderTest extends TestCase{
         $this->assertEquals("insert into [users_tasks] "
                 . "([user_id], [details], [created_on], [is_finished]) "
                 . "values (?, ?, ?, ?);", $schema->getLastQuery());
+    }
+    /**
+     * @test
+     */
+    public function testInsert06() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users_tasks');
+        $q->insert([
+            'user-id' => null,
+            'details' => 'OK task',
+            'not-exist' => 7
+        ]);
+        $this->assertEquals("insert into [users_tasks] "
+                . "([user_id], [details], [not_exist], [created_on], [is_finished]) "
+                . "values (?, ?, ?, ?, ?);", $schema->getLastQuery());
+        $q->execute();
     }
     /**
      * @test
