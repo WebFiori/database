@@ -715,6 +715,8 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @test
      */
     public function testInsert06() {
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("207 - Statement(s) could not be prepared: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'not_exist'.");
         $schema = new MSSQLTestSchema();
         $q = $schema->table('users_tasks');
         $q->insert([

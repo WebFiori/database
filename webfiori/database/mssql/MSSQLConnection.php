@@ -212,8 +212,8 @@ class MSSQLConnection extends Connection {
             $lastErr = $allErrs[count($allErrs) - 2];
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage($lastErr['message']);
-        } else if (strpos($lastErr['message'], 'Statement(s) could not be prepared') === true) {
-            $lastErr = $allErrs[count($allErrs) - 1];
+        } else if ($lastErr['SQLSTATE'] == '42000' && $lastErr['code'] == 8180) {
+            $lastErr = $allErrs[count($allErrs) - 2];
             $this->sqlState = $lastErr['SQLSTATE'];
             $this->setErrMessage('Statement(s) could not be prepared: '.$lastErr['message']);
             $this->setErrCode($lastErr['code']);
