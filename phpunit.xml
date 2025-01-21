@@ -21,6 +21,8 @@
             <directory suffix=".php">./webfiori/database/WhereExpression.php</directory>
             <directory suffix=".php">./webfiori/database/RecordMapper.php</directory>
             <directory suffix=".php">./webfiori/database/InsertBuilder.php</directory>
+            <directory suffix=".php">./webfiori/database/migration/AbstractMigration.php</directory>
+            <directory suffix=".php">./webfiori/database/migration/MigrationsRunner.php</directory>
         </whitelist>
     </filter>
     <logging>
@@ -35,6 +37,9 @@
         </testsuite>
         <testsuite name="MSSQL Tests">
             <directory>./tests/webfiori/database/tests/mssql</directory>
+        </testsuite>
+        <testsuite name="Migration Tests">
+            <directory>./tests/webfiori/database/tests</directory>
         </testsuite>
     </testsuites>
 </phpunit>
