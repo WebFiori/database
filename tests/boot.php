@@ -57,6 +57,9 @@ require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLConnec
 
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'mssql'.$DS.'MSSQLTestSchema.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'common'.$DS.'HelloTable.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'migrations'.$DS.'Mig00.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'migrations'.$DS.'Mig01.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'migrations'.$DS.'NotMig.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'User.php';
 
 $jsonLibPath = $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json';
