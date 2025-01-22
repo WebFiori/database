@@ -27,6 +27,9 @@ jobs:
     name: PHP${{matrix.php}} - ${{matrix.os}}
     
     steps: 
+      - name: List All
+        run: find . -printf "%p\n"
+        
       - name: Clone Repo
         uses: actions/checkout@v4
       
