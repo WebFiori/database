@@ -18,12 +18,6 @@ jobs:
           MSSQL_PID: Express
         ports:
           - "1433:1433"
-        healthcheck:
-          test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "1234567890@Eu" -Q "SELECT 1" -b -o /dev/null
-          interval: 10s
-          timeout: 3s
-          retries: 10
-          start_period: 10s
     strategy: 
       fail-fast: true
       matrix: 
@@ -62,7 +56,7 @@ jobs:
           done
           
       - name: Setup MSSQL
-        run: sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+        run: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
           
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
