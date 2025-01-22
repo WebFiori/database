@@ -61,8 +61,8 @@ jobs:
          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
          sudo apt update
-         sudo apt install mssql-tools
-         sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+         sudo apt install mssql-tools18
+         /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
       
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
