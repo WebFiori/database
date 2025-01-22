@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }} 
     services:
       sql.data:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2019-CU27-ubuntu-20.04
         env:
           SA_PASSWORD: 1234567890@Eu
           ACCEPT_EULA: Y
@@ -27,6 +27,14 @@ jobs:
     name: PHP${{matrix.php}} - ${{matrix.os}}
     
     steps: 
+      - name: List Containers
+        run: docker ps -a
+      - name: List
+        run: | 
+              ls /opt/mssql/bin
+              ls /opt/mssql-tools/bin
+              ls /opt/mssql-tools18/bin
+             
       - name: Clone Repo
         uses: actions/checkout@v4
       
