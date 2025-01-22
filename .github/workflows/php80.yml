@@ -54,11 +54,9 @@ jobs:
           while ! mysqladmin ping --host=127.0.0.1 --password=123456 --silent; do
             sleep 1
           done
-      - name: Add SQL Seerver To PATH
-        run: export PATH=$PATH:/opt/mssql/bin:/opt/mssql-tools/bin:/opt/mssql-tools18/bin/sqlcmd
-        
+
       - name: Setup MSSQL
-        run: sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+        run: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
       
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
