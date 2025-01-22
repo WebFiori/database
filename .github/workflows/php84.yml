@@ -31,9 +31,9 @@ jobs:
         run: docker ps -a
       - name: List
         run: | 
-             | ls /opt/mssql/bin
-             | ls /opt/mssql-tools/bin
-             | ls /opt/mssql-tools18/bin
+              ls /opt/mssql/bin
+              ls /opt/mssql-tools/bin
+              ls /opt/mssql-tools18/bin
              
       - name: Clone Repo
         uses: actions/checkout@v4
