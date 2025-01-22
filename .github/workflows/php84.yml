@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }} 
     services:
       sql.data:
-        image: mcr.microsoft.com/mssql/server:2022-CU13-ubuntu-20.04
+        image: mcr.microsoft.com/mssql/server:2019-CU27-ubuntu-20.04
         env:
           SA_PASSWORD: 1234567890@Eu
           ACCEPT_EULA: Y
@@ -56,7 +56,7 @@ jobs:
           done
           
       - name: Setup MSSQL
-        run: /var/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+        run: sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
           
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
