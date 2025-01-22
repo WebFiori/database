@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }} 
     services:
       sql.data:
-        image: mcr.microsoft.com/mssql/server:server:2022-CU13-ubuntu-20.04
+        image: mcr.microsoft.com/mssql/server:2022-CU13-ubuntu-20.04
         env:
           SA_PASSWORD: 1234567890@Eu
           ACCEPT_EULA: Y
