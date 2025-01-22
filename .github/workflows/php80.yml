@@ -58,9 +58,9 @@ jobs:
 
       - name: Setup MSSQL
         run: |
-          | sudo apt update
-          | sudo apt install mssql-tools
-          | sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+         sudo apt update
+         sudo apt install mssql-tools
+         sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
       
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
