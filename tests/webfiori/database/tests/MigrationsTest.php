@@ -4,6 +4,7 @@ namespace webfiori\database\tests;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\database\ConnectionInfo;
+use webfiori\database\DatabaseException;
 use webfiori\database\migration\AbstractMigration;
 use webfiori\database\migration\MigrationsRunner;
 
@@ -12,9 +13,24 @@ class MigrationsTest extends TestCase {
      * @test
      */
     public function test00() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
-        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\webfiori\\database\\tests\\migrations', $connInfo);
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage("Connection information not set.");
+        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\webfiori\\database\\tests\\migrations', null);
         $this->assertEquals(2, count($m->getMigrations()));
+        $m->createMigrationsTable();
+    }
+    /**
+     * @test
+     */
+    public function test01() {
+        $connInfo = new ConnectionInfo('mssql','TestingLogin', 'cz$ssAb&w', 'MasterData_UnitTesting', 'BI-DW-PROD');
+        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\webfiori\\database\\tests\\migrations', null);
+        $this->assertEquals(2, count($m->getMigrations()));
+        try {
+            $m->createMigrationsTable();
+        } catch (DatabaseException $ex) {
+            $m->setConnectionInfo($connInfo);
+        }
         $m->createMigrationsTable();
         $this->assertNull($m->rollback());
         $applied = $m->apply();
@@ -28,5 +44,6 @@ class MigrationsTest extends TestCase {
         $this->assertTrue($mig00 instanceof AbstractMigration);
         $this->assertEquals('Mig00', $mig00->getName());
         $this->assertEquals(0, $mig00->getOrder());
+        $m->dropMigrationsTable();
     }
 }
