@@ -57,6 +57,7 @@ class TypesMap {
                 'varbinary' => 'blob',
                 'date' => 'datetime',
                 'datetime2' => 'datetime',
+                'datetime' => 'datetime',
                 'time' => 'varchar',
                 'money' => 'decimal',
                 'bit' => 'bit',
