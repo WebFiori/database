@@ -23,7 +23,9 @@ class MigrationsTest extends TestCase {
      * @test
      */
     public function test01() {
-        $connInfo = new ConnectionInfo('mssql','TestingLogin', 'cz$ssAb&w', 'MasterData_UnitTesting', 'BI-DW-PROD');
+        $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+            'TrustServerCertificate' => 'true'
+        ]);
         $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\webfiori\\database\\tests\\migrations', null);
         $this->assertEquals(2, count($m->getMigrations()));
         try {
