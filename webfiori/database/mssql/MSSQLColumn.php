@@ -74,6 +74,7 @@ class MSSQLColumn extends Column {
             'varbinary',
             'date',
             'datetime2',
+            'datetime',
             'time',
             'money',
             'bit',
@@ -364,6 +365,7 @@ class MSSQLColumn extends Column {
             case 'varbinary' : return [SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR), SQLSRV_SQLTYPE_VARBINARY];
             case 'date' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATE];
             case 'datetime2' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATETIME2];
+            case 'datetime' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_DATETIME];
             case 'time' : return [SQLSRV_PHPTYPE_DATETIME, SQLSRV_SQLTYPE_TIME];
             case 'money' : return [SQLSRV_PHPTYPE_FLOAT, SQLSRV_SQLTYPE_MONEY];
             case 'bit' : return [SQLSRV_PHPTYPE_INT, SQLSRV_SQLTYPE_BIT];
