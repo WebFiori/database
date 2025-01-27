@@ -2,7 +2,7 @@
     "name": "webfiori/database",
     "description": "Database abstraction layer of WebFiori framework.",
     "type": "library",
-    "version": "0.8.12",
+    "version": "0.9.0",
     "keywords": [
         "Database",
         "PHP",
