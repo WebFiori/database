@@ -72,7 +72,7 @@ class Database {
     /**
      * Creates new instance of the class.
      * 
-     * @param ConnectionInfo $connectionInfo An object that holds database 
+     * @param ConnectionInfo|null $connectionInfo An object that holds database 
      * connection information.
      * 
      * @throws DatabaseException The method will throw an exception if database 
@@ -80,8 +80,10 @@ class Database {
      * 
      * 
      */
-    public function __construct(ConnectionInfo $connectionInfo = null) {
-        $this->setConnectionInfo($connectionInfo);
+    public function __construct(?ConnectionInfo $connectionInfo) {
+        if ($connectionInfo !== null) {
+            $this->setConnectionInfo($connectionInfo);
+        }
         $this->queries = [];
         $this->tablesArr = [];
     }
@@ -236,12 +238,18 @@ class Database {
      * and so on.
      */
     public function createBlueprint(string $name) : Table {
-        $dbType = $this->getConnection()->getConnectionInfo()->getDatabaseType();
+        $connection = $this->getConnection();
+        
+        if($connection === null) {
+            $dbType = 'mysql';
+        } else {
+            $dbType = $connection->getConnectionInfo()->getDatabaseType();
+        }
 
-        if ($dbType == 'mysql') {
-            $blueprint = new MySQLTable($name);
-        } else if ($dbType == 'mssql') {
+        if ($dbType == 'mssql') {
             $blueprint = new MSSQLTable($name);
+        } else {
+            $blueprint = new MySQLTable($name);
         }
         $this->addTable($blueprint);
 
@@ -352,10 +360,11 @@ class Database {
      * 
      * 
      */
-    public function getConnection() : Connection {
-        if ($this->connection === null) {
-            $driver = $this->getConnectionInfo()->getDatabaseType();
-            $connInfo = $this->getConnectionInfo();
+    public function getConnection() : ?Connection {
+        $connInfo = $this->getConnectionInfo();
+        
+        if ($this->connection === null && $connInfo !== null) {
+            $driver = $connInfo->getDatabaseType();
 
             if ($driver == 'mysql') {
                 $conn = new MySQLConnection($connInfo);
@@ -371,11 +380,11 @@ class Database {
     /**
      * Returns an object that holds connection information.
      * 
-     * @return ConnectionInfo An object that holds connection information.
+     * @return ConnectionInfo|null An object that holds connection information.
      * 
      * 
      */
-    public function getConnectionInfo() : ConnectionInfo {
+    public function getConnectionInfo() : ?ConnectionInfo {
         return $this->connectionInfo;
     }
 
@@ -459,6 +468,13 @@ class Database {
      * 
      */
     public function getQueryGenerator() : AbstractQuery {
+        if (!$this->isConnected()) {
+            if ($this->getConnectionInfo() === null) {
+                throw new DatabaseException("Connection information not set.");
+            } else {
+                throw new DatabaseException("Not connected to database.");
+            }
+        }
         return $this->queryGenerator;
     }
     /**
@@ -477,8 +493,15 @@ class Database {
         if (!isset($this->tablesArr[$trimmed])) {
             return null;
         }
-
-        return $this->tablesArr[$trimmed];
+        $engine = 'mysql';
+        $info = $this->getConnectionInfo();
+        
+        if ($info !== null) {
+            $engine = $info->getDatabaseType();
+        }
+        $table = $this->tablesArr[$trimmed];
+        
+        return TableFactory::map($engine, $table);
     }
     /**
      * Returns an array that contains all added tables.
@@ -521,6 +544,16 @@ class Database {
         $this->clear();
 
         return $this->getQueryGenerator()->insert($colsAndVals);
+    }
+    public function isConnected() : bool {
+        if ($this->getConnectionInfo() === null) {
+            return false;
+        }
+        if ($this->getConnection() === null) {
+            return false;
+        }
+        
+        return true;
     }
     /**
      * Sets the number of records that will be fetched by the query.
