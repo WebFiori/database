@@ -205,7 +205,7 @@ class MySQLTableTest extends TestCase {
         $this->assertEquals('[t]', $mappedInstance->getName());
         $this->assertEquals("if not exists (select * from sysobjects where name='t' and xtype='U')\n"
                 . "create table [t] (\n"
-                . "    [user_id_super] [int] not null,\n"
+                . "    [user_id_super] [int] identity(1,1) not null,\n"
                 . "    [email_x] [varchar](256) not null,\n"
                 . "    constraint t_pk primary key clustered([user_id_super]) on [PRIMARY],\n"
                 . "    constraint fk_ok foreign key ([user_id_super], [email_x]) references [users] ([user_id], [email]) on update cascade on delete cascade,\n"
