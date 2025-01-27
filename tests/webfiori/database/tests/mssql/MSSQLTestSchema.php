@@ -13,7 +13,9 @@ use webfiori\database\mssql\MSSQLTable;
  */
 class MSSQLTestSchema extends Database {
     public function __construct() {
-        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST));
+        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+            'TrustServerCertificate' => 'true'
+        ]));
         
         $table00 = new MSSQLTable('users');
         $table00->setComment('This table is used to hold users info.');
