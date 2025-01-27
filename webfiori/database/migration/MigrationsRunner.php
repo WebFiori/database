@@ -45,7 +45,6 @@ class MigrationsRunner extends Database {
             'applied-on' => [
                 //SQL, use datetime2. Others, use datetime
                 ColOption::TYPE => $dbType == ConnectionInfo::SUPPORTED_DATABASES[1] ? DataType::DATETIME2 : DataType::DATETIME,
-                ColOption::DEFAULT => 'now()'
             ]
         ]);
         $this->migrations = [];
@@ -59,7 +58,6 @@ class MigrationsRunner extends Database {
     }
     public function createMigrationsTable() {
         $this->table('migrations')->createTable();
-        var_dump($this->getLastQuery());
         $this->execute();
     }
     public function dropMigrationsTable() {
