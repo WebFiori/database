@@ -93,23 +93,27 @@ class ColumnFactory {
             $from = 'mssql';
         }
         $optionsArr = [
-            'type' => TypesMap::getType($from, $to, $column->getDatatype()),
-            'default' => $column->getDefault(),
-            'comment' => $column->getComment(),
-            'primary' => $column->isPrimary(),
-            'name' => $column->getName(),
-            'size' => $column->getSize(),
-            'scale' => $column->getScale(),
-            'is-null' => $column->isNull(),
-            'unique' => $column->isUnique(),
-            'validator' => $column->getCustomCleaner(),
-            'auto-update' => $column->isAutoUpdate()
+            ColOption::TYPE => TypesMap::getType($from, $to, $column->getDatatype()),
+            ColOption::DEFAULT => $column->getDefault(),
+            ColOption::COMMENT => $column->getComment(),
+            ColOption::PRIMARY => $column->isPrimary(),
+            ColOption::NAME => $column->getName(),
+            ColOption::SIZE => $column->getSize(),
+            ColOption::SCALE => $column->getScale(),
+            ColOption::NULL => $column->isNull(),
+            ColOption::UNIQUE => $column->isUnique(),
+            ColOption::VALIDATOR => $column->getCustomCleaner(),
+            ColOption::AUTO_UPDATE => $column->isAutoUpdate()
         ];
 
         if ($column instanceof MSSQLColumn) {
-            $optionsArr['identity'] = $column->isIdentity();
+            $optionsArr[ColOption::IDENTITY] = $column->isIdentity();
+            //If its an identity in mssql, then it must be auto inc in MySQL.
+            $optionsArr[ColOption::AUTO_INCREMENT] = $column->isIdentity();
         } else if ($column instanceof MySQLColumn) {
-            $optionsArr['auto-inc'] = $column->isAutoInc();
+            $optionsArr[ColOption::AUTO_INCREMENT] = $column->isAutoInc();
+            //If its auto inc in MySQL, it must be an identity in mssql.
+            $optionsArr[ColOption::IDENTITY] = $column->isAutoInc();
         }
 
         return self::create($to, $column->getName(), $optionsArr);

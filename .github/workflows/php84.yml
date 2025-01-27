@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }} 
     services:
       sql.data:
-        image: mcr.microsoft.com/mssql/server:2019-CU27-ubuntu-20.04
+        image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           SA_PASSWORD: 1234567890@Eu
           ACCEPT_EULA: Y
@@ -27,13 +27,6 @@ jobs:
     name: PHP${{matrix.php}} - ${{matrix.os}}
     
     steps: 
-      - name: List Containers
-        run: docker ps -a
-      - name: List
-        run: | 
-              ls /opt/mssql/bin
-              ls /opt/mssql-tools/bin
-              ls /opt/mssql-tools18/bin
              
       - name: Clone Repo
         uses: actions/checkout@v4
@@ -64,7 +57,12 @@ jobs:
           done
           
       - name: Setup MSSQL
-        run: sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db'
+        run: |
+         curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+         curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+         sudo apt update
+         sudo apt install mssql-tools18
+         /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db' -C
           
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev

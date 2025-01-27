@@ -108,7 +108,9 @@ register_shutdown_function(function()
     } else {
         echo "Dropping test tables from MSSQL Server...\n";
         try{
-            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST);
+            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+                'TrustServerCertificate' => 'true'
+            ]);
             $mssqlConn = new MSSQLConnection($mssqlConnInfo);
             $mssqlSchema = new MSSQLTestSchema();
             $mssqlSchema->setConnection($mssqlConn);

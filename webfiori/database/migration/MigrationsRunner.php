@@ -16,10 +16,21 @@ class MigrationsRunner extends Database {
     private $migrations;
     private $path;
     private $ns;
+    /**
+     * Creates new instance of the class.
+     * 
+     * @param string $path The absolute path to the folder that will have all migrations.
+     * 
+     * @param string $ns The namespace at which the migrations will belongs to.
+     * 
+     * @param ConnectionInfo $connectionInfo The connection that will be used
+     * to execute migrations against.
+     */
     public function __construct(string $path, string $ns, ?ConnectionInfo $connectionInfo) {
         parent::__construct($connectionInfo);
         $this->path = $path;
         $this->ns = $ns;
+        $dbType = $connectionInfo !== null ? $connectionInfo->getDatabaseType() : 'mysql';
         $this->createBlueprint('migrations')->addColumns([
             'id' => [
                 ColOption::TYPE => DataType::INT,
@@ -32,8 +43,8 @@ class MigrationsRunner extends Database {
                 ColOption::SIZE => 125
             ],
             'applied-on' => [
-                ColOption::TYPE => DataType::DATETIME,
-                ColOption::DEFAULT => 'now()'
+                //SQL, use datetime2. Others, use datetime
+                ColOption::TYPE => $dbType == ConnectionInfo::SUPPORTED_DATABASES[1] ? DataType::DATETIME2 : DataType::DATETIME,
             ]
         ]);
         $this->migrations = [];
@@ -47,7 +58,10 @@ class MigrationsRunner extends Database {
     }
     public function createMigrationsTable() {
         $this->table('migrations')->createTable();
-        var_dump($this->getLastQuery());
+        $this->execute();
+    }
+    public function dropMigrationsTable() {
+        $this->table('migrations')->drop();
         $this->execute();
     }
     private function scanPathForMigrations() {

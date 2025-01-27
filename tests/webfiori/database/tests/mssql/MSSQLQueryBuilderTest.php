@@ -285,7 +285,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 });
             }, [$userId]);
         } catch (DatabaseException $ex) {
-            $this->assertEquals("515 - The statement has been terminated due to following: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'age', table 'testing_db.dbo.users'; column does not allow nulls. INSERT fails.", $ex->getMessage());
+            $this->assertEquals("515 - The statement has been terminated due to following: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Cannot insert the value NULL into column 'age', table 'testing_db.dbo.users'; column does not allow nulls. INSERT fails.", $ex->getMessage());
             $this->assertEquals(515, $ex->getCode());
             $user = $schema->table('users')->select()->where('id', $userId)->execute()->getRows()[0];
             $this->assertEquals([
@@ -717,7 +717,7 @@ class MSSQLQueryBuilderTest extends TestCase{
      */
     public function testInsert06() {
         $this->expectException(DatabaseException::class);
-        $this->expectExceptionMessage("207 - Statement(s) could not be prepared due to the following: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'not_exist'.");
+        $this->expectExceptionMessage("207 - Statement(s) could not be prepared due to the following: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'not_exist'.");
         $schema = new MSSQLTestSchema();
         $q = $schema->table('users_tasks');
         $q->insert([
@@ -1164,7 +1164,9 @@ class MSSQLQueryBuilderTest extends TestCase{
         if (PHP_MAJOR_VERSION == 5) {
             $this->markTestSkipped('PHP 5 has no MSSQL driver in selected setup.');
         } else {
-            $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST);
+            $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+                'TrustServerCertificate' => 'true'
+            ]);
             $conn = new MSSQLConnection($connInfo);
             $schema = new MSSQLTestSchema();
             $schema->setConnection($conn);
