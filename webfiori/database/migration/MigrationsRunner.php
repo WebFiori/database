@@ -79,6 +79,11 @@ class MigrationsRunner extends Database {
                 
                 try {
                     if (class_exists($clazz)) {
+                        $xClazz = static::class;
+                        //Prevent recursion
+                        if (trim($clazz, '\\') == $xClazz) {
+                            continue;
+                        }
                         $instance = new $clazz();
                         
                         if ($instance instanceof AbstractMigration) {
