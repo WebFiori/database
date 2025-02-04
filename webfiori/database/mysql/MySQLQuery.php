@@ -48,7 +48,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function addCol(string $colKey, ?string $location) {
+    public function addCol(string $colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
         $colToAdd = $this->getTable()->getColByKey($colKey);
 

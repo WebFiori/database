@@ -1002,7 +1002,7 @@ class MySQLQueryBuilderTest extends TestCase {
     public function testAddColumn00() {
         $schema = new MySQLTestSchema();
         $q = $schema->table('users_tasks');
-        $q->addCol('details', null);
+        $q->addCol('details');
         $this->assertEquals("alter table `users_tasks` add `details` varchar(1500) not null collate utf8mb4_unicode_520_ci;", $schema->getLastQuery());
     }
     /**
