@@ -69,6 +69,7 @@ class Database {
      *  
      */
     private $tablesArr;
+    private $lastErr;
     /**
      * Creates new instance of the class.
      * 
@@ -86,6 +87,10 @@ class Database {
         }
         $this->queries = [];
         $this->tablesArr = [];
+        $this->lastErr = [
+            'code' => 0,
+            'message' => ''
+        ];
     }
     /**
      * Start SQL transaction.
@@ -408,16 +413,13 @@ class Database {
      */
     public function getLastError() : array {
         if ($this->connection !== null) {
-            return [
+            $this->lastErr = [
                 'message' => $this->connection->getLastErrMessage(),
                 'code' => $this->connection->getLastErrCode()
             ];
         }
 
-        return [
-            'message' => '',
-            'code' => 0
-        ];
+        return $this->lastErr;
     }
     /**
      * Returns the last generated SQL query.
@@ -549,7 +551,15 @@ class Database {
         if ($this->getConnectionInfo() === null) {
             return false;
         }
-        if ($this->getConnection() === null) {
+        try {
+            if ($this->getConnection() === null) {
+                return false;
+            }
+        } catch (DatabaseException $ex) {
+            $this->lastErr = [
+                'code' => $ex->getCode(),
+                'message' => $ex->getMessage()
+            ];
             return false;
         }
         
