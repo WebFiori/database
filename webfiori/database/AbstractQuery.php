@@ -125,7 +125,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public abstract function addCol(string $colKey, string $location = null);
+    public abstract function addCol(string $colKey, ?string $location);
     /**
      * Constructs a query that can be used to add foreign key constraint.
      * 

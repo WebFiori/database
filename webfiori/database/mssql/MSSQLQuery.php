@@ -41,7 +41,7 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function addCol(string $colKey, string $location = null) {
+    public function addCol(string $colKey, ?string $location) {
         $tblName = $this->getTable()->getName();
         $colToAdd = $this->getTable()->getColByKey($colKey);
 
