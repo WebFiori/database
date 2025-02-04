@@ -252,7 +252,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function modifyCol($colKey, $location = null) {
+    public function modifyCol($colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
         $colObj = $this->getTable()->getColByKey($colKey);
 

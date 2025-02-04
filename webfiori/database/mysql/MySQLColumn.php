@@ -518,7 +518,7 @@ class MySQLColumn extends Column {
      * 
      * @since 1.0
      */
-    public function setOwner(Table $table = null) {
+    public function setOwner(?Table $table = null) {
         parent::setOwner($table);
 
         if ($this->getOwner() !== null && $this->getOwner() instanceof MySQLTable) {

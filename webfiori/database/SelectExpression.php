@@ -213,7 +213,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function addWhere($leftOpOrExp, $rightOp = null, string $cond = null, string $join = 'and') {
+    public function addWhere($leftOpOrExp, ?mixed $rightOp = null, ?string $cond = null, string $join = 'and') {
         if (!in_array($join, ['and', 'or'])) {
             $join = 'and';
         }
@@ -616,7 +616,7 @@ class SelectExpression extends Expression {
      * @param string $orderType Order type of the column. Can be 'a' for 
      * ascending or 'd' for descending.
      */
-    public function orderBy(string $colKey, string $orderType = null) {
+    public function orderBy(string $colKey, ?string $orderType = null) {
         $colObj = $this->getTable()->getColByKey($colKey);
 
         if ($colObj === null) {

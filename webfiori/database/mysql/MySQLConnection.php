@@ -129,7 +129,7 @@ class MySQLConnection extends Connection {
      * 
      * @since 1.0
      */
-    public function runQuery(AbstractQuery $query = null) {
+    public function runQuery(?AbstractQuery $query = null) {
         $this->setLastQuery($query);
 
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate() && !$this->isCollationSet) {
@@ -299,7 +299,7 @@ class MySQLConnection extends Connection {
         }
     }
 
-    public function beginTransaction(string $name = null) {
+    public function beginTransaction(?string $name = null) {
         //The null check is for php<8
         $message = 'Unable to start transaction.';
         
@@ -314,7 +314,7 @@ class MySQLConnection extends Connection {
         }
     }
 
-    public function commit(string $name = null) {
+    public function commit(?string $name = null) {
         //The null check is for php<8
         $message = 'Unable to commit transaction.';
         if ($name !== null) {
@@ -328,7 +328,7 @@ class MySQLConnection extends Connection {
         }
     }
 
-    public function rollBack(string $name = null) {
+    public function rollBack(?string $name = null) {
         //The null check is for php<8
         $message = 'Unable to roll back transaction.';
         

@@ -619,7 +619,7 @@ class Database {
      *
      * @throws DatabaseException
      */
-    public function orWhere(string $col, $val = null, string $cond = '=') : AbstractQuery {
+    public function orWhere(string $col, ?mixed $val = null, string $cond = '=') : AbstractQuery {
         return $this->where($col, $val, $cond, 'or');
     }
     /**
@@ -780,7 +780,7 @@ class Database {
      *
      * @throws DatabaseException
      */
-    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
+    public function where($col, ?mixed $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         return $this->getQueryGenerator()->where($col, $val, $cond, $joinCond);
     }
 }

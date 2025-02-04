@@ -458,7 +458,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setAlias(string $alias = null) {
+    public function setAlias(?string $alias = null) {
         $trimmed = trim($alias.'');
 
         if (strlen($trimmed) != 0) {
@@ -473,7 +473,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setComment(string $comment = null) {
+    public function setComment(?string $comment = null) {
         $trimmed = trim($comment.'');
 
         if (strlen($trimmed) != 0) {
@@ -614,7 +614,7 @@ abstract class Column {
      * 
      * @since 1.0
      */
-    public function setOwner(Table $table = null) {
+    public function setOwner(?Table $table = null) {
         $this->prevOwner = $this->owner;
 
         if ($table instanceof Table) {

@@ -63,7 +63,7 @@ class RecordMapper {
      * after the underscore.
      *
      */
-    public function addSetterMap(string $colName, string $methodName = null) {
+    public function addSetterMap(string $colName, ?string $methodName = null) {
         $trimmedColName = trim(trim(trim(trim($colName, '`'), ']'), '['));
 
         if (strlen($trimmedColName) == 0) {
