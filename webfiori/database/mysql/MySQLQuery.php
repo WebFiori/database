@@ -191,7 +191,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function dropPrimaryKey(?string $pkName) {
+    public function dropPrimaryKey(?string $pkName = null) {
         $this->setQuery('alter table '.$this->getTable()->getName().' drop primary key;');
 
         return $this;
