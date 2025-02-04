@@ -1096,7 +1096,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function where($col, ?mixed $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
+    public function where($col, mixed $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         if ($col instanceof AbstractQuery) {
             //Prev where was a sub where
             $this->getTable()->getSelect()->addWhere($col, null, null, $joinCond);

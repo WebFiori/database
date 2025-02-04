@@ -213,7 +213,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function addWhere($leftOpOrExp, ?mixed $rightOp = null, ?string $cond = null, string $join = 'and') {
+    public function addWhere($leftOpOrExp, mixed $rightOp = null, ?string $cond = null, string $join = 'and') {
         if (!in_array($join, ['and', 'or'])) {
             $join = 'and';
         }
