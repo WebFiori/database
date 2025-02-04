@@ -164,6 +164,15 @@ class MigrationsRunner extends Database {
         }
         return $applied;
     }
+    /**
+     * Rollback a set of applied migrations.
+     * 
+     * @param string|null $migrationName If a name is provided, the rollback will
+     * be till reaching the specified migration.
+     * 
+     * @return array The method will return an array that holds all rolled back migrations
+     * as objects of type 'AbstractMigration'.
+     */
     public function rollbackUpTo(?string $migrationName) : array {
         $migrations = $this->getMigrations();
         $count = count($migrations);
@@ -194,6 +203,13 @@ class MigrationsRunner extends Database {
         }
         return $rolled;
     }
+    /**
+     * Rollback one single migration.
+     * 
+     * @return AbstractMigration|null If a migration was rolled back, the method
+     * will return the migration as an object of type 'AbstractMigration'. Other than that,
+     * null is returned.
+     */
     public function rollback() : ?AbstractMigration {
         $migrations = $this->getMigrations();
         $count = count($migrations);
