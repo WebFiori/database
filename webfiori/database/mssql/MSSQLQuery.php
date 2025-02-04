@@ -41,7 +41,7 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function addCol(string $colKey, string $location = null) {
+    public function addCol(string $colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
         $colToAdd = $this->getTable()->getColByKey($colKey);
 
@@ -110,7 +110,7 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function dropPrimaryKey($pkName = null) {
+    public function dropPrimaryKey(?string $pkName = null) {
         $tableName = $this->getTable()->getName();
         $query = 'alter table '.$tableName.' drop constraint '.$pkName.'';
         $this->setQuery($query);
@@ -156,7 +156,7 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function modifyCol($colKey, $location = null) {
+    public function modifyCol($colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
         $colObj = $this->getTable()->getColByKey($colKey);
 

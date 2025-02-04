@@ -59,7 +59,7 @@ class Condition {
      * 
      * @since 1.0
      */
-    public function __construct($leftOperand, $rightOperand, string $condition = null) {
+    public function __construct($leftOperand, $rightOperand, ?string $condition = null) {
         $this->setLeftOperand($leftOperand);
         $this->setRightOperand($rightOperand);
         $this->condition = '';
@@ -144,7 +144,7 @@ class Condition {
      * 
      * @since 1.0.2
      */
-    public function setCondition(string $cond = null) {
+    public function setCondition(?string $cond = null) {
         $conditionT = trim($cond.'');
 
         if (strlen($conditionT) != 0) {

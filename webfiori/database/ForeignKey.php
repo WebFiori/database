@@ -117,8 +117,8 @@ class ForeignKey {
      */
     public function __construct(
             string $name = 'key_name',
-            Table $ownerTable = null,
-            Table $sourceTable = null,
+            ?Table $ownerTable = null,
+            ?Table $sourceTable = null,
             array $cols = []) {
         $this->sourceCols = [];
         $this->ownerCols = [];
@@ -158,7 +158,7 @@ class ForeignKey {
      * @throws DatabaseException If one of the tables of the foreign key is not set.
      * @since 1.0
      */
-    public function addReference(string $ownerColName, string $sourceColName = null) : bool {
+    public function addReference(string $ownerColName, ?string $sourceColName = null) : bool {
         if ($this->addReferenceHelper()) {
             $ownerColName = trim($ownerColName);
             $sourceColName = $sourceColName === null ? $ownerColName : trim($sourceColName);

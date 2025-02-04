@@ -22,7 +22,7 @@ use Throwable;
  */
 class DatabaseException extends Exception {
     private $sqlQuery;
-    public function __construct($message = "", $code = 0, string $sql = '', Throwable $previous = null) {
+    public function __construct($message = "", $code = 0, string $sql = '', ?Throwable $previous = null) {
         parent::__construct($message, $code, $previous);
         $this->sqlQuery = $sql;
     }

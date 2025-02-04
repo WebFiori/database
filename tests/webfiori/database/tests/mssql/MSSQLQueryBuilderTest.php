@@ -123,7 +123,7 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testAddColumn00() {
         $schema = new MSSQLTestSchema();
         $q = $schema->table('users_tasks');
-        $q->addCol('details');
+        $q->addCol('details', null);
         $this->assertEquals("alter table [users_tasks] add [details] [varchar](1500) not null", $schema->getLastQuery());
     }
     /**

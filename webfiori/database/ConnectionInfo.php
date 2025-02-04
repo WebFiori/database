@@ -130,7 +130,7 @@ class ConnectionInfo {
      * 
      * @since 1.0
      */
-    public function __construct(string $databaseType, string $user, string $password, string $dbname, string $host = 'localhost', int $port = null, array $extras = []) {
+    public function __construct(string $databaseType, string $user, string $password, string $dbname, string $host = 'localhost', ?int $port = null, array $extras = []) {
         $this->setUsername($user);
         $this->setPassword($password);
         $this->setDBName($dbname);

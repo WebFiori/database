@@ -68,7 +68,7 @@ class FK extends ForeignKey {
      *
      * @throws DatabaseException If one of the tables of the foreign key is not set.
      */
-    public function __construct(string $name = 'key_name', Table $ownerTable = null, Table $sourceTable = null, array $cols = []) {
+    public function __construct(string $name = 'key_name', ?Table $ownerTable = null, ?Table $sourceTable = null, array $cols = []) {
         parent::__construct($name, $ownerTable, $sourceTable, $cols);
     }
 }

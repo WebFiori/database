@@ -717,7 +717,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function setComment(string $comment = null) {
+    public function setComment(?string $comment = null) {
         if ($comment === null || strlen($comment) != 0) {
             $this->comment = $comment;
         }
@@ -757,7 +757,7 @@ abstract class Table {
      * 
      * @since 1.0
      */
-    public function setOwner(Database $db = null) {
+    public function setOwner(?Database $db = null) {
         if ($db instanceof Database) {
             $this->ownerSchema = $db;
         } else {

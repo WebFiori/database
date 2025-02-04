@@ -125,7 +125,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public abstract function addCol(string $colKey, string $location = null);
+    public abstract function addCol(string $colKey, ?string $location = null);
     /**
      * Constructs a query that can be used to add foreign key constraint.
      * 
@@ -335,7 +335,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public abstract function dropPrimaryKey($pkName = null);
+    public abstract function dropPrimaryKey(?string $pkName = null);
     /**
      * Execute the generated SQL query.
      * 
@@ -587,7 +587,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public abstract function modifyCol($colKey, $location = null);
+    public abstract function modifyCol($colKey, ?string $location = null);
     /**
      * Sets the offset.
      * 
@@ -844,7 +844,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0.5
      */
-    public function selectCount($colName = null, $alias = 'count') {
+    public function selectCount(?string $colName = null, $alias = 'count') {
         $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'count';
 
         if ($colName !== null) {
@@ -983,7 +983,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function setTable(Table $table = null, bool $clearSelect = true) {
+    public function setTable(?Table $table = null, bool $clearSelect = true) {
         if ($table !== null && $clearSelect) {
             $table->getSelect()->clear();
         }
@@ -1096,7 +1096,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public function where($col, $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
+    public function where($col, mixed $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         if ($col instanceof AbstractQuery) {
             //Prev where was a sub where
             $this->getTable()->getSelect()->addWhere($col, null, null, $joinCond);

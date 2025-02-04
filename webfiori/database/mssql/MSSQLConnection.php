@@ -115,7 +115,7 @@ class MSSQLConnection extends Connection {
      * true. Other than that, the method will return false.
      * 
      */
-    public function runQuery(AbstractQuery $query = null) {
+    public function runQuery(?AbstractQuery $query = null) {
         $this->addToExecuted($query->getQuery());
         $this->setLastQuery($query);
 
@@ -235,7 +235,7 @@ class MSSQLConnection extends Connection {
      * 
      * @throws DatabaseException If the method was not able to start the transaction.
      */
-    public function beginTransaction(string $name = null) {
+    public function beginTransaction(?string $name = null) {
         if ($this->isTransactionStarted) {
             return;
         }
@@ -257,7 +257,7 @@ class MSSQLConnection extends Connection {
      * 
      * @throws DatabaseException If the method was not able to commit the transaction.
      */
-    public function commit(string $name = null) {
+    public function commit(?string $name = null) {
         if (!$this->isTransactionStarted) {
             return;
         }
@@ -279,7 +279,7 @@ class MSSQLConnection extends Connection {
      * 
      * @throws DatabaseException If the method was not able to rollback the transaction.
      */
-    public function rollBack(string $name = null) {
+    public function rollBack(?string $name = null) {
         if (!$this->isTransactionStarted) {
             return;
         }

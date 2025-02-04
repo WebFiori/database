@@ -151,7 +151,7 @@ abstract class InsertBuilder {
      * @param Table $table The table at which the insert query will be
      * based on.
      */
-    public function insert(array $colsAndVals, Table $table = null) {
+    public function insert(array $colsAndVals, ?Table $table = null) {
         if ($table !== null) {
             $this->table = $table;
         }
