@@ -118,6 +118,36 @@ class MigrationsRunner extends Database {
         }
         return false;
     }
+    /**
+     * Apply one single migration at a time.
+     * 
+     * @return AbstractMigration|null If a migration was applied, the method will
+     * return its information in an object of type 'AbstractMigration'. Other than that, null
+     * is returned.
+     */
+    public function applyOne() : ?AbstractMigration {
+        $applied = null;
+        foreach ($this->migrations as $m) {
+            if ($this->isApplied($m->getName())) {
+                continue;
+            }
+            $m->up($this);
+            $this->table('migrations')
+                    ->insert([
+                        'name' => $m->getName(),
+                        'applied-on' => date('Y-m-d H:i:s')
+                    ])->execute();
+            $applied = $m;
+            break;
+        }
+        return $applied;
+    }
+    /**
+     * Apply all detected migrations.
+     * 
+     * @return array The method will return an array that holds all applied migrations
+     * as objects of type 'AbstractMigration'.
+     */
     public function apply() : array {
         $applied = [];
         foreach ($this->migrations as $m) {
