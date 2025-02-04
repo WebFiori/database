@@ -117,8 +117,8 @@ class ForeignKey {
      */
     public function __construct(
             string $name = 'key_name',
-            Table $ownerTable = null,
-            Table $sourceTable = null,
+            ?Table $ownerTable = null,
+            ?Table $sourceTable = null,
             array $cols = []) {
         $this->sourceCols = [];
         $this->ownerCols = [];

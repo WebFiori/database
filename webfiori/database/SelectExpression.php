@@ -87,7 +87,7 @@ class SelectExpression extends Expression {
      * 
      * @since 1.0
      */
-    public function addColumn(string $colKey, array $options = null) {
+    public function addColumn(string $colKey, ?array $options = null) {
         if ($colKey != '*') {
             $colKey = str_replace('_', '-', $colKey);
             $colObj = $this->getTable()->getColByKey($colKey);
