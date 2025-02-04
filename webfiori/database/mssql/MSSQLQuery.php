@@ -110,7 +110,7 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @since 1.0
      */
-    public function dropPrimaryKey($pkName = null) {
+    public function dropPrimaryKey(?string $pkName) {
         $tableName = $this->getTable()->getName();
         $query = 'alter table '.$tableName.' drop constraint '.$pkName.'';
         $this->setQuery($query);

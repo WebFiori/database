@@ -335,7 +335,7 @@ abstract class AbstractQuery {
      * 
      * @since 1.0
      */
-    public abstract function dropPrimaryKey($pkName = null);
+    public abstract function dropPrimaryKey(?string $pkName);
     /**
      * Execute the generated SQL query.
      * 

@@ -1248,7 +1248,7 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testDropPrimaryKey00() {
         $schema = new MySQLTestSchema();
-        $schema->table('users')->dropPrimaryKey();
+        $schema->table('users')->dropPrimaryKey(null);
         $this->assertEquals('alter table `users` drop primary key;', $schema->getLastQuery());
     }
     /**
