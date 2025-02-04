@@ -118,6 +118,36 @@ class MigrationsRunner extends Database {
         }
         return false;
     }
+    /**
+     * Apply one single migration at a time.
+     * 
+     * @return AbstractMigration|null If a migration was applied, the method will
+     * return its information in an object of type 'AbstractMigration'. Other than that, null
+     * is returned.
+     */
+    public function applyOne() : ?AbstractMigration {
+        $applied = null;
+        foreach ($this->migrations as $m) {
+            if ($this->isApplied($m->getName())) {
+                continue;
+            }
+            $m->up($this);
+            $this->table('migrations')
+                    ->insert([
+                        'name' => $m->getName(),
+                        'applied-on' => date('Y-m-d H:i:s')
+                    ])->execute();
+            $applied = $m;
+            break;
+        }
+        return $applied;
+    }
+    /**
+     * Apply all detected migrations.
+     * 
+     * @return array The method will return an array that holds all applied migrations
+     * as objects of type 'AbstractMigration'.
+     */
     public function apply() : array {
         $applied = [];
         foreach ($this->migrations as $m) {
@@ -134,6 +164,15 @@ class MigrationsRunner extends Database {
         }
         return $applied;
     }
+    /**
+     * Rollback a set of applied migrations.
+     * 
+     * @param string|null $migrationName If a name is provided, the rollback will
+     * be till reaching the specified migration.
+     * 
+     * @return array The method will return an array that holds all rolled back migrations
+     * as objects of type 'AbstractMigration'.
+     */
     public function rollbackUpTo(?string $migrationName) : array {
         $migrations = $this->getMigrations();
         $count = count($migrations);
@@ -164,6 +203,13 @@ class MigrationsRunner extends Database {
         }
         return $rolled;
     }
+    /**
+     * Rollback one single migration.
+     * 
+     * @return AbstractMigration|null If a migration was rolled back, the method
+     * will return the migration as an object of type 'AbstractMigration'. Other than that,
+     * null is returned.
+     */
     public function rollback() : ?AbstractMigration {
         $migrations = $this->getMigrations();
         $count = count($migrations);
