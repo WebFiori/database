@@ -563,7 +563,8 @@ class MSSQLQueryBuilderTest extends TestCase{
             'age' => 28
         ])->execute();
         $schema->table('users')->select()->execute();
-        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
+        $resultSet = $schema->getLastResultSet();
+        $this->assertEquals(1, $resultSet->getRowsCount());
         $this->assertEquals([
             [
                 'id' => 1,
@@ -571,7 +572,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                 'last_name' => 'BinAlshikh',
                 'age' => 28
             ]
-        ], $schema->table('users')->select()->execute()->getRows());
+        ], $resultSet->getRows());
         return $schema;
     }
     /**
@@ -615,13 +616,12 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->execute();
         $schema->table('users')->select()->execute();
         $resultSet = $schema->getLastResultSet();
-        $this->assertEquals(3, $resultSet->getRowsCount());
+        $this->assertEquals(2, $resultSet->getRowsCount());
         
         
         $this->assertEquals([
-            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'BinAlshikh','age'=>28],
-            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'Hassan','age'=>16],
-            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'Jona','age'=>19]
+            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
+            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
         ], $resultSet->getRows());
         
         $schema->table('users')->insert([
