@@ -10,7 +10,6 @@ use WebFiori\Database\DatabaseException;
 use WebFiori\Database\Expression;
 use WebFiori\Database\MsSql\MSSQLConnection;
 use WebFiori\Tests\Database\MsSql\MSSQLTestSchema;
-use WebFiori\Tests\Database\MsSql\MSSQLTestSchema;
 /**
  * Description of MSSQLQueryBuilderTest
  *

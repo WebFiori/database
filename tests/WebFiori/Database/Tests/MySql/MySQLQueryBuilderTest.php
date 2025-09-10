@@ -9,8 +9,6 @@ use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\MySql\MySQLConnection;
 use WebFiori\Tests\Database\MySql\MySQLTestSchema;
-use WebFiori\Tests\Database\MySql\MySQLTestSchema;
-use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 
 /**
  * Description of MySQLQueryBuilderTest
