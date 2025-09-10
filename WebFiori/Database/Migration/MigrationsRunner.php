@@ -2,6 +2,7 @@
 
 namespace WebFiori\Database\Migration;
 
+use Error;
 use Exception;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
@@ -90,7 +91,7 @@ class MigrationsRunner extends Database {
                             $this->migrations[] = $instance;
                         }
                     }
-                } catch (Exception $ex) {
+                } catch (Exception|Error $ex) {
                     
                 }
             }
