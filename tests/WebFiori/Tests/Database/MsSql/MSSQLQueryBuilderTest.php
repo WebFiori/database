@@ -556,7 +556,7 @@ class MSSQLQueryBuilderTest extends TestCase{
         // Clear table first to ensure clean state
         $schema->table('users')->delete()->execute();
         // Reset identity to start from 1
-        $schema->setQuery("DBCC CHECKIDENT ('users', RESEED, 0)")->execute();
+        $schema->setQuery("DBCC CHECKIDENT ('users', RESEED, 1)")->execute();
         $schema->table('users')->insert([
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh',
