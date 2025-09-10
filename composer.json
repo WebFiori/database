@@ -28,5 +28,10 @@
         "psr-4": {
             "WebFiori\\Database\\": "WebFiori/Database"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WebFiori\\Tests\\Database\\": "tests/WebFiori/Database/Tests"
+        }
     }
 }

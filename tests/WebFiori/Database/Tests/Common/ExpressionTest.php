@@ -5,8 +5,8 @@ use WebFiori\Database\Expression;
 use WebFiori\Database\WhereExpression;
 use WebFiori\Database\Condition;
 use WebFiori\Database\SelectExpression;
-use WebFiori\Database\mysql\MySQLTable;
-use WebFiori\Database\mssql\MSSQLTable;
+use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\MsSql\MSSQLTable;
 /**
  * Description of ExpressionTest
  *

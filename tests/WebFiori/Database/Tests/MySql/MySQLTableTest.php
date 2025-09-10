@@ -10,9 +10,9 @@ namespace WebFiori\Database\tests\mysql;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\DataType;
-use WebFiori\Database\mssql\MSSQLTable;
-use WebFiori\Database\mysql\MySQLColumn;
-use WebFiori\Database\mysql\MySQLTable;
+use WebFiori\Database\MsSql\MSSQLTable;
+use WebFiori\Database\MySql\MySQLColumn;
+use WebFiori\Database\MySql\MySQLTable;
 use WebFiori\Database\Table;
 /**
  * Description of MySQLTableTest

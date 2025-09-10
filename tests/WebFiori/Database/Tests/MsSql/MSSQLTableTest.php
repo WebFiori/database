@@ -4,9 +4,9 @@ namespace WebFiori\Database\tests\mssql;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
-use WebFiori\Database\mssql\MSSQLColumn;
-use WebFiori\Database\mssql\MSSQLTable;
-use WebFiori\Database\mysql\MySQLTable;
+use WebFiori\Database\MsSql\MSSQLColumn;
+use WebFiori\Database\MsSql\MSSQLTable;
+use WebFiori\Database\MySql\MySQLTable;
 use WebFiori\Database\Table;
 /**
  * Description of MSSQLTableTest

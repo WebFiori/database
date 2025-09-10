@@ -4,9 +4,9 @@ namespace WebFiori\Database\tests\common;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\Database;
-use WebFiori\Database\mysql\MySQLTable;
-use WebFiori\Database\mysql\MySQLColumn;
-use WebFiori\Database\mysql\MySQLQuery;
+use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\MySql\MySQLColumn;
+use WebFiori\Database\MySql\MySQLQuery;
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\ConnectionInfo;
 /**

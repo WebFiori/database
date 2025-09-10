@@ -8,8 +8,8 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\Expression;
-use WebFiori\Database\mssql\MSSQLConnection;
-use WebFiori\Database\tests\mssql\MSSQLTestSchema;
+use WebFiori\Database\MsSql\MSSQLConnection;
+use WebFiori\Tests\Database\MsSql\MSSQLTestSchema;
 /**
  * Description of MSSQLQueryBuilderTest
  *

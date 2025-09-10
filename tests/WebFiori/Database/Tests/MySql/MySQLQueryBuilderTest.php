@@ -7,8 +7,8 @@ use super\entity\UserEntity;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
-use WebFiori\Database\mysql\MySQLConnection;
-use WebFiori\Database\tests\mysql\MySQLTestSchema;
+use WebFiori\Database\MySql\MySQLConnection;
+use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 
 /**
  * Description of MySQLQueryBuilderTest

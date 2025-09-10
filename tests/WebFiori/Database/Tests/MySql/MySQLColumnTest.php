@@ -11,8 +11,8 @@ namespace WebFiori\Database\tests\mysql;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ColumnFactory;
 use WebFiori\Database\DataType;
-use WebFiori\Database\mssql\MSSQLColumn;
-use WebFiori\Database\mysql\MySQLColumn;
+use WebFiori\Database\MsSql\MSSQLColumn;
+use WebFiori\Database\MySql\MySQLColumn;
 /**
  * Description of MySQLColumnTest
  *

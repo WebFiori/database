@@ -6,7 +6,7 @@ use UserClass;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
 use WebFiori\Database\EntityMapper;
-use WebFiori\Database\tests\mysql\MySQLTestSchema;
+use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 
 /**
  * Description of EntityMapperTest

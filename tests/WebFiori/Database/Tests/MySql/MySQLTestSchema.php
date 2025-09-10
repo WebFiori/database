@@ -1,10 +1,10 @@
 <?php
-namespace WebFiori\Database\tests\mysql;
+namespace WebFiori\Tests\Database\MySql;
 
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
-use WebFiori\Database\mysql\MySQLTable;
+use WebFiori\Database\MySql\MySQLTable;
 
 /**
  * Description of MySQLTestSchema

@@ -2,8 +2,8 @@
 
 namespace WebFiori\Database\tests\common;
 
-use WebFiori\Database\mysql\MySQLTable;
-use WebFiori\Database\mysql\MySQLColumn;
+use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\MySql\MySQLColumn;
 /**
  * Description of HelloTable
  *

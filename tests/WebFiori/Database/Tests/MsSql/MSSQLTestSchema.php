@@ -1,11 +1,11 @@
 <?php
-namespace WebFiori\Database\tests\mssql;
+namespace WebFiori\Tests\Database\MsSql;
 
 use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
-use WebFiori\Database\mssql\MSSQLTable;
+use WebFiori\Database\MsSql\MSSQLTable;
 /**
  * Description of MSSQLTestSchema
  *

@@ -2,7 +2,7 @@
 namespace WebFiori\Database\tests\migrations;
 
 use WebFiori\Database\Database;
-use WebFiori\Database\migration\AbstractMigration;
+use WebFiori\Database\Migration\AbstractMigration;
 
 
 class Mig00 extends AbstractMigration {

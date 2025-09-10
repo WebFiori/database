@@ -3,8 +3,8 @@ namespace WebFiori\Database\tests\mssql;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ColumnFactory;
-use WebFiori\Database\mssql\MSSQLColumn;
-use WebFiori\Database\mysql\MySQLColumn;
+use WebFiori\Database\MsSql\MSSQLColumn;
+use WebFiori\Database\MySql\MySQLColumn;
 /**
  * Description of MSSQLColumnTest
  *

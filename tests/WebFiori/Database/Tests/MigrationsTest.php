@@ -5,8 +5,8 @@ namespace WebFiori\Database\tests;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
-use WebFiori\Database\migration\AbstractMigration;
-use WebFiori\Database\migration\MigrationsRunner;
+use WebFiori\Database\Migration\AbstractMigration;
+use WebFiori\Database\Migration\MigrationsRunner;
 
 class MigrationsTest extends TestCase {
     /**

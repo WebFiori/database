@@ -5,10 +5,10 @@ namespace WebFiori\Database\tests\common;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
-use WebFiori\Database\mssql\MSSQLInsertBuilder;
-use WebFiori\Database\mssql\MSSQLTable;
-use WebFiori\Database\mysql\MySQLInsertBuilder;
-use WebFiori\Database\mysql\MySQLTable;
+use WebFiori\Database\MsSql\MSSQLInsertBuilder;
+use WebFiori\Database\MsSql\MSSQLTable;
+use WebFiori\Database\MySql\MySQLInsertBuilder;
+use WebFiori\Database\MySql\MySQLTable;
 
 /**
  * Description of InsertBuilderTest
