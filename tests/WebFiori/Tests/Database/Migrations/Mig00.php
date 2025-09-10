@@ -1,5 +1,5 @@
 <?php
-namespace WebFiori\Database\Tests\Migrations;
+namespace WebFiori\Tests\Database\Migrations;
 
 use WebFiori\Database\Database;
 use WebFiori\Database\Migration\AbstractMigration;
