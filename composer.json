@@ -33,7 +33,10 @@
     "autoload-dev": {
         "psr-4": {
             "WebFiori\\Tests\\Database\\": "tests/WebFiori/Tests/Database",
-            "WebFiori\\Tests\\": "tests/WebFiori/Tests"
+            "WebFiori\\Tests\\": "tests/WebFiori/Tests",
+            "WebFiori\\Tests\\Database\\MsSql\\": "tests/WebFiori/Tests/Database/MsSql",
+            "WebFiori\\Tests\\Database\\MySql\\": "tests/WebFiori/Tests/Database/MySql",
+            "WebFiori\\Tests\\Database\\Migrations\\": "tests/WebFiori/Tests/Database/Migrations"
         }
     }
 }
