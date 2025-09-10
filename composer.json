@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "webfiori\\database\\": "webfiori\\database"
+            "WebFiori\\Database\\": "WebFiori/Database"
         }
     }
 }
