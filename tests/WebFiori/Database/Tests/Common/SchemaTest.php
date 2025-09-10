@@ -74,7 +74,7 @@ class SchemaTest extends TestCase{
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
-        $s->table(HelloTable::class)->drop();
+        $s->table('hello')->drop();
         $this->assertEquals('drop table `hello`;', $s->getLastQuery());
         $s->createTable();
         $this->assertEquals("create table if not exists `hello` (\n"
@@ -117,7 +117,7 @@ class SchemaTest extends TestCase{
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
-        $s->table(HelloTable::class);
+        $s->table('hello');
         $this->assertFalse($s->addTable(new HelloTable()));
     }
     /**
@@ -127,7 +127,7 @@ class SchemaTest extends TestCase{
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
-        $s->table(HelloTable::class);
+        $s->table('hello');
         $s->delete();
         $this->assertEquals("delete from `hello`", $s->getLastQuery());
     }
@@ -138,7 +138,7 @@ class SchemaTest extends TestCase{
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
-        $s->table(HelloTable::class);
+        $s->table('hello');
         $s->drop();
         $this->assertEquals("drop table `hello`;", $s->getLastQuery());
         $s->select();
@@ -150,7 +150,7 @@ class SchemaTest extends TestCase{
         $s->insert([
             'user-id' => 33,
             'username' => 'Ibrahim',
-            'pass' => 'rand_pass'
+            'password' => 'rand_pass'
         ]);
         $this->assertEquals('insert into `hello` (`user_id`, `username`, `password`) '
                 . "values (?, ?, ?);", $s->getLastQuery());
@@ -173,7 +173,7 @@ class SchemaTest extends TestCase{
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         try {
-            $s->table(HelloTable::class)->drop()->execute();
+            $s->table('hello')->drop()->execute();
         } catch (\Exception $ex) {
             $this->assertEquals([
                 'message' => "Unknown table 'testing_db.hello'",
