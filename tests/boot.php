@@ -26,9 +26,9 @@ require_once $rootDir.$DS.'vendor'.$DS.'autoload.php';
 
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\MySql\MySQLConnection;
-use WebFiori\Database\Tests\MySql\MySQLTestSchema;
+use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 use WebFiori\Database\MsSql\MSSQLConnection;
-use WebFiori\Database\Tests\MsSql\MSSQLTestSchema;
+use WebFiori\Tests\Database\MsSql\MSSQLTestSchema;
 register_shutdown_function(function()
 {
     $tablesToDrop = [
