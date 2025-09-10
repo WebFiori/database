@@ -23,58 +23,12 @@ fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
 
 require_once $rootDir.$DS.'vendor'.$DS.'autoload.php';
 
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'DataType.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'AbstractQuery.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Table.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ForeignKey.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Column.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Connection.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ConnectionInfo.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'DatabaseException.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Database.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Expression.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'Condition.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'EntityMapper.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'WhereExpression.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ResultSet.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'JoinTable.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'SelectExpression.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'DateTimeValidator.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'ColumnFactory.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'RecordMapper.php';
 
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLColumn.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLTable.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLQuery.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mysql'.$DS.'MySQLConnection.php';
-
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'mysql'.$DS.'MySQLTestSchema.php';
-
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLColumn.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLTable.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLQuery.php';
-require_once $rootDir.$DS.'webfiori'.$DS.'database'.$DS.'mssql'.$DS.'MSSQLConnection.php';
-
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'mssql'.$DS.'MSSQLTestSchema.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'common'.$DS.'HelloTable.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'migrations'.$DS.'Mig00.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'migrations'.$DS.'Mig01.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'database'.$DS.'tests'.$DS.'migrations'.$DS.'NotMig.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'User.php';
-
-$jsonLibPath = $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json';
-require_once $jsonLibPath.$DS.'JsonI.php';
-require_once $jsonLibPath.$DS.'Json.php';
-require_once $jsonLibPath.$DS.'JsonConverter.php';
-require_once $jsonLibPath.$DS.'CaseConverter.php';
-require_once $jsonLibPath.$DS.'JsonTypes.php';
-require_once $jsonLibPath.$DS.'Property.php';
-
-use webfiori\database\ConnectionInfo;
-use webfiori\database\mysql\MySQLConnection;
-use webfiori\database\tests\mysql\MySQLTestSchema;
-use webfiori\database\mssql\MSSQLConnection;
-use webfiori\database\tests\mssql\MSSQLTestSchema;
+use WebFiori\Database\ConnectionInfo;
+use WebFiori\Database\MySql\MySQLConnection;
+use WebFiori\Database\Tests\MySql\MySQLTestSchema;
+use WebFiori\Database\MsSql\MSSQLConnection;
+use WebFiori\Database\Tests\MsSql\MSSQLTestSchema;
 register_shutdown_function(function()
 {
     $tablesToDrop = [
