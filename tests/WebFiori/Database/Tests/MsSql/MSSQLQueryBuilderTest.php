@@ -553,6 +553,8 @@ class MSSQLQueryBuilderTest extends TestCase{
     public function testInsert03() {
         $schema = new MSSQLTestSchema();
         $schema->createTables()->execute();
+        // Clear table first to ensure clean state
+        $schema->table('users')->delete()->execute();
         $schema->table('users')->insert([
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh',
@@ -576,11 +578,12 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @depends testInsert03
      */
     public function testDropRecord00(MSSQLTestSchema $schema) {
-        $schema->table('users')->delete()->where('id', 3);
+        $row = $schema->getLastResultSet()->getRows()[0];
+        $schema->table('users')->delete()->where('id', $row['id']);
         $this->assertEquals('delete from [users] where [users].[id] = ?', $schema->getLastQuery());
         $schema->execute();
         $schema->table('users')->select()->execute();
-        $this->assertEquals(1, $schema->getLastResultSet()->getRowsCount());
+        $this->assertEquals(0, $schema->getLastResultSet()->getRowsCount());
         return $schema;
     }
     /**
@@ -590,6 +593,10 @@ class MSSQLQueryBuilderTest extends TestCase{
      * @depends testDropRecord00
      */
     public function testInsert04(MSSQLTestSchema $schema) {
+        // Clear any existing records with IDs 100, 101
+        $schema->table('users')->delete()->where('id', 100)->execute();
+        $schema->table('users')->delete()->where('id', 101)->execute();
+        
         $schema->setQuery('set identity_insert users on;')->execute();
         $schema->table('users')->insert([
             'cols' => [

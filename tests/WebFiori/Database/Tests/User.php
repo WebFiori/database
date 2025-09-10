@@ -1,5 +1,5 @@
 <?php
-namespace WebFiori;
+namespace WebFiori\Tests;
 /**
  * Description of User
  *

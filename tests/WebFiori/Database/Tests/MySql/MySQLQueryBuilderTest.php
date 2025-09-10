@@ -1125,6 +1125,8 @@ class MySQLQueryBuilderTest extends TestCase {
      * @depends testCreateTable
      */
     public function testInsert03($schema) {
+        // Clear table first to ensure clean state
+        $schema->table('users')->delete()->execute();
         $schema->table('users')->insert([
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh',

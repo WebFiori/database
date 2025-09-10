@@ -3,7 +3,7 @@ namespace WebFiori\Tests\Database\Common;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\RecordMapper;
-use WebFiori\User;
+use WebFiori\Tests\User;
 /**
  * Description of RecordMapperTest
  *

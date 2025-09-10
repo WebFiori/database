@@ -15,7 +15,7 @@ class MigrationsTest extends TestCase {
     public function test00() {
         $this->expectException(DatabaseException::class);
         $this->expectExceptionMessage("Connection information not set.");
-        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\WebFiori\\Database\\Tests\\Migrations', null);
+        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\WebFiori\\Database\\tests\\migrations', null);
         $this->assertEquals(2, count($m->getMigrations()));
         $m->createMigrationsTable();
     }
@@ -23,10 +23,10 @@ class MigrationsTest extends TestCase {
      * @test
      */
     public function test01() {
-        $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+        $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost\\SQLEXPRESS', 1433, [
             'TrustServerCertificate' => 'true'
         ]);
-        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\WebFiori\\Database\\Tests\\Migrations', null);
+        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'migrations', '\\WebFiori\\Database\\tests\\migrations', null);
         $this->assertEquals(2, count($m->getMigrations()));
         try {
             $m->createMigrationsTable();
