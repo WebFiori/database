@@ -4,7 +4,7 @@ Database abstraction layer of WebFiori framework.
 
 <p style="text-align: center">
   <a href="https://github.com/WebFiori/database/actions">
-    <img alt="PHP 8 Build Status" src="https://github.com/WebFiori/database/workflows/php83.yml/badge.svg?branch=main">
+    <img alt="PHP 8 Build Status" src="https://github.com/WebFiori/database/actions/workflows/php83.yml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/database">
     <img alt="CodeCov" src="https://codecov.io/gh/WebFiori/database/branch/main/graph/badge.svg?token=cDF6CxGTFi" />
@@ -43,15 +43,11 @@ Database abstraction layer of WebFiori framework.
 ## Supported PHP Versions
 |                                                                                           Build Status                                                                                            |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php70.yml"><img src="https://github.com/WebFiori/database/workflows/php70.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php71.yml"><img src="https://github.com/WebFiori/database/workflows/php71.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php72.yml"><img src="https://github.com/WebFiori/database/workflows/php72.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php73.yml"><img src="https://github.com/WebFiori/database/workflows/php73.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/database/workflows/php74.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/database/workflows/php80.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/database/workflows/php81.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/database/workflows/php82.yml/badge.svg?branch=main"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php83.yml"><img src="https://github.com/WebFiori/database/workflows/php83.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/database/actions/workflows/php80.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/database/actions/workflows/php81.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/database/actions/workflows/php82.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php83.yml"><img src="https://github.com/WebFiori/database/actions/workflows/php83.yml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php84.yml"><img src="https://github.com/WebFiori/database/actions/workflows/php84.yml/badge.svg?branch=main"></a> |
 
 ## Supported Databases
 - MySQL
@@ -63,7 +59,7 @@ Database abstraction layer of WebFiori framework.
 * Database abstraction which makes it easy to migrate your system to different DBMS.
 
 ## Installation
-To install the library using composer, add following dependency to `composer.json`: `"webfiori/database":"0.7.1"
+To install the library using composer, add following dependency to `composer.json`: `"webfiori/database":"*"`
 
 ## Usage
 
@@ -190,22 +186,22 @@ The method `Database::createBlueprint()` is used to create a table based on conn
 ``` php
 $database->createBlueprint('users_information')->addColumns([
     'id' => [
-        'type' => 'int',
-        'size' => 5,
-        'primary' => true,
-        'auto-inc' => true
+        ColOption::TYPE => DataType::INT,
+        ColOption::SIZE => 5,
+        ColOption::PRIMARY => true,
+        ColOption::AUTO_INCREMENT => true
     ],
     'first-name' => [
-        'type' => 'varchar',
-        'size' => 15
+        ColOption::TYPE => DataType::VARCHAR,
+        ColOption::SIZE => 15
     ],
     'last-name' => [
-        'type' => 'varchar',
-        'size' => 15
+        ColOption::TYPE => DataType::VARCHAR,
+        ColOption::SIZE => 15
     ],
     'email' => [
-        'type' => 'varchar',
-        'size' => 128
+        ColOption::TYPE => DataType::VARCHAR,
+        ColOption::SIZE => 128
     ]
 ]);
 
@@ -278,4 +274,27 @@ foreach ($mappedSet as $record) {
 echo '</ul>';
 ```
 
+### Transaction
+
+Suppose that in the database there are 3 tables, `user_info`, `user_login` and `user_contact`. In order to have a full user profile, user information must exist on the 3 tables at same time. Suppose that record creation in the first and second table was a success. But due some error, the record was not created in the last table. This would cause data interty error. To resolve this, the insertion process must be rolled back. In such cases, database transactions can be of great help.
+
+A database transaction is a unit of work which consist of multiple operations that must be performed togather. If one operation fail, then all operations must be rolled back. A transaction can be initiated using the method `Database::transaction()`. The method has two arguments, first one is the logic of the transaction as closure and second one is an optional array of arguments to be passed to the cloasure. The first parameter of the closure will be always an instance of `Database`.
+
+If the closure returns `false` or the closure throws a `DatabaseException`, the transaction is rolled back.
+
+``` php
+$this->transaction(function (Database $db, User $toAdd) {
+    $db->table('users')->insert([
+        'full-name' => $toAdd->getFullName(),
+        'email' => $toAdd->getEmail(),
+        'created-by' => $toAdd->getCreatedBy(),
+        'is-refresh' => 0
+    ])->execute();
+
+//Assuming such methods exist on calling class
+    $addedUserId = $db->getLastUserID();
+    $toAdd->getLoginInformation()->setUserId($addedUserId);
+    $db->addUserLoginInfo($toAdd->getLoginInformation());
+}, [$entity]);
+```
 

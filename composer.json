@@ -2,17 +2,21 @@
     "name": "webfiori/database",
     "description": "Database abstraction layer of WebFiori framework.",
     "type": "library",
-    "version":"0.8.11",
+    "version": "0.9.1",
     "keywords": [
-        "Database","PHP","Query Builder","Library","MySQL"
+        "Database",
+        "PHP",
+        "Query Builder",
+        "Library",
+        "MySQL"
     ],
     "license": "MIT",
     "require": {
-        "webfiori/jsonx":"*"
+        "webfiori/jsonx": "*"
     },
-    "autoload" :{
-        "psr-4":{
-            "webfiori\\database\\":"webfiori\\database"
+    "autoload": {
+        "psr-4": {
+            "webfiori\\database\\": "webfiori\\database"
         }
     }
 }
