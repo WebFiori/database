@@ -1,6 +1,6 @@
 <?php
 
-namespace WebFiori\Database\tests\common;
+namespace WebFiori\Tests\Database\Common;
 
 use WebFiori\Database\ResultSet;
 use PHPUnit\Framework\TestCase;

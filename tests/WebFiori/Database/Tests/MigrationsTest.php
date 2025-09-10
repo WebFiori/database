@@ -1,6 +1,6 @@
 <?php
 
-namespace WebFiori\Database\tests;
+namespace WebFiori\Tests\Database;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ConnectionInfo;

@@ -1,6 +1,6 @@
 <?php
 
-namespace WebFiori\Database\tests\common;
+namespace WebFiori\Tests\Database\Common;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;

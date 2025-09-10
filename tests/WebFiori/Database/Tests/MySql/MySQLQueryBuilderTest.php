@@ -1,5 +1,5 @@
 <?php
-namespace WebFiori\Database\tests\mysql;
+namespace WebFiori\Tests\Database\MySql;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -8,6 +8,8 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\MySql\MySQLConnection;
+use WebFiori\Tests\Database\MySql\MySQLTestSchema;
+use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 
 /**

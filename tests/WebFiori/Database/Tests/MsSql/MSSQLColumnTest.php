@@ -1,5 +1,5 @@
 <?php
-namespace WebFiori\Database\tests\mssql;
+namespace WebFiori\Tests\Database\MsSql;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ColumnFactory;

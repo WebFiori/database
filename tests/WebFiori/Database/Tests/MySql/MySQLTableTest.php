@@ -6,7 +6,7 @@
  * and open the template in the editor.
  */
 
-namespace WebFiori\Database\tests\mysql;
+namespace WebFiori\Tests\Database\MySql;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\DataType;

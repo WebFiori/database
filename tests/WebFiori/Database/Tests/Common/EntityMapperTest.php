@@ -1,5 +1,5 @@
 <?php
-namespace WebFiori\Database\tests\common;
+namespace WebFiori\Tests\Database\Common;
 
 use PHPUnit\Framework\TestCase;
 use UserClass;
