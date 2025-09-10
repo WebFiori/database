@@ -1,6 +1,6 @@
 <?php
 
-namespace WebFiori\Tests\Database;
+namespace WebFiori\Tests\Database\Migrations;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ConnectionInfo;
@@ -15,7 +15,7 @@ class MigrationsTest extends TestCase {
     public function test00() {
         $this->expectException(DatabaseException::class);
         $this->expectExceptionMessage("Connection information not set.");
-        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'Migrations', '\\WebFiori\\Tests\\Database\\Migrations', null);
+        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR, '\\WebFiori\\Tests\\Database\\Migrations', null);
         $this->assertEquals(2, count($m->getMigrations()));
         $m->createMigrationsTable();
     }
@@ -26,7 +26,7 @@ class MigrationsTest extends TestCase {
         $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost', 1433, [
             'TrustServerCertificate' => 'true'
         ]);
-        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR.'Migrations', '\\WebFiori\\Tests\\Database\\Migrations', null);
+        $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR, '\\WebFiori\\Tests\\Database\\Migrations', null);
         $this->assertEquals(2, count($m->getMigrations()));
         try {
             $m->createMigrationsTable();

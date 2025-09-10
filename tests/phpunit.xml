@@ -24,7 +24,7 @@
             <directory>./WebFiori/Tests/Database/MsSql</directory>
         </testsuite>
         <testsuite name="Migration Tests">
-            <directory>./WebFiori/Tests/Database</directory>
+            <directory>./WebFiori/Tests/Database/Migrations</directory>
         </testsuite>
     </testsuites>
 </phpunit>
