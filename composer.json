@@ -26,12 +26,14 @@
     },
     "autoload": {
         "psr-4": {
-            "WebFiori\\Database\\": "WebFiori/Database"
+            "WebFiori\\Database\\": "WebFiori/Database",
+            "WebFiori\\": "WebFiori"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WebFiori\\Tests\\Database\\": "tests/WebFiori/Database/Tests"
+            "WebFiori\\Tests\\Database\\": "tests/WebFiori/Database/Tests",
+            "WebFiori\\Tests\\": "tests/WebFiori/Tests"
         }
     }
 }
