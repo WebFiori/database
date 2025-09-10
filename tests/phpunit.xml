@@ -15,16 +15,16 @@
     </logging>
     <testsuites>
         <testsuite name="Common Tests">
-            <directory>./WebFiori/Database/Tests/Common</directory>
+            <directory>./WebFiori/Tests/Database/Common</directory>
         </testsuite>
         <testsuite name="MySQL Tests">
-            <directory>./WebFiori/Database/Tests/MySql</directory>
+            <directory>./WebFiori/Tests/Database/MySql</directory>
         </testsuite>
         <testsuite name="MSSQL Tests">
-            <directory>./WebFiori/Database/Tests/MsSql</directory>
+            <directory>./WebFiori/Tests/Database/MsSql</directory>
         </testsuite>
         <testsuite name="Migration Tests">
-            <directory>./WebFiori/Database/Tests</directory>
+            <directory>./WebFiori/Tests/Database</directory>
         </testsuite>
     </testsuites>
 </phpunit>
