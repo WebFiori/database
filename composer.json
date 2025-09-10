@@ -32,7 +32,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "WebFiori\\Tests\\Database\\": "tests/WebFiori/Database/Tests",
+            "WebFiori\\Tests\\Database\\": "tests/WebFiori/Tests/Database",
             "WebFiori\\Tests\\": "tests/WebFiori/Tests"
         }
     }
