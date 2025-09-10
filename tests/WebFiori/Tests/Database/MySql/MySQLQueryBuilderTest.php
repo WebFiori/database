@@ -1252,6 +1252,7 @@ class MySQLQueryBuilderTest extends TestCase {
         foreach ($data as $obj) {
             $this->assertTrue($obj instanceof UserEntity);
         }
+        unlink($mapper->getAbsolutePath());
     }
     /**
      * @test

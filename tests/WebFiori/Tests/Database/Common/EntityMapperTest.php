@@ -145,6 +145,7 @@ class EntityMapperTest extends TestCase {
         $this->assertEquals('Ibrahim', $obj->getFirstName());
         $this->assertEquals('BinAlshikh', $obj->getLastName());
         $this->assertEquals(28, $obj->getAge());
+        unlink(__DIR__.DIRECTORY_SEPARATOR.'UserClass.php');
     }
     /**
      * @test

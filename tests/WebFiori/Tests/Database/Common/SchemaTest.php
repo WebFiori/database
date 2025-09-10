@@ -73,7 +73,7 @@ class SchemaTest extends TestCase{
     public function test01() {
         $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
-        
+        $s->addTable(new HelloTable());
         $s->table('hello')->drop();
         $this->assertEquals('drop table `hello`;', $s->getLastQuery());
         $s->createTable();

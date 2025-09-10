@@ -127,6 +127,9 @@ class MSSQLConnection extends Connection {
             return $this->runUpdateQuery();
         } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
             return $this->runSelectQuery();
+        } else if ($qType == 'dbcc') {
+            $this->runDBCC();
+            return true;
         } else {
             return $this->runOtherQuery();
         }
@@ -167,6 +170,14 @@ class MSSQLConnection extends Connection {
             
         return $this->checkInsertOrUpdateResult($r);
         
+    }
+    private function runDBCC() {
+        $sql = $this->getLastQuery()->getQuery();
+        $queryBulder = $this->getLastQuery();
+        
+        sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+
+        return true;
     }
     private function runOtherQuery() {
         $sql = $this->getLastQuery()->getQuery();
