@@ -11,8 +11,8 @@
 namespace WebFiori\Database;
 
 use InvalidArgumentException;
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A class which is used to map a 'Table' object to an entity class.
  *
@@ -62,7 +62,7 @@ class EntityMapper {
      */
     private $extraAttrs;
     /**
-     * An attribute which is when set to true, the interface 'webfiori\json\JsonI' will 
+     * An attribute which is when set to true, the interface 'WebFiori\Json\JsonI' will 
      * be part of the generated entity.
      * 
      * @var boolean 
@@ -528,7 +528,7 @@ class EntityMapper {
      * Sets the value of the attribute '$implJsonI'. 
      * 
      * If this attribute is set to true, the generated entity will implement 
-     * the interface 'webfiori\json\JsonI'. Not that this will make the entity class 
+     * the interface 'WebFiori\Json\JsonI'. Not that this will make the entity class 
      * depends on the library 'Json'.
      * 
      * @param bool $bool True to make it implement the interface JsonI and
