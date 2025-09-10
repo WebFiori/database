@@ -1126,7 +1126,9 @@ class MySQLQueryBuilderTest extends TestCase {
      */
     public function testInsert03($schema) {
         // Clear table first to ensure clean state
+        $schema->setQuery('SET FOREIGN_KEY_CHECKS = 0')->execute();
         $schema->table('users')->delete()->execute();
+        $schema->setQuery('SET FOREIGN_KEY_CHECKS = 1')->execute();
         $schema->table('users')->insert([
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh',
@@ -1163,6 +1165,12 @@ class MySQLQueryBuilderTest extends TestCase {
      * @depends testDropRecord00
      */
     public function testInsert04($schema) {
+        // Clear any existing records with IDs 100, 101
+        $schema->setQuery('SET FOREIGN_KEY_CHECKS = 0')->execute();
+        $schema->table('users')->delete()->where('id', 100)->execute();
+        $schema->table('users')->delete()->where('id', 101)->execute();
+        $schema->setQuery('SET FOREIGN_KEY_CHECKS = 1')->execute();
+
         $schema->table('users')->insert([
             'cols' => [
                 'id','first-name','last-name','age'

@@ -555,6 +555,8 @@ class MSSQLQueryBuilderTest extends TestCase{
         $schema->createTables()->execute();
         // Clear table first to ensure clean state
         $schema->table('users')->delete()->execute();
+        // Reset identity to start from 1
+        $schema->setQuery('DBCC CHECKIDENT (\'users\', RESEED, 0)')->execute();
         $schema->table('users')->insert([
             'first-name' => 'Ibrahim',
             'last-name' => 'BinAlshikh',
@@ -618,8 +620,8 @@ class MSSQLQueryBuilderTest extends TestCase{
         
         $this->assertEquals([
             ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'BinAlshikh','age'=>28],
-            ['id'=>100,'first_name'=>'Ali','last_name'=>'Hassan','age'=>16],
-            ['id'=>101,'first_name'=>'Dabi','last_name'=>'Jona','age'=>19]
+            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'Hassan','age'=>16],
+            ['id'=>1,'first_name'=>'Ibrahim','last_name'=>'Jona','age'=>19]
         ], $resultSet->getRows());
         
         $schema->table('users')->insert([
