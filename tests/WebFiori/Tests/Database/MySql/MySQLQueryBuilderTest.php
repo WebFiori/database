@@ -1773,7 +1773,7 @@ class MySQLQueryBuilderTest extends TestCase {
      * @test
      * @depends testInsert04
      */
-    public function testTransaction00() {
+    public function testTransaction00($schema) {
         // Reset auto-increment for consistent test results
         $schema->setQuery('ALTER TABLE users_tasks AUTO_INCREMENT = 1')->execute();
         $schema = new MySQLTestSchema();
@@ -1818,21 +1818,15 @@ class MySQLQueryBuilderTest extends TestCase {
                 'details' => 'This task is about testing if transactions work as intended.',
             ]
         ], $tasks);
-        return intval($userId);
+        return [intval($userId), $schema];
     }
     /**
      * @test
      * @depends testTransaction00
      */
-    public function testTransaction01(int $userId) {
-        // Ensure user exists before creating task
-        $schema->table('users')->insert([
-            'id' => $userId,
-            'first-name' => 'Test',
-            'last-name' => 'User',
-            'age' => 25
-        ])->execute();
-        $schema = new MySQLTestSchema();
+    public function testTransaction01(array $vals) {
+        $userId = $vals[0];
+        $schema = $vals[1];
         $schema->transaction(function (Database $db, int $uId) {
             $db->table('users_tasks')
                 ->insert([

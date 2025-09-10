@@ -126,7 +126,9 @@ class RecordMapper {
             if (is_callable([$instance, $method])) {
                 foreach ($colsNames as $colName) {
                     try {
-                        $instance->$method($record[$colName]);
+                        if (isset($record[$colName])) {
+                            $instance->$method($record[$colName]);
+                        }
                     } catch (\Throwable $ex) {
                     }
                 }
