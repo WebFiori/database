@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" bootstrap="tests/boot.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" cacheDirectory=".phpunit.cache">
+  <coverage includeUncoveredFiles="true">
+    <report>
+      <clover outputFile="clover.xml"/>
+    </report>
+  </coverage>
+  <php>
+    </php>
+  <logging/>
+  <testsuites>
+    <testsuite name="Common Tests">
+      <directory>./tests/webfiori/database/tests/common</directory>
+    </testsuite>
+    <testsuite name="MySQL Tests">
+      <directory>./tests/webfiori/database/tests/mysql</directory>
+    </testsuite>
+    <testsuite name="MSSQL Tests">
+      <directory>./tests/webfiori/database/tests/mssql</directory>
+    </testsuite>
+    <testsuite name="Migration Tests">
+      <directory>./tests/webfiori/database/tests</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">./webfiori/database/mysql</directory>
+      <directory suffix=".php">./webfiori/database/mssql</directory>
+      <directory suffix=".php">./webfiori/database</directory>
+      <directory suffix=".php">./webfiori/database/migration</directory>
+    </include>
+  </source>
+</phpunit>
