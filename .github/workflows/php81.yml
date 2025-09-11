@@ -67,7 +67,7 @@ jobs:
         run: composer install --prefer-source --no-interaction --no-dev
       
       - name: Execute Tests
-        run: phpunit --configuration=tests/phpunit.xml --coverage-clover=clover.xml
+        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml
         
       - name: CodeCov
         uses: codecov/codecov-action@v4
