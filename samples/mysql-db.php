@@ -9,11 +9,11 @@ error_reporting(-1);
 
 require_once '../../vendor/autoload.php';
 
-use webfiori\database\ConnectionInfo;
-use webfiori\database\Database;
-use webfiori\database\DatabaseException;
-use webfiori\database\ResultSet;
-use webfiori\database\ColOption;
+use WebFiori\Database\ConnectionInfo;
+use WebFiori\Database\Database;
+use WebFiori\Database\DatabaseException;
+use WebFiori\Database\ResultSet;
+use WebFiori\Database\ColOption;
 
 function getDatabaseInstance() : Database {
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');

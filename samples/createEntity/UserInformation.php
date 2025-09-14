@@ -1,6 +1,6 @@
 <?php
 
-use webfiori\database\RecordMapper;
+use WebFiori\Database\RecordMapper;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
 

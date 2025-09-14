@@ -65,10 +65,10 @@ jobs:
          /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db' -C
       
       - name: Install Dependencies
-        run: composer install --prefer-source --no-interaction --no-dev
+        run: composer install --prefer-source --no-interaction
         
       - name: Execute Tests
-        run: phpunit
+        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml
       
       - name: CodeCov
         uses: codecov/codecov-action@v4

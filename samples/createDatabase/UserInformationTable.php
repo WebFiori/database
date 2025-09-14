@@ -1,8 +1,8 @@
 <?php
 
-use webfiori\database\ColOption;
-use webfiori\database\DataType;
-use webfiori\database\mysql\MySQLTable;
+use WebFiori\Database\ColOption;
+use WebFiori\Database\DataType;
+use WebFiori\Database\mysql\MySQLTable;
 
 class UserInformationTable extends MySQLTable {
     public function __construct() {

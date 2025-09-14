@@ -1,7 +1,7 @@
 <?php
 
-use webfiori\database\ConnectionInfo;
-use webfiori\database\Database;
+use WebFiori\Database\ConnectionInfo;
+use WebFiori\Database\Database;
 
 //This assumes that MySQL is installed on locahost
 //and root password is set to '123456' 

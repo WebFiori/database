@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true" bootstrap="boot.php" displayDetailsOnTestsThatTriggerWarnings="true">
+    <php>
+    </php>
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">../WebFiori/Database/MySql</directory>
+            <directory suffix=".php">../WebFiori/Database/MySql</directory>
+            <directory suffix=".php">../WebFiori/Database</directory>
+            <directory suffix=".php">../WebFiori/Database/Migration</directory>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-clover" target="clover.xml"/>
+    </logging>
+    <testsuites>
+        <testsuite name="Common Tests">
+            <directory>./WebFiori/Tests/Database/Common</directory>
+        </testsuite>
+        <testsuite name="MySQL Tests">
+            <directory>./WebFiori/Tests/Database/MySql</directory>
+        </testsuite>
+        <testsuite name="MSSQL Tests">
+            <directory>./WebFiori/Tests/Database/MsSql</directory>
+        </testsuite>
+        <testsuite name="Migration Tests">
+            <directory>./WebFiori/Tests/Database/Migrations</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
