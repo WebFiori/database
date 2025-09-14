@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.1](https://github.com/WebFiori/database/compare/v0.10.0...v0.10.1) (2025-09-14)
+
+
+### Bug Fixes
+
+* Fix to A Bug in Migrations Runner ([a10d572](https://github.com/WebFiori/database/commit/a10d5720ee505432aed8ea97f9b5e820203dd5d4))
+
+
+### Miscellaneous Chores
+
+* Added Dev Req ([828b3d2](https://github.com/WebFiori/database/commit/828b3d22335f55d9507abcfca8bfee9edc77f6c8))
+* Moved Files ([a44fc44](https://github.com/WebFiori/database/commit/a44fc440567a5f9d8d0dbb2b4bad2683d285536d))
+
 ## [0.10.0](https://github.com/WebFiori/database/compare/v0.9.2...v0.10.0) (2025-02-04)
 
 
