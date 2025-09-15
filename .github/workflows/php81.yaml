@@ -47,7 +47,6 @@ jobs:
           MSSQL_PID: Express
         ports:
           - "1433:1433"
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -Q 'SELECT 1'" --health-interval=30s --health-timeout=10s --health-retries=10
     steps:
       - name: Setup MSSQL
         run: |
