@@ -9,15 +9,23 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    env:
+      SA_SQL_SERVER_PASSWORD: ${{ secrets.SA_SQL_SERVER_PASSWORD }}
+      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+    
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: 1234567890@Eu
+          SA_PASSWORD: ${{ secrets.SA_SQL_SERVER_PASSWORD }}
           ACCEPT_EULA: Y
           MSSQL_PID: Express
         ports:
           - "1433:1433"
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '$SA_PASSWORD' -Q 'SELECT 1'" --health-interval=30s --health-timeout=10s --health-retries=10
+          
       mysql:
         image: mysql:8.0
         env:
@@ -42,14 +50,26 @@ jobs:
           extensions: mysqli, mbstring, sqlsrv
           tools: phpunit:9.5.20, composer
           
-        
-      - name: Setup MSSQL
+      - name: Install ODBC Driver for SQL Server
         run: |
-         curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-         curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-         sudo apt update
-         sudo apt install mssql-tools18
-         /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db' -C
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt update
+          sudo ACCEPT_EULA=Y apt install mssql-tools18 unixodbc-dev msodbcsql18
+        
+      - name: Wait for SQL Server
+        run: |
+          for i in {1..12}; do
+            if /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P '${{ secrets.SA_SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' -C > /dev/null 2>&1; then
+              echo "SQL Server is ready"
+              break
+            fi
+            echo "Waiting for SQL Server... ($i/12)"
+            sleep 10
+          done
+          
+      - name: Create SQL Server Database
+        run: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P '${{ secrets.SA_SQL_SERVER_PASSWORD }}' -Q 'create database testing_db' -C
       
       - name: Setup MySQL Client
         run: |
@@ -62,12 +82,16 @@ jobs:
             echo 'waiting for mysql...'
             sleep 1
           done
+          
+      - name: Create MySQL Database
+        run: |
+          mysql -h 127.0.0.1 -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS testing_db;"
 
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction
       
       - name: Execute Tests
-        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml
+        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml --verbose --stop-on-failure
         
       - name: CodeCov
         uses: codecov/codecov-action@v4
