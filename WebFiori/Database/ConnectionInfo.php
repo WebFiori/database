@@ -134,7 +134,7 @@ class ConnectionInfo {
         $this->setUsername($user);
         $this->setPassword($password);
         $this->setDBName($dbname);
-
+        var_dump("Password: $password");
         if ($host === null) {
             $this->setHost('localhost');
         } else {
