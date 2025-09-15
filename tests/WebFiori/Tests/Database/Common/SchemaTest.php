@@ -19,7 +19,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test00() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         $this->assertEquals('testing_db', $s->getName());
         $table = new MySQLTable('hello');
@@ -71,7 +71,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test01() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         $s->addTable(new HelloTable());
         $s->table('hello')->drop();
@@ -114,7 +114,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test02() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
         $s->table('hello');
@@ -124,7 +124,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test03() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
         $s->table('hello');
@@ -135,7 +135,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test04() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         
         $s->table('hello');
@@ -159,7 +159,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test05() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         $this->assertEquals([
             'message' => '',
@@ -170,7 +170,7 @@ class SchemaTest extends TestCase{
      * @test
      */
     public function test06() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $s = new Database($connInfo);
         try {
             $s->table('hello')->drop()->execute();

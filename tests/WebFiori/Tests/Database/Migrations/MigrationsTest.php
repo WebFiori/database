@@ -23,7 +23,7 @@ class MigrationsTest extends TestCase {
      * @test
      */
     public function test01() {
-        $connInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', 'localhost', 1433, [
+        $connInfo = new ConnectionInfo('mssql','sa', getenv('SA_SQL_SERVER_PASSWORD'), 'testing_db', 'localhost', 1433, [
             'TrustServerCertificate' => 'true'
         ]);
         $m = new MigrationsRunner(__DIR__. DIRECTORY_SEPARATOR, '\\WebFiori\\Tests\\Database\\Migrations', null);
