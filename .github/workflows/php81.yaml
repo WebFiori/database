@@ -23,17 +23,13 @@ jobs:
           ACCEPT_EULA: Y
           MSSQL_PID: Express
         ports:
-          - "1433:1433"
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '$SA_PASSWORD' -Q 'SELECT 1'" --health-interval=30s --health-timeout=10s --health-retries=10
-          
+          - "1433:1433"  
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      
     strategy: 
       fail-fast: true
             
