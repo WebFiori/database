@@ -42,11 +42,12 @@ jobs:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: ${{ secrets.SA_SQL_SERVER_PASSWORD }}
+          SA_PASSWORD: "YourStrong@Passw0rd"
           ACCEPT_EULA: Y
           MSSQL_PID: Express
         ports:
           - "1433:1433"
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -Q 'SELECT 1'" --health-interval=30s --health-timeout=10s --health-retries=10
     steps:
       - name: Setup MSSQL
         run: |
@@ -61,7 +62,7 @@ jobs:
           docker logs $(docker ps -q --filter ancestor=mcr.microsoft.com/mssql/server:2019-latest) || true
           
           for i in {1..12}; do
-            if /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P '${{ secrets.SA_SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' -C > /dev/null 2>&1; then
+            if /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -Q 'SELECT 1' -C > /dev/null 2>&1; then
               echo "SQL Server is ready"
               break
             fi
@@ -70,7 +71,7 @@ jobs:
           done
           
       - name: Create Database
-        run: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P ${{ secrets.SA_SQL_SERVER_PASSWORD }}  -Q 'create database testing_db' -C
+        run: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -Q 'create database testing_db' -C
       
   test:
     name: Run Tests
