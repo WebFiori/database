@@ -39,7 +39,7 @@ register_shutdown_function(function()
     ];
     echo "Dropping test tables from MySQL Server...\n";
     try {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $conn = new MySQLConnection($connInfo);
         $mysqlSchema = new MySQLTestSchema();
         $mysqlSchema->setConnection($conn);
