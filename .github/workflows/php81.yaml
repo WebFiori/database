@@ -1,4 +1,4 @@
-name: Build PHP 8.1
+name: PHP 8.1
 
 on:
   push:
@@ -7,10 +7,17 @@ on:
     branches: [ main ]
 
 jobs:
-  create-mysql-db:
-    name: Create MySQL Test Database
+  test:
     runs-on: ubuntu-latest
     services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: 1234567890@Eu
+          ACCEPT_EULA: Y
+          MSSQL_PID: Express
+        ports:
+          - "1433:1433"
       mysql:
         image: mysql:8.0
         env:
@@ -18,7 +25,32 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-    steps:
+      
+    strategy: 
+      fail-fast: true
+            
+    name: Run PHPUnit Tests 
+    
+    steps: 
+      - name: Clone Repo
+        uses: actions/checkout@v4
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+          extensions: mysqli, mbstring, sqlsrv
+          tools: phpunit:9.5.20, composer
+          
+        
+      - name: Setup MSSQL
+        run: |
+         curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+         curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+         sudo apt update
+         sudo apt install mssql-tools18
+         /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 1234567890@Eu -Q 'create database testing_db' -C
+      
       - name: Setup MySQL Client
         run: |
           sudo apt update
@@ -30,62 +62,14 @@ jobs:
             echo 'waiting for mysql...'
             sleep 1
           done
-          
-      - name: Create MySQL Test DB
-        run: |
-          mysql -h 127.0.0.1 -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS testing_db;"
 
-  create-mssql-db:
-    name: Create SQL Server Test Database
-    runs-on: ubuntu-latest
-    services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          SA_PASSWORD: "${{ secrets.SA_SQL_SERVER_PASSWORD }}"
-          ACCEPT_EULA: Y
-          MSSQL_PID: Express
-        ports:
-          - "1433:1433"
-    steps:
-      - name: Setup MSSQL
-        run: |
-         curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-         curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-         sudo apt update
-         sudo ACCEPT_EULA=Y apt install mssql-tools18 unixodbc-dev msodbcsql18
-         
-      - name: Wait for SQL Server
-        run: |
-          echo "Checking SQL Server container logs..."
-          docker logs $(docker ps -q --filter ancestor=mcr.microsoft.com/mssql/server:2019-latest) || true
-          
-          for i in {1..12}; do
-            if /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P '${{ secrets.SA_SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' -C > /dev/null 2>&1; then
-              echo "SQL Server is ready"
-              break
-            fi
-            echo "Waiting for SQL Server... ($i/12)"
-            sleep 10
-          done
-          
-      - name: Create Database
-        run: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P '${{ secrets.SA_SQL_SERVER_PASSWORD }}' -Q 'create database testing_db' -C
+      - name: Install Dependencies
+        run: composer install --prefer-source --no-interaction
       
-  test:
-    name: Run Tests
-    needs: [create-mysql-db, create-mssql-db]
-    uses: WebFiori/workflows/.github/workflows/test-php.yaml@main
-    with:
-      php-version: '8.1'
-    secrets: inherit
-
-  code-coverage:
-    name: Coverage
-    needs: test
-    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@main
-    with:
-      php-version: '8.1'
-      coverage-file: 'php-8.1-coverage.xml'
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Execute Tests
+        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml
+        
+      - name: CodeCov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
