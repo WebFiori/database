@@ -90,16 +90,14 @@ jobs:
         run: composer install --prefer-source --no-interaction
       
       - name: Execute Tests
-        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml --verbose --stop-on-failure
-        
-      - name: CodeCov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=..ظcoverage-reports/php-8.3-coverage.xml --verbose --stop-on-failure
 
-  release-prod:
-    name: Prepare Production Release Branch / Publish Release
+  code-coverage:
+    name: Coverage
     needs: test
-    uses: WebFiori/workflows/.github/workflows/release-php.yaml@main
+    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@main
     with:
-      branch: 'main'
+      php-version: '8.3'
+      coverage-file: 'php-8.3-coverage.xml'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

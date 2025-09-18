@@ -90,9 +90,15 @@ jobs:
         run: composer install --prefer-source --no-interaction
       
       - name: Execute Tests
-        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=../clover.xml --verbose --stop-on-failure
-        
-      - name: CodeCov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=..ظcoverage-reports/php-8.2-coverage.xml --verbose --stop-on-failure
+
+  code-coverage:
+    name: Coverage
+    needs: test
+    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@main
+    with:
+      php-version: '8.2'
+      coverage-file: 'php-8.2-coverage.xml'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
