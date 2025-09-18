@@ -474,7 +474,8 @@ class Database {
             if ($this->getConnectionInfo() === null) {
                 throw new DatabaseException("Connection information not set.");
             } else {
-                throw new DatabaseException("Not connected to database.");
+                $lastErr = $this->getLastError();
+                throw new DatabaseException("Not connected to database. Error Code: ".$lastErr['code'].'. Message: "'.$lastErr['message']);
             }
         }
         return $this->queryGenerator;
