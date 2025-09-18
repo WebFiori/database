@@ -47,7 +47,7 @@ jobs:
         with:
           php-version: 8.3
           extensions: mysqli, mbstring, sqlsrv
-          tools: phpunit:9.5.20, composer
+          tools: phpunit:10.5.48, composer
           
       - name: Install ODBC Driver for SQL Server
         run: |
@@ -90,7 +90,17 @@ jobs:
         run: composer install --prefer-source --no-interaction
       
       - name: Execute Tests
-        run: cd tests && phpunit --configuration=phpunit.xml --coverage-clover=..ظcoverage-reports/php-8.3-coverage.xml --verbose --stop-on-failure
+        run: phpunit --configuration=tests/phpunit10.xml --coverage-clover=clover.xml --verbose --stop-on-failure
+
+      - name: Rename coverage report
+        run: |
+          mv clover.xml php-8.3-coverage.xml
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage
+          path: php-8.3-coverage.xml
 
   code-coverage:
     name: Coverage
