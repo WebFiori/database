@@ -36,12 +36,8 @@ class SchemaRunner extends Database {
         $this->ns = $ns;
         $this->environment = $environment;
         $dbType = $connectionInfo !== null ? $connectionInfo->getDatabaseType() : 'mysql';
-        $this->onErrCallbacks = [function (\Throwable $err, ?DatabaseChange $c = null, ?Database $schema = null) {
-            
-        }];
-        $this->onRegErrCallbacks = [function (\Throwable $err) {
-            
-        }];
+        $this->onErrCallbacks = [];
+        $this->onRegErrCallbacks = [];
         $this->createBlueprint('schema_changes')->addColumns([
             'id' => [
                 ColOption::TYPE => DataType::INT,
@@ -80,6 +76,38 @@ class SchemaRunner extends Database {
     
     public function getEnvironment(): string {
         return $this->environment;
+    }
+    
+    /**
+     * Add a callback to be executed when a seeder/migration fails to execute or rollback.
+     * 
+     * @param callable $callback Callback with signature: function(\Throwable $err, ?DatabaseChange $change, ?Database $schema)
+     */
+    public function addOnErrorCallback(callable $callback): void {
+        $this->onErrCallbacks[] = $callback;
+    }
+    
+    /**
+     * Add a callback to be executed when a seeder/migration fails to register.
+     * 
+     * @param callable $callback Callback with signature: function(\Throwable $err)
+     */
+    public function addOnRegisterErrorCallback(callable $callback): void {
+        $this->onRegErrCallbacks[] = $callback;
+    }
+    
+    /**
+     * Clear all error callbacks.
+     */
+    public function clearErrorCallbacks(): void {
+        $this->onErrCallbacks = [];
+    }
+    
+    /**
+     * Clear all register error callbacks.
+     */
+    public function clearRegisterErrorCallbacks(): void {
+        $this->onRegErrCallbacks = [];
     }
     
     public function createSchemaTable() {
@@ -264,19 +292,33 @@ class SchemaRunner extends Database {
         if ($changeName !== null && $this->hasChange($changeName)) {
             foreach ($changes as $change) {
                 if ($change->getName() == $changeName && $this->isApplied($change->getName())) {
-                    $change->rollback($this);
-                    $this->table('schema_changes')->delete()->where('name', $change->getName())->execute();
-                    $rolled[] = $change;
-                    return $rolled;
+                    try {
+                        $change->rollback($this);
+                        $this->table('schema_changes')->delete()->where('name', $change->getName())->execute();
+                        $rolled[] = $change;
+                        return $rolled;
+                    } catch (\Throwable $ex) {
+                        foreach ($this->onErrCallbacks as $callback) {
+                            call_user_func_array($callback, [$ex, $change, $this]);
+                        }
+                        return $rolled;
+                    }
                 }
             }
         } else if ($changeName === null) {
             foreach ($changes as $change) {
                 if ($this->isApplied($change->getName())) {
-                    $change->rollback($this);
-                    $this->table('schema_changes')->delete()->where('name', $change->getName())->execute();
-                    $rolled[] = $change;
-                    break;
+                    try {
+                        $change->rollback($this);
+                        $this->table('schema_changes')->delete()->where('name', $change->getName())->execute();
+                        $rolled[] = $change;
+                        break;
+                    } catch (\Throwable $ex) {
+                        foreach ($this->onErrCallbacks as $callback) {
+                            call_user_func_array($callback, [$ex, $change, $this]);
+                        }
+                        return $rolled;
+                    }
                 }
             }
         }
