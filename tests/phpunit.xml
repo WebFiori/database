@@ -7,7 +7,6 @@
             <directory suffix=".php">../WebFiori/Database/MySql</directory>
             <directory suffix=".php">../WebFiori/Database/MySql</directory>
             <directory suffix=".php">../WebFiori/Database</directory>
-            <directory suffix=".php">../WebFiori/Database/Migration</directory>
         </whitelist>
     </filter>
     <logging>
@@ -22,9 +21,6 @@
         </testsuite>
         <testsuite name="MSSQL Tests">
             <directory>./WebFiori/Tests/Database/MsSql</directory>
-        </testsuite>
-        <testsuite name="Migration Tests">
-            <directory>./WebFiori/Tests/Database/Migrations</directory>
         </testsuite>
     </testsuites>
 </phpunit>
