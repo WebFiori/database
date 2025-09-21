@@ -217,11 +217,19 @@ class SchemaRunner extends Database {
     }
     
     public function isApplied(string $name): bool {
-        return $this->table('schema_changes')
-                ->select(['change_name'])
-                ->where('change_name', $name)
-                ->execute()
-                ->getRowsCount() == 1;
+        try {
+            return $this->table('schema_changes')
+                    ->select(['change_name'])
+                    ->where('change_name', $name)
+                    ->execute()
+                    ->getRowsCount() == 1;
+        } catch (DatabaseException $ex) {
+            // If schema_changes table doesn't exist, no changes have been applied
+            if (strpos($ex->getMessage(), "doesn't exist") !== false) {
+                return false;
+            }
+            throw $ex;
+        }
     }
     
     public function hasChange(string $name): bool {
