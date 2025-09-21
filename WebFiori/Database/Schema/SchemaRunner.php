@@ -46,7 +46,7 @@ class SchemaRunner extends Database {
                 ColOption::IDENTITY => true,
                 ColOption::COMMENT => 'The unique identifier of the change.'
             ],
-            'name' => [
+            'change_name' => [
                 ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 125,
                 ColOption::COMMENT => 'The name of the change.'
@@ -111,7 +111,7 @@ class SchemaRunner extends Database {
     }
     
     public function createSchemaTable() {
-        $this->table('schema_changes')->createTable();
+        $this->createTables();
         $this->execute();
     }
     
@@ -218,8 +218,8 @@ class SchemaRunner extends Database {
     
     public function isApplied(string $name): bool {
         return $this->table('schema_changes')
-                ->select(['name'])
-                ->where('name', $name)
+                ->select(['change_name'])
+                ->where('change_name', $name)
                 ->execute()
                 ->getRowsCount() == 1;
     }
@@ -246,7 +246,7 @@ class SchemaRunner extends Database {
                 $change->execute($this);
                 $this->table('schema_changes')
                         ->insert([
-                            'name' => $change->getName(),
+                            'change_name' => $change->getName(),
                             'type' => $change->getType(),
                             'applied-on' => date('Y-m-d H:i:s')
                         ])->execute();
@@ -280,7 +280,7 @@ class SchemaRunner extends Database {
                 $change->execute($this);
                 $this->table('schema_changes')
                         ->insert([
-                            'name' => $change->getName(),
+                            'change_name' => $change->getName(),
                             'type' => $change->getType(),
                             'applied-on' => date('Y-m-d H:i:s')
                         ])->execute();
@@ -311,7 +311,7 @@ class SchemaRunner extends Database {
                 if ($change->getName() == $changeName && $this->isApplied($change->getName())) {
                     try {
                         $change->rollback($this);
-                        $this->table('schema_changes')->delete()->where('name', $change->getName())->execute();
+                        $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
                         $rolled[] = $change;
                         return $rolled;
                     } catch (\Throwable $ex) {
@@ -327,7 +327,7 @@ class SchemaRunner extends Database {
                 if ($this->isApplied($change->getName())) {
                     try {
                         $change->rollback($this);
-                        $this->table('schema_changes')->delete()->where('name', $change->getName())->execute();
+                        $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
                         $rolled[] = $change;
                         break;
                     } catch (\Throwable $ex) {
