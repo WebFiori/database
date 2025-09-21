@@ -13,7 +13,7 @@ use WebFiori\Database\Schema\SchemaRunner;
 class SchemaIntegrationTest extends TestCase {
     
     private function getConnectionInfo(): ConnectionInfo {
-        return new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
+        return new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db');
     }
     
     /**

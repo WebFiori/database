@@ -13,7 +13,7 @@ use WebFiori\Database\MySql\MySQLTable;
  */
 class MySQLTestSchema extends Database {
     public function __construct() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $this->setConnectionInfo($connInfo);
         $table00 = new MySQLTable('users');
         $table00->addColumns([

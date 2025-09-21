@@ -19,7 +19,7 @@ class MySQLQueryBuilderTest extends TestCase {
 //    public function testConnect() {
 //        //Testing multiple connections.
 //        
-//        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db');
+//        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db');
 //        $conn = new MySQLConnection($connInfo);
 //        $schema = new MySQLTestSchema();
 //        $schema->setConnection($conn);
@@ -1075,7 +1075,7 @@ class MySQLQueryBuilderTest extends TestCase {
      * @return MySQLTestSchema Description
      */
     public function testSetConnection00() {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $conn = new MySQLConnection($connInfo);
         $schema = new MySQLTestSchema();
         $schema->setConnection($conn);

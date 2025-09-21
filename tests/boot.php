@@ -5,6 +5,14 @@ ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
 define('SQL_SERVER_HOST', 'localhost');
+// Set default environment variables if not already set
+if (!getenv('MYSQL_ROOT_PASSWORD')) {
+    putenv('MYSQL_ROOT_PASSWORD=123456');
+}
+if (!getenv('SA_SQL_SERVER_PASSWORD')) {
+    putenv('SA_SQL_SERVER_PASSWORD=1234567890@Eu');
+}
+
 $stderr = fopen('php://stderr', 'w');
 $testsDirName = 'tests';
 $rootDir = substr(__DIR__, 0, strlen(__DIR__) - strlen($testsDirName));
@@ -39,7 +47,7 @@ register_shutdown_function(function()
     ];
     echo "Dropping test tables from MySQL Server...\n";
     try {
-        $connInfo = new ConnectionInfo('mysql','root', '123456', 'testing_db', '127.0.0.1');
+        $connInfo = new ConnectionInfo('mysql','root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
         $conn = new MySQLConnection($connInfo);
         $mysqlSchema = new MySQLTestSchema();
         $mysqlSchema->setConnection($conn);
@@ -62,7 +70,7 @@ register_shutdown_function(function()
     } else {
         echo "Dropping test tables from MSSQL Server...\n";
         try{
-            $mssqlConnInfo = new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+            $mssqlConnInfo = new ConnectionInfo('mssql','sa', getenv('SA_SQL_SERVER_PASSWORD'), 'testing_db', SQL_SERVER_HOST, 1433, [
                 'TrustServerCertificate' => 'true'
             ]);
             $mssqlConn = new MSSQLConnection($mssqlConnInfo);

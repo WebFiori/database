@@ -13,7 +13,7 @@ use WebFiori\Database\MsSql\MSSQLTable;
  */
 class MSSQLTestSchema extends Database {
     public function __construct() {
-        parent::__construct(new ConnectionInfo('mssql','sa', '1234567890@Eu', 'testing_db', SQL_SERVER_HOST, 1433, [
+        parent::__construct(new ConnectionInfo('mssql','sa', getenv('SA_SQL_SERVER_PASSWORD'), 'testing_db', SQL_SERVER_HOST, 1433, [
             'TrustServerCertificate' => 'true'
         ]));
         
