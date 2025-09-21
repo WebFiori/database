@@ -718,6 +718,7 @@ class MySQLColumn extends Column {
     }
 
     private function firstColPart() {
+        $this->setWithTablePrefix(false);
         $retVal = $this->getName().' ';
         $colDataType = $this->getDatatype();
 
