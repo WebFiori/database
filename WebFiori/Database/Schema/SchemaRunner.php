@@ -234,26 +234,26 @@ class SchemaRunner extends Database {
     public function applyOne(): ?DatabaseChange {
         $change = null;
         try {
-        foreach ($this->changes as $change) {
-            if ($this->isApplied($change->getName())) {
-                continue;
+            foreach ($this->changes as $change) {
+                if ($this->isApplied($change->getName())) {
+                    continue;
+                }
+                
+                if (!$this->shouldRunInEnvironment($change)) {
+                    continue;
+                }
+                
+                $change->execute($this);
+                $this->table('schema_changes')
+                        ->insert([
+                            'name' => $change->getName(),
+                            'type' => $change->getType(),
+                            'applied-on' => date('Y-m-d H:i:s')
+                        ])->execute();
+                
+                return $change;
             }
-            
-            if (!$this->shouldRunInEnvironment($change)) {
-                continue;
-            }
-            
-            $change->execute($this);
-            $this->table('schema_changes')
-                    ->insert([
-                        'name' => $change->getName(),
-                        'type' => $change->getType(),
-                        'applied-on' => date('Y-m-d H:i:s')
-                    ])->execute();
-            
-            return $change;
-        } }
-        catch (\Throwable $ex) {
+        } catch (\Throwable $ex) {
             foreach ($this->onErrCallbacks as $callback) {
                 call_user_func_array($callback, [$ex, $change, $this]);
             }
@@ -268,29 +268,25 @@ class SchemaRunner extends Database {
         $applied = [];
         $change = null;
         try {
-            
-        
-        foreach ($this->changes as $change) {
-            if ($this->isApplied($change->getName())) {
-                continue;
+            foreach ($this->changes as $change) {
+                if ($this->isApplied($change->getName())) {
+                    continue;
+                }
+                
+                if (!$this->shouldRunInEnvironment($change)) {
+                    continue;
+                }
+                
+                $change->execute($this);
+                $this->table('schema_changes')
+                        ->insert([
+                            'name' => $change->getName(),
+                            'type' => $change->getType(),
+                            'applied-on' => date('Y-m-d H:i:s')
+                        ])->execute();
+                
+                $applied[] = $change;
             }
-            
-            if (!$this->shouldRunInEnvironment($change)) {
-                continue;
-            }
-            
-            $change->execute($this);
-            $this->table('schema_changes')
-                    ->insert([
-                        'name' => $change->getName(),
-                        'type' => $change->getType(),
-                        'applied-on' => date('Y-m-d H:i:s')
-                    ])->execute();
-            
-            $applied[] = $change;
-        }
-        
-        
         } catch (\Throwable $ex) {
             foreach ($this->onErrCallbacks as $callback) {
                 call_user_func_array($callback, [$ex, $change, $this]);
