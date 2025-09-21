@@ -12,11 +12,7 @@ class TestMigration3 extends AbstractMigration {
     }
     
     public function execute(Database $db): void {
-        $db->table('user_profiles')->addColumn('status', [
-            'type' => 'varchar',
-            'size' => 50
-        ]);
-        $db->execute();
+        $db->table('user_profiles')->addCol('status', 'varchar', 50)->execute();
     }
     
     public function rollback(Database $db): void {
