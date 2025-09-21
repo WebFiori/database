@@ -191,6 +191,10 @@ class MySQLConnection extends Connection {
             $r = mysqli_multi_query($this->link, $this->getLastQuery()->getQuery());
 
             if ($r) {
+                // Clean up multi-query results to prevent "Commands out of sync"
+                while (mysqli_next_result($this->link)) {
+                    // Consume all result sets
+                }
                 $this->setErrMessage('NO ERRORS');
                 $this->setErrCode(0);
 
@@ -249,6 +253,12 @@ class MySQLConnection extends Connection {
                 $r = mysqli_query($this->link, $query);
             } else {
                 $r = mysqli_multi_query($this->link, $query);
+                // Clean up multi-query results to prevent "Commands out of sync"
+                if ($r) {
+                    while (mysqli_next_result($this->link)) {
+                        // Consume all result sets
+                    }
+                }
             }
         }
         
