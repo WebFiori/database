@@ -94,6 +94,10 @@ class SchemaRunner extends Database {
      */
     public function addOnRegisterErrorCallback(callable $callback): void {
         $this->onRegErrCallbacks[] = $callback;
+        
+        if (empty($this->changes)) {
+            $this->scanPathForChanges();
+        }
     }
     
     /**
@@ -134,6 +138,17 @@ class SchemaRunner extends Database {
                 $clazz = $this->getNamespace().'\\'.explode('.', $file)[0];
                 
                 try {
+                    $filePath = $path . DIRECTORY_SEPARATOR . $file;
+                    $content = file_get_contents($filePath);
+                    $tempFile = tempnam(sys_get_temp_dir(), 'syntax_check');
+                    file_put_contents($tempFile, $content);
+                    exec("php -l $tempFile 2>&1", $output, $returnCode);
+                    unlink($tempFile);
+                    
+                    if ($returnCode !== 0) {
+                        throw new Error("Syntax error in $file");
+                    }
+                    
                     if (class_exists($clazz)) {
                         $instance = new $clazz();
                         

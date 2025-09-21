@@ -241,12 +241,21 @@ class MySQLConnection extends Connection {
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
         
-        if (count($values) != 0) {
-            $sqlStatement = mysqli_prepare($this->link, $sql);
-            $sqlStatement->bind_param($params, ...$values);
-            $r = $sqlStatement->execute();
-            if ($sqlStatement) {
-                mysqli_stmt_close($sqlStatement);
+        if (count($values) != 0 && !empty($params)) {
+            // Count the number of ? placeholders in the SQL
+            $paramCount = substr_count($sql, '?');
+            
+            // Only use prepared statements if parameter counts match
+            if ($paramCount == count($values) && strlen($params) == count($values)) {
+                $sqlStatement = mysqli_prepare($this->link, $sql);
+                $sqlStatement->bind_param($params, ...$values);
+                $r = $sqlStatement->execute();
+                if ($sqlStatement) {
+                    mysqli_stmt_close($sqlStatement);
+                }
+            } else {
+                // Fall back to regular query if there's a mismatch
+                $r = mysqli_query($this->link, $sql);
             }
         } else {
             if (!$this->getLastQuery()->isMultiQuery()) {

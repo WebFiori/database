@@ -62,7 +62,7 @@ class SchemaErrorHandlingTest extends TestCase {
                 });
                 
                 // Create a failing rollback scenario by dropping the table first
-                $runner->table('test_table')->drop()->execute();
+                $runner->table('user_profiles')->drop()->execute();
                 
                 // Now try to rollback - should fail and stop
                 $rolled = $runner->rollbackUpTo(null);
