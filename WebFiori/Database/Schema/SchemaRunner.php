@@ -192,7 +192,20 @@ class SchemaRunner extends Database {
     
     private function findChangeByName(string $name): ?DatabaseChange {
         foreach ($this->changes as $change) {
-            if ($change->getName() === $name) {
+            $changeName = $change->getName();
+            
+            // Exact match
+            if ($changeName === $name) {
+                return $change;
+            }
+            
+            // Check if name is a short class name and change is full class name
+            if (str_ends_with($changeName, '\\' . $name)) {
+                return $change;
+            }
+            
+            // Check if name is full class name and change is short class name
+            if (str_ends_with($name, '\\' . $changeName)) {
                 return $change;
             }
         }
