@@ -13,7 +13,7 @@ abstract class DatabaseChange {
     private $id;
     private $appliedAt;
 
-    public function __construct(string $name, int $order) {
+    public function __construct(?string $name = null, ?int $order = null) {
         $this->setAppliedAt(date('Y-m-d H:i:s'));
     }
     public function getAppliedAt(): string {

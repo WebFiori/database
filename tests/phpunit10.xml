@@ -18,6 +18,9 @@
     <testsuite name="MSSQL Tests">
       <directory>./WebFiori/Tests/Database/MsSql</directory>
     </testsuite>
+    <testsuite name="Schema Tests">
+      <directory>./WebFiori/Tests/Database/Schema</directory>
+    </testsuite>
 
   </testsuites>
   <source>
@@ -25,6 +28,7 @@
       <directory suffix=".php">../WebFiori/Database/MySql</directory>
       <directory suffix=".php">../WebFiori/Database/MySql</directory>
       <directory suffix=".php">../WebFiori/Database</directory>
+      <directory suffix=".php">../WebFiori/Database/Schema</directory>
 
     </include>
   </source>
