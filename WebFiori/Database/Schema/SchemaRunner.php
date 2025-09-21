@@ -163,22 +163,29 @@ class SchemaRunner extends Database {
         $this->changes = array_reverse($sorted);
     }
     
-    private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted) {
+    private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting = []) {
         $className = $change->getName();
+        
+        if (isset($visiting[$className])) {
+            $cycle = array_keys($visiting) + [$className];
+            throw new DatabaseException('Circular dependency detected: ' . implode(' -> ', $cycle));
+        }
         
         if (isset($visited[$className])) {
             return;
         }
         
-        $visited[$className] = true;
+        $visiting[$className] = true;
         
         foreach ($change->getDependencies() as $depName) {
             $dep = $this->findChangeByName($depName);
             if ($dep) {
-                $this->topologicalSort($dep, $visited, $sorted);
+                $this->topologicalSort($dep, $visited, $sorted, $visiting);
             }
         }
         
+        unset($visiting[$className]);
+        $visited[$className] = true;
         $sorted[] = $change;
     }
     
