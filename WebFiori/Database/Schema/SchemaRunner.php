@@ -251,6 +251,10 @@ class SchemaRunner extends Database {
                     continue;
                 }
                 
+                if (!$this->areDependenciesSatisfied($change)) {
+                    continue;
+                }
+                
                 $change->execute($this);
                 $this->table('schema_changes')
                         ->insert([
@@ -274,8 +278,11 @@ class SchemaRunner extends Database {
      */
     public function apply(): array {
         $applied = [];
-        $change = null;
-        try {
+        
+        // Keep applying changes until no more can be applied
+        $appliedInPass = true;
+        while ($appliedInPass) {
+            $appliedInPass = false;
             foreach ($this->changes as $change) {
                 if ($this->isApplied($change->getName())) {
                     continue;
@@ -285,19 +292,27 @@ class SchemaRunner extends Database {
                     continue;
                 }
                 
-                $change->execute($this);
-                $this->table('schema_changes')
-                        ->insert([
-                            'change_name' => $change->getName(),
-                            'type' => $change->getType(),
-                            'applied-on' => date('Y-m-d H:i:s')
-                        ])->execute();
+                if (!$this->areDependenciesSatisfied($change)) {
+                    continue;
+                }
                 
-                $applied[] = $change;
-            }
-        } catch (\Throwable $ex) {
-            foreach ($this->onErrCallbacks as $callback) {
-                call_user_func_array($callback, [$ex, $change, $this]);
+                try {
+                    $change->execute($this);
+                    $this->table('schema_changes')
+                            ->insert([
+                                'change_name' => $change->getName(),
+                                'type' => $change->getType(),
+                                'applied-on' => date('Y-m-d H:i:s')
+                            ])->execute();
+                    
+                    $applied[] = $change;
+                    $appliedInPass = true;
+                } catch (\Throwable $ex) {
+                    foreach ($this->onErrCallbacks as $callback) {
+                        call_user_func_array($callback, [$ex, $change, $this]);
+                    }
+                    // Continue with next change instead of breaking
+                }
             }
         }
         return $applied;
@@ -354,5 +369,14 @@ class SchemaRunner extends Database {
     private function shouldRunInEnvironment(DatabaseChange $change): bool {
         $environments = $change->getEnvironments();
         return empty($environments) || in_array($this->environment, $environments);
+    }
+    
+    private function areDependenciesSatisfied(DatabaseChange $change): bool {
+        foreach ($change->getDependencies() as $depName) {
+            if (!$this->isApplied($depName)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
