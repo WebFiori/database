@@ -157,7 +157,8 @@ class SchemaRunner extends Database {
         $visited = [];
         
         foreach ($this->changes as $change) {
-            $this->topologicalSort($change, $visited, $sorted);
+            $visiting = [];
+            $this->topologicalSort($change, $visited, $sorted, $visiting);
         }
         
         $this->changes = array_reverse($sorted);
@@ -167,7 +168,7 @@ class SchemaRunner extends Database {
         $className = $change->getName();
         
         if (isset($visiting[$className])) {
-            $cycle = array_keys($visiting) + [$className];
+            $cycle = array_merge(array_keys($visiting), [$className]);
             throw new DatabaseException('Circular dependency detected: ' . implode(' -> ', $cycle));
         }
         
@@ -334,10 +335,7 @@ class SchemaRunner extends Database {
     }
     
     private function shouldRunInEnvironment(DatabaseChange $change): bool {
-        if ($change instanceof AbstractSeeder) {
-            $environments = $change->getEnvironments();
-            return empty($environments) || in_array($this->environment, $environments);
-        }
-        return true;
+        $environments = $change->getEnvironments();
+        return empty($environments) || in_array($this->environment, $environments);
     }
 }

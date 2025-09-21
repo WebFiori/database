@@ -21,6 +21,9 @@ class SchemaAdvancedTest extends TestCase {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
             $runner->createSchemaTable();
             
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
+            
             $changes = $runner->getChanges();
             $changeNames = array_map(function($change) {
                 return $change->getName();
@@ -50,6 +53,12 @@ class SchemaAdvancedTest extends TestCase {
         try {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
             $runner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
             
             // Apply all changes
             $applied = $runner->apply();
@@ -88,6 +97,9 @@ class SchemaAdvancedTest extends TestCase {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
             $runner->createSchemaTable();
             
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
+            
             $appliedChanges = [];
             
             // Apply changes one by one
@@ -116,6 +128,9 @@ class SchemaAdvancedTest extends TestCase {
             // Test with 'test' environment
             $testRunner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo(), 'test');
             $testRunner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
             
             $applied = $testRunner->apply();
             
@@ -146,6 +161,9 @@ class SchemaAdvancedTest extends TestCase {
             
             // Test creating schema table
             $runner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
             
             // Verify table exists by trying to query it
             $result = $runner->table('schema_changes')->select()->execute();

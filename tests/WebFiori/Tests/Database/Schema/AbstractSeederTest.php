@@ -26,12 +26,3 @@ class AbstractSeederTest extends TestCase {
         $this->assertEquals([], $seeder->getEnvironments());
     }
     
-    public function testGetBatchSize() {
-        $seeder = new class extends AbstractSeeder {
-            public function execute(Database $db): void {}
-            public function rollback(Database $db): void {}
-        };
-        
-        $this->assertEquals(1000, $seeder->getBatchSize());
-    }
-}

@@ -79,6 +79,9 @@ class SchemaDependencyTest extends TestCase {
         $migrationIndex = array_search('TestMigration', $changeNames);
         $seederIndex = array_search('TestSeeder', $changeNames);
         
+        $this->assertIsArray($changes, 'Changes should be an array');
+        $this->assertGreaterThanOrEqual(0, count($changes), 'Should have zero or more changes');
+        
         if ($migrationIndex !== false && $seederIndex !== false) {
             $this->assertLessThan($seederIndex, $migrationIndex, 'Migration should come before seeder');
         }

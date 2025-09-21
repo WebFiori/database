@@ -23,6 +23,9 @@ class SchemaIntegrationTest extends TestCase {
         $this->expectException(DatabaseException::class);
         $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', null);
         $runner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
     }
     
     /**
@@ -34,6 +37,9 @@ class SchemaIntegrationTest extends TestCase {
             
             // Create schema tracking table
             $runner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
             
             // Check that we have changes detected
             $changes = $runner->getChanges();
@@ -72,6 +78,9 @@ class SchemaIntegrationTest extends TestCase {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo(), 'prod');
             
             $runner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
             
             // Apply changes - seeders with environment restrictions should be skipped
             $applied = $runner->apply();

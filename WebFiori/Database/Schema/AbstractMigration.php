@@ -17,4 +17,14 @@ abstract class AbstractMigration extends DatabaseChange {
     public function getType(): string {
         return 'migration';
     }
+    
+    /**
+     * Get environments where this migration should run.
+     * Migrations run in all environments by default.
+     * 
+     * @return array Empty array means all environments.
+     */
+    public function getEnvironments(): array {
+        return [];
+    }
 }

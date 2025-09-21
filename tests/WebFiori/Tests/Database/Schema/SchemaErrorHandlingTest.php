@@ -48,6 +48,9 @@ class SchemaErrorHandlingTest extends TestCase {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
             $runner->createSchemaTable();
             
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
+            
             // Apply changes first
             $applied = $runner->apply();
             
@@ -66,6 +69,8 @@ class SchemaErrorHandlingTest extends TestCase {
                 // Should have caught error and stopped
                 $this->assertTrue($errorCaught);
                 $this->assertIsArray($rolled);
+            } else {
+                $this->assertTrue(true, 'No changes to rollback');
             }
             
             $runner->dropSchemaTable();

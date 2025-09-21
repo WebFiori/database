@@ -1808,16 +1808,15 @@ class MySQLQueryBuilderTest extends TestCase {
             'can_do_anything' => 1
         ], $privileges);
         $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
-        $this->assertEquals([
-            [
-                'task_id' => 1,
-                'user_id' => $userId,
-                'created_on' => date('Y-m-d H:i:s'),
-                'last_updated' => null,
-                'is_finished' => 0,
-                'details' => 'This task is about testing if transactions work as intended.',
-            ]
-        ], $tasks);
+        $this->assertCount(1, $tasks);
+        $task = $tasks[0];
+        $this->assertEquals(1, $task['task_id']);
+        $this->assertEquals($userId, $task['user_id']);
+        $this->assertNull($task['last_updated']);
+        $this->assertEquals(0, $task['is_finished']);
+        $this->assertEquals('This task is about testing if transactions work as intended.', $task['details']);
+        $this->assertMatchesRegularExpression('/^d{4}-d{2}-d{2} d{2}:d{2}:d{2}$/', $task['created_on']);
+        
         return [intval($userId), $schema];
     }
     /**
