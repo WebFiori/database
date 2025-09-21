@@ -8,16 +8,14 @@ use WebFiori\Database\Schema\AbstractMigration;
 class TestMigration extends AbstractMigration {
     
     public function execute(Database $db): void {
-        // Create a test table
-        $db->createBlueprint('user_profiles')->addColumns([
-            'id' => ['type' => 'int', 'primary' => true, 'auto-inc' => true],
-            'name' => ['type' => 'varchar', 'size' => 100]
-        ]);
-        $db->createTables()->execute();
+        // Create a simple table
+        $db->addQuery('CREATE TABLE IF NOT EXISTS user_profiles (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100))', 'create');
+        $db->execute();
     }
     
     public function rollback(Database $db): void {
-        // Drop the test table
-        $db->table('user_profiles')->drop()->execute();
+        // Drop table
+        $db->addQuery('DROP TABLE IF EXISTS user_profiles', 'drop');
+        $db->execute();
     }
 }
