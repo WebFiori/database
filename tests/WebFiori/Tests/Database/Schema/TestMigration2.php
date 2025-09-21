@@ -13,16 +13,14 @@ class TestMigration2 extends AbstractMigration {
     
     public function execute(Database $db): void {
         // Add a column to existing test table
-        $db->table('test_table')->addColumn('email', [
+        $db->table('user_profiles')->addColumn('email', [
             'type' => 'varchar',
             'size' => 255
-        ]);
-        $db->execute();
+        ])->execute();
     }
     
     public function rollback(Database $db): void {
         // Remove the added column
-        $db->table('test_table')->dropColumn('email');
-        $db->execute();
+        $db->table('user_profiles')->dropColumn('email')->execute();
     }
 }

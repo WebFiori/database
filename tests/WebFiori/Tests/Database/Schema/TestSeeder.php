@@ -17,18 +17,18 @@ class TestSeeder extends AbstractSeeder {
     
     public function execute(Database $db): void {
         // Insert test data
-        $db->table('test_table')->insert([
+        $db->table('user_profiles')->insert([
             'name' => 'Test User 1'
         ])->execute();
         
-        $db->table('test_table')->insert([
+        $db->table('user_profiles')->insert([
             'name' => 'Test User 2'
         ])->execute();
     }
     
     public function rollback(Database $db): void {
         // Delete test data
-        $db->table('test_table')->delete()->where('name', 'Test User 1')->execute();
-        $db->table('test_table')->delete()->where('name', 'Test User 2')->execute();
+        $db->table('user_profiles')->delete()->where('name', 'Test User 1')->execute();
+        $db->table('user_profiles')->delete()->where('name', 'Test User 2')->execute();
     }
 }

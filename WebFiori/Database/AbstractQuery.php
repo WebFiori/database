@@ -1403,7 +1403,7 @@ abstract class AbstractQuery {
 
         return $this;
     }
-    private function getColType($phpVar) {
+    protected function getColType($phpVar) {
         $type = gettype($phpVar);
         if ($type == 'integer') {
             return 'int';

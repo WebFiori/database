@@ -161,7 +161,7 @@ class SchemaRunner extends Database {
             $this->topologicalSort($change, $visited, $sorted, $visiting);
         }
         
-        $this->changes = array_reverse($sorted);
+        $this->changes = $sorted;
     }
     
     private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting = []) {

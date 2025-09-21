@@ -9,17 +9,15 @@ class TestMigration extends AbstractMigration {
     
     public function execute(Database $db): void {
         // Create a test table
-        $db->createBlueprint('test_table')->addColumns([
+        $db->createBlueprint('user_profiles')->addColumns([
             'id' => ['type' => 'int', 'primary' => true, 'auto-inc' => true],
             'name' => ['type' => 'varchar', 'size' => 100]
         ]);
-        $db->createTables();
-        $db->execute();
+        $db->createTables()->execute();
     }
     
     public function rollback(Database $db): void {
         // Drop the test table
-        $db->table('test_table')->drop();
-        $db->execute();
+        $db->table('user_profiles')->drop()->execute();
     }
 }

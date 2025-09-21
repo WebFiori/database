@@ -19,22 +19,23 @@ class SchemaErrorHandlingTest extends TestCase {
         $tempDir = sys_get_temp_dir() . '/schema_test_' . uniqid();
         mkdir($tempDir);
         
-        // Create an invalid PHP file
-        file_put_contents($tempDir . '/InvalidChange.php', '<?php invalid syntax');
-        
         $errorCaught = false;
-        $runner = new SchemaRunner($tempDir, 'InvalidNamespace', $this->getConnectionInfo());
+        $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
         
         $runner->addOnRegisterErrorCallback(function($err) use (&$errorCaught) {
             $errorCaught = true;
             $this->assertInstanceOf('Throwable', $err);
         });
         
-        // Force re-scan to trigger error
-        $reflection = new \ReflectionClass($runner);
-        $method = $reflection->getMethod('scanPathForChanges');
-        $method->setAccessible(true);
-        $method->invoke($runner);
+        // Create an invalid PHP file after setting up callback
+        file_put_contents($tempDir . '/InvalidChange.php', '<?php invalid syntax');
+        
+        // Create new runner with invalid directory to trigger error
+        $errorRunner = new SchemaRunner($tempDir, 'InvalidNamespace', $this->getConnectionInfo());
+        $errorRunner->addOnRegisterErrorCallback(function($err) use (&$errorCaught) {
+            $errorCaught = true;
+            $this->assertInstanceOf('Throwable', $err);
+        });
         
         // Clean up
         unlink($tempDir . '/InvalidChange.php');

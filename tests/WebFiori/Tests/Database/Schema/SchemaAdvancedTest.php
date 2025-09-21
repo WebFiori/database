@@ -25,6 +25,8 @@ class SchemaAdvancedTest extends TestCase {
             $runner->table('schema_changes')->delete()->execute();
             
             $changes = $runner->getChanges();
+            $this->assertGreaterThan(0, count($changes), 'Should detect changes');
+            
             $changeNames = array_map(function($change) {
                 return $change->getName();
             }, $changes);
@@ -130,7 +132,7 @@ class SchemaAdvancedTest extends TestCase {
             $testRunner->createSchemaTable();
             
             // Clear any existing applied changes for clean test
-            $runner->table('schema_changes')->delete()->execute();
+            $testRunner->table('schema_changes')->delete()->execute();
             
             $applied = $testRunner->apply();
             

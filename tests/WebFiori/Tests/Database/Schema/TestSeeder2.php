@@ -17,22 +17,22 @@ class TestSeeder2 extends AbstractSeeder {
     
     public function execute(Database $db): void {
         // Update existing records with email
-        $db->table('test_table')->update([
+        $db->table('user_profiles')->update([
             'email' => 'user1@test.com'
         ])->where('name', 'Test User 1')->execute();
         
-        $db->table('test_table')->update([
+        $db->table('user_profiles')->update([
             'email' => 'user2@test.com'
         ])->where('name', 'Test User 2')->execute();
     }
     
     public function rollback(Database $db): void {
         // Clear email values
-        $db->table('test_table')->update([
+        $db->table('user_profiles')->update([
             'email' => null
         ])->where('name', 'Test User 1')->execute();
         
-        $db->table('test_table')->update([
+        $db->table('user_profiles')->update([
             'email' => null
         ])->where('name', 'Test User 2')->execute();
     }

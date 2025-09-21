@@ -26,3 +26,4 @@ class AbstractSeederTest extends TestCase {
         $this->assertEquals([], $seeder->getEnvironments());
     }
     
+}

@@ -1815,7 +1815,7 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertNull($task['last_updated']);
         $this->assertEquals(0, $task['is_finished']);
         $this->assertEquals('This task is about testing if transactions work as intended.', $task['details']);
-        $this->assertMatchesRegularExpression('/^d{4}-d{2}-d{2} d{2}:d{2}:d{2}$/', $task['created_on']);
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $task['created_on']);
         
         return [intval($userId), $schema];
     }
