@@ -15,7 +15,7 @@ class TestSeeder2 extends AbstractSeeder {
         return ['dev'];
     }
     
-    public function execute(Database $db): void {
+    public function run(Database $db): bool {
         // Update existing records with email
         $db->table('user_profiles')->update([
             'email' => 'user1@test.com'
@@ -24,6 +24,8 @@ class TestSeeder2 extends AbstractSeeder {
         $db->table('user_profiles')->update([
             'email' => 'user2@test.com'
         ])->where('name', 'Test User 2')->execute();
+        
+        return true;
     }
     
     public function rollback(Database $db): void {

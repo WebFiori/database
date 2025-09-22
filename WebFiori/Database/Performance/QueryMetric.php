@@ -14,6 +14,7 @@ namespace WebFiori\Database\Performance;
 class QueryMetric {
     private string $queryHash;
     private string $queryType;
+    private string $query;
     private float $executionTimeMs;
     private int $rowsAffected;
     private float $memoryUsageMb;
@@ -25,6 +26,7 @@ class QueryMetric {
      * 
      * @param string $queryHash MD5 hash of the normalized query
      * @param string $queryType Type of query (SELECT, INSERT, UPDATE, DELETE)
+     * @param string $query The actual SQL query executed
      * @param float $executionTimeMs Execution time in milliseconds
      * @param int $rowsAffected Number of rows affected/returned
      * @param float $memoryUsageMb Memory usage in megabytes
@@ -34,6 +36,7 @@ class QueryMetric {
     public function __construct(
         string $queryHash,
         string $queryType,
+        string $query,
         float $executionTimeMs,
         int $rowsAffected,
         float $memoryUsageMb,
@@ -42,6 +45,7 @@ class QueryMetric {
     ) {
         $this->queryHash = $queryHash;
         $this->queryType = $queryType;
+        $this->query = $query;
         $this->executionTimeMs = $executionTimeMs;
         $this->rowsAffected = $rowsAffected;
         $this->memoryUsageMb = $memoryUsageMb;
@@ -50,7 +54,7 @@ class QueryMetric {
     }
     
     /**
-     * Get the query hash identifier.
+     * Get the MD5 hash of the normalized query.
      * 
      * @return string MD5 hash of the normalized query
      */
@@ -65,6 +69,15 @@ class QueryMetric {
      */
     public function getQueryType(): string {
         return $this->queryType;
+    }
+    
+    /**
+     * Get the actual SQL query that was executed.
+     * 
+     * @return string The SQL query
+     */
+    public function getQuery(): string {
+        return $this->query;
     }
     
     /**
@@ -110,22 +123,5 @@ class QueryMetric {
      */
     public function getDatabaseName(): string {
         return $this->databaseName;
-    }
-    
-    /**
-     * Convert metric to array representation.
-     * 
-     * @return array Associative array of metric data
-     */
-    public function toArray(): array {
-        return [
-            'query_hash' => $this->queryHash,
-            'query_type' => $this->queryType,
-            'execution_time_ms' => $this->executionTimeMs,
-            'rows_affected' => $this->rowsAffected,
-            'memory_usage_mb' => $this->memoryUsageMb,
-            'executed_at' => $this->executedAt,
-            'database_name' => $this->databaseName
-        ];
     }
 }

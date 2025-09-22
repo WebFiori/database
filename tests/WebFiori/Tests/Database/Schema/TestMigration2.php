@@ -10,7 +10,16 @@ class TestMigration2 extends AbstractMigration {
     
     public function getDependencies(): array {
         return ['TestMigration'];
+    
+    public function up(Database $db): bool {
+        $this->execute($db);
+        return true;
     }
+    
+    public function down(Database $db): bool {
+        $this->rollback($db);
+        return true;
+    }    }
     
     public function execute(Database $db): void {
         $db->table('user_profiles')->addColumn('email', [

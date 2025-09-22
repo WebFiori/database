@@ -924,4 +924,12 @@ class Database {
             $this->performanceMonitor->clearMetrics();
         }
     }
-}
+    
+    /**
+     * Get the performance monitor instance.
+     * 
+     * @return QueryPerformanceMonitor|null The performance monitor instance or null if not initialized.
+     */
+    public function getPerformanceMonitor(): ?QueryPerformanceMonitor {
+        return $this->performanceMonitor;
+    }}

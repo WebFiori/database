@@ -114,6 +114,23 @@ class QueryPerformanceMonitor {
     }
     
     /**
+     * Get the configured slow query threshold.
+     * 
+     * @return float Slow query threshold in milliseconds.
+     */
+    public function getSlowQueryThreshold(): float {
+        return (float) $this->config[PerformanceOption::SLOW_QUERY_THRESHOLD];
+    }
+    
+    /**
+     * Create a performance analyzer for the collected metrics.
+     * 
+     * @return PerformanceAnalyzer Analyzer instance with current metrics and configuration.
+     */
+    public function getAnalyzer(): PerformanceAnalyzer {
+        return new PerformanceAnalyzer($this);
+    }    
+    /**
      * Get performance statistics summary.
      * 
      * @return array Statistics including avg, min, max execution times
@@ -268,6 +285,7 @@ class QueryPerformanceMonitor {
         return new QueryMetric(
             md5($query),
             $this->getQueryType($query),
+            $query,
             $executionTimeMs,
             $this->getRowCount($result),
             $this->getMemoryUsage(),

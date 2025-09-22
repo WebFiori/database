@@ -12,7 +12,16 @@ use WebFiori\Database\Schema\SchemaRunner;
 use WebFiori\Database\ColOption;
 
 class TestMigrationA extends AbstractMigration {
-    public function execute(Database $db): void {
+    
+    public function up(Database $db): bool {
+        $this->execute($db);
+        return true;
+    }
+    
+    public function down(Database $db): bool {
+        $this->rollback($db);
+        return true;
+    }    public function execute(Database $db): void {
         $db->createBlueprint('table_a')->addColumns([
             'id' => [ColOption::TYPE => 'int', ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true]
         ]);
@@ -30,6 +39,15 @@ class TestMigrationB extends AbstractMigration {
         return ['TestMigrationA'];
     }
     
+    public function up(Database $db): bool {
+        $this->execute($db);
+        return true;
+    }
+    
+    public function down(Database $db): bool {
+        $this->rollback($db);
+        return true;
+    }    
     public function execute(Database $db): void {
         $db->createBlueprint('table_b')->addColumns([
             'id' => [ColOption::TYPE => 'int', ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
@@ -53,6 +71,10 @@ class TestSeederForA extends AbstractSeeder {
         return ['dev', 'test'];
     }
     
+    public function run(Database $db): bool {
+        $this->execute($db);
+        return true;
+    }    
     public function execute(Database $db): void {
         $db->table('table_a')->insert(['id' => 1])->execute();
     }

@@ -166,9 +166,10 @@ class EntityMapper {
             $this->classStr .= ""
             ."<?php\n$namespaceStr";
 
+            $this->classStr .= "use ".RecordMapper::class.";\n";
+
             if ($this->implJsonI) {
                 $this->classStr .= ""
-                ."use ".RecordMapper::class.";\n"
                 ."use ".Json::class.";\n"
                 ."use ".JsonI::class.";\n"
                 ."\n";
