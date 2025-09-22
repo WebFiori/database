@@ -1,6 +1,8 @@
 <?php
 namespace WebFiori\Database\Schema;
 
+use WebFiori\Database\Database;
+
 /**
  * Abstract base class for database data seeders.
  * 
@@ -17,6 +19,47 @@ namespace WebFiori\Database\Schema;
  * @author Ibrahim
  */
 abstract class AbstractSeeder extends DatabaseChange {
+    
+    /**
+     * Execute the database change (run the seeder).
+     * 
+     * This method contains the logic to execute the seeder by calling
+     * the run() method implemented by concrete seeder classes.
+     * 
+     * @param Database $db The database instance to execute changes on.
+     */
+    public function execute(Database $db): void {
+        $this->run($db);
+    }
+    
+    /**
+     * Rollback the database change (optional for seeders).
+     * 
+     * Most seeders don't implement rollback functionality as data
+     * seeding is typically not reversible. Override this method
+     * if your seeder needs rollback capability.
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     */
+    public function rollback(Database $db): void {
+        // Default implementation does nothing
+        // Override in concrete seeders if rollback is needed
+    }
+    
+    /**
+     * Run the seeder to populate the database with data.
+     * 
+     * This method should contain the data insertion logic such as:
+     * - Inserting reference/lookup data
+     * - Creating default user accounts
+     * - Populating sample data for development
+     * - Setting up initial application configuration
+     * 
+     * @param Database $db The database instance to execute seeding on.
+     * @return bool True if seeding was successful, false otherwise.
+     */
+    abstract public function run(Database $db): bool;
+    
     /**
      * Get the environments where this seeder should be executed.
      * 
@@ -31,6 +74,7 @@ abstract class AbstractSeeder extends DatabaseChange {
     public function getEnvironments(): array {
         return [];
     }
+    
     /**
      * Get the type identifier for this database change.
      * 

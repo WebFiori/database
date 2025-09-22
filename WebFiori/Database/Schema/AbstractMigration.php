@@ -20,6 +20,58 @@ use WebFiori\Database\Database;
  * @author Ibrahim
  */
 abstract class AbstractMigration extends DatabaseChange {
+    
+    /**
+     * Execute the database change (apply the migration).
+     * 
+     * This method contains the logic to apply the database change by calling
+     * the up() method implemented by concrete migration classes.
+     * 
+     * @param Database $db The database instance to execute changes on.
+     */
+    public function execute(Database $db): void {
+        $this->up($db);
+    }
+    
+    /**
+     * Rollback the database change (undo the migration).
+     * 
+     * This method contains the logic to rollback the database change by calling
+     * the down() method implemented by concrete migration classes.
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     */
+    public function rollback(Database $db): void {
+        $this->down($db);
+    }
+    
+    /**
+     * Apply the migration changes to the database.
+     * 
+     * This method should contain the forward migration logic such as:
+     * - Creating tables, columns, indexes
+     * - Modifying existing schema elements
+     * - Adding constraints and relationships
+     * 
+     * @param Database $db The database instance to execute changes on.
+     * @return bool True if migration was successful, false otherwise.
+     */
+    abstract public function up(Database $db): bool;
+    
+    /**
+     * Rollback the migration changes from the database.
+     * 
+     * This method should contain the reverse migration logic to undo
+     * all changes made in the up() method such as:
+     * - Dropping tables, columns, indexes
+     * - Removing constraints and relationships
+     * - Restoring previous schema state
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     * @return bool True if rollback was successful, false otherwise.
+     */
+    abstract public function down(Database $db): bool;
+    
     /**
      * Get the environments where this migration should be executed.
      * 
@@ -33,6 +85,7 @@ abstract class AbstractMigration extends DatabaseChange {
     public function getEnvironments(): array {
         return [];
     }
+    
     /**
      * Get the type identifier for this database change.
      * 
