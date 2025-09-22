@@ -18,7 +18,6 @@ namespace WebFiori\Database;
  * 
  * @author Ibrahim
  * 
- * @since 1.0.1
  */
 abstract class Column {
     /**
@@ -29,14 +28,12 @@ abstract class Column {
      *
      * @var string|null
      * 
-     * @since 1.0 
      */
     private $alias;
     /**
      *
      * @var Closure 
      * 
-     * @since 1.0
      */
     private $cleanupFunc;
     /**
@@ -44,14 +41,12 @@ abstract class Column {
      * 
      * @var int
      * 
-     * @since 1.0 
      */
     private $columnIndex;
     /**
      *
      * @var string 
      * 
-     * @since 1.0
      */
     private $comment;
     /**
@@ -59,14 +54,12 @@ abstract class Column {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $datatype;
     /**
      *
      * @var mixed 
      * 
-     * @since 1.0
      */
     private $default;
     /**
@@ -75,7 +68,6 @@ abstract class Column {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isNull;
     /**
@@ -84,7 +76,6 @@ abstract class Column {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isPrimary;
 
@@ -93,7 +84,6 @@ abstract class Column {
      * 
      * @var boolean
      * 
-     * @since 1.0 
      */
     private $isUnique;
     /**
@@ -101,7 +91,6 @@ abstract class Column {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $name;
     /**
@@ -113,14 +102,12 @@ abstract class Column {
      *
      * @var Table|null 
      * 
-     * @since 1.0
      */
     private $owner;
     /**
      *
      * @var Table|null 
      * 
-     * @since 1.0
      */
     private $prevOwner;
     /**
@@ -128,14 +115,12 @@ abstract class Column {
      * 
      * @var int 
      * 
-     * @since 1.0
      */
     private $scale;
     /**
      * The size of the data in the column. It must be 
      * a positive value.
      * @var int 
-     * @since 1.0
      */
     private $size;
     /**
@@ -143,7 +128,6 @@ abstract class Column {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $supportedTypes;
     private $withTablePrefix;
@@ -158,7 +142,6 @@ abstract class Column {
      * @param string $name The name of the column as it appears in the database.
      *
      * @throws DatabaseException
-     * @since 1.0
      */
     public function __construct(string $name) {
         $this->name = '';
@@ -188,7 +171,6 @@ abstract class Column {
      * 
      * @return string A string that represents the column.
      * 
-     * @since 1.0
      */
     public abstract function asString() : string ;
     /**
@@ -196,7 +178,6 @@ abstract class Column {
      * 
      * @return mixed The value after cleanup.
      * 
-     * @since 1.0
      */
     public abstract function cleanValue($val);
     /**
@@ -224,7 +205,6 @@ abstract class Column {
      * 
      * @return string|null Name alias.
      * 
-     * @since 1.0
      */
     public function getAlias() {
         return $this->alias;
@@ -235,7 +215,6 @@ abstract class Column {
      * @return string|null Comment text. If it is not set, the method will return 
      * null.
      * 
-     * @since 1.0
      */
     public function getComment() {
         return $this->comment;
@@ -245,7 +224,6 @@ abstract class Column {
      * 
      * @return callable The function which is used to filter the value of the column.
      * 
-     * @since 1.0
      */
     public function getCustomCleaner() {
         return $this->cleanupFunc;
@@ -255,7 +233,6 @@ abstract class Column {
      * 
      * @return string The type of column data. Default return value is 'char'.
      * 
-     * @since 1.0
      */
     public function getDatatype() : string {
         return $this->datatype;
@@ -265,7 +242,6 @@ abstract class Column {
      * 
      * @return mixed The default value of the column.
      * 
-     * @since 1.0
      */
     public function getDefault() {
         return $this->default;
@@ -276,7 +252,6 @@ abstract class Column {
      * @return int The index of the column in its parent table starting from 0. 
      * If the column has no parent table, the method will return -1.
      * 
-     * @since 1.0
      */
     public function getIndex() : int {
         return $this->columnIndex;
@@ -287,7 +262,6 @@ abstract class Column {
      * 
      * @return string The name of the column.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         $ownerTable = $this->getOwner();
@@ -304,7 +278,6 @@ abstract class Column {
      * 
      * @return string The name of the column.
      * 
-     * @since 1.0
      */
     public final function getNormalName() : string {
         $ownerTable = $this->getOwner();
@@ -325,7 +298,6 @@ abstract class Column {
      * @return string|null The method will return a string that represents the 
      * old name if it is set. Null if not.
      * 
-     * @since 1.0.1
      */
     public function getOldName() {
         if ($this->oldName === null) {
@@ -341,7 +313,6 @@ abstract class Column {
      * object of type 'Table' that represent it. Other than that, the method 
      * will return null.
      * 
-     * @since 1.0
      */
     public function getOwner() {
         return $this->owner;
@@ -355,7 +326,6 @@ abstract class Column {
      * 
      * @return string A string that represents column datatype in PHP.
      * 
-     * @since 1.0
      */
     public function getPHPType() : string {
         if ($this->getDatatype() == 'char') {
@@ -370,7 +340,6 @@ abstract class Column {
      * @return Table|null If the owner of the table was set then updated, the 
      * method will return the old owner value.
      * 
-     * @since 1.0
      */
     public function getPrevOwner() {
         return $this->prevOwner;
@@ -384,7 +353,6 @@ abstract class Column {
      * 
      * @return int The number of numbers after the decimal point.
      * 
-     * @since 1.0
      */
     public function getScale() : int {
         return $this->scale;
@@ -394,7 +362,6 @@ abstract class Column {
      * 
      * @return int The size of the column. 
      * 
-     * @since 1.0
      */
     public function getSize() : int {
         return $this->size;
@@ -404,7 +371,6 @@ abstract class Column {
      * 
      * @return array An array that contains supported data types.
      * 
-     * @since 1.0
      */
     public function getSupportedTypes() : array {
         return $this->supportedTypes;
@@ -414,7 +380,6 @@ abstract class Column {
      * 
      * @return bool True if it will be prefixed. False if not.
      * 
-     * @since 1.0
      */
     public function isNameWithTablePrefix() : bool {
         return $this->withTablePrefix;
@@ -425,7 +390,6 @@ abstract class Column {
      * @return bool true if the column allows null values. Default return 
      * value is false which means that the column does not allow null values.
      * 
-     * @since 1.0
      */
     public function isNull() : bool {
         return $this->isNull;
@@ -436,7 +400,6 @@ abstract class Column {
      * @return bool true if the column is primary. 
      * Default return value is false.
      * 
-     * @since 1.0
      */
     public function isPrimary() : bool {
         return $this->isPrimary;
@@ -446,7 +409,6 @@ abstract class Column {
      * 
      * @return bool true if the column value is unique. 
      * 
-     * @since 1.0
      */
     public function isUnique() : bool {
         return $this->isUnique;
@@ -456,7 +418,6 @@ abstract class Column {
      * 
      * @param string|null $alias Column alias.
      * 
-     * @since 1.0
      */
     public function setAlias(?string $alias = null) {
         $trimmed = trim($alias.'');
@@ -471,7 +432,6 @@ abstract class Column {
      * @param string|null $comment Comment text. It must be non-empty string 
      * in order to set. If null is passed, the comment will be removed.
      * 
-     * @since 1.0
      */
     public function setComment(?string $comment = null) {
         $trimmed = trim($comment.'');
@@ -492,7 +452,6 @@ abstract class Column {
      * 
      * @param callable $callback The callback
      * 
-     * @since 1.0
      */
     public function setCustomFilter(callable $callback) {
         $this->cleanupFunc = $callback;
@@ -507,7 +466,6 @@ abstract class Column {
      * @throws DatabaseException The method will throw an exception if the given 
      * column type is not supported.
      * 
-     * @since 1.0
      */
     public function setDatatype(string $type) {
         $trimmed = strtolower(trim($type));
@@ -528,7 +486,6 @@ abstract class Column {
      * 
      * @param mixed $defaultVal The default value.
      * 
-     * @since 1.0
      */
     public function setDefault($defaultVal) {
         $this->default = $defaultVal;
@@ -547,7 +504,6 @@ abstract class Column {
      * value is not a boolean, the method will return false. Also, if 
      * the column represents a primary key, the method will always return false.
      * 
-     * @since 1.0
      */
     public function setIsNull(bool $bool) : bool {
         $colDatatype = $this->getDatatype();
@@ -568,7 +524,6 @@ abstract class Column {
      * @param bool $bool <b>true</b> if the column is primary key. false 
      * if not.
      * 
-     * @since 1.0
      */
     public function setIsPrimary(bool $bool) {
         if ($bool) {
@@ -582,7 +537,6 @@ abstract class Column {
      * @param bool $bool True if the column value is unique. false 
      * if not.
      * 
-     * @since 1.0
      */
     public function setIsUnique(bool $bool) {
         $this->isUnique = $bool;
@@ -592,7 +546,6 @@ abstract class Column {
      * 
      * @param string $name The name of the column as it appears in the database.
      * 
-     * @since 1.0
      */
     public function setName(string $name) {
         $this->oldName = $this->getName();
@@ -612,7 +565,6 @@ abstract class Column {
      * @param Table|null $table The owner of the column. If null is given, 
      * The owner will be unset.
      * 
-     * @since 1.0
      */
     public function setOwner(?Table $table = null) {
         $this->prevOwner = $this->owner;
@@ -633,7 +585,6 @@ abstract class Column {
      * decimal point. Only applicable if the datatype of the column is decimal, 
      * float and double.
      * 
-     * @since 1.0
      */
     public function setScale(int $scale) : bool {
         if ($scale >= 0) {
@@ -668,7 +619,6 @@ abstract class Column {
      * @param array $dataTypes An indexed array that contains a strings that
      * represents the types.
      * 
-     * @since 1.0
      */
     public function setSupportedTypes(array $dataTypes) {
         foreach ($dataTypes as $type) {
@@ -689,7 +639,6 @@ abstract class Column {
      * @param bool $withDbPrefix True to prefix table name with database name. 
      * false to not prefix table name with database name.
      * 
-     * @since 1.0
      */
     public function setWithTablePrefix(bool $withDbPrefix) {
         $this->withTablePrefix = $withDbPrefix;

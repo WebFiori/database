@@ -15,7 +15,6 @@ namespace WebFiori\Database;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class WhereExpression extends Expression {
     private $isCompiled;
@@ -24,7 +23,6 @@ class WhereExpression extends Expression {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $children;
     /**
@@ -32,7 +30,6 @@ class WhereExpression extends Expression {
      * 
      * @var Condition 
      * 
-     * @since 1.0
      */
     private $conditionsChain;
     /**
@@ -40,7 +37,6 @@ class WhereExpression extends Expression {
      * 
      * @var int
      * 
-     * @since 1.0 
      */
     private $conditionsCount;
     /**
@@ -49,7 +45,6 @@ class WhereExpression extends Expression {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $joinCond;
     /**
@@ -57,13 +52,11 @@ class WhereExpression extends Expression {
      * 
      * @var WhereExpression
      * 
-     * @since 1.0 
      */
     private $parentWhere;
     /**
      * Creates new instance of the class.
      * 
-     * @since 1.0
      */
     public function __construct() {
         parent::__construct('');
@@ -82,7 +75,6 @@ class WhereExpression extends Expression {
      * has children and the chain of conditions is empty, the value will 
      * be set as a join condition between the children and the expression.
      * 
-     * @since 1.0
      * 
      */
     public function addCondition($condition, string $joinOp) {
@@ -107,7 +99,6 @@ class WhereExpression extends Expression {
      * @return Condition|null The condition at which the statement represents. If 
      * the statement has no conditions, the method will return null.
      * 
-     * @since 1.0
      */
     public function getCondition() {
         return $this->conditionsChain;
@@ -119,7 +110,6 @@ class WhereExpression extends Expression {
      * @return string  A string such as 'and' or 'or'. Default return value is
      * empty string.
      * 
-     * @since 1.0
      */
     public function getJoinCondition() : string {
         return $this->joinCond;
@@ -132,7 +122,6 @@ class WhereExpression extends Expression {
      * will return it as an object of type 'WhereExpression'. If the expression 
      * has no parent, the method will return null.
      * 
-     * @since 1.0
      */
     public function getParent() {
         return $this->parentWhere;
@@ -143,7 +132,6 @@ class WhereExpression extends Expression {
      * @return string The method will return a string that represents the value 
      * of the expression.
      * 
-     * @since 1.0
      */
     public function getValue() : string {
         if ($this->isCompiled) {
@@ -183,7 +171,6 @@ class WhereExpression extends Expression {
      * 
      * @param string $cond A string such as 'and' or 'or'.
      * 
-     * @since 1.0
      */
     public function setJoinCondition(string $cond) {
         $this->joinCond = $cond;
@@ -196,7 +183,6 @@ class WhereExpression extends Expression {
      * 
      * @param WhereExpression $whereExpr The parent expression.
      * 
-     * @since 1.0
      */
     public function setParent(WhereExpression $whereExpr) {
         $this->parentWhere = $whereExpr;

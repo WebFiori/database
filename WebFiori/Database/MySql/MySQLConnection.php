@@ -18,14 +18,20 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\ResultSet;
 /**
- * A class that represents a connection to MySQL server.
+ * MySQL database connection handler with prepared statement support.
+ * 
+ * This class manages MySQL database connections and provides:
+ * - Connection establishment and management
+ * - Prepared statement execution with parameter binding
+ * - Transaction support (begin, commit, rollback)
+ * - Query execution and result handling
+ * - Connection cleanup and resource management
  * 
  * The main aim of this class is to manage the process of connecting to 
  * MySQL server and executing SQL queries.
  *
  * @author Ibrahim
  * 
- * @version 1.0.2
  */
 class MySQLConnection extends Connection {
     private $isCollationSet;
@@ -33,14 +39,12 @@ class MySQLConnection extends Connection {
      *
      * @var mysqli|null
      * 
-     * @since 1.0 
      */
     private $link;
     /**
      *
      * @var mysqli_stmt|null
      * 
-     * @since 1.0.2 
      */
     private $sqlStm;
     /**
@@ -65,7 +69,6 @@ class MySQLConnection extends Connection {
      * @return bool If the connection was established, the method will return 
      * true. If the attempt to connect fails, the method will return false.
      * 
-     * @since 1.0
      */
     public function connect() : bool {
         $test = false;
@@ -112,7 +115,6 @@ class MySQLConnection extends Connection {
      * 
      * @return mysqli|null The object which is used to connect to the database.
      * 
-     * @since 1.0.1
      */
     public function getMysqli() {
         return $this->link;
@@ -127,7 +129,6 @@ class MySQLConnection extends Connection {
      * @return bool If the query successfully executed, the method will return 
      * true. Other than that, the method will return true.
      * 
-     * @since 1.0
      */
     public function runQuery(?AbstractQuery $query = null) {
         $this->setLastQuery($query);

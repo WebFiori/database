@@ -19,7 +19,6 @@ use WebFiori\Database\DateTimeValidator;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MSSQLColumn extends Column {
     /**
@@ -28,7 +27,6 @@ class MSSQLColumn extends Column {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isAutoUpdate;
     /**
@@ -56,7 +54,6 @@ class MSSQLColumn extends Column {
      * @param int $size The size of the column. Used only if column type 
      * supports size.
      * 
-     * @since 1.0
      */
     public function __construct(string $name = 'col', string $datatype = 'nvarchar', int $size = 1) {
         parent::__construct($name);
@@ -138,7 +135,6 @@ class MSSQLColumn extends Column {
      * @return mixed The method will return a value which is based on applied filters 
      * and the datatype of the column.
      * 
-     * @since 1.0
      */
     public function cleanValue($val) {
         $valType = gettype($val);
@@ -253,7 +249,6 @@ class MSSQLColumn extends Column {
      * 
      * @return string|null Name alias.
      * 
-     * @since 1.0
      */
     public function getAlias() {
         $alias = parent::getAlias();
@@ -273,7 +268,6 @@ class MSSQLColumn extends Column {
      * 
      * @return mixed The default value of the column.
      * 
-     * @since 1.0
      */
     public function getDefault() {
         $defaultVal = parent::getDefault();
@@ -310,7 +304,6 @@ class MSSQLColumn extends Column {
      * 
      * @return string The name of the column.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return MSSQLQuery::squareBr(parent::getName());
@@ -327,7 +320,6 @@ class MSSQLColumn extends Column {
      * @return string A string that represents column type in PHP (such as 
      * 'integer' or 'boolean').
      * 
-     * @since 1.0
      */
     public function getPHPType() : string {
         $colType = $this->getDatatype();
@@ -382,7 +374,6 @@ class MSSQLColumn extends Column {
      * column is set to auto update in case of update query, the method will 
      * return true. Default return value is false.
      * 
-     * @since 1.0
      */
     public function isAutoUpdate() : bool {
         return $this->isAutoUpdate;
@@ -417,7 +408,6 @@ class MSSQLColumn extends Column {
      * @param boolean $bool If true is passed, then the value of the column will 
      * be updated in case an update query is constructed. 
      * 
-     * @since 1.0
      */
     public function setAutoUpdate(bool $bool) {
         if ($this->getDatatype() == 'datetime2' || $this->getDatatype() == 'date') {
@@ -460,7 +450,6 @@ class MSSQLColumn extends Column {
      * 
      * @param mixed $default The default value which will be set.
      * 
-     * @since 1.0
      */
     public function setDefault($default) {
         if ($this->getDatatype() == 'mixed' && $default !== null) {
@@ -510,7 +499,6 @@ class MSSQLColumn extends Column {
      * <li>Given scale value is greater than the size of the column.</li>
      * </ul>
      * 
-     * @since 1.0
      */
     public function setScale(int $val) : bool {
         $type = $this->getDatatype();

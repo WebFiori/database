@@ -11,7 +11,37 @@ use WebFiori\Database\DatabaseException;
 use WebFiori\Database\DataType;
 
 /**
- * A runner for executing database changes including migrations and seeders.
+ * Database schema management system for executing migrations and seeders.
+ * 
+ * The SchemaRunner provides a comprehensive system for managing database
+ * schema changes over time. It handles:
+ * 
+ * **Migration Management:**
+ * - Automatic discovery of migration classes
+ * - Dependency resolution and execution ordering
+ * - Tracking of applied migrations
+ * - Rollback capabilities for reversing changes
+ * 
+ * **Seeder Management:**
+ * - Data population after schema changes
+ * - Environment-specific seeding
+ * - Bulk data insertion capabilities
+ * 
+ * **Features:**
+ * - Environment-aware execution (dev, test, prod)
+ * - Error handling with custom callbacks
+ * - Registration validation for change classes
+ * - Automatic class loading from specified paths
+ * - Transaction support for atomic operations
+ * 
+ * **Usage Example:**
+ * ```php
+ * $runner = new SchemaRunner($connectionInfo);
+ * $runner->setPath(/path/to/migrations);
+ * $runner->setNamespace(App\Migrations);
+ * $runner->setEnvironment(dev);
+ * $runner->runAll(); // Execute all pending changes
+ * ```
  *
  * @author Ibrahim
  */
@@ -23,12 +53,12 @@ class SchemaRunner extends Database {
     private $onErrCallbacks;
     private $onRegErrCallbacks;
     /**
-     * Creates new instance of the class.
+     * Initialize a new schema runner with configuration.
      * 
-     * @param string $path The absolute path to the folder that will have all changes.
-     * @param string $ns The namespace at which the changes will belong to.
-     * @param ConnectionInfo $connectionInfo The connection that will be used to execute changes against.
-     * @param string $environment The current environment (dev, test, prod).
+     * @param string $path Filesystem path where migration/seeder classes are located.
+     * @param string $ns PHP namespace for migration/seeder classes (e.g., 'App\\Migrations').
+     * @param ConnectionInfo|null $connectionInfo Database connection information.
+     * @param string $environment Target environment (dev, test, prod) - affects which changes run.
      */
     public function __construct(string $path, string $ns, ?ConnectionInfo $connectionInfo, string $environment = 'dev') {
         parent::__construct($connectionInfo);
@@ -66,31 +96,53 @@ class SchemaRunner extends Database {
         $this->scanPathForChanges();
     }
     
+    /**
+     * Get the PHP namespace used for migration and seeder classes.
+     * 
+     * @return string The namespace prefix for all change classes.
+     */
     public function getNamespace(): string {
         return $this->ns;
     }
     
+    /**
+     * Get the filesystem path where migration and seeder classes are located.
+     * 
+     * @return string The directory path containing change class files.
+     */
     public function getPath(): string {
         return $this->path;
     }
     
+    /**
+     * Get the current execution environment.
+     * 
+     * The environment determines which migrations and seeders will be executed.
+     * Changes can specify which environments they should run in.
+     * 
+     * @return string The current environment (e.g., 'dev', 'test', 'prod').
+     */
     public function getEnvironment(): string {
         return $this->environment;
     }
-    
     /**
-     * Add a callback to be executed when a seeder/migration fails to execute or rollback.
+     * Register a callback to handle execution errors.
      * 
-     * @param callable $callback Callback with signature: function(\Throwable $err, ?DatabaseChange $change, ?Database $schema)
+     * The callback will be invoked when a migration or seeder fails during execution.
+     * Multiple callbacks can be registered and will be called in registration order.
+     * 
+     * @param callable $callback Function to call on execution errors. Receives error details.
      */
     public function addOnErrorCallback(callable $callback): void {
         $this->onErrCallbacks[] = $callback;
     }
-    
     /**
-     * Add a callback to be executed when a seeder/migration fails to register.
+     * Register a callback to handle class registration errors.
      * 
-     * @param callable $callback Callback with signature: function(\Throwable $err)
+     * The callback will be invoked when a migration or seeder class cannot be
+     * properly loaded or instantiated during the discovery process.
+     * 
+     * @param callable $callback Function to call on registration errors. Receives error details.
      */
     public function addOnRegisterErrorCallback(callable $callback): void {
         $this->onRegErrCallbacks[] = $callback;
@@ -101,24 +153,37 @@ class SchemaRunner extends Database {
     }
     
     /**
-     * Clear all error callbacks.
+     * Remove all registered execution error callbacks.
      */
     public function clearErrorCallbacks(): void {
         $this->onErrCallbacks = [];
     }
     
     /**
-     * Clear all register error callbacks.
+     * Remove all registered class registration error callbacks.
      */
     public function clearRegisterErrorCallbacks(): void {
         $this->onRegErrCallbacks = [];
     }
     
+    /**
+     * Create the schema tracking table if it does not exist.
+     * 
+     * This table stores information about which migrations and seeders
+     * have been applied, including timestamps and execution status.
+     * Required for tracking database change history.
+     */
     public function createSchemaTable() {
         $this->createTables();
         $this->execute();
     }
     
+    /**
+     * Drop the schema tracking table from the database.
+     * 
+     * Removes the table that stores migration and seeder execution history.
+     * Use with caution as this will lose all tracking information.
+     */
     public function dropSchemaTable() {
         $this->table('schema_changes')->drop();
         $this->execute();
@@ -217,10 +282,21 @@ class SchemaRunner extends Database {
         return null;
     }
     
+    /**
+     * Get all discovered database changes (migrations and seeders).
+     * 
+     * @return array Array of DatabaseChange instances found in the configured path.
+     */
     public function getChanges(): array {
         return $this->dbChanges;
     }
     
+    /**
+     * Check if a specific database change has been applied.
+     * 
+     * @param string $name The class name of the change to check.
+     * @return bool True if the change has been applied, false otherwise.
+     */
     public function isApplied(string $name): bool {
         try {
             return $this->table('schema_changes')
@@ -237,12 +313,20 @@ class SchemaRunner extends Database {
         }
     }
     
+    /**
+     * Check if a database change exists in the discovered changes.
+     * 
+     * @param string $name The class name of the change to check.
+     * @return bool True if the change exists, false otherwise.
+     */
     public function hasChange(string $name): bool {
         return $this->findChangeByName($name) !== null;
     }
     
     /**
-     * Apply one single change at a time.
+     * Apply the next pending database change.
+     * 
+     * @return DatabaseChange|null The applied change, or null if no pending changes.
      */
     public function applyOne(): ?DatabaseChange {
         $change = null;
@@ -279,7 +363,9 @@ class SchemaRunner extends Database {
     }
     
     /**
-     * Apply all detected changes.
+     * Apply all pending database changes.
+     * 
+     * @return array Array of applied DatabaseChange instances.
      */
     public function apply(): array {
         $applied = [];
@@ -336,7 +422,10 @@ class SchemaRunner extends Database {
         }
     }
     /**
-     * Rollback changes up to a specific change.
+     * Rollback database changes up to a specific change.
+     * 
+     * @param string|null $changeName The change to rollback to, or null to rollback all.
+     * @return array Array of rolled back DatabaseChange instances.
      */
     public function rollbackUpTo(?string $changeName): array {
         $changes = array_reverse($this->getChanges());

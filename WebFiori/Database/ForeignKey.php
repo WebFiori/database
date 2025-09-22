@@ -33,7 +33,6 @@ class ForeignKey {
      * <li>cascade</li>
      * </ul>
      * @var array 
-     * @since 1.0 
      */
     const CONDITIONS = [
         'set null','restrict','set default',
@@ -45,7 +44,6 @@ class ForeignKey {
      * 
      * @var string 
      * 
-     * @since 1.0 
      */
     private $keyName;
     /**
@@ -53,7 +51,6 @@ class ForeignKey {
      * 
      * @var string 
      * 
-     * @since 1.0  
      */
     private $onDeleteCondition;
     /**
@@ -61,7 +58,6 @@ class ForeignKey {
      * 
      * @var string 
      * 
-     * @since 1.0  
      */
     private $onUpdateCondition;
     /**
@@ -69,7 +65,6 @@ class ForeignKey {
      * 
      * @var array 
      * 
-     * @since 1.0
      */
     private $ownerCols;
     /**
@@ -77,7 +72,6 @@ class ForeignKey {
      * 
      * @var Table 
      * 
-     * @since 1.0
      */
     private $ownerTableObj;
     /**
@@ -85,7 +79,6 @@ class ForeignKey {
      * 
      * @var array 
      * 
-     * @since 1.0
      */
     private $sourceCols;
     /**
@@ -93,7 +86,6 @@ class ForeignKey {
      * 
      * @var Table 
      * 
-     * @since 1.0
      */
     private $sourceTableObj;
 
@@ -156,7 +148,6 @@ class ForeignKey {
      * Other than that, the method will return false.
      *
      * @throws DatabaseException If one of the tables of the foreign key is not set.
-     * @since 1.0
      */
     public function addReference(string $ownerColName, ?string $sourceColName = null) : bool {
         if ($this->addReferenceHelper()) {
@@ -198,7 +189,6 @@ class ForeignKey {
      * 
      * @return string The name of the key.
      * 
-     * @since 1.0
      */
     public function getKeyName() : string {
         return $this->keyName;
@@ -210,7 +200,6 @@ class ForeignKey {
      * @return string|null The on delete condition as string or null in 
      * case it is not set.
      * 
-     * @since 1.0 
      */
     public function getOnDelete() {
         return $this->onDeleteCondition;
@@ -222,7 +211,6 @@ class ForeignKey {
      * @return string|null The on update condition as string or null in 
      * case it is not set.
      * 
-     * @since 1.0 
      */
     public function getOnUpdate() {
         return $this->onUpdateCondition;
@@ -237,7 +225,6 @@ class ForeignKey {
      * an object of type 'Table'. that represent it. If not set, 
      * the method will return null.
      * 
-     * @since 1.0
      */
     public function getOwner() {
         return $this->ownerTableObj;
@@ -249,7 +236,6 @@ class ForeignKey {
      * @return array An associative array. The indices will represent columns 
      * names and the values are objects of type 'Column'.
      * 
-     * @since 1.0
      */
     public function getOwnerCols() : array {
         return $this->ownerCols;
@@ -264,7 +250,6 @@ class ForeignKey {
      * an object of type 'Table'. that represent it. If not set, 
      * the method will return null.
      * 
-     * @since 1.0
      */
     public function getSource() {
         return $this->sourceTableObj;
@@ -276,7 +261,6 @@ class ForeignKey {
      * @return array An associative array. The indices will represent columns 
      * names and the values are objects of type 'Column'.
      * 
-     * @since 1.0
      */
     public function getSourceCols() : array {
         return $this->sourceCols;
@@ -290,7 +274,6 @@ class ForeignKey {
      * @return string The name of the table that is referenced by the key. If 
      * it is not set, the method will return empty string.
      * 
-     * @since 1.0
      */
     public function getSourceName() : string {
         $source = $this->getSource();
@@ -309,7 +292,6 @@ class ForeignKey {
      * @return bool If a column which has the given name was found and removed, 
      * the method will return true. Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public function removeReference(string $ownerColName) : bool {
         $trimmed = trim($ownerColName);
@@ -350,7 +332,6 @@ class ForeignKey {
      * return the constant ForeignKey::INV_KEY_NAME in 
      * case if the given key name is invalid.
      * 
-     * @since 1.0
      */
     public function setKeyName(string $name) : bool {
         $trim = trim($name);
@@ -369,7 +350,6 @@ class ForeignKey {
      * @param string $val A value from the array ForeignKey::CONDITIONS. 
      * If the given value is null, the condition will be set to null.
      * 
-     * @since 1.0
      */
     public function setOnDelete(string $val) {
         $fix = strtolower(trim($val));
@@ -386,7 +366,6 @@ class ForeignKey {
      * @param string $val A value from the array ForeignKey::CONDITIONS. 
      * If the given value is null, the condition will be set to null.
      * 
-     * @since 1.0
      */
     public function setOnUpdate(string $val) {
         $fix = strtolower(trim($val));
@@ -405,7 +384,6 @@ class ForeignKey {
      * 
      * @param Table $table An object of type 'Table'.
      * 
-     * @since 1.0
      */
     public function setOwner(Table $table) {
         $this->ownerTableObj = $table;
@@ -419,7 +397,6 @@ class ForeignKey {
      * 
      * @param Table $table An object of type 'Table'.
      * 
-     * @since 1.0
      */
     public function setSource(Table $table) {
         $this->sourceTableObj = $table;
@@ -451,7 +428,6 @@ class ForeignKey {
      * @return bool true if the given parameter is valid. false in 
      * case if the given parameter is invalid.
      * 
-     * @since 1.0
      */
     private function validateAttr(string $trimmed) : bool {
         $len = strlen($trimmed);

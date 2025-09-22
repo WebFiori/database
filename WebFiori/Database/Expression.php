@@ -15,7 +15,6 @@ namespace WebFiori\Database;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class Expression {
     /**
@@ -23,7 +22,6 @@ class Expression {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $expr;
     /**
@@ -31,7 +29,6 @@ class Expression {
      * 
      * @param string $val a string that represents the value of the expression.
      * 
-     * @since 1.0
      */
     public function __construct(string $val) {
         $this->expr = $val.'';
@@ -44,7 +41,6 @@ class Expression {
      * @return string The method will return a string that represents the value 
      * of the expression.
      * 
-     * @since 1.0
      */
     public function __toString() {
         return $this->getValue();
@@ -57,7 +53,6 @@ class Expression {
      * @return bool If the two are equals, the method will return true. 
      * False otherwise.
      * 
-     * @since 1.0
      */
     public function equals(Expression $exp) : bool {
         return $this.'' == $exp.'';
@@ -68,7 +63,6 @@ class Expression {
      * @return string The method will return a string that represents the value 
      * of the expression.
      * 
-     * @since 1.0
      */
     public function getValue() : string {
         return $this->expr;
@@ -78,7 +72,6 @@ class Expression {
      * 
      * @param string $val A string that represents the value of the expression.
      * 
-     * @since 1.0
      */
     public function setValue(string $val) {
         $this->expr = $val;

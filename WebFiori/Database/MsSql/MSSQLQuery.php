@@ -18,7 +18,6 @@ use WebFiori\Database\DatabaseException;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MSSQLQuery extends AbstractQuery {
     private $bindings;
@@ -39,7 +38,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function addCol(string $colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
@@ -58,7 +56,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function addPrimaryKey(string $pkName, array $pkCols) {
         $tableObj = $this->getTable();
@@ -91,7 +88,6 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @return AbstractQuery
      * 
-     * @since 1.0
      */
     public function copyQuery() : AbstractQuery {
         $copy = new MSSQLQuery();
@@ -108,7 +104,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function dropPrimaryKey(?string $pkName = null) {
         $tableName = $this->getTable()->getName();
@@ -122,7 +117,6 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @return string Returns the generated query as string.
      * 
-     * @since 1.0
      */
     public function getQuery() {
         $query = parent::getQuery();
@@ -154,7 +148,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function modifyCol($colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
@@ -181,7 +174,6 @@ class MSSQLQuery extends AbstractQuery {
      * the table has no column with given key or the name of the 
      * specified column was not changed.
      * 
-     * @since 1.0
      */
     public function renameCol($colKey) {
         $colObj = $this->getTable()->getColByKey($colKey);
@@ -212,7 +204,6 @@ class MSSQLQuery extends AbstractQuery {
      * brackets. 
      * If empty string is given, the method will return null.
      * 
-     * @since 1.0
      */
     public static function squareBr($str) {
         $trimmed = trim($str.'');
@@ -244,7 +235,6 @@ class MSSQLQuery extends AbstractQuery {
      * @throws DatabaseException If one of the columns does not exist, the method 
      * will throw an exception.
      * 
-     * @since 1.0
      */
     public function update(array $newColsVals) {
         $updateArr = [];

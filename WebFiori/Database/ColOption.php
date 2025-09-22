@@ -11,7 +11,11 @@
 namespace WebFiori\Database;
 
 /**
- * A class which holds constants that represents column options.
+ * Constants for defining database column properties and constraints.
+ * 
+ * This class provides standardized constants for configuring table columns
+ * when using the addColumns() method. It ensures consistent property naming
+ * across different database systems and prevents typos in column definitions.
  *
  * @author Ibrahim
  */

@@ -14,11 +14,16 @@ use InvalidArgumentException;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
 /**
- * A class which is used to map a 'Table' object to an entity class.
+ * Code generator for creating entity classes from table blueprints.
+ * 
+ * This class generates PHP entity classes based on table structures, providing:
+ * - Automatic property generation from table columns
+ * - Getter and setter methods for each property
+ * - Static mapping method for converting database records to objects
+ * - Proper type hints and documentation
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
  */
 class EntityMapper {
     /**
@@ -26,7 +31,6 @@ class EntityMapper {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $classStr;
     /**
@@ -34,7 +38,6 @@ class EntityMapper {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $entityName;
     /**
@@ -42,7 +45,6 @@ class EntityMapper {
      * 
      * @var string|null
      * 
-     * @since 1.0 
      */
     private $entityNamespace;
     /**
@@ -50,7 +52,6 @@ class EntityMapper {
      * 
      * @var string|null
      * 
-     * @since 1.0 
      */
     private $entityPath;
     /**
@@ -58,7 +59,6 @@ class EntityMapper {
      * 
      * @var array
      * 
-     * @since 1.0
      */
     private $extraAttrs;
     /**
@@ -73,7 +73,6 @@ class EntityMapper {
      * 
      * @var Table 
      * 
-     * @since 1.0
      */
     private $table;
     /**
@@ -92,7 +91,6 @@ class EntityMapper {
      * @throws InvalidArgumentException If the given object is not of type 
      * 'WebFiori\Database\Table'.
      * 
-     * @since 1.0
      */
     public function __construct(Table $tableObj, string $className, string $path = __DIR__, string $namespace = '\\') {
         $this->table = $tableObj;
@@ -126,7 +124,6 @@ class EntityMapper {
      * @return bool If the attribute is added, the method will return
      * true. Other than that, the method will return false.
      * 
-     * @since 1.0.1
      */
     public function addAttribute(string $attrName) : bool {
         $trimmed = trim($attrName);
@@ -155,7 +152,6 @@ class EntityMapper {
      * @return bool If the class is created, the method will return true. 
      * If not, the method will return false.
      * 
-     * @since 1.0
      */
     public function create() : bool {
         $this->classStr = '';
@@ -203,7 +199,6 @@ class EntityMapper {
      * @return string The method will return the full path to the file that contains 
      * the mapped class.
      * 
-     * @since 1.0
      * 
      */
     public function getAbsolutePath() : string {
@@ -221,7 +216,6 @@ class EntityMapper {
      * @return array An associative array that contains attributes names. The 
      * indices will be columns keys and the values are attributes names. 
      * 
-     * @since 1.0
      */
     public function getAttribitesNames() : array {
         $keys = $this->getTable()->getColsKeys();
@@ -245,7 +239,6 @@ class EntityMapper {
      * 
      * @return array an indexed array of attributes names,
      * 
-     * @since 1.0.1
      */
     public function getAttributes() : array {
         return $this->extraAttrs;
@@ -265,7 +258,6 @@ class EntityMapper {
      * of setters and the second index is 'getters' which contains the names 
      * of the getters.
      * 
-     * @since 1.0
      */
     public function getEntityMethods() : array {
         $keys = $this->getTable()->getColsKeys();
@@ -299,7 +291,6 @@ class EntityMapper {
      * @return string The method will return a string that represents the 
      * name of the class that the table is mapped to.
      * 
-     * @since 1.0
      */
     public function getEntityName(bool $withNs = false) : string {
         if ($withNs) {
@@ -330,7 +321,6 @@ class EntityMapper {
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
-     * @since 1.0
      */
     public function getGettersMap(bool $useColKey = false) : array {
         $keys = $this->getTable()->getColsKeys();
@@ -350,7 +340,6 @@ class EntityMapper {
      * @return string The method will return a string that represents the name
      * of the namespace at which the entity belongs to.
      * 
-     * @since 1.0
      */
     public function getNamespace() : string {
         return $this->entityNamespace;
@@ -361,7 +350,6 @@ class EntityMapper {
      * @return string The method will return a string that represents the name 
      * of the directory at which the entity will be created in.
      * 
-     * @since 1.0
      */
     public function getPath() : string {
         return $this->entityPath;
@@ -397,7 +385,6 @@ class EntityMapper {
      * the methods in the entity class and the values are the names of table 
      * columns as they appear in the database.
      * 
-     * @since 1.0
      */
     public function getSettersMap(bool $useColKey = false) : array {
         $keys = $this->getTable()->getColsKeys();
@@ -416,7 +403,6 @@ class EntityMapper {
      * 
      * @return Table An object of type 'Table'.
      * 
-     * @since 1.0
      */
     public function getTable() : Table {
         return $this->table;
@@ -432,7 +418,6 @@ class EntityMapper {
      * @return string The name of the mapped method name. If the passed column 
      * key is empty string, the method will return empty string.
      * 
-     * @since 1.0
      */
     public static function mapToMethodName(string $colKey, string $type = 'g') : string {
         $trimmed = trim($colKey);
@@ -464,7 +449,6 @@ class EntityMapper {
      * @return bool If the name is set, the method will return true. If 
      * not set, the method will return false.
      * 
-     * @since 1.0
      */
     public function setEntityName(string $name) : bool {
         $trimmed = trim($name);
@@ -485,7 +469,6 @@ class EntityMapper {
      * @return bool If the namespace is set, the method will return true. If 
      * not set, the method will return false.
      * 
-     * @since 1.0
      */
     public function setNamespace(string $ns) : bool {
         $trimmed = trim($ns);
@@ -513,7 +496,6 @@ class EntityMapper {
      * @return bool If the path is set, the method will return true. If 
      * not set, the method will return false.
      * 
-     * @since 1.0
      */
     public function setPath(string $path) : bool {
         if (is_dir($path)) {
@@ -534,7 +516,6 @@ class EntityMapper {
      * @param bool $bool True to make it implement the interface JsonI and
      * false to not.
      * 
-     * @since 1.0
      */
     public function setUseJsonI(bool $bool) {
         $this->implJsonI = $bool;

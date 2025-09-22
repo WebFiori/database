@@ -21,7 +21,6 @@ use WebFiori\Database\MySql\MySQLTable;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class JoinTable extends Table {
     /**
@@ -29,7 +28,6 @@ class JoinTable extends Table {
      * 
      * @var Condition 
      * 
-     * @since 1.0
      */
     private $joinConditions;
     /**
@@ -37,7 +35,6 @@ class JoinTable extends Table {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $joinType;
     /**
@@ -45,7 +42,6 @@ class JoinTable extends Table {
      * 
      * @var Table
      * 
-     * @since 1.0 
      */
     private $left;
     /**
@@ -53,7 +49,6 @@ class JoinTable extends Table {
      * 
      * @var Table
      * 
-     * @since 1.0 
      */
     private $right;
     /**
@@ -69,7 +64,6 @@ class JoinTable extends Table {
      * @param string $alias An optional alias for the table. It is simply will 
      * be set as the name of the table.
      * 
-     * @since 1.0
      */
     public function __construct(Table $left, Table $right, string $joinType = 'join', string $alias = 'new_table') {
         $this->left = $left;
@@ -91,7 +85,6 @@ class JoinTable extends Table {
      * @param string $joinOp This one is used to chain multiple conditions 
      * with each other. This one can have values such as 'and' or 'or'.
      * 
-     * @since 1.0
      */
     public function addJoinCondition(Condition $cond, string $joinOp = 'and') {
         if ($this->joinConditions === null) {
@@ -171,7 +164,6 @@ class JoinTable extends Table {
      * 
      * @return string
      * 
-     * @since 1.0
      */
     public function getJoin() : string {
         if ($this->getLeft() instanceof JoinTable) {
@@ -196,7 +188,6 @@ class JoinTable extends Table {
      * @return Condition|null The condition at which the two tables joined based on. 
      * This also can be a chain of conditions.
      * 
-     * @since 1.0
      */
     public function getJoinCondition() {
         return $this->joinConditions;
@@ -206,7 +197,6 @@ class JoinTable extends Table {
      * 
      * @return string A string such as 'left' or 'right'.
      * 
-     * @since 1.0
      */
     public function getJoinType() : string {
         return $this->joinType;
@@ -216,7 +206,6 @@ class JoinTable extends Table {
      * 
      * @return Table left table of the join.
      * 
-     * @since 1.0
      */
     public function getLeft() : Table {
         return $this->left;
@@ -243,7 +232,6 @@ class JoinTable extends Table {
      * 
      * @return Table right table of the join.
      * 
-     * @since 1.0
      */
     public function getRight() : Table {
         return $this->right;

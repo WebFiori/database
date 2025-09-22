@@ -19,7 +19,6 @@ use WebFiori\Database\DatabaseException;
  *
  * @author Ibrahim
  * 
- * @version 1.0.2
  */
 class MySQLQuery extends AbstractQuery {
     /**
@@ -28,7 +27,6 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isFileInsert;
     /**
@@ -46,7 +44,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function addCol(string $colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
@@ -72,7 +69,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function addPrimaryKey(string $pkName, array $pkCols) {
         $trimmedPkName = self::backtick(trim($pkName));
@@ -101,7 +97,6 @@ class MySQLQuery extends AbstractQuery {
      * @return string|null The method will return a string surounded by backticks. 
      * If empty string is given, the method will return empty string.
      * 
-     * @since 1.0
      */
     public static function backtick($str) {
         $trimmed = trim($str.'');
@@ -134,7 +129,6 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @return AbstractQuery
      * 
-     * @since 1.0
      */
     public function copyQuery(): AbstractQuery {
         $copy = new MySQLQuery();
@@ -152,7 +146,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function delete() {
         $tblName = $this->getTable()->getName();
@@ -168,7 +161,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0.1
      */
     public function dropForeignKey($keyName) {
         $trimmed = trim($keyName);
@@ -189,7 +181,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function dropPrimaryKey(?string $pkName = null) {
         $this->setQuery('alter table '.$this->getTable()->getName().' drop primary key;');
@@ -201,7 +192,6 @@ class MySQLQuery extends AbstractQuery {
      * 
      * @return string Returns the generated query as string.
      * 
-     * @since 1.0
      */
     public function getQuery() {
         $query = parent::getQuery();
@@ -230,7 +220,6 @@ class MySQLQuery extends AbstractQuery {
      * @return bool The method will return true if the query represents an 
      * insert or an update of blob datatype. false if not.
      * 
-     * @since 1.0
      */
     public function isBlobInsertOrUpdate() {
         return $this->isFileInsert;
@@ -250,7 +239,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function modifyCol($colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
@@ -277,7 +265,6 @@ class MySQLQuery extends AbstractQuery {
      * the table has no column with given key or the name of the 
      * specified column was not changed.
      * 
-     * @since 1.0.1
      */
     public function renameCol($colKey) {
         $colObj = $this->getTable()->getColByKey($colKey);
@@ -314,7 +301,6 @@ class MySQLQuery extends AbstractQuery {
      * @return MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0.2
      */
     public function replace(array $colsAndVals) {
         $this->insert($colsAndVals);
@@ -333,7 +319,6 @@ class MySQLQuery extends AbstractQuery {
      * @param boolean $boolean true if the query represents an insert or an update 
      * of a blob datatype. false if not.
      * 
-     * @since 1.0
      */
     public function setIsBlobInsertOrUpdate($boolean) {
         $this->isFileInsert = $boolean === true ? true : false;
@@ -350,7 +335,6 @@ class MySQLQuery extends AbstractQuery {
      * @throws DatabaseException If one of the columns does not exist, the method 
      * will throw an exception.
      * 
-     * @since 1.0
      */
     public function update(array $newColsVals) {
         $updateArr = [];

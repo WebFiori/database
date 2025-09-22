@@ -12,7 +12,11 @@
 namespace WebFiori\Database;
 
 /**
- * A class which is used to hold all supported data types by different database engines.
+ * Constants for database-agnostic data types across different database systems.
+ * 
+ * This class provides standardized data type constants that work across
+ * MySQL and MSSQL databases. The constants are mapped to appropriate
+ * native types for each database system during query generation.
  *
  * @author Ibrahim
  */

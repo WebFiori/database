@@ -18,7 +18,6 @@ use WebFiori\Database\Table;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MSSQLTable extends Table {
     private $uniqueConstName;
@@ -35,7 +34,6 @@ class MSSQLTable extends Table {
      * @param string $name The name of the table. If empty string is given, 
      * the value 'new_table' will be used as default.
      * 
-     * @since 1.0
      */
     public function __construct($name = 'new_table') {
         parent::__construct($name);
@@ -93,7 +91,6 @@ class MSSQLTable extends Table {
      * @return Table The method will return the instance at which the method
      * is called on.
      * 
-     * @since 1.0
      */
     public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
@@ -179,7 +176,6 @@ class MSSQLTable extends Table {
      * 
      * @return string The name of the table. Default return value is 'new_table'.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return MSSQLQuery::squareBr(parent::getName());
@@ -191,7 +187,6 @@ class MSSQLTable extends Table {
      * the method will return the name of the table prefixed with the 
      * string 'AF_' as constraint name.
      * 
-     * @since 1.0
      */
     public function getUniqueConstraintName() {
         if ($this->uniqueConstName === null) {
@@ -231,7 +226,6 @@ class MSSQLTable extends Table {
      * @param string $name The name of the unique constraint. Must be non-empty
      * string.
      * 
-     * @since 1.0
      */
     public function setUniqueConstraintName($name) {
         $trimmed = trim($name);
@@ -255,7 +249,6 @@ class MSSQLTable extends Table {
      * @return string A string that represents SQL query which can be used 
      * to create the table.
      * 
-     * @since 1.0
      */
     public function toSQL() {
         $queryStr = "if not exists (select * from sysobjects where name='".$this->getNormalName()."' and xtype='U')\n";

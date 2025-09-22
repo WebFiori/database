@@ -27,7 +27,6 @@ namespace WebFiori\Database;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
  */
 class ConnectionInfo {
     /**
@@ -39,7 +38,6 @@ class ConnectionInfo {
      * <li>mssql</li>
      * <ul>
      * 
-     * @since 1.0
      */
     const SUPPORTED_DATABASES = [
         'mysql',
@@ -50,7 +48,6 @@ class ConnectionInfo {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $connectionName;
     /**
@@ -58,7 +55,6 @@ class ConnectionInfo {
      * 
      * @var type 
      * 
-     * @since 1.0
      */
     private $dbName;
     /**
@@ -66,7 +62,6 @@ class ConnectionInfo {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $dbType;
     /**
@@ -74,7 +69,6 @@ class ConnectionInfo {
      * 
      * @var array 
      * 
-     * @since 1.0
      */
     private $extras;
     /**
@@ -94,14 +88,12 @@ class ConnectionInfo {
      *
      * @var string 
      * 
-     * @since 1.0
      */
     private $port;
     /**
      *
      * @var string 
      * 
-     * @since 1.0
      */
     private $uName;
 
@@ -128,7 +120,6 @@ class ConnectionInfo {
      * 
      * @throws DatabaseException If given database is not supported.
      * 
-     * @since 1.0
      */
     public function __construct(string $databaseType, string $user, string $password, string $dbname, string $host = 'localhost', ?int $port = null, array $extras = []) {
         $this->setUsername($user);
@@ -166,7 +157,6 @@ class ConnectionInfo {
      * 
      * @return string Database type such as 'mysql' or 'maria-db'.
      * 
-     * @since 1.0
      */
     public function getDatabaseType() : string {
         return $this->dbType;
@@ -176,7 +166,6 @@ class ConnectionInfo {
      * 
      * @return string A string that represents the name of the database.
      * 
-     * @since 1.0
      */
     public function getDBName() : string {
         return $this->dbName;
@@ -186,7 +175,6 @@ class ConnectionInfo {
      * 
      * @return array An array that contains any extra connection information.
      * 
-     * @since 1.0
      */
     public function getExtars() : array {
         return $this->extras;
@@ -201,7 +189,6 @@ class ConnectionInfo {
      * @return string A string that represents the address of the host. If 
      * it is not set, the method will return 'localhost' by default.
      * 
-     * @since 1.0
      */
     public function getHost() : string {
         return $this->host;
@@ -211,7 +198,6 @@ class ConnectionInfo {
      * 
      * @return string The name of the connection. Default return value is 'New_Connection'.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return $this->connectionName;
@@ -221,7 +207,6 @@ class ConnectionInfo {
      * 
      * @return string A string that represents the password of the user.
      * 
-     * @since 1.0
      */
     public function getPassword() : string {
         return $this->pass;
@@ -232,7 +217,6 @@ class ConnectionInfo {
      * @return int Server port number. If it is not set, the method will 
      * return 3306 by default.
      * 
-     * @since 1.0
      */
     public function getPort() : int {
         return $this->port;
@@ -242,7 +226,6 @@ class ConnectionInfo {
      * 
      * @return string A string that represents the username.
      * 
-     * @since 1.0
      */
     public function getUsername() : string {
         return $this->uName;
@@ -262,7 +245,6 @@ class ConnectionInfo {
      * @return bool If the type is set, the method will return true. Other 
      * than that, the method will return false.
      * 
-     * @since 1.0
      */
     public function setDatabaseType(string $type) : bool {
         $trimmed = trim($type);
@@ -280,7 +262,6 @@ class ConnectionInfo {
      * 
      * @param string $name The name of the database.
      * 
-     * @since 1.0
      */
     public function setDBName(string $name) {
         $this->dbName = $name;
@@ -293,7 +274,6 @@ class ConnectionInfo {
      * 
      * @param array $array An array that contains any extra connection information.
      * 
-     * @since 1.0
      */
     public function setExtras(array $array) {
         $this->extras = $array;
@@ -307,7 +287,6 @@ class ConnectionInfo {
      * 
      * @param string $hostAddr The address of database host.
      * 
-     * @since 1.0
      */
     public function setHost(string $hostAddr) {
         $this->host = $hostAddr;
@@ -317,7 +296,6 @@ class ConnectionInfo {
      * 
      * @param string $newName The new name. Must be non-empty string.
      * 
-     * @since 1.0
      */
     public function setName(string $newName) : bool {
         $trimmed = trim($newName);
@@ -335,7 +313,6 @@ class ConnectionInfo {
      * 
      * @param string $password A string that represents the password of the user.
      * 
-     * @since 1.0
      */
     public function setPassword(string $password) {
         $this->pass = $password;
@@ -346,7 +323,6 @@ class ConnectionInfo {
      * @param int $portNum Server port number. It will be set only if the 
      * given value is greater than 0.
      * 
-     * @since 1.0
      */
     public function setPort(int $portNum) {
         if ($portNum > 0) {
@@ -358,7 +334,6 @@ class ConnectionInfo {
      * 
      * @param string $user A string that represents the username.
      * 
-     * @since 1.0
      */
     public function setUsername(string $user) {
         $this->uName = $user;

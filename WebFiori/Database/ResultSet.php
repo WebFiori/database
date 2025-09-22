@@ -14,12 +14,18 @@ use Countable;
 use Iterator;
 use ReturnTypeWillChange;
 /**
- * A class which is used to represent a data set which was fetched from the 
+ * Container for database query results with iteration and mapping capabilities.
+ * 
+ * This class represents a collection of records returned from SELECT queries.
+ * It implements Iterator and Countable interfaces, providing:
+ * - Iteration over result records
+ * - Counting of total records
+ * - Mapping records to objects or transformed data
+ * - Array-like access to individual records
  * database after executing a query like a 'select' query.
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class ResultSet implements Countable, Iterator {
     /**
@@ -36,13 +42,17 @@ class ResultSet implements Countable, Iterator {
      * @param array $resultArr An array that holds set values.
      * 
      */
+    /**
+     * Create a new result set with optional initial data.
+     * 
+     * @param array $resultArr Array of records to initialize the result set with.
+     */
     public function __construct(array $resultArr = []) {
         $this->setData($resultArr);
     }
     /**
      * Reset the values in the set to default values.
      * 
-     * @since 1.0
      */
     public function clearSet() {
         $this->cursorPos = 0;
@@ -56,7 +66,6 @@ class ResultSet implements Countable, Iterator {
      * if the mapping function returned other than an array, the method will 
      * always return 0.
      * 
-     * @since 1.0
      */
     public function count() : int {
         return $this->getRowsCount();
@@ -69,7 +78,6 @@ class ResultSet implements Countable, Iterator {
      * @return mixed Note that if the mapping function did not return an array, 
      * the method will always return null.
      * 
-     * @since 1.0
      */
     public function current() {
         return $this->getRows()[$this->cursorPos];
@@ -113,7 +121,6 @@ class ResultSet implements Countable, Iterator {
      * 
      * @return array An array which contains all records in the set.
      * 
-     * @since 1.0
      */
     public function getRows() : array {
         return $this->orgResultRows;
@@ -124,7 +131,6 @@ class ResultSet implements Countable, Iterator {
      * @return int Number of original rows in the set before executing the 
      * mapping function.
      * 
-     * @since 1.0
      */
     public function getRowsCount() : int {
         return count($this->orgResultRows);
@@ -135,7 +141,6 @@ class ResultSet implements Countable, Iterator {
      * 
      * @return int|null Returns an integer on success, or null on failure.
      * 
-     * @since 1.0
      */
     public function key() {
         return $this->cursorPos;
@@ -172,7 +177,6 @@ class ResultSet implements Countable, Iterator {
     /**
      * Move forward to next record.
      * 
-     * @since 1.0
      */
     public function next() {
         $this->cursorPos++;
@@ -181,7 +185,6 @@ class ResultSet implements Countable, Iterator {
     /**
      * Rewind the Iterator to the first record.
      * 
-     * @since 1.0
      */
     public function rewind() {
         $this->cursorPos = 0;
@@ -210,7 +213,6 @@ class ResultSet implements Countable, Iterator {
      * 
      * @return bool Returns true on success or false on failure.
      * 
-     * @since 1.0
      */
     public function valid() : bool {
         return $this->key() < $this->count();

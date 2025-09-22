@@ -25,7 +25,6 @@ use WebFiori\Database\MySql\MySQLTable;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.2
  */
 class Database {
     /**
@@ -112,7 +111,7 @@ class Database {
      */
     public function transaction(callable $transaction, array $transactionArgs = []) : bool {
         $conn = $this->getConnection();
-        $name = 'transation_'. rand();
+        $name = 'transaction_'. rand();
         
         try {
             
@@ -225,6 +224,12 @@ class Database {
      * Rest all attributes of the class to original values.
      * 
      * 
+     */
+    /**
+     * Clear all queries and reset the query generator state.
+     * 
+     * This method clears the internal query queue and resets the query generator
+     * to its initial state, preparing for new query operations.
      */
     public function clear() {
         $this->queries = [];
@@ -548,6 +553,11 @@ class Database {
 
         return $this->getQueryGenerator()->insert($colsAndVals);
     }
+    /**
+     * Check if database connection is established and active.
+     * 
+     * @return bool True if connected to database, false otherwise.
+     */
     public function isConnected() : bool {
         if ($this->getConnectionInfo() === null) {
             return false;
