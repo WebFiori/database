@@ -342,10 +342,8 @@ class SchemaRunner extends Database {
             }
         } else if ($changeName === null) {
             foreach ($changes as $change) {
-                if ($this->isApplied($change->getName())) {
-                    if (!$this->attemptRoolback($change, $rolled)) {
-                        return $rolled;
-                    }
+                if ($this->isApplied($change->getName()) && !$this->attemptRoolback($change, $rolled)) {
+                    return $rolled;
                 }
             }
         }
