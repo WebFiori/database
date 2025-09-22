@@ -196,7 +196,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             [
                 'task_id' => 1,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
@@ -224,14 +224,14 @@ class MSSQLQueryBuilderTest extends TestCase{
             [
                 'task_id' => 1,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This another task.',
@@ -250,14 +250,14 @@ class MSSQLQueryBuilderTest extends TestCase{
             [
                 'task_id' => 1,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This another task.',

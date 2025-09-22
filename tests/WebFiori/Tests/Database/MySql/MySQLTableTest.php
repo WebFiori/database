@@ -10,6 +10,7 @@ namespace WebFiori\Tests\Database\MySql;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\DataType;
+use WebFiori\Database\ColOption;
 use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLColumn;
 use WebFiori\Database\MySql\MySQLTable;
@@ -27,42 +28,42 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => DataType::INT,
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
                 'is-unique' => true
             ],
             'username' => [
-                'type' => DataType::VARCHAR,
-                'size' => 20,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 20,
                 'is-unique' => true
             ],
             'password' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256
             ],
             'created-on' => [
-                'type' => DataType::TIMESTAMP,
-                'default' => 'now()',
+                ColOption::TYPE => DataType::TIMESTAMP,
+                ColOption::DEFAULT => 'now()',
             ],
         ]);
         
         $table2 = new MySQLTable('t');
         $table2->addColumns([
             'user-id' => [
-                'type' => DataType::INT,
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
                 'is-unique' => true
             ],
         ]);
@@ -87,42 +88,42 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => DataType::INT,
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
                 'is-unique' => true
             ],
             'username' => [
-                'type' => DataType::VARCHAR,
-                'size' => 20,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 20,
                 'is-unique' => true
             ],
             'password' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256
             ],
             'created-on' => [
-                'type' => DataType::TIMESTAMP,
-                'default' => 'now()',
+                ColOption::TYPE => DataType::TIMESTAMP,
+                ColOption::DEFAULT => 'now()',
             ],
         ]);
         
         $table2 = new MySQLTable('t');
         $table2->addColumns([
             'user-id-super' => [
-                'type' => DataType::INT,
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email-x' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
                 'is-unique' => true
             ],
         ]);
@@ -147,42 +148,42 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('users');
         $table->addColumns([
             'user-id' => [
-                'type' => DataType::INT,
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
                 'is-unique' => true
             ],
             'username' => [
-                'type' => DataType::VARCHAR,
-                'size' => 20,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 20,
                 'is-unique' => true
             ],
             'password' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256
             ],
             'created-on' => [
-                'type' => DataType::TIMESTAMP,
-                'default' => 'now()',
+                ColOption::TYPE => DataType::TIMESTAMP,
+                ColOption::DEFAULT => 'now()',
             ],
         ]);
         
         $table2 = new MySQLTable('t');
         $table2->addColumns([
             'user-id-super' => [
-                'type' => DataType::INT,
-                'size' => 11,
-                'primary' => true,
-                'auto-inc' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 11,
+                ColOption::PRIMARY => true,
+                ColOption::AUTO_INCREMENT => true
             ],
             'email-x' => [
-                'type' => DataType::VARCHAR,
-                'size' => 256,
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 256,
                 'is-unique' => true
             ],
         ]);
@@ -286,19 +287,19 @@ class MySQLTableTest extends TestCase {
         $table->addColumns([
             'user-id' => [
                 'datatype' => DataType::INT,
-                'size' => 11,
+                ColOption::SIZE => 11,
                 'is-primary' => true
             ],
             'username' => [
-                'size' => 20,
+                ColOption::SIZE => 20,
                 'is-unique' => true
             ],
             'email' => [
-                'size' => 150,
+                ColOption::SIZE => 150,
                 'is-unique' => true
             ],
             'password' => [
-                'size' => 64
+                ColOption::SIZE => 64
             ]
         ]);
         $this->assertEquals(4, $table->getColsCount());
@@ -352,7 +353,7 @@ class MySQLTableTest extends TestCase {
         $table->addColumns([
             'id-col'=>[
             'is-primary' => true,
-            'size' => 3
+            ColOption::SIZE => 3
             ]
         ]);
         $this->assertTrue($table->getColByKey('id-col')->isUnique());
@@ -436,10 +437,10 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'is-active' => [
-                'type' => 'boolean'
+                ColOption::TYPE => 'boolean'
             ]
         ]);
         $this->assertEquals('boolean',$table->getColByKey('is-active')->getDatatype());
@@ -451,10 +452,10 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'is-active' => [
-                'type' => DataType::BOOL
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $this->assertEquals('bool',$table->getColByKey('is-active')->getDatatype());
@@ -466,11 +467,11 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable();
         $table->addColumns([
             'user-id' => [
-                'size' => 15,
+                ColOption::SIZE => 15,
                 'name' => 'cool'
             ],
             'is-active' => [
-                'type' => 'bool'
+                ColOption::TYPE => 'bool'
             ]
         ]);
         $this->assertNull($table->getColByName('is-active'));
@@ -490,22 +491,22 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('active_or_not');
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'is-active' => [
-                'type' => DataType::BOOL
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $table2 = new MySQLTable('user_info');
         $table2->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'first-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ],
             'last-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ]
         ]);
         $table->addReference($table2, ['user-id'], 'hello_fk');
@@ -519,25 +520,25 @@ class MySQLTableTest extends TestCase {
         $table = new MySQLTable('active_or_not');
         $table->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'username' => [
-                'size' => 50
+                ColOption::SIZE => 50
             ],
             'is-active' => [
-                'type' => DataType::BOOL
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $table2 = new MySQLTable('user_info');
         $table2->addColumns([
             'user-id' => [
-                'size' => 15
+                ColOption::SIZE => 15
             ],
             'first-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ],
             'last-name' => [
-                'size' => '50'
+                ColOption::SIZE => '50'
             ]
         ]);
         $table2->addReference($table, [

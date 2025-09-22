@@ -144,6 +144,9 @@ class MySQLConnection extends Connection {
             $stm = mysqli_prepare($this->link, 'set collation_connection = ?');
             $stm->bind_param('s', $collation);
             $stm->execute();
+            if ($stm) {
+                mysqli_stmt_close($stm);
+            }
             $this->isCollationSet = true;
         }
         $qType = $query->getLastQueryType();
@@ -173,6 +176,9 @@ class MySQLConnection extends Connection {
             $sqlStatement->bind_param($params['bind'], ...$params['values']);
         }
         $r = $sqlStatement->execute();
+        if ($sqlStatement) {
+            mysqli_stmt_close($sqlStatement);
+        }
         return $this->chechInsertOrUpdateResult($r);
     }
     private function chechInsertOrUpdateResult($r) {
@@ -185,6 +191,10 @@ class MySQLConnection extends Connection {
             $r = mysqli_multi_query($this->link, $this->getLastQuery()->getQuery());
 
             if ($r) {
+                // Clean up multi-query results to prevent "Commands out of sync"
+                while (mysqli_next_result($this->link)) {
+                    // Consume all result sets
+                }
                 $this->setErrMessage('NO ERRORS');
                 $this->setErrCode(0);
 
@@ -215,6 +225,9 @@ class MySQLConnection extends Connection {
         $sqlStatement->bind_param($insertParams, ...$bindValues);
         
         $r = $sqlStatement->execute();
+        if ($sqlStatement) {
+            mysqli_stmt_close($sqlStatement);
+        }
 
         $retVal = false;
 
@@ -228,15 +241,33 @@ class MySQLConnection extends Connection {
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
         
-        if (count($values) != 0) {
-            $sqlStatement = mysqli_prepare($this->link, $sql);
-            $sqlStatement->bind_param($params, ...$values);
-            $r = $sqlStatement->execute();
+        if (count($values) != 0 && !empty($params)) {
+            // Count the number of ? placeholders in the SQL
+            $paramCount = substr_count($sql, '?');
+            
+            // Only use prepared statements if parameter counts match
+            if ($paramCount == count($values) && strlen($params) == count($values)) {
+                $sqlStatement = mysqli_prepare($this->link, $sql);
+                $sqlStatement->bind_param($params, ...$values);
+                $r = $sqlStatement->execute();
+                if ($sqlStatement) {
+                    mysqli_stmt_close($sqlStatement);
+                }
+            } else {
+                // Fall back to regular query if there's a mismatch
+                $r = mysqli_query($this->link, $sql);
+            }
         } else {
             if (!$this->getLastQuery()->isMultiQuery()) {
                 $r = mysqli_query($this->link, $query);
             } else {
                 $r = mysqli_multi_query($this->link, $query);
+                // Clean up multi-query results to prevent "Commands out of sync"
+                if ($r) {
+                    while (mysqli_next_result($this->link)) {
+                        // Consume all result sets
+                    }
+                }
             }
         }
         
@@ -270,6 +301,9 @@ class MySQLConnection extends Connection {
             $r = $sqlStatement->execute();
             if ($r) {
                 $r = mysqli_stmt_get_result($sqlStatement);
+            }
+            if ($sqlStatement) {
+                mysqli_stmt_close($sqlStatement);
             }
         } else {
             $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
