@@ -64,7 +64,7 @@ class TestSeederForA extends AbstractSeeder {
 class SchemaDependencyTest extends TestCase {
     
     private function getConnectionInfo(): ConnectionInfo {
-        return new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db');
+        return new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
     }
     
     public function testDependencyOrdering() {
