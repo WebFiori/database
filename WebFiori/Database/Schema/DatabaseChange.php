@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Schema;
 
 use WebFiori\Database\Database;
@@ -21,48 +20,14 @@ use WebFiori\Database\Database;
  * @author Ibrahim
  */
 abstract class DatabaseChange {
-    private $id;
     private $appliedAt;
+    private $id;
 
     /**
      * Initialize a new database change with optional name and order.
      */
     public function __construct() {
         $this->setAppliedAt(date('Y-m-d H:i:s'));
-    }
-    /**
-     * Get the timestamp when this change was applied.
-     * 
-     * @return string The date and time when this change was applied in Y-m-d H:i:s format.
-     */
-    public function getAppliedAt(): string {
-        return $this->appliedAt;
-    }
-    
-    /**
-     * Set the timestamp when this change was applied.
-     * 
-     * @param string $date The date and time in Y-m-d H:i:s format.
-     */
-    public function setAppliedAt(string $date) {
-        $this->appliedAt = $date;
-    }
-    /**
-     * Set the unique identifier for this database change.
-     * 
-     * @param int $id The unique identifier assigned by the schema tracking system.
-     */
-    public function setId(int $id) {
-        $this->id = $id;
-    }
-    
-    /**
-     * Get the unique identifier for this database change.
-     * 
-     * @return int The unique identifier assigned by the schema tracking system.
-     */
-    public function getId(): int {
-        return $this->id;
     }
     /**
      * Execute the database change.
@@ -79,18 +44,15 @@ abstract class DatabaseChange {
      * @param Database $db The database instance to execute changes on.
      */
     abstract public function execute(Database $db): void;
-
     /**
-     * Rollback the database change (undo the migration or seeder).
+     * Get the timestamp when this change was applied.
      * 
-     * This method contains the logic to reverse the database change.
-     * For migrations: drop tables, remove columns, etc.
-     * For seeders: typically not implemented as data rollback is complex.
-     * 
-     * @param Database $db The database instance to execute rollback on.
+     * @return string The date and time when this change was applied in Y-m-d H:i:s format.
      */
-    abstract public function rollback(Database $db): void;
-    
+    public function getAppliedAt(): string {
+        return $this->appliedAt;
+    }
+
     /**
      * Get the list of changes this change depends on.
      * 
@@ -103,14 +65,16 @@ abstract class DatabaseChange {
     public function getDependencies(): array {
         return [];
     }
-    
+
     /**
-     * Get the type of database change.
+     * Get the unique identifier for this database change.
      * 
-     * @return string Either 'migration' or 'seeder'.
+     * @return int The unique identifier assigned by the schema tracking system.
      */
-    abstract public function getType(): string;
-    
+    public function getId(): int {
+        return $this->id;
+    }
+
 
     /**
      * Get the name of this database change.
@@ -122,5 +86,40 @@ abstract class DatabaseChange {
      */
     public function getName(): string {
         return static::class;
+    }
+
+    /**
+     * Get the type of database change.
+     * 
+     * @return string Either 'migration' or 'seeder'.
+     */
+    abstract public function getType(): string;
+
+    /**
+     * Rollback the database change (undo the migration or seeder).
+     * 
+     * This method contains the logic to reverse the database change.
+     * For migrations: drop tables, remove columns, etc.
+     * For seeders: typically not implemented as data rollback is complex.
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     */
+    abstract public function rollback(Database $db): void;
+
+    /**
+     * Set the timestamp when this change was applied.
+     * 
+     * @param string $date The date and time in Y-m-d H:i:s format.
+     */
+    public function setAppliedAt(string $date) {
+        $this->appliedAt = $date;
+    }
+    /**
+     * Set the unique identifier for this database change.
+     * 
+     * @param int $id The unique identifier assigned by the schema tracking system.
+     */
+    public function setId(int $id) {
+        $this->id = $id;
     }
 }

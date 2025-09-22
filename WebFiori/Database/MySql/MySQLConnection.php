@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -63,6 +64,36 @@ class MySQLConnection extends Connection {
     public function __destruct() {
         mysqli_close($this->link);
     }
+
+    public function beginTransaction(?string $name = null) {
+        //The null check is for php<8
+        $message = 'Unable to start transaction.';
+
+        if ($name !== null) {
+            if (!$this->link->begin_transaction(0, $name)) {
+                throw new DatabaseException($message);
+            }
+        } else {
+            if (!$this->link->begin_transaction()) {
+                throw new DatabaseException($message);
+            }
+        }
+    }
+
+    public function commit(?string $name = null) {
+        //The null check is for php<8
+        $message = 'Unable to commit transaction.';
+
+        if ($name !== null) {
+            if (!$this->link->commit(0, $name)) {
+                throw new DatabaseException($message);
+            }
+        } else {
+            if (!$this->link->commit()) {
+                throw new DatabaseException($message);
+            }
+        }
+    }
     /**
      * Connect to MySQL database.
      * 
@@ -120,6 +151,21 @@ class MySQLConnection extends Connection {
         return $this->link;
     }
 
+    public function rollBack(?string $name = null) {
+        //The null check is for php<8
+        $message = 'Unable to roll back transaction.';
+
+        if ($name !== null) {
+            if (!$this->link->rollback(0, $name)) {
+                throw new DatabaseException($message);
+            }
+        } else {
+            if (!$this->link->rollback()) {
+                throw new DatabaseException($message);
+            }
+        }
+    }
+
     /**
      * Execute MySQL query.
      * 
@@ -145,6 +191,7 @@ class MySQLConnection extends Connection {
             $stm = mysqli_prepare($this->link, 'set collation_connection = ?');
             $stm->bind_param('s', $collation);
             $stm->execute();
+
             if ($stm) {
                 mysqli_stmt_close($stm);
             }
@@ -170,21 +217,9 @@ class MySQLConnection extends Connection {
         }
         $query->resetBinding();
     }
-    private function runUpdateQuery() {
-        $sqlStatement = mysqli_prepare($this->link, $this->getLastQuery()->getQuery());
-        $params = $this->getLastQuery()->getBindings();
-        if (count($params['values']) != 0) {
-            $sqlStatement->bind_param($params['bind'], ...$params['values']);
-        }
-        $r = $sqlStatement->execute();
-        if ($sqlStatement) {
-            mysqli_stmt_close($sqlStatement);
-        }
-        return $this->chechInsertOrUpdateResult($r);
-    }
     private function chechInsertOrUpdateResult($r) {
         $retVal = false;
-        
+
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
@@ -205,14 +240,16 @@ class MySQLConnection extends Connection {
             $retVal = true;
         }
         $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
+
         return $retVal;
     }
     private function runInsertQuery() {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+
         if ($insertBuilder === null) {
             return false;
         } 
-        
+
         $sqlStatement = mysqli_prepare($this->link, $insertBuilder->getQuery());
         $insertParams = $insertBuilder->getQueryParams()['bind'];
         $values = array_merge($insertBuilder->getQueryParams()['values']);
@@ -224,8 +261,9 @@ class MySQLConnection extends Connection {
             }
         }
         $sqlStatement->bind_param($insertParams, ...$bindValues);
-        
+
         $r = $sqlStatement->execute();
+
         if ($sqlStatement) {
             mysqli_stmt_close($sqlStatement);
         }
@@ -237,20 +275,21 @@ class MySQLConnection extends Connection {
     private function runOtherQuery() {
         $query = $this->getLastQuery()->getQuery();
         $retVal = false;
-        
+
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
-        
+
         if (count($values) != 0 && !empty($params)) {
             // Count the number of ? placeholders in the SQL
             $paramCount = substr_count($sql, '?');
-            
+
             // Only use prepared statements if parameter counts match
             if ($paramCount == count($values) && strlen($params) == count($values)) {
                 $sqlStatement = mysqli_prepare($this->link, $sql);
                 $sqlStatement->bind_param($params, ...$values);
                 $r = $sqlStatement->execute();
+
                 if ($sqlStatement) {
                     mysqli_stmt_close($sqlStatement);
                 }
@@ -263,6 +302,7 @@ class MySQLConnection extends Connection {
                 $r = mysqli_query($this->link, $query);
             } else {
                 $r = mysqli_multi_query($this->link, $query);
+
                 // Clean up multi-query results to prevent "Commands out of sync"
                 if ($r) {
                     while (mysqli_next_result($this->link)) {
@@ -271,8 +311,8 @@ class MySQLConnection extends Connection {
                 }
             }
         }
-        
-        
+
+
 
         if (!$r) {
             $this->setErrMessage($this->link->error);
@@ -291,26 +331,27 @@ class MySQLConnection extends Connection {
         return $retVal;
     }
     private function runSelectQuery() {
-        
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
-        
+
         if (count($values) != 0) {
             $sqlStatement = mysqli_prepare($this->link, $sql);
             $sqlStatement->bind_param($params, ...$values);
             $r = $sqlStatement->execute();
+
             if ($r) {
                 $r = mysqli_stmt_get_result($sqlStatement);
             }
+
             if ($sqlStatement) {
                 mysqli_stmt_close($sqlStatement);
             }
         } else {
             $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
         }
-        
-        
+
+
 
         if ($r) {
             $this->setErrCode(0);
@@ -333,48 +374,19 @@ class MySQLConnection extends Connection {
             return false;
         }
     }
+    private function runUpdateQuery() {
+        $sqlStatement = mysqli_prepare($this->link, $this->getLastQuery()->getQuery());
+        $params = $this->getLastQuery()->getBindings();
 
-    public function beginTransaction(?string $name = null) {
-        //The null check is for php<8
-        $message = 'Unable to start transaction.';
-        
-        if ($name !== null) {
-            if (!$this->link->begin_transaction(0, $name)) {
-                throw new DatabaseException($message);
-            }
-        } else {
-            if (!$this->link->begin_transaction()) {
-                throw new DatabaseException($message);
-            }
+        if (count($params['values']) != 0) {
+            $sqlStatement->bind_param($params['bind'], ...$params['values']);
         }
-    }
+        $r = $sqlStatement->execute();
 
-    public function commit(?string $name = null) {
-        //The null check is for php<8
-        $message = 'Unable to commit transaction.';
-        if ($name !== null) {
-            if (!$this->link->commit(0, $name)) {
-                throw new DatabaseException($message);
-            }
-        } else {
-            if (!$this->link->commit()) {
-                throw new DatabaseException($message);
-            }
+        if ($sqlStatement) {
+            mysqli_stmt_close($sqlStatement);
         }
-    }
 
-    public function rollBack(?string $name = null) {
-        //The null check is for php<8
-        $message = 'Unable to roll back transaction.';
-        
-        if ($name !== null) {
-            if (!$this->link->rollback(0, $name)) {
-                throw new DatabaseException($message);
-            }
-        } else {
-            if (!$this->link->rollback()) {
-                throw new DatabaseException($message);
-            }
-        }
+        return $this->chechInsertOrUpdateResult($r);
     }
 }

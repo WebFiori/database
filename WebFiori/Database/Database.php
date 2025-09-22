@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -43,6 +44,7 @@ class Database {
      *  
      */
     private $connectionInfo;
+    private $lastErr;
     /**
      * An array that holds all generated SQL queries.
      * 
@@ -68,7 +70,6 @@ class Database {
      *  
      */
     private $tablesArr;
-    private $lastErr;
     /**
      * Creates new instance of the class.
      * 
@@ -92,47 +93,6 @@ class Database {
         ];
     }
     /**
-     * Start SQL transaction.
-     * 
-     * This will disable auto-commit.
-     * 
-     * @param callable $transaction A function that holds the logic of the transaction.
-     * The function must return true or null for success. If false is
-     * returned, it means the transaction failed and will be rolled back.
-     * 
-     * @param array $transactionArgs An optional array of parameters to be passed
-     * to the transaction.
-     * 
-     * @return bool If the transaction completed without errors, the method will
-     * return true. False otherwise.
-     * 
-     * @throws DatabaseException The method will throw an exception if it was
-     * rolled back due to an error.
-     */
-    public function transaction(callable $transaction, array $transactionArgs = []) : bool {
-        $conn = $this->getConnection();
-        $name = 'transaction_'. rand();
-        
-        try {
-            
-            $args = array_merge([$this], $transactionArgs);
-            $conn->beginTransaction($name);
-            $result = call_user_func_array($transaction, $args);
-            
-            if ($result === null || $result === true) {
-                $conn->commit($name);
-                return true;
-            } else {
-                $conn->rollBack($name);
-                return false;
-            }
-        } catch (Exception $ex) {
-            $conn->rollBack($name);
-            $query = $ex instanceof DatabaseException ? $ex->getSQLQuery() : '';
-            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query, $ex);
-        }
-    }
-    /**
      * Adds a database query to the set of queries at which they were executed.
      * 
      * This method is called internally by the library to add the query. The 
@@ -150,16 +110,6 @@ class Database {
             'type' => $type,
             'query' => $query
         ];
-    }
-    /**
-     * Reset the bindings which was set by building and executing a query.
-     * 
-     * @return Database The method will return the instance at which the method
-     * is called on.
-     */
-    public function resetBinding() : Database {
-        $this->getQueryGenerator()->resetBinding();
-        return $this;
     }
     /**
      * Adds a table to the instance.
@@ -249,8 +199,8 @@ class Database {
      */
     public function createBlueprint(string $name) : Table {
         $connection = $this->getConnection();
-        
-        if($connection === null) {
+
+        if ($connection === null) {
             $dbType = 'mysql';
         } else {
             $dbType = $connection->getConnectionInfo()->getDatabaseType();
@@ -372,7 +322,7 @@ class Database {
      */
     public function getConnection() : ?Connection {
         $connInfo = $this->getConnectionInfo();
-        
+
         if ($this->connection === null && $connInfo !== null) {
             $driver = $connInfo->getDatabaseType();
 
@@ -483,6 +433,7 @@ class Database {
                 throw new DatabaseException("Not connected to database. Error Code: ".$lastErr['code'].'. Message: "'.$lastErr['message']);
             }
         }
+
         return $this->queryGenerator;
     }
     /**
@@ -503,12 +454,12 @@ class Database {
         }
         $engine = 'mysql';
         $info = $this->getConnectionInfo();
-        
+
         if ($info !== null) {
             $engine = $info->getDatabaseType();
         }
         $table = $this->tablesArr[$trimmed];
-        
+
         return TableFactory::map($engine, $table);
     }
     /**
@@ -571,9 +522,10 @@ class Database {
                 'code' => $ex->getCode(),
                 'message' => $ex->getMessage()
             ];
+
             return false;
         }
-        
+
         return true;
     }
     /**
@@ -648,6 +600,17 @@ class Database {
      */
     public function page(int $num, int $itemsCount) : AbstractQuery {
         return $this->getQueryGenerator()->page($num, $itemsCount);
+    }
+    /**
+     * Reset the bindings which was set by building and executing a query.
+     * 
+     * @return Database The method will return the instance at which the method
+     * is called on.
+     */
+    public function resetBinding() : Database {
+        $this->getQueryGenerator()->resetBinding();
+
+        return $this;
     }
     /**
      * Constructs a query that can be used to get records from a table.
@@ -733,6 +696,48 @@ class Database {
      */
     public function table(string $tblName) : AbstractQuery {
         return $this->getQueryGenerator()->table($tblName);
+    }
+    /**
+     * Start SQL transaction.
+     * 
+     * This will disable auto-commit.
+     * 
+     * @param callable $transaction A function that holds the logic of the transaction.
+     * The function must return true or null for success. If false is
+     * returned, it means the transaction failed and will be rolled back.
+     * 
+     * @param array $transactionArgs An optional array of parameters to be passed
+     * to the transaction.
+     * 
+     * @return bool If the transaction completed without errors, the method will
+     * return true. False otherwise.
+     * 
+     * @throws DatabaseException The method will throw an exception if it was
+     * rolled back due to an error.
+     */
+    public function transaction(callable $transaction, array $transactionArgs = []) : bool {
+        $conn = $this->getConnection();
+        $name = 'transaction_'.rand();
+
+        try {
+            $args = array_merge([$this], $transactionArgs);
+            $conn->beginTransaction($name);
+            $result = call_user_func_array($transaction, $args);
+
+            if ($result === null || $result === true) {
+                $conn->commit($name);
+
+                return true;
+            } else {
+                $conn->rollBack($name);
+
+                return false;
+            }
+        } catch (Exception $ex) {
+            $conn->rollBack($name);
+            $query = $ex instanceof DatabaseException ? $ex->getSQLQuery() : '';
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query, $ex);
+        }
     }
     /**
      * Constructs a query which will truncate a database table when executed.

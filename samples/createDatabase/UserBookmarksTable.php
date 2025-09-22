@@ -2,7 +2,6 @@
 
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
-use WebFiori\Database\DataTypes;
 use WebFiori\Database\FK;
 use WebFiori\Database\mysql\MySQLTable;
 

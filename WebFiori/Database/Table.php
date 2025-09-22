@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -148,41 +149,6 @@ abstract class Table {
         return $this;
     }
     /**
-     * Adds a single-column foreign key to the table.
-     * 
-     * @param string $colName The name of the column that will reference the other table.
-     * 
-     * @param array $keyProps An array that will hold key properties. The array should
-     * have following indices: 
-     * <ul>
-     * <li><b>table</b>: It is the table that
-     * will contain original values. This value can be an object of type
-     * 'Table', an object of type 'AbstractQuery' or the namespace of a class which is a subclass of
-     * the class 'AbstractQuery' or the class 'Table'.</li>
-     * <li><b>col</b>: The name of the column that will be referenced.</li>
-     * <li><b>name</b>: The name of the key.</li>
-     * <li><b>on-update</b> [Optional] The 'on update' condition for the key.
-     * Default value is 'set null'.</li>
-     * <li><b>on-delete</b> [Optional] The 'on delete' condition for the key.
-     * Default value is 'set null'.</li>
-     * @return Table The method will return the instance at which the method
-     * is called on.
-     * 
-     * @throws DatabaseException
-     */
-    public function addReferenceFromArray(string $colName, array $keyProps) : Table {
-        if (!isset($keyProps[ColOption::FK_TABLE])) {
-            return $this;
-        }
-        $table = $this->getRefTable($keyProps[ColOption::FK_TABLE]);
-        $keyName = $keyProps[ColOption::FK_NAME] ?? '';
-        $col = $keyProps[ColOption::FK_COL] ?? '';
-        $onUpdate = $keyProps[ColOption::FK_ON_UPDATE] ?? FK::SET_NULL;
-        $onDelete = $keyProps[ColOption::FK_ON_DELETE] ?? FK::SET_NULL;
-        
-        return $this->addReference($table, [$colName => $col], $keyName, $onUpdate, $onDelete);
-    }
-    /**
      * Adds a foreign key to the table.
      *
      * @param Table|AbstractQuery|string $refTable The referenced table. It is the table that
@@ -226,32 +192,44 @@ abstract class Table {
      * @throws DatabaseException
      */
     public function addReference($refTable, array $cols, string $keyName, string $onUpdate = FK::SET_NULL, string $onDelete = FK::SET_NULL) : Table {
-        
         $this->createFk($this->getRefTable($refTable), $cols, $keyName, $onUpdate, $onDelete);
 
         return $this;
     }
-    private function getRefTable($refTable) {
-        if (!($refTable instanceof Table)) {
-            if ($refTable instanceof AbstractQuery) {
-                return $refTable->getTable();
-            } else if (class_exists($refTable)) {
-                $q = new $refTable();
-
-                if ($q instanceof AbstractQuery) {
-                    return $q->getTable();
-                } else if ($q instanceof Table) {
-                    return $q;
-                }
-            } else {
-                $owner = $this->getOwner();
-
-                if ($owner !== null) {
-                    return $owner->getTable($refTable);
-                }
-            }
+    /**
+     * Adds a single-column foreign key to the table.
+     * 
+     * @param string $colName The name of the column that will reference the other table.
+     * 
+     * @param array $keyProps An array that will hold key properties. The array should
+     * have following indices: 
+     * <ul>
+     * <li><b>table</b>: It is the table that
+     * will contain original values. This value can be an object of type
+     * 'Table', an object of type 'AbstractQuery' or the namespace of a class which is a subclass of
+     * the class 'AbstractQuery' or the class 'Table'.</li>
+     * <li><b>col</b>: The name of the column that will be referenced.</li>
+     * <li><b>name</b>: The name of the key.</li>
+     * <li><b>on-update</b> [Optional] The 'on update' condition for the key.
+     * Default value is 'set null'.</li>
+     * <li><b>on-delete</b> [Optional] The 'on delete' condition for the key.
+     * Default value is 'set null'.</li>
+     * @return Table The method will return the instance at which the method
+     * is called on.
+     * 
+     * @throws DatabaseException
+     */
+    public function addReferenceFromArray(string $colName, array $keyProps) : Table {
+        if (!isset($keyProps[ColOption::FK_TABLE])) {
+            return $this;
         }
-        return $refTable;
+        $table = $this->getRefTable($keyProps[ColOption::FK_TABLE]);
+        $keyName = $keyProps[ColOption::FK_NAME] ?? '';
+        $col = $keyProps[ColOption::FK_COL] ?? '';
+        $onUpdate = $keyProps[ColOption::FK_ON_UPDATE] ?? FK::SET_NULL;
+        $onDelete = $keyProps[ColOption::FK_ON_DELETE] ?? FK::SET_NULL;
+
+        return $this->addReference($table, [$colName => $col], $keyName, $onUpdate, $onDelete);
     }
     /**
      * Returns a column given its index.
@@ -756,7 +734,7 @@ abstract class Table {
 
     /**
      * 
-     * @param \WebFiori\Database\Table $refTable
+     * @param Table $refTable
      * @param type $cols
      * @param type $keyName
      * @param type $onUpdate
@@ -818,6 +796,29 @@ abstract class Table {
         }
 
         return $arr;
+    }
+    private function getRefTable($refTable) {
+        if (!($refTable instanceof Table)) {
+            if ($refTable instanceof AbstractQuery) {
+                return $refTable->getTable();
+            } else if (class_exists($refTable)) {
+                $q = new $refTable();
+
+                if ($q instanceof AbstractQuery) {
+                    return $q->getTable();
+                } else if ($q instanceof Table) {
+                    return $q;
+                }
+            } else {
+                $owner = $this->getOwner();
+
+                if ($owner !== null) {
+                    return $owner->getTable($refTable);
+                }
+            }
+        }
+
+        return $refTable;
     }
     /**
      * 

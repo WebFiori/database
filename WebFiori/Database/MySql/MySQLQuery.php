@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -21,6 +22,7 @@ use WebFiori\Database\DatabaseException;
  * 
  */
 class MySQLQuery extends AbstractQuery {
+    private $bindings;
     /**
      * An attribute that is set to true if the query is an update or insert of 
      * blob datatype.
@@ -29,6 +31,26 @@ class MySQLQuery extends AbstractQuery {
      * 
      */
     private $isFileInsert;
+    public function __construct() {
+        parent::__construct();
+        $this->bindings = [
+            'bind' => '',
+            'values' => []
+        ];
+    }
+    public function addBinding(Column $col, $value) {
+        $colType = $col->getDatatype();
+
+        $this->bindings['values'][] = $value;
+
+        if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
+            $this->bindings['bind'] .= 'i';
+        } else if ($colType == 'decimal' || $colType == 'float') {
+            $this->bindings['bind'] .= 'd';
+        } else {
+            $this->bindings['bind'] .= 's';
+        }
+    }
     /**
      * Build a query which can be used to add a column to associated table.
      * 
@@ -55,13 +77,6 @@ class MySQLQuery extends AbstractQuery {
         $this->alterColStm('add', $colToAdd, $location, $tblName);
 
         return $this;
-    }
-    public function __construct() {
-        parent::__construct();
-        $this->bindings = [
-            'bind' => '',
-            'values' => []
-        ];
     }
     /**
      * Constructs a query that can be used to add a primary key to the active table.
@@ -137,6 +152,7 @@ class MySQLQuery extends AbstractQuery {
         $copy->setTable($this->getTable(), false);
         $copy->setSchema($this->getSchema());
         $copy->setBindings($this->getBindings());
+
         return $copy;
     }
     /**
@@ -186,6 +202,9 @@ class MySQLQuery extends AbstractQuery {
         $this->setQuery('alter table '.$this->getTable()->getName().' drop primary key;');
 
         return $this;
+    }
+    public function getBindings(): array {
+        return $this->bindings;
     }
     /**
      * Returns the generated SQL query.
@@ -309,6 +328,30 @@ class MySQLQuery extends AbstractQuery {
 
         return $this;
     }
+    public function resetBinding() {
+        $this->bindings = [
+            'bind' => '',
+            'values' => []
+        ];
+    }
+    public function setBindings(array $bindings, string $merge = 'none') {
+        $currentBinding = $this->bindings['bind'];
+        $values = $this->bindings['values'];
+
+        if ($merge == 'first') {
+            $this->bindings = [
+                'bind' => $bindings['bind'].$currentBinding,
+                'values' => array_merge($bindings['values'], $values)
+            ];
+        } else if ($merge == 'end') {
+            $this->bindings = [
+                'bind' => $currentBinding.$bindings['bind'],
+                'values' => array_merge($values, $bindings['values'])
+            ];
+        } else {
+            $this->bindings = $bindings;
+        }
+    }
     /**
      * Sets the property that is used to check if the query represents an insert 
      * or an update of a blob datatype.
@@ -416,46 +459,5 @@ class MySQLQuery extends AbstractQuery {
             }
         }
         $this->setQuery($stm.';');
-    }
-    private $bindings;
-    public function addBinding(Column $col, $value) {
-        $colType = $col->getDatatype();
-        
-        $this->bindings['values'][] = $value;
-
-        if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
-            $this->bindings['bind'] .= 'i';
-        } else if ($colType == 'decimal' || $colType == 'float') {
-            $this->bindings['bind'] .= 'd';
-        } else {
-            $this->bindings['bind'] .= 's';
-        }
-    }
-    public function resetBinding() {
-        $this->bindings = [
-            'bind' => '',
-            'values' => []
-        ];
-    }
-    public function setBindings(array $bindings, string $merge = 'none') {
-        $currentBinding = $this->bindings['bind'];
-        $values = $this->bindings['values'];
-        
-        if ($merge == 'first') {
-            $this->bindings = [
-                'bind' => $bindings['bind'].$currentBinding,
-                'values' => array_merge($bindings['values'], $values)
-            ];
-        } else if ($merge == 'end') {
-            $this->bindings = [
-                'bind' => $currentBinding.$bindings['bind'],
-                'values' => array_merge($values, $bindings['values'])
-            ];
-        } else {
-            $this->bindings = $bindings;
-        }
-    }
-    public function getBindings(): array {
-        return $this->bindings;
     }
 }

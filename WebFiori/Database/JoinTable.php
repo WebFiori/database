@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -78,23 +79,6 @@ class JoinTable extends Table {
         $this->setOwner($this->getLeft()->getOwner());
     }
     /**
-     * Adds a condition which could be used to join the two tables.
-     * 
-     * @param Condition $cond The condition.
-     * 
-     * @param string $joinOp This one is used to chain multiple conditions 
-     * with each other. This one can have values such as 'and' or 'or'.
-     * 
-     */
-    public function addJoinCondition(Condition $cond, string $joinOp = 'and') {
-        if ($this->joinConditions === null) {
-            $this->joinConditions = $cond;
-        } else {
-            $newCond = new Condition($this->joinConditions, $cond, $joinOp);
-            $this->joinConditions = $newCond;
-        }
-    }
-    /**
      * Adds multiple columns at once.
      * 
      * @param array $colsArr An associative array. The keys will act as column 
@@ -140,6 +124,7 @@ class JoinTable extends Table {
                     if (!isset($arrOrObj['name'])) {
                         $arrOrObj['name'] = str_replace('-', '_', $key);
                     }
+
                     if ($this->getLeft() instanceof MSSQLTable) {
                         $colObj = MSSQLColumn::createColObj($arrOrObj);
                     } else {
@@ -154,6 +139,23 @@ class JoinTable extends Table {
         }
 
         return parent::addColumns($arrToAdd);
+    }
+    /**
+     * Adds a condition which could be used to join the two tables.
+     * 
+     * @param Condition $cond The condition.
+     * 
+     * @param string $joinOp This one is used to chain multiple conditions 
+     * with each other. This one can have values such as 'and' or 'or'.
+     * 
+     */
+    public function addJoinCondition(Condition $cond, string $joinOp = 'and') {
+        if ($this->joinConditions === null) {
+            $this->joinConditions = $cond;
+        } else {
+            $newCond = new Condition($this->joinConditions, $cond, $joinOp);
+            $this->joinConditions = $newCond;
+        }
     }
     /**
      * Returns a string which represents the join condition of the two tables.

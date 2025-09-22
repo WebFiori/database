@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -95,7 +96,7 @@ class MSSQLTable extends Table {
     public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
         $fksArr = [];
-        
+
         foreach ($colsArr as $key => $arrOrObj) {
             if ($arrOrObj instanceof MSSQLColumn) {
                 $arrToAdd[$key] = $arrOrObj;
@@ -108,10 +109,9 @@ class MSSQLTable extends Table {
 
                     if ($colObj instanceof MSSQLColumn) {
                         $arrToAdd[$key] = $colObj;
-                        
+
                         if (isset($arrOrObj[ColOption::FK])) {
                             $fksArr[$key] = $arrOrObj[ColOption::FK];
-                            
                         }
                     }
                 }
@@ -119,11 +119,11 @@ class MSSQLTable extends Table {
         }
 
         parent::addColumns($arrToAdd);
-        
+
         foreach ($fksArr as $col => $fkArr) {
             $this->addReferenceFromArray($col, $fkArr);
         }
-        
+
         return $this;
     }
     /**

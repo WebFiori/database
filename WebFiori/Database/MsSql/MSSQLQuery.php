@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,6 +25,10 @@ class MSSQLQuery extends AbstractQuery {
     public function __construct() {
         parent::__construct();
         $this->bindings = [];
+    }
+
+    public function addBinding(Column $col, $value) {
+        $this->bindings[] = $value;
     }
     /**
      * Build a query which can be used to add a column to associated table.
@@ -112,6 +117,10 @@ class MSSQLQuery extends AbstractQuery {
 
         return $this;
     }
+
+    public function getBindings(): array {
+        return $this->bindings;
+    }
     /**
      * Returns the generated SQL query.
      * 
@@ -193,6 +202,20 @@ class MSSQLQuery extends AbstractQuery {
         $this->setQuery("exec sp_rename '".$tblName.".".$oldName."', '".$newName."', 'COLUMN'");
 
         return $this;
+    }
+
+    public function resetBinding() {
+        $this->bindings = [];
+    }
+
+    public function setBindings(array $binding, string $merge = 'none') {
+        if ($merge == 'first') {
+            $this->bindings = array_merge($binding, $this->bindings);
+        } else if ($merge == 'end') {
+            $this->bindings = array_merge($this->bindings, $binding);
+        } else {
+            $this->bindings = $binding;
+        }
     }
     /**
      * Adds a square brackets around a string.
@@ -389,28 +412,5 @@ class MSSQLQuery extends AbstractQuery {
             'cols' => implode(', ', $colsNamesArr),
             'vals' => implode(', ', $valsArr)
         ];
-    }
-
-    public function addBinding(Column $col, $value) {
-        $this->bindings[] = $value;
-    }
-
-    public function getBindings(): array {
-        return $this->bindings;
-    }
-
-    public function resetBinding() {
-        $this->bindings = [];
-    }
-
-    public function setBindings(array $binding, string $merge = 'none') {
-        
-        if ($merge == 'first') {
-            $this->bindings = array_merge($binding, $this->bindings);
-        } else if ($merge == 'end') {
-            $this->bindings = array_merge($this->bindings, $binding);
-        } else {
-            $this->bindings = $binding;
-        }
     }
 }

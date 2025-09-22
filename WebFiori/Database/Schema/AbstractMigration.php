@@ -1,6 +1,6 @@
 <?php
-
 namespace WebFiori\Database\Schema;
+
 use WebFiori\Database\Database;
 
 /**
@@ -21,19 +21,6 @@ use WebFiori\Database\Database;
  */
 abstract class AbstractMigration extends DatabaseChange {
     /**
-     * Get the type identifier for this database change.
-     * 
-     * This method is used by the SchemaRunner to categorize and track
-     * different types of database changes. Migrations are distinguished
-     * from seeders by this type identifier.
-     * 
-     * @return string Always returns 'migration'.
-     */
-    public function getType(): string {
-        return 'migration';
-    }
-    
-    /**
      * Get the environments where this migration should be executed.
      * 
      * By default, migrations run in all environments (dev, test, prod).
@@ -45,5 +32,17 @@ abstract class AbstractMigration extends DatabaseChange {
      */
     public function getEnvironments(): array {
         return [];
+    }
+    /**
+     * Get the type identifier for this database change.
+     * 
+     * This method is used by the SchemaRunner to categorize and track
+     * different types of database changes. Migrations are distinguished
+     * from seeders by this type identifier.
+     * 
+     * @return string Always returns 'migration'.
+     */
+    public function getType(): string {
+        return 'migration';
     }
 }

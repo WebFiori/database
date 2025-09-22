@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is used to initiate a connection to MySQL database.
  * 
@@ -13,7 +14,6 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\ResultSet;
-use WebFiori\Database\ColOption;
 
 function getDatabaseInstance() : Database {
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');

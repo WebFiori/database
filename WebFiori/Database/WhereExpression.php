@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -17,7 +18,6 @@ namespace WebFiori\Database;
  * 
  */
 class WhereExpression extends Expression {
-    private $isCompiled;
     /**
      * An array that contains sub-where expressions.
      * 
@@ -39,6 +39,7 @@ class WhereExpression extends Expression {
      * 
      */
     private $conditionsCount;
+    private $isCompiled;
     /**
      * The condition at which will be used to join the expression 
      * with the parent.
@@ -163,6 +164,7 @@ class WhereExpression extends Expression {
 
         parent::setValue(trim($val));
         $this->isCompiled = true;
+
         return parent::getValue();
     }
     /**

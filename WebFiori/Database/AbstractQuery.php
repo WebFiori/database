@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -20,7 +21,6 @@ use WebFiori\Database\MySql\MySQLQuery;
  * 
  */
 abstract class AbstractQuery {
-    private $tempBinding;
     /**
      *
      * @var Table|null 
@@ -84,6 +84,7 @@ abstract class AbstractQuery {
      * 
      */
     private $schema;
+    private $tempBinding;
     /**
      * Creates new instance of the class.
      * 
@@ -102,9 +103,6 @@ abstract class AbstractQuery {
         $this->tempBinding = [];
     }
     public abstract function addBinding(Column $col, $value);
-    public abstract function getBindings() : array ;
-    public abstract function resetBinding();
-    public abstract function setBindings(array $binding, string $merge = 'none');
     /**
      * Constructs a query that can be used to add a column to a database table.
      * 
@@ -347,6 +345,7 @@ abstract class AbstractQuery {
             throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery, $ex);
         }
     }
+    public abstract function getBindings() : array ;
     /**
      * 
      * @return InsertBuilder|null
@@ -599,7 +598,7 @@ abstract class AbstractQuery {
 
         if ($table instanceof JoinTable) {
             $leftColObj = $table->getLeft()->getColByKey($leftCol);
-            
+
             if ($leftColObj === null) {
                 $table->getLeft()->addColumns([
                     $leftCol => ['type' => DataType::VARCHAR]
@@ -626,7 +625,6 @@ abstract class AbstractQuery {
             $rightColName = $rightColObj->getOwner()->getName().'.'.$rightColObj->getOldName();
             $cond = new Condition($leftColName, $rightColName, $cond);
             $table->addJoinCondition($cond, $joinWith);
-            
         } else {
             throw new DatabaseException("The 'on' condition can be only used with join tables.");
         }
@@ -725,6 +723,7 @@ abstract class AbstractQuery {
         $this->limit = -1;
         $this->offset = -1;
     }
+    public abstract function resetBinding();
     /**
      * Perform a right join query.
      * 
@@ -878,6 +877,7 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    public abstract function setBindings(array $binding, string $merge = 'none');
     public function setInsertBuilder(InsertBuilder $builder) {
         $this->insertHelper = $builder;
         $this->setQuery($builder->getQuery());
@@ -968,7 +968,7 @@ abstract class AbstractQuery {
         $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
         $this->prevQueryObj->resetBinding();
-        
+
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
             $this->reset();
@@ -1010,6 +1010,7 @@ abstract class AbstractQuery {
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
             $whereExpr = $query->getTable()->getSelect()->getWhereExpr();
+
             if ($whereExpr !== null) {
                 $whereExpr->setValue('');
             }
@@ -1070,6 +1071,7 @@ abstract class AbstractQuery {
                 $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
+
                 if ($val !== null) {
                     $this->addBinding($colObj, $val);
                 }
@@ -1355,18 +1357,6 @@ abstract class AbstractQuery {
 
         return $this;
     }
-    protected function getColType($phpVar) {
-        $type = gettype($phpVar);
-        if ($type == 'integer') {
-            return 'int';
-        } else if ($type == 'double') {
-            return 'decimal';
-        } else if ($type == 'boolean') {
-            return $type;
-        } else {
-            return 'varchar';
-        }
-    }
     private function addWhereHelper($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
@@ -1378,11 +1368,13 @@ abstract class AbstractQuery {
         if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
             $colObj = $table->getColByKey($col);
             $val = '';
+
             if (isset($options['value'])) {
                 $val = $options['value'];
-            } else if (isset ($options['first-value'])) {
+            } else if (isset($options['first-value'])) {
                 $val = $options['first-value'];
             }
+
             if ($colObj === null) {
                 $table->addColumns([
                     $col => ['type' => $this->getColType($val)]
@@ -1403,7 +1395,7 @@ abstract class AbstractQuery {
                     foreach ($options['values'] as $val) {
                         $this->addBinding($colObj, $val);
                     }
-                
+
                     $this->getTable()->getSelect()->addWhereIn($colName, $options['values'], $joinCond, $not);
                 }
             } else if ($options['func'] == 'left') {
@@ -1498,5 +1490,18 @@ abstract class AbstractQuery {
         }
 
         return $columnsToSelect;
+    }
+    protected function getColType($phpVar) {
+        $type = gettype($phpVar);
+
+        if ($type == 'integer') {
+            return 'int';
+        } else if ($type == 'double') {
+            return 'decimal';
+        } else if ($type == 'boolean') {
+            return $type;
+        } else {
+            return 'varchar';
+        }
     }
 }

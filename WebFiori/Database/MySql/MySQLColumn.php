@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -606,9 +607,9 @@ class MySQLColumn extends Column {
             } else {
                 $cleanedVal = filter_var(addslashes($val));
             }
-        // It is not secure if not escaped without connection
-        // Think about multi-byte strings
-        // At minimum, just sanitize the value using default filter
+            // It is not secure if not escaped without connection
+            // Think about multi-byte strings
+            // At minimum, just sanitize the value using default filter
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now' && $val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->dateCleanUp($val);

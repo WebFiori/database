@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Schema;
 
 /**
@@ -19,19 +18,6 @@ namespace WebFiori\Database\Schema;
  */
 abstract class AbstractSeeder extends DatabaseChange {
     /**
-     * Get the type identifier for this database change.
-     * 
-     * This method is used by the SchemaRunner to categorize and track
-     * different types of database changes. Seeders are distinguished
-     * from migrations by this type identifier.
-     * 
-     * @return string Always returns 'seeder'.
-     */
-    public function getType(): string {
-        return 'seeder';
-    }
-    
-    /**
      * Get the environments where this seeder should be executed.
      * 
      * Seeders often need environment-specific behavior:
@@ -44,5 +30,17 @@ abstract class AbstractSeeder extends DatabaseChange {
      */
     public function getEnvironments(): array {
         return [];
+    }
+    /**
+     * Get the type identifier for this database change.
+     * 
+     * This method is used by the SchemaRunner to categorize and track
+     * different types of database changes. Seeders are distinguished
+     * from migrations by this type identifier.
+     * 
+     * @return string Always returns 'seeder'.
+     */
+    public function getType(): string {
+        return 'seeder';
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -272,8 +273,8 @@ class SelectExpression extends Expression {
      * 
      */
     public function addWhereIn(string $colName, array $values, string $join = 'and', bool $not = false) {
-        
         $placeholders = trim(str_repeat('?, ', count($values)), ', ');
+
         if ($not === true) {
             $expr = new Expression($colName." not in($placeholders)");
         } else {

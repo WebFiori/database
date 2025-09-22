@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -85,22 +86,6 @@ class MSSQLColumn extends Column {
         if (!$this->setSize($size)) {
             $this->setSize(1);
         }
-    }
-    /**
-     * Sets the size of the data that will be stored by the column.
-     * 
-     * @param int $size A positive number that represents the size. must be greater than 0 
-     * (except for datetime2).
-     * 
-     * @return bool If the size is set, the method will return true. Other than 
-     * that, it will return false.
-     * 
-     */
-    public function setSize(int $size)  : bool {
-        if (($this->getDatatype() == 'datetime2' && $size == 0) || $size > 0)  {
-            return parent::setSize($size);
-        }
-        return false;
     }
     /**
      * Returns a string that represents the column.
@@ -430,6 +415,7 @@ class MSSQLColumn extends Column {
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
             $this->isIdintity = false;
         }
+
         if (!($this->getDatatype() == 'datetime2' && $this->getSize() == 0)) {
             parent::setSize(1);
         }
@@ -514,6 +500,23 @@ class MSSQLColumn extends Column {
         return false;
     }
     /**
+     * Sets the size of the data that will be stored by the column.
+     * 
+     * @param int $size A positive number that represents the size. must be greater than 0 
+     * (except for datetime2).
+     * 
+     * @return bool If the size is set, the method will return true. Other than 
+     * that, it will return false.
+     * 
+     */
+    public function setSize(int $size)  : bool {
+        if (($this->getDatatype() == 'datetime2' && $size == 0) || $size > 0) {
+            return parent::setSize($size);
+        }
+
+        return false;
+    }
+    /**
      * Sets the value of the property which is used to indicate if extended property
      * will be included in 'create table' statement.
      * 
@@ -543,12 +546,12 @@ class MSSQLColumn extends Column {
         } else if ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar') {
             $cleanedVal = filter_var(str_replace('@!@', "''", addslashes(str_replace("'", '@!@', $val))));
-        // It is not secure if not escaped without connection
-        // Think about multi-byte strings
-        // At minimum, just sanitize the value using default filter plus
-        //escaping special characters
-        // The @!@ used as replacement for single qut since MSSQL
-        // use it as escape character
+            // It is not secure if not escaped without connection
+            // Think about multi-byte strings
+            // At minimum, just sanitize the value using default filter plus
+            //escaping special characters
+            // The @!@ used as replacement for single qut since MSSQL
+            // use it as escape character
         } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
             if ($val != 'now' && $val != 'current_timestamp' && $val != 'now()') {
                 $cleanedVal = $this->dateCleanUp($val);
@@ -641,6 +644,7 @@ class MSSQLColumn extends Column {
             }
         } else if ($colDataType == 'datetime2') {
             $size = $this->getSize();
+
             if (!($size >= 0 && $size <= 7)) {
                 $size = 2;
             }
