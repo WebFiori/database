@@ -4,6 +4,7 @@ namespace WebFiori\Tests\Database\Schema;
 
 use WebFiori\Database\Database;
 use WebFiori\Database\Schema\AbstractMigration;
+use WebFiori\Database\ColOption;
 
 class TestMigration2 extends AbstractMigration {
     
@@ -13,8 +14,8 @@ class TestMigration2 extends AbstractMigration {
     
     public function execute(Database $db): void {
         $db->table('user_profiles')->addColumn('email', [
-            'type' => 'varchar',
-            'size' => 255
+            ColOption::TYPE => 'varchar',
+            ColOption::SIZE => 255
         ]);
         $db->execute();
     }

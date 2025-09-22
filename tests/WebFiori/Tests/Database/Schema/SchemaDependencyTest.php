@@ -9,11 +9,12 @@ use WebFiori\Database\DatabaseException;
 use WebFiori\Database\Schema\AbstractMigration;
 use WebFiori\Database\Schema\AbstractSeeder;
 use WebFiori\Database\Schema\SchemaRunner;
+use WebFiori\Database\ColOption;
 
 class TestMigrationA extends AbstractMigration {
     public function execute(Database $db): void {
         $db->createBlueprint('table_a')->addColumns([
-            'id' => ['type' => 'int', 'primary' => true, 'auto-inc' => true]
+            'id' => [ColOption::TYPE => 'int', ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true]
         ]);
         $db->createTables();
         $db->execute();
@@ -31,8 +32,8 @@ class TestMigrationB extends AbstractMigration {
     
     public function execute(Database $db): void {
         $db->createBlueprint('table_b')->addColumns([
-            'id' => ['type' => 'int', 'primary' => true, 'auto-inc' => true],
-            'a_id' => ['type' => 'int']
+            'id' => [ColOption::TYPE => 'int', ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
+            'a_id' => [ColOption::TYPE => 'int']
         ]);
         $db->createTables();
         $db->execute();

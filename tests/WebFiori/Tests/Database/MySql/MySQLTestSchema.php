@@ -4,6 +4,7 @@ namespace WebFiori\Tests\Database\MySql;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
+use WebFiori\Database\ColOption;
 use WebFiori\Database\MySql\MySQLTable;
 
 /**
@@ -18,22 +19,22 @@ class MySQLTestSchema extends Database {
         $table00 = new MySQLTable('users');
         $table00->addColumns([
             'id' => [
-                'type' => DataType::INT,
-                'size' => 5,
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 5,
                 'is-primary' => true,
-                'auto-inc' => true
+                ColOption::AUTO_INCREMENT => true
             ],
             'first-name' => [
-                'size' => '15',
-                'type' => DataType::VARCHAR
+                ColOption::SIZE => '15',
+                ColOption::TYPE => DataType::VARCHAR
             ],
             'last-name' => [
-                'size' => 20,
-                'type' => DataType::VARCHAR
+                ColOption::SIZE => 20,
+                ColOption::TYPE => DataType::VARCHAR
             ],
             'age' => [
-                'type' => DataType::INT,
-                'size' => 3
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 3
             ]
         ]);
         $this->addTable($table00);
@@ -41,19 +42,19 @@ class MySQLTestSchema extends Database {
         $table01 = new MySQLTable('users_privileges');
         $table01->addColumns([
             'id' => [
-                'type' => DataType::INT,
-                'size' => 5,
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 5,
                 'is-primary' => true
             ],
             'can-edit-price' => [
-                'type' => DataType::BOOL,
-                'default' => false
+                ColOption::TYPE => DataType::BOOL,
+                ColOption::DEFAULT => false
             ],
             'can-change-username' => [
-                'type' => DataType::BOOL
+                ColOption::TYPE => DataType::BOOL
             ],
             'can-do-anything' => [
-                'type' => DataType::BOOL
+                ColOption::TYPE => DataType::BOOL
             ]
         ]);
         $table01->addReference($table00, ['id'], 'user_privilege_fk', 'cascade', 'restrict');
@@ -62,32 +63,32 @@ class MySQLTestSchema extends Database {
         $table02 = new MySQLTable('users_tasks');
         $table02->addColumns([
             'task-id' => [
-                'type' => DataType::INT,
-                'size' => 5,
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 5,
                 'is-primary' => true,
-                'auto-inc' => true
+                ColOption::AUTO_INCREMENT => true
             ],
             'user-id' => [
-                'type' => DataType::INT,
-                'size' => '5',
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => '5',
                 'comment' => 'The ID of the user who must perform the activity.'
             ],
             'created-on' => [
-                'type' => DataType::TIMESTAMP,
-                'default' => 'now()',
+                ColOption::TYPE => DataType::TIMESTAMP,
+                ColOption::DEFAULT => 'now()',
             ],
             'last-updated' => [
-                'type' => DataType::DATETIME,
-                'is-null' => true,
+                ColOption::TYPE => DataType::DATETIME,
+                ColOption::NULL => true,
                 'auto-update' => true
             ],
             'is-finished' => [
-                'type' => DataType::BOOL,
-                'default' => false
+                ColOption::TYPE => DataType::BOOL,
+                ColOption::DEFAULT => false
             ],
             'details' => [
-                'size' => 1500,
-                'type' => DataType::VARCHAR
+                ColOption::SIZE => 1500,
+                ColOption::TYPE => DataType::VARCHAR
             ]
         ]);
         $table02->addReference($table00, ['user-id'=>'id'], 'user_task_fk', 'cascade', 'restrict');
@@ -97,12 +98,12 @@ class MySQLTestSchema extends Database {
         $table03 = new MySQLTable('profile_pics');
         $table03->addColumns([
             'user-id' => [
-                'type' => DataType::INT,
-                'size' => 5,
-                'primary' => true
+                ColOption::TYPE => DataType::INT,
+                ColOption::SIZE => 5,
+                ColOption::PRIMARY => true
             ],
             'pic' => [
-                'type' => 'mediumblob'
+                ColOption::TYPE => 'mediumblob'
             ]
         ]);
         $table03->addReference($table00, ['user-id'=>'id'], 'user_profile_pic_fk', 'cascade', 'restrict');
