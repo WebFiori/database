@@ -248,10 +248,10 @@ class QueryPerformanceMonitor {
     private function getQueryType(string $query): string {
         $query = trim(strtoupper($query));
         
-        if (str_starts_with($query, 'SELECT')) return 'SELECT';
-        if (str_starts_with($query, 'INSERT')) return 'INSERT';
-        if (str_starts_with($query, 'UPDATE')) return 'UPDATE';
-        if (str_starts_with($query, 'DELETE')) return 'DELETE';
+        if (str_starts_with($query, 'SELECT')) {return 'SELECT';}
+        if (str_starts_with($query, 'INSERT')) {return 'INSERT';}
+        if (str_starts_with($query, 'UPDATE')) {return 'UPDATE';}
+        if (str_starts_with($query, 'DELETE')) {return 'DELETE';}
         
         return 'OTHER';
     }
