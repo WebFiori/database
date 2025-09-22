@@ -3,6 +3,9 @@
 /.github export-ignore
 /.gitignore export-ignore
 /.travis.yml export-ignore
+/CHANGELOG.md export-ignore
+/php_cs.php.dist export-ignore
 /phpunit.xml export-ignore
-/samples
+/release-please-config.json export-ignore
+/examples
 /sonar-project.properties export-ignore
