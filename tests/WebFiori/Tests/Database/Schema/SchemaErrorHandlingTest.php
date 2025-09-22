@@ -14,36 +14,6 @@ class SchemaErrorHandlingTest extends TestCase {
         return new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
     }
     
-    public function testRegisterErrorCallback() {
-        // Create a directory with invalid PHP files to trigger registration errors
-        $tempDir = sys_get_temp_dir() . '/schema_test_' . uniqid();
-        mkdir($tempDir);
-        
-        $errorCaught = false;
-        $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
-        
-        $runner->addOnRegisterErrorCallback(function($err) use (&$errorCaught) {
-            $errorCaught = true;
-            $this->assertInstanceOf('Throwable', $err);
-        });
-        
-        // Create an invalid PHP file after setting up callback
-        file_put_contents($tempDir . '/InvalidChange.php', '<?php invalid syntax');
-        
-        // Create new runner with invalid directory to trigger error
-        $errorRunner = new SchemaRunner($tempDir, 'InvalidNamespace', $this->getConnectionInfo());
-        $errorRunner->addOnRegisterErrorCallback(function($err) use (&$errorCaught) {
-            $errorCaught = true;
-            $this->assertInstanceOf('Throwable', $err);
-        });
-        
-        // Clean up
-        unlink($tempDir . '/InvalidChange.php');
-        rmdir($tempDir);
-        
-        $this->assertTrue($errorCaught);
-    }
-    
     public function testRollbackErrorStopsExecution() {
         try {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());

@@ -16,7 +16,7 @@ use WebFiori\Database\DataType;
  * @author Ibrahim
  */
 class SchemaRunner extends Database {
-    private $changes;
+    private $dbChanges;
     private $path;
     private $ns;
     private $environment;
@@ -62,7 +62,7 @@ class SchemaRunner extends Database {
             ]
         ]);
         
-        $this->changes = [];
+        $this->dbChanges = [];
         $this->scanPathForChanges();
     }
     
@@ -95,7 +95,7 @@ class SchemaRunner extends Database {
     public function addOnRegisterErrorCallback(callable $callback): void {
         $this->onRegErrCallbacks[] = $callback;
         
-        if (empty($this->changes)) {
+        if (empty($this->dbChanges)) {
             $this->scanPathForChanges();
         }
     }
@@ -125,16 +125,16 @@ class SchemaRunner extends Database {
     }
     
     private function scanPathForChanges() {
-        $path = $this->getPath();
+        $changesPath = $this->getPath();
         
-        if (!is_dir($path)) {
-            throw new DatabaseException('Invalid schema path: "'.$path.'"');
+        if (!is_dir($changesPath)) {
+            throw new DatabaseException('Invalid schema path: "'.$changesPath.'"');
         }
 
-        $dirContents = array_diff(scandir($path), ['.', '..']);
+        $dirContents = array_diff(scandir($changesPath), ['.', '..']);
 
         foreach ($dirContents as $file) {
-            if (is_file($path . DIRECTORY_SEPARATOR . $file)) {
+            if (is_file($changesPath . DIRECTORY_SEPARATOR . $file)) {
                 $clazz = $this->getNamespace().'\\'.explode('.', $file)[0];
                 
                 try {
@@ -143,7 +143,7 @@ class SchemaRunner extends Database {
                         $instance = new $clazz();
                         
                         if ($instance instanceof DatabaseChange) {
-                            $this->changes[] = $instance;
+                            $this->dbChanges[] = $instance;
                         }
                     }
                 } catch (Exception|Error $ex) {
@@ -161,12 +161,12 @@ class SchemaRunner extends Database {
         $sorted = [];
         $visited = [];
         
-        foreach ($this->changes as $change) {
+        foreach ($this->dbChanges as $change) {
             $visiting = [];
             $this->topologicalSort($change, $visited, $sorted, $visiting);
         }
         
-        $this->changes = $sorted;
+        $this->dbChanges = $sorted;
     }
     
     private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting = []) {
@@ -196,7 +196,7 @@ class SchemaRunner extends Database {
     }
     
     private function findChangeByName(string $name): ?DatabaseChange {
-        foreach ($this->changes as $change) {
+        foreach ($this->dbChanges as $change) {
             $changeName = $change->getName();
             
             // Exact match
@@ -218,7 +218,7 @@ class SchemaRunner extends Database {
     }
     
     public function getChanges(): array {
-        return $this->changes;
+        return $this->dbChanges;
     }
     
     public function isApplied(string $name): bool {
@@ -247,7 +247,7 @@ class SchemaRunner extends Database {
     public function applyOne(): ?DatabaseChange {
         $change = null;
         try {
-            foreach ($this->changes as $change) {
+            foreach ($this->dbChanges as $change) {
                 if ($this->isApplied($change->getName())) {
                     continue;
                 }
@@ -288,7 +288,7 @@ class SchemaRunner extends Database {
         $appliedInPass = true;
         while ($appliedInPass) {
             $appliedInPass = false;
-            foreach ($this->changes as $change) {
+            foreach ($this->dbChanges as $change) {
                 if ($this->isApplied($change->getName())) {
                     continue;
                 }
@@ -322,7 +322,19 @@ class SchemaRunner extends Database {
         }
         return $applied;
     }
-    
+    private function attemptRoolback(DatabaseChange $change, &$rolled) : bool {
+        try {
+            $change->rollback($this);
+            $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
+            $rolled[] = $change;
+            return true;
+        } catch (\Throwable $ex) {
+            foreach ($this->onErrCallbacks as $callback) {
+                call_user_func_array($callback, [$ex, $change, $this]);
+            }
+            return false;
+        }
+    }
     /**
      * Rollback changes up to a specific change.
      */
@@ -337,31 +349,14 @@ class SchemaRunner extends Database {
         if ($changeName !== null && $this->hasChange($changeName)) {
             foreach ($changes as $change) {
                 if ($change->getName() == $changeName && $this->isApplied($change->getName())) {
-                    try {
-                        $change->rollback($this);
-                        $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
-                        $rolled[] = $change;
-                        return $rolled;
-                    } catch (\Throwable $ex) {
-                        foreach ($this->onErrCallbacks as $callback) {
-                            call_user_func_array($callback, [$ex, $change, $this]);
-                        }
-                        return $rolled;
-                    }
+                    $this->attemptRoolback($change, $rolled);
+                    return $rolled;
                 }
             }
         } else if ($changeName === null) {
             foreach ($changes as $change) {
                 if ($this->isApplied($change->getName())) {
-                    try {
-                        $change->rollback($this);
-                        $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
-                        $rolled[] = $change;
-                        break;
-                    } catch (\Throwable $ex) {
-                        foreach ($this->onErrCallbacks as $callback) {
-                            call_user_func_array($callback, [$ex, $change, $this]);
-                        }
+                    if (!$this->attemptRoolback($change, $rolled)) {
                         return $rolled;
                     }
                 }
