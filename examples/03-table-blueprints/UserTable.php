@@ -1,17 +1,16 @@
 <?php
 
-use WebFiori\Database\MySql\MySQLTable;
-use WebFiori\Database\DataType;
 use WebFiori\Database\ColOption;
+use WebFiori\Database\DataType;
+use WebFiori\Database\MySql\MySQLTable;
 
 /**
  * A custom table class that extends MySQLTable
  */
 class UserTable extends MySQLTable {
-    
     public function __construct() {
         parent::__construct('users_extended');
-        
+
         // Add columns using the fluent interface
         $this->addColumns([
             'id' => [

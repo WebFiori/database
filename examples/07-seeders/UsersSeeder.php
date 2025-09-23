@@ -1,7 +1,7 @@
 <?php
 
-use WebFiori\Database\Schema\AbstractSeeder;
 use WebFiori\Database\Database;
+use WebFiori\Database\Schema\AbstractSeeder;
 
 /**
  * Seeder for populating the users table with initial user data.
@@ -10,9 +10,6 @@ use WebFiori\Database\Database;
  * and sample users for development and testing purposes.
  */
 class UsersSeeder extends AbstractSeeder {
-    
-
-    
     /**
      * Run the seeder to populate the database with data.
      * 
@@ -50,10 +47,9 @@ class UsersSeeder extends AbstractSeeder {
                 'role' => 'moderator'
             ]
         ];
-        
+
         foreach ($users as $user) {
             $db->table('users')->insert($user)->execute();
         }
-        
     }
 }

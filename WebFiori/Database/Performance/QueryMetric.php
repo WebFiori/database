@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Performance;
 
 /**
@@ -12,15 +11,15 @@ namespace WebFiori\Database\Performance;
  * @author Ibrahim
  */
 class QueryMetric {
+    private string $databaseName;
+    private float $executedAt;
+    private float $executionTimeMs;
+    private float $memoryUsageMb;
+    private string $query;
     private string $queryHash;
     private string $queryType;
-    private string $query;
-    private float $executionTimeMs;
     private int $rowsAffected;
-    private float $memoryUsageMb;
-    private float $executedAt;
-    private string $databaseName;
-    
+
     /**
      * Create a new query metric instance.
      * 
@@ -52,61 +51,16 @@ class QueryMetric {
         $this->executedAt = $executedAt;
         $this->databaseName = $databaseName;
     }
-    
+
     /**
-     * Get the MD5 hash of the normalized query.
+     * Get the database name.
      * 
-     * @return string MD5 hash of the normalized query
+     * @return string Database name
      */
-    public function getQueryHash(): string {
-        return $this->queryHash;
+    public function getDatabaseName(): string {
+        return $this->databaseName;
     }
-    
-    /**
-     * Get the query type.
-     * 
-     * @return string Query type (SELECT, INSERT, UPDATE, DELETE)
-     */
-    public function getQueryType(): string {
-        return $this->queryType;
-    }
-    
-    /**
-     * Get the actual SQL query that was executed.
-     * 
-     * @return string The SQL query
-     */
-    public function getQuery(): string {
-        return $this->query;
-    }
-    
-    /**
-     * Get the execution time in milliseconds.
-     * 
-     * @return float Execution time with microsecond precision
-     */
-    public function getExecutionTimeMs(): float {
-        return $this->executionTimeMs;
-    }
-    
-    /**
-     * Get the number of rows affected or returned.
-     * 
-     * @return int Row count
-     */
-    public function getRowsAffected(): int {
-        return $this->rowsAffected;
-    }
-    
-    /**
-     * Get the memory usage in megabytes.
-     * 
-     * @return float Memory usage
-     */
-    public function getMemoryUsageMb(): float {
-        return $this->memoryUsageMb;
-    }
-    
+
     /**
      * Get the execution timestamp.
      * 
@@ -115,13 +69,58 @@ class QueryMetric {
     public function getExecutedAt(): float {
         return $this->executedAt;
     }
-    
+
     /**
-     * Get the database name.
+     * Get the execution time in milliseconds.
      * 
-     * @return string Database name
+     * @return float Execution time with microsecond precision
      */
-    public function getDatabaseName(): string {
-        return $this->databaseName;
+    public function getExecutionTimeMs(): float {
+        return $this->executionTimeMs;
+    }
+
+    /**
+     * Get the memory usage in megabytes.
+     * 
+     * @return float Memory usage
+     */
+    public function getMemoryUsageMb(): float {
+        return $this->memoryUsageMb;
+    }
+
+    /**
+     * Get the actual SQL query that was executed.
+     * 
+     * @return string The SQL query
+     */
+    public function getQuery(): string {
+        return $this->query;
+    }
+
+    /**
+     * Get the MD5 hash of the normalized query.
+     * 
+     * @return string MD5 hash of the normalized query
+     */
+    public function getQueryHash(): string {
+        return $this->queryHash;
+    }
+
+    /**
+     * Get the query type.
+     * 
+     * @return string Query type (SELECT, INSERT, UPDATE, DELETE)
+     */
+    public function getQueryType(): string {
+        return $this->queryType;
+    }
+
+    /**
+     * Get the number of rows affected or returned.
+     * 
+     * @return int Row count
+     */
+    public function getRowsAffected(): int {
+        return $this->rowsAffected;
     }
 }

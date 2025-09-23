@@ -1,12 +1,11 @@
 <?php
-
 namespace WebFiori\Database\Performance;
 
 use InvalidArgumentException;
-use WebFiori\Database\Database;
-use WebFiori\Database\ResultSet;
 use WebFiori\Database\ColOption;
+use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
+use WebFiori\Database\ResultSet;
 
 /**
  * Query performance monitoring system for database operations.
@@ -26,10 +25,10 @@ use WebFiori\Database\DataType;
  */
 class QueryPerformanceMonitor {
     private array $config;
-    private array $memoryMetrics = [];
     private ?Database $database = null;
+    private array $memoryMetrics = [];
     private bool $schemaCreated = false;
-    
+
     /**
      * Initialize performance monitor with configuration.
      * 
@@ -41,7 +40,111 @@ class QueryPerformanceMonitor {
         $this->database = $database;
         $this->validateConfig();
     }
-    
+
+    /**
+     * Clear all stored metrics.
+     */
+    public function clearMetrics(): void {
+        if ($this->config[PerformanceOption::STORAGE_TYPE] === PerformanceOption::STORAGE_MEMORY) {
+            $this->memoryMetrics = [];
+        } else {
+            $this->clearDatabaseMetrics();
+        }
+    }
+
+    /**
+     * Create a performance analyzer for the collected metrics.
+     * 
+     * @return PerformanceAnalyzer Analyzer instance with current metrics and configuration.
+     */
+    public function getAnalyzer(): PerformanceAnalyzer {
+        return new PerformanceAnalyzer($this);
+    }
+
+    /**
+     * Get all performance metrics.
+     * 
+     * @return array Array of QueryMetric instances or metric arrays
+     */
+    public function getMetrics(): array {
+        if ($this->config[PerformanceOption::STORAGE_TYPE] === PerformanceOption::STORAGE_MEMORY) {
+            return $this->memoryMetrics;
+        }
+
+        if (!$this->database) {
+            return [];
+        }
+
+        try {
+            return $this->getMetricsFromDatabase();
+        } catch (\Exception $e) {
+            // If table doesn't exist, return empty array
+            return [];
+        }
+    }
+
+    /**
+     * Get slow queries based on configured threshold.
+     * 
+     * @param int|null $thresholdMs Custom threshold in milliseconds
+     * @return array Array of slow query metrics
+     */
+    public function getSlowQueries(?int $thresholdMs = null): array {
+        $threshold = $thresholdMs ?? $this->config[PerformanceOption::SLOW_QUERY_THRESHOLD];
+        $metrics = $this->getMetrics();
+
+        return array_values(array_filter($metrics, function($metric) use ($threshold)
+        {
+            $executionTime = $metric instanceof QueryMetric 
+                ? $metric->getExecutionTimeMs() 
+                : $metric['execution_time_ms'];
+
+            return $executionTime >= $threshold;
+        }));
+    }
+
+    /**
+     * Get the configured slow query threshold.
+     * 
+     * @return float Slow query threshold in milliseconds.
+     */
+    public function getSlowQueryThreshold(): float {
+        return (float) $this->config[PerformanceOption::SLOW_QUERY_THRESHOLD];
+    }    
+    /**
+     * Get performance statistics summary.
+     * 
+     * @return array Statistics including avg, min, max execution times
+     */
+    public function getStatistics(): array {
+        $metrics = $this->getMetrics();
+
+        if (empty($metrics)) {
+            return [
+                'total_queries' => 0,
+                'avg_execution_time' => 0,
+                'min_execution_time' => 0,
+                'max_execution_time' => 0,
+                'slow_queries_count' => 0
+            ];
+        }
+
+        $executionTimes = array_map(function($metric)
+        {
+            return $metric instanceof QueryMetric 
+                ? $metric->getExecutionTimeMs() 
+                : $metric['execution_time_ms'];
+        }, $metrics);
+
+        return [
+            'total_queries' => count($metrics),
+            'avg_execution_time' => array_sum($executionTimes) / count($executionTimes),
+            'min_execution_time' => min($executionTimes),
+            'max_execution_time' => max($executionTimes),
+            'slow_queries_count' => count($this->getSlowQueries())
+        ];
+    }
+
     /**
      * Record a query performance metric.
      * 
@@ -53,127 +156,26 @@ class QueryPerformanceMonitor {
         if (!$this->config[PerformanceOption::ENABLED]) {
             return;
         }
-        
+
         if (!$this->shouldTrackQuery($query)) {
             return;
         }
-        
+
         if (!$this->shouldSample()) {
             return;
         }
-        
+
         $metric = $this->createMetric($query, $executionTimeMs, $result);
-        
+
         if ($this->config[PerformanceOption::STORAGE_TYPE] === PerformanceOption::STORAGE_MEMORY) {
             $this->storeInMemory($metric);
         } else {
             $this->storeInDatabase($metric);
         }
-        
+
         $this->performCleanup();
     }
-    
-    /**
-     * Get all performance metrics.
-     * 
-     * @return array Array of QueryMetric instances or metric arrays
-     */
-    public function getMetrics(): array {
-        if ($this->config[PerformanceOption::STORAGE_TYPE] === PerformanceOption::STORAGE_MEMORY) {
-            return $this->memoryMetrics;
-        }
-        
-        if (!$this->database) {
-            return [];
-        }
-        
-        try {
-            return $this->getMetricsFromDatabase();
-        } catch (\Exception $e) {
-            // If table doesn't exist, return empty array
-            return [];
-        }
-    }
-    
-    /**
-     * Get slow queries based on configured threshold.
-     * 
-     * @param int|null $thresholdMs Custom threshold in milliseconds
-     * @return array Array of slow query metrics
-     */
-    public function getSlowQueries(?int $thresholdMs = null): array {
-        $threshold = $thresholdMs ?? $this->config[PerformanceOption::SLOW_QUERY_THRESHOLD];
-        $metrics = $this->getMetrics();
-        
-        return array_values(array_filter($metrics, function($metric) use ($threshold) {
-            $executionTime = $metric instanceof QueryMetric 
-                ? $metric->getExecutionTimeMs() 
-                : $metric['execution_time_ms'];
-            return $executionTime >= $threshold;
-        }));
-    }
-    
-    /**
-     * Get the configured slow query threshold.
-     * 
-     * @return float Slow query threshold in milliseconds.
-     */
-    public function getSlowQueryThreshold(): float {
-        return (float) $this->config[PerformanceOption::SLOW_QUERY_THRESHOLD];
-    }
-    
-    /**
-     * Create a performance analyzer for the collected metrics.
-     * 
-     * @return PerformanceAnalyzer Analyzer instance with current metrics and configuration.
-     */
-    public function getAnalyzer(): PerformanceAnalyzer {
-        return new PerformanceAnalyzer($this);
-    }    
-    /**
-     * Get performance statistics summary.
-     * 
-     * @return array Statistics including avg, min, max execution times
-     */
-    public function getStatistics(): array {
-        $metrics = $this->getMetrics();
-        
-        if (empty($metrics)) {
-            return [
-                'total_queries' => 0,
-                'avg_execution_time' => 0,
-                'min_execution_time' => 0,
-                'max_execution_time' => 0,
-                'slow_queries_count' => 0
-            ];
-        }
-        
-        $executionTimes = array_map(function($metric) {
-            return $metric instanceof QueryMetric 
-                ? $metric->getExecutionTimeMs() 
-                : $metric['execution_time_ms'];
-        }, $metrics);
-        
-        return [
-            'total_queries' => count($metrics),
-            'avg_execution_time' => array_sum($executionTimes) / count($executionTimes),
-            'min_execution_time' => min($executionTimes),
-            'max_execution_time' => max($executionTimes),
-            'slow_queries_count' => count($this->getSlowQueries())
-        ];
-    }
-    
-    /**
-     * Clear all stored metrics.
-     */
-    public function clearMetrics(): void {
-        if ($this->config[PerformanceOption::STORAGE_TYPE] === PerformanceOption::STORAGE_MEMORY) {
-            $this->memoryMetrics = [];
-        } else {
-            $this->clearDatabaseMetrics();
-        }
-    }
-    
+
     /**
      * Update monitoring configuration.
      * 
@@ -183,96 +185,36 @@ class QueryPerformanceMonitor {
         $this->config = array_merge($this->config, $config);
         $this->validateConfig();
     }
-    
+
     /**
-     * Get default configuration values.
-     * 
-     * @return array Default configuration
+     * Clean up old metrics from database.
      */
-    private function getDefaultConfig(): array {
-        return [
-            PerformanceOption::ENABLED => false,
-            PerformanceOption::SLOW_QUERY_THRESHOLD => 1000,
-            PerformanceOption::WARNING_THRESHOLD => 500,
-            PerformanceOption::SAMPLING_RATE => 1.0,
-            PerformanceOption::MAX_SAMPLES => 10000,
-            PerformanceOption::STORAGE_TYPE => PerformanceOption::STORAGE_MEMORY,
-            PerformanceOption::RETENTION_HOURS => 24,
-            PerformanceOption::AUTO_CLEANUP => true,
-            PerformanceOption::MEMORY_LIMIT_MB => 50,
-            PerformanceOption::TRACK_SELECT => true,
-            PerformanceOption::TRACK_INSERT => true,
-            PerformanceOption::TRACK_UPDATE => true,
-            PerformanceOption::TRACK_DELETE => true
-        ];
-    }
-    
-    /**
-     * Validate configuration values.
-     * 
-     * @throws InvalidArgumentException If configuration is invalid
-     */
-    private function validateConfig(): void {
-        if (!is_bool($this->config[PerformanceOption::ENABLED])) {
-            throw new InvalidArgumentException('ENABLED must be boolean');
+    private function cleanupOldDatabaseMetrics(): void {
+        if (!$this->database) {
+            return;
         }
-        
-        if ($this->config[PerformanceOption::SAMPLING_RATE] < 0 || $this->config[PerformanceOption::SAMPLING_RATE] > 1) {
-            throw new InvalidArgumentException('SAMPLING_RATE must be between 0.0 and 1.0');
+
+        $cutoffTime = microtime(true) - ($this->config[PerformanceOption::RETENTION_HOURS] * 3600);
+
+        $this->database->table('query_performance_metrics')
+            ->delete()
+            ->where('executed_at', $cutoffTime, '<')
+            ->execute();
+    }
+
+    /**
+     * Clear metrics from database.
+     */
+    private function clearDatabaseMetrics(): void {
+        if (!$this->database) {
+            return;
         }
-        
-        if (!in_array($this->config[PerformanceOption::STORAGE_TYPE], [
-            PerformanceOption::STORAGE_MEMORY, 
-            PerformanceOption::STORAGE_DATABASE
-        ])) {
-            throw new InvalidArgumentException('Invalid STORAGE_TYPE');
-        }
+
+        $this->database->table('query_performance_metrics')
+            ->delete()
+            ->execute();
     }
-    
-    /**
-     * Check if query should be tracked based on type.
-     * 
-     * @param string $query SQL query
-     * @return bool True if query should be tracked
-     */
-    private function shouldTrackQuery(string $query): bool {
-        $queryType = $this->getQueryType($query);
-        
-        return match($queryType) {
-            'SELECT' => $this->config[PerformanceOption::TRACK_SELECT],
-            'INSERT' => $this->config[PerformanceOption::TRACK_INSERT],
-            'UPDATE' => $this->config[PerformanceOption::TRACK_UPDATE],
-            'DELETE' => $this->config[PerformanceOption::TRACK_DELETE],
-            default => false
-        };
-    }
-    
-    /**
-     * Check if current query should be sampled.
-     * 
-     * @return bool True if query should be sampled
-     */
-    private function shouldSample(): bool {
-        return mt_rand() / mt_getrandmax() <= $this->config[PerformanceOption::SAMPLING_RATE];
-    }
-    
-    /**
-     * Extract query type from SQL.
-     * 
-     * @param string $query SQL query
-     * @return string Query type (SELECT, INSERT, UPDATE, DELETE)
-     */
-    private function getQueryType(string $query): string {
-        $query = trim(strtoupper($query));
-        
-        if (str_starts_with($query, 'SELECT')) {return 'SELECT';}
-        if (str_starts_with($query, 'INSERT')) {return 'INSERT';}
-        if (str_starts_with($query, 'UPDATE')) {return 'UPDATE';}
-        if (str_starts_with($query, 'DELETE')) {return 'DELETE';}
-        
-        return 'OTHER';
-    }
-    
+
     /**
      * Create a QueryMetric instance from query data.
      * 
@@ -293,90 +235,7 @@ class QueryPerformanceMonitor {
             $this->database ? $this->database->getName() : 'unknown'
         );
     }
-    
-    /**
-     * Extract row count from query result.
-     * 
-     * @param mixed $result Query result
-     * @return int Row count
-     */
-    private function getRowCount($result): int {
-        if ($result instanceof ResultSet) {
-            return $result->count();
-        }
-        
-        return 0;
-    }
-    
-    /**
-     * Get current memory usage in MB.
-     * 
-     * @return float Memory usage in megabytes
-     */
-    private function getMemoryUsage(): float {
-        return memory_get_usage(true) / 1024 / 1024;
-    }
-    
-    /**
-     * Store metric in memory.
-     * 
-     * @param QueryMetric $metric
-     */
-    private function storeInMemory(QueryMetric $metric): void {
-        $this->memoryMetrics[] = $metric;
-        
-        if (count($this->memoryMetrics) > $this->config[PerformanceOption::MAX_SAMPLES]) {
-            array_shift($this->memoryMetrics);
-        }
-    }
-    
-    /**
-     * Store metric in database.
-     * 
-     * @param QueryMetric $metric
-     */
-    private function storeInDatabase(QueryMetric $metric): void {
-        if (!$this->database) {
-            return;
-        }
-        
-        $this->ensureSchemaExists();
-        
-        $this->database->table('query_performance_metrics')
-            ->insert($metric->toArray())
-            ->execute();
-    }
-    
-    /**
-     * Get metrics from database.
-     * 
-     * @return array
-     */
-    private function getMetricsFromDatabase(): array {
-        if (!$this->database) {
-            return [];
-        }
-        
-        $result = $this->database->table('query_performance_metrics')
-            ->select()
-            ->execute();
-        
-        return $result->getRows();
-    }
-    
-    /**
-     * Clear metrics from database.
-     */
-    private function clearDatabaseMetrics(): void {
-        if (!$this->database) {
-            return;
-        }
-        
-        $this->database->table('query_performance_metrics')
-            ->delete()
-            ->execute();
-    }
-    
+
     /**
      * Ensure performance metrics table exists.
      */
@@ -384,7 +243,7 @@ class QueryPerformanceMonitor {
         if ($this->schemaCreated || !$this->database) {
             return;
         }
-        
+
         $this->database->createBlueprint('query_performance_metrics')
             ->addColumns([
                 'id' => [
@@ -421,11 +280,102 @@ class QueryPerformanceMonitor {
                     ColOption::SIZE => 64
                 ]
             ]);
-        
+
         $this->database->createTable()->execute();
         $this->schemaCreated = true;
     }
-    
+
+    /**
+     * Get default configuration values.
+     * 
+     * @return array Default configuration
+     */
+    private function getDefaultConfig(): array {
+        return [
+            PerformanceOption::ENABLED => false,
+            PerformanceOption::SLOW_QUERY_THRESHOLD => 1000,
+            PerformanceOption::WARNING_THRESHOLD => 500,
+            PerformanceOption::SAMPLING_RATE => 1.0,
+            PerformanceOption::MAX_SAMPLES => 10000,
+            PerformanceOption::STORAGE_TYPE => PerformanceOption::STORAGE_MEMORY,
+            PerformanceOption::RETENTION_HOURS => 24,
+            PerformanceOption::AUTO_CLEANUP => true,
+            PerformanceOption::MEMORY_LIMIT_MB => 50,
+            PerformanceOption::TRACK_SELECT => true,
+            PerformanceOption::TRACK_INSERT => true,
+            PerformanceOption::TRACK_UPDATE => true,
+            PerformanceOption::TRACK_DELETE => true
+        ];
+    }
+
+    /**
+     * Get current memory usage in MB.
+     * 
+     * @return float Memory usage in megabytes
+     */
+    private function getMemoryUsage(): float {
+        return memory_get_usage(true) / 1024 / 1024;
+    }
+
+    /**
+     * Get metrics from database.
+     * 
+     * @return array
+     */
+    private function getMetricsFromDatabase(): array {
+        if (!$this->database) {
+            return [];
+        }
+
+        $result = $this->database->table('query_performance_metrics')
+            ->select()
+            ->execute();
+
+        return $result->getRows();
+    }
+
+    /**
+     * Extract query type from SQL.
+     * 
+     * @param string $query SQL query
+     * @return string Query type (SELECT, INSERT, UPDATE, DELETE)
+     */
+    private function getQueryType(string $query): string {
+        $query = trim(strtoupper($query));
+
+        if (str_starts_with($query, 'SELECT')) {
+            return 'SELECT';
+        }
+
+        if (str_starts_with($query, 'INSERT')) {
+            return 'INSERT';
+        }
+
+        if (str_starts_with($query, 'UPDATE')) {
+            return 'UPDATE';
+        }
+
+        if (str_starts_with($query, 'DELETE')) {
+            return 'DELETE';
+        }
+
+        return 'OTHER';
+    }
+
+    /**
+     * Extract row count from query result.
+     * 
+     * @param mixed $result Query result
+     * @return int Row count
+     */
+    private function getRowCount($result): int {
+        if ($result instanceof ResultSet) {
+            return $result->count();
+        }
+
+        return 0;
+    }
+
     /**
      * Perform cleanup based on configuration.
      */
@@ -433,25 +383,88 @@ class QueryPerformanceMonitor {
         if (!$this->config[PerformanceOption::AUTO_CLEANUP]) {
             return;
         }
-        
+
         if ($this->config[PerformanceOption::STORAGE_TYPE] === PerformanceOption::STORAGE_DATABASE) {
             $this->cleanupOldDatabaseMetrics();
         }
     }
-    
+
     /**
-     * Clean up old metrics from database.
+     * Check if current query should be sampled.
+     * 
+     * @return bool True if query should be sampled
      */
-    private function cleanupOldDatabaseMetrics(): void {
+    private function shouldSample(): bool {
+        return mt_rand() / mt_getrandmax() <= $this->config[PerformanceOption::SAMPLING_RATE];
+    }
+
+    /**
+     * Check if query should be tracked based on type.
+     * 
+     * @param string $query SQL query
+     * @return bool True if query should be tracked
+     */
+    private function shouldTrackQuery(string $query): bool {
+        $queryType = $this->getQueryType($query);
+
+        return match ($queryType) {
+            'SELECT' => $this->config[PerformanceOption::TRACK_SELECT],
+            'INSERT' => $this->config[PerformanceOption::TRACK_INSERT],
+            'UPDATE' => $this->config[PerformanceOption::TRACK_UPDATE],
+            'DELETE' => $this->config[PerformanceOption::TRACK_DELETE],
+            default => false
+        };
+    }
+
+    /**
+     * Store metric in database.
+     * 
+     * @param QueryMetric $metric
+     */
+    private function storeInDatabase(QueryMetric $metric): void {
         if (!$this->database) {
             return;
         }
-        
-        $cutoffTime = microtime(true) - ($this->config[PerformanceOption::RETENTION_HOURS] * 3600);
-        
+
+        $this->ensureSchemaExists();
+
         $this->database->table('query_performance_metrics')
-            ->delete()
-            ->where('executed_at', $cutoffTime, '<')
+            ->insert($metric->toArray())
             ->execute();
+    }
+
+    /**
+     * Store metric in memory.
+     * 
+     * @param QueryMetric $metric
+     */
+    private function storeInMemory(QueryMetric $metric): void {
+        $this->memoryMetrics[] = $metric;
+
+        if (count($this->memoryMetrics) > $this->config[PerformanceOption::MAX_SAMPLES]) {
+            array_shift($this->memoryMetrics);
+        }
+    }
+
+    /**
+     * Validate configuration values.
+     * 
+     * @throws InvalidArgumentException If configuration is invalid
+     */
+    private function validateConfig(): void {
+        if (!is_bool($this->config[PerformanceOption::ENABLED])) {
+            throw new InvalidArgumentException('ENABLED must be boolean');
+        }
+
+        if ($this->config[PerformanceOption::SAMPLING_RATE] < 0 || $this->config[PerformanceOption::SAMPLING_RATE] > 1) {
+            throw new InvalidArgumentException('SAMPLING_RATE must be between 0.0 and 1.0');
+        }
+
+        if (!in_array($this->config[PerformanceOption::STORAGE_TYPE], [
+            PerformanceOption::STORAGE_MEMORY, 
+            PerformanceOption::STORAGE_DATABASE
+        ])) {
+            throw new InvalidArgumentException('Invalid STORAGE_TYPE');
+        }
     }
 }

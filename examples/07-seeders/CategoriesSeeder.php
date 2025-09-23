@@ -1,7 +1,7 @@
 <?php
 
-use WebFiori\Database\Schema\AbstractSeeder;
 use WebFiori\Database\Database;
+use WebFiori\Database\Schema\AbstractSeeder;
 
 /**
  * Seeder for populating the categories table with sample category data.
@@ -10,9 +10,6 @@ use WebFiori\Database\Database;
  * and test environments to provide sample categories for testing.
  */
 class CategoriesSeeder extends AbstractSeeder {
-    
-
-    
     /**
      * Get the environments where this seeder should be executed.
      * 
@@ -25,7 +22,7 @@ class CategoriesSeeder extends AbstractSeeder {
         // Only run in development and test environments
         return ['dev', 'test'];
     }
-    
+
     /**
      * Run the seeder to populate the database with data.
      * 
@@ -59,10 +56,9 @@ class CategoriesSeeder extends AbstractSeeder {
                 'slug' => 'sports'
             ]
         ];
-        
+
         foreach ($categories as $category) {
             $db->table('categories')->insert($category)->execute();
         }
-        
     }
 }

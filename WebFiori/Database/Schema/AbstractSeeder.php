@@ -19,7 +19,6 @@ use WebFiori\Database\Database;
  * @author Ibrahim
  */
 abstract class AbstractSeeder extends DatabaseChange {
-    
     /**
      * Execute the database change (run the seeder).
      * 
@@ -31,34 +30,7 @@ abstract class AbstractSeeder extends DatabaseChange {
     public function execute(Database $db): void {
         $this->run($db);
     }
-    
-    /**
-     * Rollback the database change (optional for seeders).
-     * 
-     * Most seeders don't implement rollback functionality as data
-     * seeding is typically not reversible. Override this method
-     * if your seeder needs rollback capability.
-     * 
-     * @param Database $db The database instance to execute rollback on.
-     */
-    public function rollback(Database $db): void {
-        // Default implementation does nothing
-        // Override in concrete seeders if rollback is needed
-    }
-    
-    /**
-     * Run the seeder to populate the database with data.
-     * 
-     * This method should contain the data insertion logic such as:
-     * - Inserting reference/lookup data
-     * - Creating default user accounts
-     * - Populating sample data for development
-     * - Setting up initial application configuration
-     * 
-     * @param Database $db The database instance to execute seeding on.
-     */
-    abstract public function run(Database $db): void;
-    
+
     /**
      * Get the environments where this seeder should be executed.
      * 
@@ -73,7 +45,7 @@ abstract class AbstractSeeder extends DatabaseChange {
     public function getEnvironments(): array {
         return [];
     }
-    
+
     /**
      * Get the type identifier for this database change.
      * 
@@ -86,4 +58,31 @@ abstract class AbstractSeeder extends DatabaseChange {
     public function getType(): string {
         return 'seeder';
     }
+
+    /**
+     * Rollback the database change (optional for seeders).
+     * 
+     * Most seeders don't implement rollback functionality as data
+     * seeding is typically not reversible. Override this method
+     * if your seeder needs rollback capability.
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     */
+    public function rollback(Database $db): void {
+        // Default implementation does nothing
+        // Override in concrete seeders if rollback is needed
+    }
+
+    /**
+     * Run the seeder to populate the database with data.
+     * 
+     * This method should contain the data insertion logic such as:
+     * - Inserting reference/lookup data
+     * - Creating default user accounts
+     * - Populating sample data for development
+     * - Setting up initial application configuration
+     * 
+     * @param Database $db The database instance to execute seeding on.
+     */
+    abstract public function run(Database $db): void;
 }
