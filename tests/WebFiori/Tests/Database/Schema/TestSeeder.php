@@ -25,7 +25,7 @@ class TestSeeder extends AbstractSeeder {
             'name' => 'Test User 2'
         ])->execute();
         
-        return true;
+        
     }
     
     public function rollback(Database $db): void {

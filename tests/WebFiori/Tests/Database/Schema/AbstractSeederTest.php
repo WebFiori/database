@@ -10,7 +10,7 @@ class AbstractSeederTest extends TestCase {
     
     public function testGetType() {
         $seeder = new class extends AbstractSeeder {
-            public function run(Database $db): bool { return true; }
+            public function run(Database $db): bool {  }
         };
         
         $this->assertEquals('seeder', $seeder->getType());
@@ -18,7 +18,7 @@ class AbstractSeederTest extends TestCase {
     
     public function testGetEnvironments() {
         $seeder = new class extends AbstractSeeder {
-            public function run(Database $db): bool { return true; }
+            public function run(Database $db): bool {  }
         };
         
         $this->assertEquals([], $seeder->getEnvironments());
@@ -26,7 +26,7 @@ class AbstractSeederTest extends TestCase {
     
     public function testCustomEnvironments() {
         $seeder = new class extends AbstractSeeder {
-            public function run(Database $db): bool { return true; }
+            public function run(Database $db): bool {  }
             public function getEnvironments(): array { return ['dev', 'test']; }
         };
         

@@ -280,7 +280,7 @@ use WebFiori\Database\Database;
 
 class CreateUsersTable extends AbstractMigration {
     
-    public function up(Database $db): bool {
+    public function up(Database $db): void {
         $db->createBlueprint('users')->addColumns([
             'id' => [
                 ColOption::TYPE => DataType::INT,
@@ -300,14 +300,12 @@ class CreateUsersTable extends AbstractMigration {
         $db->createTables();
         $db->execute();
         
-        return true;
     }
     
-    public function down(Database $db): bool {
+    public function down(Database $db): void {
         $db->setQuery("DROP TABLE users");
         $db->execute();
         
-        return true;
     }
 }
 ```
@@ -333,7 +331,6 @@ class UsersSeeder extends AbstractSeeder {
             'email' => 'john@example.com'
         ])->execute();
         
-        return true;
     }
 }
 ```
@@ -393,7 +390,6 @@ $database->transaction(function (Database $db) {
     ])->execute();
     
     // If any query fails, the entire transaction is rolled back
-    return true;
 });
 ```
 
@@ -410,6 +406,5 @@ $database->transaction(function (Database $db, array $user) {
         'created_at' => date('Y-m-d H:i:s')
     ])->execute();
     
-    return true;
 }, [$userData]);
 ```

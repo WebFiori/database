@@ -1797,7 +1797,7 @@ class MySQLQueryBuilderTest extends TestCase {
                     'user-id' => $userId,
                     'details' => 'This task is about testing if transactions work as intended.',
                 ])->execute();
-            return true;
+            
         });
         $userId = $schema->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
         $privileges = $schema->table('users_privileges')->select()->where('id', $userId)->execute()->getRows()[0];
@@ -1832,7 +1832,7 @@ class MySQLQueryBuilderTest extends TestCase {
                     'user-id' => $uId,
                     'details' => 'This another task.',
                 ])->execute();
-            return true;
+            
         }, [$userId]);
         $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
         $this->assertEquals([

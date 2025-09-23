@@ -25,7 +25,7 @@ class TestSeeder2 extends AbstractSeeder {
             'email' => 'user2@test.com'
         ])->where('name', 'Test User 2')->execute();
         
-        return true;
+        
     }
     
     public function rollback(Database $db): void {

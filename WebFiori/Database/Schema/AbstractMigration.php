@@ -54,9 +54,8 @@ abstract class AbstractMigration extends DatabaseChange {
      * - Adding constraints and relationships
      * 
      * @param Database $db The database instance to execute changes on.
-     * @return bool True if migration was successful, false otherwise.
      */
-    abstract public function up(Database $db): bool;
+    abstract public function up(Database $db): void;
     
     /**
      * Rollback the migration changes from the database.
@@ -68,9 +67,8 @@ abstract class AbstractMigration extends DatabaseChange {
      * - Restoring previous schema state
      * 
      * @param Database $db The database instance to execute rollback on.
-     * @return bool True if rollback was successful, false otherwise.
      */
-    abstract public function down(Database $db): bool;
+    abstract public function down(Database $db): void;
     
     /**
      * Get the environments where this migration should be executed.

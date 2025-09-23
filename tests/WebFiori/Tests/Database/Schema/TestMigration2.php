@@ -11,14 +11,14 @@ class TestMigration2 extends AbstractMigration {
     public function getDependencies(): array {
         return ['TestMigration'];
     
-    public function up(Database $db): bool {
+    public function up(Database $db): void {
         $this->execute($db);
-        return true;
+        
     }
     
-    public function down(Database $db): bool {
+    public function down(Database $db): void {
         $this->rollback($db);
-        return true;
+        
     }    }
     
     public function execute(Database $db): void {
