@@ -181,7 +181,7 @@ class MSSQLQueryBuilderTest extends TestCase{
                     'user-id' => $userId,
                     'details' => 'This task is about testing if transactions work as intended.',
                 ])->execute();
-            return true;
+            
         });
         $userId = $schema->table('users')->selectMax('id')->execute()->getRows()[0]['max'];
         $privileges = $schema->table('users_privileges')->select()->where('id', $userId)->execute()->getRows()[0];
@@ -196,7 +196,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             [
                 'task_id' => 1,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
@@ -217,21 +217,21 @@ class MSSQLQueryBuilderTest extends TestCase{
                     'user-id' => $uId,
                     'details' => 'This another task.',
                 ])->execute();
-            return true;
+            
         }, [$userId]);
         $tasks = $schema->table('users_tasks')->select()->where('user_id', $userId)->execute()->getRows();
         $this->assertEquals([
             [
                 'task_id' => 1,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This another task.',
@@ -250,14 +250,14 @@ class MSSQLQueryBuilderTest extends TestCase{
             [
                 'task_id' => 1,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This task is about testing if transactions work as intended.',
             ], [
                 'task_id' => 2,
                 'user_id' => 104,
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on' => $tasks[0]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This another task.',

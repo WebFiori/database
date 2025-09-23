@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,7 +19,6 @@ use WebFiori\Database\Table;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MySQLTable extends Table {
     private $charset;
@@ -33,7 +33,6 @@ class MySQLTable extends Table {
      * 
      * @param string $name The name of the table.
      * 
-     * @since 1.0
      */
     public function __construct($name = 'new_table') {
         parent::__construct($name);
@@ -56,7 +55,6 @@ class MySQLTable extends Table {
      * 
      * @return bool true if the column is added. false otherwise.
      * 
-     * @since 1.0
      */
     public function addColumn(string $key, Column $colObj) : bool {
         if (parent::addColumn($key, $colObj)) {
@@ -105,12 +103,11 @@ class MySQLTable extends Table {
      * @return Table The method will return the instance at which the method
      * is called on.
      * 
-     * @since 1.0
      */
     public function addColumns(array $colsArr) : Table {
         $arrToAdd = [];
         $fksArr = [];
-        
+
         foreach ($colsArr as $key => $arrOrObj) {
             if ($arrOrObj instanceof MySQLColumn) {
                 $arrToAdd[$key] = $arrOrObj;
@@ -123,8 +120,9 @@ class MySQLTable extends Table {
 
                     if ($colObj instanceof MySQLColumn) {
                         $arrToAdd[$key] = $colObj;
+
                         if (isset($arrOrObj[ColOption::FK])) {
-                            $fksArr[$key] =  $arrOrObj[ColOption::FK];
+                            $fksArr[$key] = $arrOrObj[ColOption::FK];
                         }
                     }
                 }
@@ -132,11 +130,11 @@ class MySQLTable extends Table {
         }
 
         parent::addColumns($arrToAdd);
-        
+
         foreach ($fksArr as $col => $fkArr) {
             $this->addReferenceFromArray($col, $fkArr);
         }
-        
+
         return $this;
     }
     /**
@@ -145,7 +143,6 @@ class MySQLTable extends Table {
      * @return string The character set that is used by the table.. The default 
      * value is 'utf8'.
      * 
-     * @since 1.0
      */
     public function getCharSet() {
         return $this->charset;
@@ -159,7 +156,6 @@ class MySQLTable extends Table {
      * 
      * @return string Table collation.
      * 
-     * @since 1.0
      */
     public function getCollation() {
         $split = explode('.', $this->getMySQLVersion());
@@ -176,7 +172,6 @@ class MySQLTable extends Table {
      * @return string The name of the storage engine used by the table. The default 
      * value is 'InnoDB'.
      * 
-     * @since 1.0
      */
     public function getEngine() {
         return $this->engine;
@@ -189,7 +184,6 @@ class MySQLTable extends Table {
      * @return string MySQL version number (such as '5.5'). If version number 
      * is not set, The default return value is '8.0'.
      * 
-     * @since 1.0
      */
     public function getMySQLVersion() {
         return $this->mysqlVnum;
@@ -201,7 +195,6 @@ class MySQLTable extends Table {
      * 
      * @return string The name of the table. Default return value is 'new_table'.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return MySQLQuery::backtick(parent::getName());
@@ -214,7 +207,6 @@ class MySQLTable extends Table {
      * @return bool If the column was removed, the method will return true. 
      * Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public function removeColByKey(string $key) {
         $col = parent::removeColByKey($key);
@@ -236,7 +228,6 @@ class MySQLTable extends Table {
      * 
      * @param string $vNum MySQL version number (such as '5.5').
      * 
-     * @since 1.0
      */
     public function setMySQLVersion($vNum) {
         if (strlen($vNum) > 0) {
@@ -258,7 +249,6 @@ class MySQLTable extends Table {
      * @return string A string that represents SQL query which can be used 
      * to create the table.
      * 
-     * @since 1.0
      */
     public function toSQL() {
         $queryStr = '';

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,7 +19,6 @@ use Throwable;
  *
  * @author Ibrahim
  * 
- * @since 1.0
  */
 class DatabaseException extends Exception {
     private $sqlQuery;

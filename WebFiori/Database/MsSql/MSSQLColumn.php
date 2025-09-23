@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -19,7 +20,6 @@ use WebFiori\Database\DateTimeValidator;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MSSQLColumn extends Column {
     /**
@@ -28,7 +28,6 @@ class MSSQLColumn extends Column {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isAutoUpdate;
     /**
@@ -56,7 +55,6 @@ class MSSQLColumn extends Column {
      * @param int $size The size of the column. Used only if column type 
      * supports size.
      * 
-     * @since 1.0
      */
     public function __construct(string $name = 'col', string $datatype = 'nvarchar', int $size = 1) {
         parent::__construct($name);
@@ -88,22 +86,6 @@ class MSSQLColumn extends Column {
         if (!$this->setSize($size)) {
             $this->setSize(1);
         }
-    }
-    /**
-     * Sets the size of the data that will be stored by the column.
-     * 
-     * @param int $size A positive number that represents the size. must be greater than 0 
-     * (except for datetime2).
-     * 
-     * @return bool If the size is set, the method will return true. Other than 
-     * that, it will return false.
-     * 
-     */
-    public function setSize(int $size)  : bool {
-        if (($this->getDatatype() == 'datetime2' && $size == 0) || $size > 0)  {
-            return parent::setSize($size);
-        }
-        return false;
     }
     /**
      * Returns a string that represents the column.
@@ -138,7 +120,6 @@ class MSSQLColumn extends Column {
      * @return mixed The method will return a value which is based on applied filters 
      * and the datatype of the column.
      * 
-     * @since 1.0
      */
     public function cleanValue($val) {
         $valType = gettype($val);
@@ -253,7 +234,6 @@ class MSSQLColumn extends Column {
      * 
      * @return string|null Name alias.
      * 
-     * @since 1.0
      */
     public function getAlias() {
         $alias = parent::getAlias();
@@ -273,7 +253,6 @@ class MSSQLColumn extends Column {
      * 
      * @return mixed The default value of the column.
      * 
-     * @since 1.0
      */
     public function getDefault() {
         $defaultVal = parent::getDefault();
@@ -310,7 +289,6 @@ class MSSQLColumn extends Column {
      * 
      * @return string The name of the column.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return MSSQLQuery::squareBr(parent::getName());
@@ -327,7 +305,6 @@ class MSSQLColumn extends Column {
      * @return string A string that represents column type in PHP (such as 
      * 'integer' or 'boolean').
      * 
-     * @since 1.0
      */
     public function getPHPType() : string {
         $colType = $this->getDatatype();
@@ -382,7 +359,6 @@ class MSSQLColumn extends Column {
      * column is set to auto update in case of update query, the method will 
      * return true. Default return value is false.
      * 
-     * @since 1.0
      */
     public function isAutoUpdate() : bool {
         return $this->isAutoUpdate;
@@ -417,7 +393,6 @@ class MSSQLColumn extends Column {
      * @param boolean $bool If true is passed, then the value of the column will 
      * be updated in case an update query is constructed. 
      * 
-     * @since 1.0
      */
     public function setAutoUpdate(bool $bool) {
         if ($this->getDatatype() == 'datetime2' || $this->getDatatype() == 'date') {
@@ -440,6 +415,7 @@ class MSSQLColumn extends Column {
         if (!($this->getDatatype() == 'int' || $this->getDatatype() == 'bigint')) {
             $this->isIdintity = false;
         }
+
         if (!($this->getDatatype() == 'datetime2' && $this->getSize() == 0)) {
             parent::setSize(1);
         }
@@ -460,7 +436,6 @@ class MSSQLColumn extends Column {
      * 
      * @param mixed $default The default value which will be set.
      * 
-     * @since 1.0
      */
     public function setDefault($default) {
         if ($this->getDatatype() == 'mixed' && $default !== null) {
@@ -510,7 +485,6 @@ class MSSQLColumn extends Column {
      * <li>Given scale value is greater than the size of the column.</li>
      * </ul>
      * 
-     * @since 1.0
      */
     public function setScale(int $val) : bool {
         $type = $this->getDatatype();
@@ -521,6 +495,23 @@ class MSSQLColumn extends Column {
             if ($size != 0 && $val >= 0 && ($size - $val > 0)) {
                 return parent::setScale($val);
             }
+        }
+
+        return false;
+    }
+    /**
+     * Sets the size of the data that will be stored by the column.
+     * 
+     * @param int $size A positive number that represents the size. must be greater than 0 
+     * (except for datetime2).
+     * 
+     * @return bool If the size is set, the method will return true. Other than 
+     * that, it will return false.
+     * 
+     */
+    public function setSize(int $size)  : bool {
+        if (($this->getDatatype() == 'datetime2' && $size == 0) || $size > 0) {
+            return parent::setSize($size);
         }
 
         return false;
@@ -555,12 +546,12 @@ class MSSQLColumn extends Column {
         } else if ($colDatatype == 'varchar' || $colDatatype == 'nvarchar' 
                 || $colDatatype == 'char' || $colDatatype == 'nchar') {
             $cleanedVal = filter_var(str_replace('@!@', "''", addslashes(str_replace("'", '@!@', $val))));
-        // It is not secure if not escaped without connection
-        // Think about multi-byte strings
-        // At minimum, just sanitize the value using default filter plus
-        //escaping special characters
-        // The @!@ used as replacement for single qut since MSSQL
-        // use it as escape character
+            // It is not secure if not escaped without connection
+            // Think about multi-byte strings
+            // At minimum, just sanitize the value using default filter plus
+            //escaping special characters
+            // The @!@ used as replacement for single qut since MSSQL
+            // use it as escape character
         } else if ($colDatatype == 'datetime2' || $colDatatype == 'date') {
             if ($val != 'now' && $val != 'current_timestamp' && $val != 'now()') {
                 $cleanedVal = $this->dateCleanUp($val);
@@ -653,6 +644,7 @@ class MSSQLColumn extends Column {
             }
         } else if ($colDataType == 'datetime2') {
             $size = $this->getSize();
+
             if (!($size >= 0 && $size <= 7)) {
                 $size = 2;
             }

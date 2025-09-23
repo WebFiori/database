@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -17,42 +18,36 @@ use InvalidArgumentException;
  *
  * @author Ibrahim
  * 
- * @version 1.0.2
  */
 class SelectExpression extends Expression {
     /**
      *
      * @var array
      * 
-     * @since 1.0 
      */
     private $groupByCols;
     /**
      *
      * @var array
      * 
-     * @since 1.0 
      */
     private $orderByCols;
     /**
      *
      * @var array
      * 
-     * @since 1.0 
      */
     private $selectCols;
     /**
      *
      * @var Table
      * 
-     * @since 1.0 
      */
     private $table;
     /**
      *
      * @var WhereExpression 
      * 
-     * @since 1.0
      */
     private $whereExp;
     /**
@@ -61,7 +56,6 @@ class SelectExpression extends Expression {
      * @param Table $table The table at which the select expression will be 
      * based on.
      * 
-     * @since 1.0
      */
     public function __construct(Table $table) {
         parent::__construct('');
@@ -85,7 +79,6 @@ class SelectExpression extends Expression {
      * </ul>
      *
      * 
-     * @since 1.0
      */
     public function addColumn(string $colKey, ?array $options = null) {
         if ($colKey != '*') {
@@ -136,7 +129,6 @@ class SelectExpression extends Expression {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
-     * @since 1.0.2
      */
     public function addLeft(string $colName, int $charsCount, string $cond, $val, string $join = 'and') {
         $this->addLeftOrRight($colName, $charsCount, $cond, $val, $join);
@@ -155,7 +147,6 @@ class SelectExpression extends Expression {
      * @param bool $not If set to true, the 'like' condition will be set 
      * to 'not like'.
      * 
-     * @since 1.0.1
      */
     public function addLike(string $colName, string $join = 'and', bool $not = false) {
         if ($not === true) {
@@ -188,7 +179,6 @@ class SelectExpression extends Expression {
      * more than one condition ('and' or 'or'). If not given, 'and' is used as 
      * default value.
      * 
-     * @since 1.0.2
      */
     public function addRight(string $colName, int $charsCount, string $cond, $val, string $join = 'and') {
         $this->addLeftOrRight($colName, $charsCount, $cond, $val, $join, false);
@@ -211,7 +201,6 @@ class SelectExpression extends Expression {
      * this one is used to join the newly added one with existing one. This
      * one can have only two values, 'and' or 'or'. Default is 'and'.
      * 
-     * @since 1.0
      */
     public function addWhere($leftOpOrExp, mixed $rightOp = null, ?string $cond = null, string $join = 'and') {
         if (!in_array($join, ['and', 'or'])) {
@@ -252,7 +241,6 @@ class SelectExpression extends Expression {
      * to 'not between'.
      * 
      * 
-     * @since 1.0.1
      */
     public function addWhereBetween(string $colName, string $join = 'and', bool $not = false) {
         $cond = new Condition('?', '?', 'and');
@@ -283,11 +271,10 @@ class SelectExpression extends Expression {
      * @param bool $not If set to true, the 'in' condition will be set 
      * to 'not in'.
      * 
-     * @since 1.0.1
      */
     public function addWhereIn(string $colName, array $values, string $join = 'and', bool $not = false) {
-        
         $placeholders = trim(str_repeat('?, ', count($values)), ', ');
+
         if ($not === true) {
             $expr = new Expression($colName." not in($placeholders)");
         } else {
@@ -312,7 +299,6 @@ class SelectExpression extends Expression {
      * @param bool $not If set to true, the 'in' condition will be set 
      * to 'is not null'.
      * 
-     * @since 1.0.2
      */
     public function addWhereNull(string $colName, string $join = 'and', bool $not = false) {
         if ($not === true) {
@@ -329,7 +315,6 @@ class SelectExpression extends Expression {
     /**
      * Removes all columns and expressions in the select.
      * 
-     * @since 1.0
      */
     public function clear() {
         $this->selectCols = [];
@@ -342,7 +327,6 @@ class SelectExpression extends Expression {
      * 
      * @return int Number of columns and expressions in the select.
      * 
-     * @since 1.0
      */
     public function getColsCount() : int {
         return count($this->getSelectCols());
@@ -352,7 +336,6 @@ class SelectExpression extends Expression {
      * 
      * @return array An array that contains all columns keys which are in the select.
      * 
-     * @since 1.0
      */
     public function getColsKeys() : array {
         return array_keys($this->getSelectCols());
@@ -364,7 +347,6 @@ class SelectExpression extends Expression {
      * return the value '*'. Other than that, the method will return a string that 
      * contains columns names.
      * 
-     * @since 1.0
      */
     public function getColsStr() : string {
         if ($this->getColsCount() == 0) {
@@ -421,7 +403,6 @@ class SelectExpression extends Expression {
      * no columns exist in the group by part, the method will return empty 
      * string.
      * 
-     * @since 1.0
      */
     public function getGroupBy() : string {
         $arrOfCols = [];
@@ -444,7 +425,6 @@ class SelectExpression extends Expression {
      * no columns exist in the order by part, the method will return empty 
      * string.
      * 
-     * @since 1.0
      */
     public function getOrderBy() : string {
         $arrOfCols = [];
@@ -478,7 +458,6 @@ class SelectExpression extends Expression {
      * @return array An associative array of the columns that holds all select expression 
      * columns.
      * 
-     * @since 1.0
      */
     public function getSelectCols() : array {
         return $this->selectCols;
@@ -488,7 +467,6 @@ class SelectExpression extends Expression {
      * 
      * @return Table The table which is associated with the select expression.
      * 
-     * @since 1.0
      */
     public function getTable() : Table {
         return $this->table;
@@ -498,7 +476,6 @@ class SelectExpression extends Expression {
      * 
      * @return string The value of select expression.
      * 
-     * @since 1.0
      */
     public function getValue() : string {
         $colsStr = $this->getColsStr();
@@ -543,7 +520,6 @@ class SelectExpression extends Expression {
      * 
      * @return string
      * 
-     * @since 1.0
      */
     public function getWhereStr(bool $withGroupBy = true, bool $withOrderBy = true) : string {
         $retVal = '';
@@ -577,7 +553,6 @@ class SelectExpression extends Expression {
      * column to the table.
      *
      * 
-     * @since 1.0
      */
     public function groupBy(string $colKey) {
         $colObj = $this->getTable()->getColByKey($colKey);
@@ -599,7 +574,6 @@ class SelectExpression extends Expression {
      * @return bool If the column exist in the select, the method will return 
      * true. Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public function isInSelect(string $colKey) : bool {
         $trimmed = trim($colKey);
@@ -647,7 +621,6 @@ class SelectExpression extends Expression {
      * 
      * @param string $colKey The key of the column.
      * 
-     * @since 1.0
      */
     public function removeCol(string $colKey) {
         unset($this->selectCols[$colKey]);
@@ -667,7 +640,6 @@ class SelectExpression extends Expression {
      * </ul>
      *
      * 
-     * @since 1.0
      */
     public function select(array $colsOrExpressions) {
         foreach ($colsOrExpressions as $index => $colArrOrExpr) {

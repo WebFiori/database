@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -25,13 +26,7 @@ class FK extends ForeignKey {
      * 
      * @var string
      */
-    const SET_NULL = 'set null';
-    /**
-     * An action that can be performed on update or delete.
-     * 
-     * @var string
-     */
-    const SET_DEFAULT = 'set default';
+    const CASCADE = 'cascade';
     /**
      * An action that can be performed on update or delete.
      * 
@@ -43,13 +38,19 @@ class FK extends ForeignKey {
      * 
      * @var string
      */
-    const CASCADE = 'cascade';
+    const RESTRICT = 'restrict';
     /**
      * An action that can be performed on update or delete.
      * 
      * @var string
      */
-    const RESTRICT = 'restrict';
+    const SET_DEFAULT = 'set default';
+    /**
+     * An action that can be performed on update or delete.
+     * 
+     * @var string
+     */
+    const SET_NULL = 'set null';
     /**
      * Creates new foreign key.
      *

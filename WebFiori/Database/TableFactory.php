@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,7 +19,6 @@ use WebFiori\Database\MySql\MySQLTable;
  * @author Ibrahim
  */
 class TableFactory {
-
     public static function create(string $database, string $name, array $cols = []) : Table {
         if (!in_array($database, ConnectionInfo::SUPPORTED_DATABASES)) {
             throw new DatabaseException('Not support database: '.$database);
@@ -37,6 +37,7 @@ class TableFactory {
                 $table->addColumn($name, ColumnFactory::create($database, $name, $options));
             }
         }
+
         return $table;
     }
     public static function map(string $to, Table $table) : Table {
@@ -45,11 +46,11 @@ class TableFactory {
         } else if ($table instanceof MSSQLTable) {
             $from = 'mssql';
         }
+
         if ($from == $to) {
             return $table;
         }
 
         return self::create($to, $table->getName(), $table->getCols());
     }
-    
 }

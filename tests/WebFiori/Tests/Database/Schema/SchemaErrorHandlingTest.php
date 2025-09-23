@@ -1,0 +1,110 @@
+<?php
+
+namespace WebFiori\Tests\Database\Schema;
+
+use PHPUnit\Framework\TestCase;
+use WebFiori\Database\ConnectionInfo;
+use WebFiori\Database\Database;
+use WebFiori\Database\DatabaseException;
+use WebFiori\Database\Schema\SchemaRunner;
+
+class SchemaErrorHandlingTest extends TestCase {
+    
+    private function getConnectionInfo(): ConnectionInfo {
+        return new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
+    }
+    
+    public function testRollbackErrorStopsExecution() {
+        try {
+            $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
+            $runner->createSchemaTable();
+            
+            // Clear any existing applied changes for clean test
+            $runner->table('schema_changes')->delete()->execute();
+            
+            // Apply changes first
+            $applied = $runner->apply();
+            
+            if (!empty($applied)) {
+                $errorCaught = false;
+                $runner->addOnErrorCallback(function($err, $change, $schema) use (&$errorCaught) {
+                    $errorCaught = true;
+                });
+                
+                // Create a failing rollback scenario by dropping the table first
+                $runner->table('user_profiles')->drop()->execute();
+                
+                // Now try to rollback - should fail and stop
+                $rolled = $runner->rollbackUpTo(null);
+                
+                // Should have caught error and stopped
+                $this->assertTrue($errorCaught);
+                $this->assertIsArray($rolled);
+            } else {
+                $this->assertTrue(true, 'No changes to rollback');
+            }
+            
+            $runner->dropSchemaTable();
+        } catch (DatabaseException $ex) {
+            $this->markTestSkipped('Database connection failed: ' . $ex->getMessage());
+        }
+    }
+    
+    public function testMultipleErrorCallbacks() {
+        $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
+        
+        $callback1Called = false;
+        $callback2Called = false;
+        
+        $runner->addOnErrorCallback(function($err, $change, $schema) use (&$callback1Called) {
+            $callback1Called = true;
+        });
+        
+        $runner->addOnErrorCallback(function($err, $change, $schema) use (&$callback2Called) {
+            $callback2Called = true;
+        });
+        
+        // Simulate error by accessing private method
+        $reflection = new \ReflectionClass($runner);
+        $property = $reflection->getProperty('onErrCallbacks');
+        $property->setAccessible(true);
+        $callbacks = $property->getValue($runner);
+        
+        // Manually trigger callbacks to test
+        foreach ($callbacks as $callback) {
+            call_user_func_array($callback, [new \Exception('test'), null, null]);
+        }
+        
+        $this->assertTrue($callback1Called);
+        $this->assertTrue($callback2Called);
+    }
+    
+    public function testMultipleRegisterErrorCallbacks() {
+        $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
+        
+        $callback1Called = false;
+        $callback2Called = false;
+        
+        $runner->addOnRegisterErrorCallback(function($err) use (&$callback1Called) {
+            $callback1Called = true;
+        });
+        
+        $runner->addOnRegisterErrorCallback(function($err) use (&$callback2Called) {
+            $callback2Called = true;
+        });
+        
+        // Simulate error by accessing private method
+        $reflection = new \ReflectionClass($runner);
+        $property = $reflection->getProperty('onRegErrCallbacks');
+        $property->setAccessible(true);
+        $callbacks = $property->getValue($runner);
+        
+        // Manually trigger callbacks to test
+        foreach ($callbacks as $callback) {
+            call_user_func_array($callback, [new \Exception('test')]);
+        }
+        
+        $this->assertTrue($callback1Called);
+        $this->assertTrue($callback2Called);
+    }
+}

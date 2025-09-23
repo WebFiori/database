@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -11,14 +12,17 @@
 namespace WebFiori\Database;
 
 /**
- * A class that represents a binary conditional statement.
+ * Represents a binary conditional statement for SQL WHERE clauses.
+ * 
+ * This class encapsulates conditional logic with two operands and an operator.
+ * It supports various comparison operators (=, !=, <, >, LIKE, etc.) and
+ * handles proper escaping and parameter binding for secure query construction.
  * 
  * A binary conditional statement is a statement that has two operands 
  * combined using an operator like the equal.
  *
  * @author Ibrahim
  * 
- * @since 1.0.2
  */
 class Condition {
     /**
@@ -26,7 +30,6 @@ class Condition {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $condition;
     /**
@@ -34,7 +37,6 @@ class Condition {
      * 
      * @var mixed
      * 
-     * @since 1.0 
      */
     private $leftOperand;
     /**
@@ -42,7 +44,6 @@ class Condition {
      * 
      * @var mixed
      * 
-     * @since 1.0 
      */
     private $rightOperand;
     /**
@@ -57,7 +58,6 @@ class Condition {
      * @param string $condition A string which is used to join the two sides 
      * (such as '=', '!=', 'and', 'or', etc...)
      * 
-     * @since 1.0
      */
     public function __construct($leftOperand, $rightOperand, ?string $condition = null) {
         $this->setLeftOperand($leftOperand);
@@ -74,7 +74,6 @@ class Condition {
      * null, the method will return the left operand without a condition and vise versa. If the 
      * two operands are null, the method will return empty string.
      * 
-     * @since 1.0
      */
     public function __toString() {
         $right = $this->getRightOperand();
@@ -100,7 +99,6 @@ class Condition {
      * @return bool If the two are equals, the method will return true. 
      * False otherwise.
      * 
-     * @since 1.0
      */
     public function equals(Condition $cond) : bool {
         return $this.'' == $cond.'';
@@ -111,7 +109,6 @@ class Condition {
      * @return string A string which is used to join the two sides 
      * (such as '=', '!=', 'and', 'or', etc...)
      * 
-     * @since 1.0
      */
     public function getCondition() : string {
         return $this->condition;
@@ -121,7 +118,6 @@ class Condition {
      * 
      * @return string|Expression|Condition The left hand side operand of the condition.
      * 
-     * @since 1.0
      */
     public function getLeftOperand() {
         return $this->leftOperand;
@@ -131,7 +127,6 @@ class Condition {
      * 
      * @return string|Expression|Condition The right hand side operand of the condition.
      * 
-     * @since 1.0
      */
     public function getRightOperand() {
         return $this->rightOperand;
@@ -142,7 +137,6 @@ class Condition {
      * 
      * @param string $cond A string such as '=', '!=', '&&' or any such value.
      * 
-     * @since 1.0.2
      */
     public function setCondition(?string $cond = null) {
         $conditionT = trim($cond.'');
@@ -157,7 +151,6 @@ class Condition {
      * @param string|Expression|Condition $op The left hand side operand 
      * of the condition.
      * 
-     * @since 1.0.1
      */
     public function setLeftOperand($op) {
         $this->leftOperand = $op;
@@ -168,7 +161,6 @@ class Condition {
      * @param string|Expression|Condition $op The right hand side operand 
      * of the condition.
      * 
-     * @since 1.0.1
      */
     public function setRightOperand($op) {
         $this->rightOperand = $op;

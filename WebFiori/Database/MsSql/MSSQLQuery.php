@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,13 +19,16 @@ use WebFiori\Database\DatabaseException;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MSSQLQuery extends AbstractQuery {
     private $bindings;
     public function __construct() {
         parent::__construct();
         $this->bindings = [];
+    }
+
+    public function addBinding(Column $col, $value) {
+        $this->bindings[] = $value;
     }
     /**
      * Build a query which can be used to add a column to associated table.
@@ -39,7 +43,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function addCol(string $colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
@@ -58,7 +61,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function addPrimaryKey(string $pkName, array $pkCols) {
         $tableObj = $this->getTable();
@@ -91,7 +93,6 @@ class MSSQLQuery extends AbstractQuery {
      * 
      * @return AbstractQuery
      * 
-     * @since 1.0
      */
     public function copyQuery() : AbstractQuery {
         $copy = new MSSQLQuery();
@@ -108,7 +109,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function dropPrimaryKey(?string $pkName = null) {
         $tableName = $this->getTable()->getName();
@@ -117,12 +117,15 @@ class MSSQLQuery extends AbstractQuery {
 
         return $this;
     }
+
+    public function getBindings(): array {
+        return $this->bindings;
+    }
     /**
      * Returns the generated SQL query.
      * 
      * @return string Returns the generated query as string.
      * 
-     * @since 1.0
      */
     public function getQuery() {
         $query = parent::getQuery();
@@ -154,7 +157,6 @@ class MSSQLQuery extends AbstractQuery {
      * @return MSSQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function modifyCol($colKey, ?string $location = null) {
         $tblName = $this->getTable()->getName();
@@ -181,7 +183,6 @@ class MSSQLQuery extends AbstractQuery {
      * the table has no column with given key or the name of the 
      * specified column was not changed.
      * 
-     * @since 1.0
      */
     public function renameCol($colKey) {
         $colObj = $this->getTable()->getColByKey($colKey);
@@ -202,6 +203,20 @@ class MSSQLQuery extends AbstractQuery {
 
         return $this;
     }
+
+    public function resetBinding() {
+        $this->bindings = [];
+    }
+
+    public function setBindings(array $binding, string $merge = 'none') {
+        if ($merge == 'first') {
+            $this->bindings = array_merge($binding, $this->bindings);
+        } else if ($merge == 'end') {
+            $this->bindings = array_merge($this->bindings, $binding);
+        } else {
+            $this->bindings = $binding;
+        }
+    }
     /**
      * Adds a square brackets around a string.
      * 
@@ -212,7 +227,6 @@ class MSSQLQuery extends AbstractQuery {
      * brackets. 
      * If empty string is given, the method will return null.
      * 
-     * @since 1.0
      */
     public static function squareBr($str) {
         $trimmed = trim($str.'');
@@ -244,7 +258,6 @@ class MSSQLQuery extends AbstractQuery {
      * @throws DatabaseException If one of the columns does not exist, the method 
      * will throw an exception.
      * 
-     * @since 1.0
      */
     public function update(array $newColsVals) {
         $updateArr = [];
@@ -399,28 +412,5 @@ class MSSQLQuery extends AbstractQuery {
             'cols' => implode(', ', $colsNamesArr),
             'vals' => implode(', ', $valsArr)
         ];
-    }
-
-    public function addBinding(Column $col, $value) {
-        $this->bindings[] = $value;
-    }
-
-    public function getBindings(): array {
-        return $this->bindings;
-    }
-
-    public function resetBinding() {
-        $this->bindings = [];
-    }
-
-    public function setBindings(array $binding, string $merge = 'none') {
-        
-        if ($merge == 'first') {
-            $this->bindings = array_merge($binding, $this->bindings);
-        } else if ($merge == 'end') {
-            $this->bindings = array_merge($this->bindings, $binding);
-        } else {
-            $this->bindings = $binding;
-        }
     }
 }

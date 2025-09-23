@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,15 +19,12 @@ use WebFiori\Database\MySql\MySQLQuery;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.4
  */
 abstract class AbstractQuery {
-    private $tempBinding;
     /**
      *
      * @var Table|null 
      * 
-     * @since 1.0
      */
     private $associatedTbl;
     /**
@@ -38,20 +36,17 @@ abstract class AbstractQuery {
      *
      * @var boolean
      * 
-     * @since 1.0.1 
      */
     private $isMultiQuery;
     /**
      *
      * @var boolean
      * 
-     * @since 1.0.2 
      */
     private $isPrepare;
     /**
      * @var string 
      * 
-     * @since 1.0
      */
     private $lastQueryType;
 
@@ -59,14 +54,12 @@ abstract class AbstractQuery {
      *
      * @var int
      * 
-     * @since 1.0
      */
     private $limit;
     /**
      *
      * @var int
      * 
-     * @since 1.0
      */
     private $offset;
     /**
@@ -83,20 +76,24 @@ abstract class AbstractQuery {
      *
      * @var string 
      * 
-     * @since 1.0
      */
     private $query;
     /**
      *
      * @var Database 
      * 
-     * @since 1.0
      */
     private $schema;
+    private $tempBinding;
     /**
      * Creates new instance of the class.
      * 
-     * @since 1.0
+     */
+    /**
+     * Initialize a new query builder instance.
+     * 
+     * Sets up default values for query parameters including limit, offset,
+     * query string, and parameter bindings.
      */
     public function __construct() {
         $this->limit = -1;
@@ -106,9 +103,6 @@ abstract class AbstractQuery {
         $this->tempBinding = [];
     }
     public abstract function addBinding(Column $col, $value);
-    public abstract function getBindings() : array ;
-    public abstract function resetBinding();
-    public abstract function setBindings(array $binding, string $merge = 'none');
     /**
      * Constructs a query that can be used to add a column to a database table.
      * 
@@ -123,7 +117,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public abstract function addCol(string $colKey, ?string $location = null);
     /**
@@ -137,7 +130,6 @@ abstract class AbstractQuery {
      * 
      * @throws DatabaseException If no key with the given name exist in the table.
      * 
-     * @since 1.0.1
      */
     public function addForeignKey(string $keyName) {
         $fkObj = $this->getTable()->getForeignKey($keyName);
@@ -210,7 +202,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery Returns the same instance at which the method is 
      * called on.
      * 
-     * @since 1.0
      */
     public function andWhere($col, $val = null, string $cond = '=') {
         return $this->where($col, $val, $cond, 'and');
@@ -228,7 +219,6 @@ abstract class AbstractQuery {
      * 
      * @return AbstractQuery
      * 
-     * @since 1.0
      */
     public abstract function copyQuery() : AbstractQuery ;
     /**
@@ -237,7 +227,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function createTable() {
         $table = $this->getTable();
@@ -252,7 +241,6 @@ abstract class AbstractQuery {
      * @return MSSQLQuery|MySQLQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function delete() {
         $tblName = $this->getTable()->getName();
@@ -266,7 +254,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function drop() {
         $table = $this->getTable();
@@ -311,7 +298,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0.1
      */
     public function dropForeignKey($keyName) {
         $trimmed = trim($keyName);
@@ -333,7 +319,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public abstract function dropPrimaryKey(?string $pkName = null);
     /**
@@ -351,7 +336,6 @@ abstract class AbstractQuery {
      * <li>An error has occurred while executing the query.</li>
      * </ul>
      * 
-     * @since 1.0
      */
     public function execute() {
         try {
@@ -361,6 +345,7 @@ abstract class AbstractQuery {
             throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery, $ex);
         }
     }
+    public abstract function getBindings() : array ;
     /**
      * 
      * @return InsertBuilder|null
@@ -373,7 +358,6 @@ abstract class AbstractQuery {
      * 
      * @return string The method will return a string such as 'select' or 'update'.
      * 
-     * @since 1.0
      */
     public function getLastQueryType() {
         return $this->lastQueryType;
@@ -385,7 +369,6 @@ abstract class AbstractQuery {
      * 
      * @return int Number of records will be fetched. Default is -1.
      * 
-     * @since 1.0
      */
     public function getLimit() {
         return $this->limit;
@@ -398,7 +381,6 @@ abstract class AbstractQuery {
      * 
      * @return int Number of records will be skipped. Default is -1.
      * 
-     * @since 1.0
      */
     public function getOffset() {
         return $this->offset;
@@ -416,7 +398,6 @@ abstract class AbstractQuery {
      * 
      * @return string Returns the generated query as string.
      * 
-     * @since 1.0
      */
     public function getQuery() {
         $retVal = $this->query;
@@ -443,7 +424,6 @@ abstract class AbstractQuery {
      * @throws DatabaseException If the builder is not associated with any 
      * schema, the method will throw an exception.
      * 
-     * @since 1.0
      */
     public function getSchema() {
         if ($this->schema === null) {
@@ -461,7 +441,6 @@ abstract class AbstractQuery {
      * @throws DatabaseException If no table was associated with the query builder, 
      * the method will throw an exception.
      * 
-     * @since 1.0
      */
     public function getTable() {
         return $this->associatedTbl;
@@ -475,7 +454,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function groupBy($colOrColsArr) {
         if (gettype($colOrColsArr) == 'array') {
@@ -498,7 +476,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public abstract function insert(array $colsAndVals);
     /**
@@ -507,7 +484,6 @@ abstract class AbstractQuery {
      * @return bool The method will return true if the query is a multi-query. 
      * False if not.
      * 
-     * @since 1.0.1
      */
     public function isMultiQuery() {
         return $this->isMultiQuery;
@@ -523,7 +499,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function join(AbstractQuery $query, $joinType = 'join') {
         $leftTable = $this->getPrevQuery()->getTable();
@@ -551,7 +526,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function leftJoin(AbstractQuery $query) {
         return $this->join($query, 'left join');
@@ -564,7 +538,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function limit($limit) {
         if ($limit > 0) {
@@ -585,7 +558,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public abstract function modifyCol($colKey, ?string $location = null);
     /**
@@ -599,7 +571,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function offset($offset) {
         if ($offset > 0) {
@@ -621,14 +592,13 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function on(string $leftCol, string $rightCol, $cond = '=', $joinWith = 'and') {
         $table = $this->getTable();
 
         if ($table instanceof JoinTable) {
             $leftColObj = $table->getLeft()->getColByKey($leftCol);
-            
+
             if ($leftColObj === null) {
                 $table->getLeft()->addColumns([
                     $leftCol => ['type' => DataType::VARCHAR]
@@ -655,7 +625,6 @@ abstract class AbstractQuery {
             $rightColName = $rightColObj->getOwner()->getName().'.'.$rightColObj->getOldName();
             $cond = new Condition($leftColName, $rightColName, $cond);
             $table->addJoinCondition($cond, $joinWith);
-            
         } else {
             throw new DatabaseException("The 'on' condition can be only used with join tables.");
         }
@@ -673,7 +642,6 @@ abstract class AbstractQuery {
      * @return @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function orderBy(array $colsArr) {
         foreach ($colsArr as $colKey => $orderTypeOrColKey) {
@@ -709,7 +677,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery Returns the same instance at which the method is 
      * called on.
      * 
-     * @since 1.0
      */
     public function orWhere($col, $val = null, string $cond = '=') {
         return $this->where($col, $val, $cond, 'or');
@@ -725,7 +692,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function page(int $num, int $itemsCount) {
         if ($num > 0 && $itemsCount > 0) {
@@ -750,7 +716,6 @@ abstract class AbstractQuery {
     /**
      * Reset query parameters to default values.
      * 
-     * @since 1.0
      */
     public function reset() {
         $this->query = '';
@@ -758,6 +723,7 @@ abstract class AbstractQuery {
         $this->limit = -1;
         $this->offset = -1;
     }
+    public abstract function resetBinding();
     /**
      * Perform a right join query.
      * 
@@ -767,7 +733,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function rightJoin(AbstractQuery $query) {
         return $this->join($query, 'right join');
@@ -790,7 +755,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which the 
      * method is called on.
      * 
-     * @since 1.0
      */
     public function select($cols = ['*']) {
         $select = $this->getTable()->getSelect();
@@ -814,7 +778,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0.5
      */
     public function selectAvg($colName, $alias = 'avg') {
         if ($colName !== null) {
@@ -842,7 +805,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0.5
      */
     public function selectCount(?string $colName = null, $alias = 'count') {
         $xAlias = strlen(trim($alias)) != 0 ? trim($alias) : 'count';
@@ -873,7 +835,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0.5
      */
     public function selectMax($colName, $alias = 'max') {
         if ($colName !== null) {
@@ -901,7 +862,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0.5
      */
     public function selectMin($colName, $alias = 'min') {
         if ($colName !== null) {
@@ -917,6 +877,7 @@ abstract class AbstractQuery {
 
         return $this;
     }
+    public abstract function setBindings(array $binding, string $merge = 'none');
     public function setInsertBuilder(InsertBuilder $builder) {
         $this->insertHelper = $builder;
         $this->setQuery($builder->getQuery());
@@ -930,7 +891,6 @@ abstract class AbstractQuery {
      * @param boolean $bool True to make a prepared query before execution. False 
      * to execute the query without preparation.
      * 
-     * @since 1.0.2
      */
     public function setPrepareBeforeExec($bool) {
         $this->isPrepare = $bool === true;
@@ -943,7 +903,6 @@ abstract class AbstractQuery {
      * @param boolean $multiQuery A boolean which is set to true if the query 
      * represents multi-query.
      * 
-     * @since 1.0
      */
     public function setQuery($query, $multiQuery = false) {
         if ($query === null) {
@@ -968,7 +927,6 @@ abstract class AbstractQuery {
      * @param Database $schema The schema at which the generator will be associated 
      * with.
      * 
-     * @since 1.0
      */
     public function setSchema(Database $schema) {
         $this->schema = $schema;
@@ -981,7 +939,6 @@ abstract class AbstractQuery {
      * @param bool $clearSelect If set to true, select statement of the table
      * will be cleared.
      * 
-     * @since 1.0
      */
     public function setTable(?Table $table = null, bool $clearSelect = true) {
         if ($table !== null && $clearSelect) {
@@ -997,7 +954,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function table($tblName) {
         $tableObj = $this->checkIsClass($tblName);
@@ -1012,7 +968,7 @@ abstract class AbstractQuery {
         $this->getSchema()->addTable($tableObj);
         $this->prevQueryObj = $this->copyQuery();
         $this->prevQueryObj->resetBinding();
-        
+
         if (strlen($this->query) != 0) {
             $this->setQuery($this->getQuery());
             $this->reset();
@@ -1029,7 +985,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method will return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public function truncate() {
         $table = $this->getTable();
@@ -1055,6 +1010,7 @@ abstract class AbstractQuery {
             $unionStm = $uAll ? "\nunion all\n" : "\nunion\n";
             $this->setQuery($queries[$count - 2]['query'].$unionStm.$query->getQuery());
             $whereExpr = $query->getTable()->getSelect()->getWhereExpr();
+
             if ($whereExpr !== null) {
                 $whereExpr->setValue('');
             }
@@ -1072,7 +1028,6 @@ abstract class AbstractQuery {
      * @return AbstractQuery The method should return the same instance at which 
      * the method is called on.
      * 
-     * @since 1.0
      */
     public abstract function update(array $newColsVals);
     /**
@@ -1094,7 +1049,6 @@ abstract class AbstractQuery {
      * method is called on.
      *
      * 
-     * @since 1.0
      */
     public function where($col, mixed $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         if ($col instanceof AbstractQuery) {
@@ -1117,6 +1071,7 @@ abstract class AbstractQuery {
                 $colObj->setWithTablePrefix(true);
                 $colName = $colObj->getName();
                 $cleanVal = $colObj->cleanValue($val);
+
                 if ($val !== null) {
                     $this->addBinding($colObj, $val);
                 }
@@ -1149,7 +1104,6 @@ abstract class AbstractQuery {
      * method is called on.
      * 
      * 
-     * @since 1.0.3
      */
     public function whereBetween($col, $firstVal, $secondVal, $joinCond = 'and', $not = false) {
         $this->addWhereHelper([
@@ -1403,18 +1357,6 @@ abstract class AbstractQuery {
 
         return $this;
     }
-    private function getColType($phpVar) {
-        $type = gettype($phpVar);
-        if ($type == 'integer') {
-            return 'int';
-        } else if ($type == 'double') {
-            return 'decimal';
-        } else if ($type == 'boolean') {
-            return $type;
-        } else {
-            return 'varchar';
-        }
-    }
     private function addWhereHelper($options) {
         $lastQType = $this->getLastQueryType();
         $table = $this->getTable();
@@ -1426,11 +1368,13 @@ abstract class AbstractQuery {
         if ($lastQType == 'select' || $lastQType == 'delete' || $lastQType == 'update') {
             $colObj = $table->getColByKey($col);
             $val = '';
+
             if (isset($options['value'])) {
                 $val = $options['value'];
-            } else if (isset ($options['first-value'])) {
+            } else if (isset($options['first-value'])) {
                 $val = $options['first-value'];
             }
+
             if ($colObj === null) {
                 $table->addColumns([
                     $col => ['type' => $this->getColType($val)]
@@ -1451,7 +1395,7 @@ abstract class AbstractQuery {
                     foreach ($options['values'] as $val) {
                         $this->addBinding($colObj, $val);
                     }
-                
+
                     $this->getTable()->getSelect()->addWhereIn($colName, $options['values'], $joinCond, $not);
                 }
             } else if ($options['func'] == 'left') {
@@ -1546,5 +1490,18 @@ abstract class AbstractQuery {
         }
 
         return $columnsToSelect;
+    }
+    protected function getColType($phpVar) {
+        $type = gettype($phpVar);
+
+        if ($type == 'integer') {
+            return 'int';
+        } else if ($type == 'double') {
+            return 'decimal';
+        } else if ($type == 'boolean') {
+            return $type;
+        } else {
+            return 'varchar';
+        }
     }
 }

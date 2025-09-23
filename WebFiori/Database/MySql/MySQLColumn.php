@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -21,7 +22,6 @@ use WebFiori\Database\Table;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class MySQLColumn extends Column {
     /**
@@ -29,7 +29,6 @@ class MySQLColumn extends Column {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isAutoInc;
     /**
@@ -37,7 +36,6 @@ class MySQLColumn extends Column {
      * 
      * @var boolean 
      * 
-     * @since 1.0
      */
     private $isAutoUpdate;
     /**
@@ -45,7 +43,6 @@ class MySQLColumn extends Column {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $mySqlVersion;
     /**
@@ -64,7 +61,6 @@ class MySQLColumn extends Column {
      * 'varachar', 'int' or decimal. If the given size is invalid, 1 will be used as default 
      * value. 
      * 
-     * @since 1.0
      */
     public function __construct(string $name = 'col', string $datatype = 'varchar',int $size = 1) {
         parent::__construct($name);
@@ -101,7 +97,6 @@ class MySQLColumn extends Column {
      * 
      * @return string A string that can be used to create the column in a table.
      * 
-     * @since 1.0
      */
     public function __toString() {
         $retVal = $this->firstColPart();
@@ -127,7 +122,6 @@ class MySQLColumn extends Column {
      * 
      * @return string
      * 
-     * @since 1.0
      */
     public function asString() : string {
         return $this.'';
@@ -140,7 +134,6 @@ class MySQLColumn extends Column {
      * @return mixed The method will return a value which is based on applied filters 
      * and the datatype of the column.
      * 
-     * @since 1.0
      */
     public function cleanValue($val) {
         $valType = gettype($val);
@@ -194,7 +187,6 @@ class MySQLColumn extends Column {
      * @return MySQLColumn|null The method will return an object of type 'MySQLColumn' 
      * if created. If the index 'name' is not set, the method will return null.
      * 
-     * @since 1.0
      */
     public static function createColObj(array $options) {
         if (isset($options['name'])) {
@@ -208,7 +200,6 @@ class MySQLColumn extends Column {
      * 
      * @return string|null Name alias.
      * 
-     * @since 1.0
      */
     public function getAlias() {
         $alias = parent::getAlias();
@@ -226,7 +217,6 @@ class MySQLColumn extends Column {
      * return 'utf8mb4_unicode_ci'. Other than that, the method will return 
      * 'utf8mb4_unicode_520_ci'.
      * 
-     * @since 1.0
      */
     public function getCollation() : string {
         $split = explode('.', $this->getMySQLVersion());
@@ -246,7 +236,6 @@ class MySQLColumn extends Column {
      * 
      * @return mixed The default value of the column.
      * 
-     * @since 1.0
      */
     public function getDefault() {
         $defaultVal = parent::getDefault();
@@ -292,7 +281,6 @@ class MySQLColumn extends Column {
      * @return string MySQL version number (such as '5.5'). If version number 
      * is not set, The default return value is '8.0'.
      * 
-     * @since 1.0
      */
     public function getMySQLVersion() : string {
         return $this->mySqlVersion;
@@ -304,7 +292,6 @@ class MySQLColumn extends Column {
      * 
      * @return string The name of the column.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return MySQLQuery::backtick(parent::getName());
@@ -321,7 +308,6 @@ class MySQLColumn extends Column {
      * @return string A string that represents column type in PHP (such as 
      * 'integer' or 'boolean').
      * 
-     * @since 1.0
      */
     public function getPHPType() : string {
         $colType = $this->getDatatype();
@@ -351,7 +337,6 @@ class MySQLColumn extends Column {
      * 
      * @return bool true if the column is auto increment.
      * 
-     * @since 1.0
      */
     public function isAutoInc() : bool {
         return $this->isAutoInc;
@@ -363,7 +348,6 @@ class MySQLColumn extends Column {
      * column is set to auto update in case of update query, the method will 
      * return true. Default return value is valse.
      * 
-     * @since 1.0
      */
     public function isAutoUpdate() : bool {
         return $this->isAutoUpdate;
@@ -378,7 +362,6 @@ class MySQLColumn extends Column {
      * @param boolean $bool If true is passed, then the value of the column will 
      * be updated in case an update query is constructed. 
      * 
-     * @since 1.0
      */
     public function setAutoUpdate(bool $bool) {
         if ($this->getDatatype() == 'datetime' || $this->getDatatype() == 'timestamp') {
@@ -393,7 +376,6 @@ class MySQLColumn extends Column {
      * @throws DatabaseException The method will throw an exception if the given 
      * column type is not supported.
      * 
-     * @since 1.0
      */
     public function setDatatype(string $type) {
         try {
@@ -426,7 +408,6 @@ class MySQLColumn extends Column {
      * 
      * @param mixed $default The default value which will be set.
      * 
-     * @since 1.0
      */
     public function setDefault($default) {
         parent::setDefault($this->cleanValue($default));
@@ -447,7 +428,6 @@ class MySQLColumn extends Column {
      * @return bool <b>true</b> if the property value changed. false 
      * otherwise.
      * 
-     * @since 1.0
      */
     public function setIsAutoInc(bool $bool) {
         if ($this->isPrimary() && $this->getDatatype() == 'int') {
@@ -467,7 +447,6 @@ class MySQLColumn extends Column {
      * @param boolean $bool <b>true</b> if the column is primary key. false 
      * if not.
      * 
-     * @since 1.0
      */
     public function setIsPrimary(bool $bool) {
         if ($this->getDatatype() != 'boolean' && $this->getDatatype() != 'bool') {
@@ -491,7 +470,6 @@ class MySQLColumn extends Column {
      * 
      * @param string $vNum MySQL version number (such as '5.5').
      * 
-     * @since 1.0
      */
     public function setMySQLVersion(string $vNum) {
         if (strlen($vNum) > 0) {
@@ -516,7 +494,6 @@ class MySQLColumn extends Column {
      * @param MySQLTable|null $table The owner of the column. If null is given, 
      * The owner will be unset.
      * 
-     * @since 1.0
      */
     public function setOwner(?Table $table = null) {
         parent::setOwner($table);
@@ -543,7 +520,6 @@ class MySQLColumn extends Column {
      * <li>Given scale value is greater than the size of the column.</li>
      * </ul>
      * 
-     * @since 1.0
      */
     public function setScale(int $val) : bool {
         $type = $this->getDatatype();
@@ -578,7 +554,6 @@ class MySQLColumn extends Column {
      * false in case the datatype of the column does not 
      * support size.
      * 
-     * @since 1.0
      */
     public function setSize(int $size) : bool {
         if ($size <= 0) {
@@ -632,9 +607,9 @@ class MySQLColumn extends Column {
             } else {
                 $cleanedVal = filter_var(addslashes($val));
             }
-        // It is not secure if not escaped without connection
-        // Think about multi-byte strings
-        // At minimum, just sanitize the value using default filter
+            // It is not secure if not escaped without connection
+            // Think about multi-byte strings
+            // At minimum, just sanitize the value using default filter
         } else if ($colDatatype == 'datetime' || $colDatatype == 'timestamp') {
             if ($val != 'now' && $val != 'now()' && $val != 'current_timestamp') {
                 $cleanedVal = $this->dateCleanUp($val);
@@ -718,6 +693,7 @@ class MySQLColumn extends Column {
     }
 
     private function firstColPart() {
+        $this->setWithTablePrefix(false);
         $retVal = $this->getName().' ';
         $colDataType = $this->getDatatype();
 

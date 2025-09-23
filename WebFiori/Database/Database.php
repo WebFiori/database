@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -12,6 +13,8 @@ namespace WebFiori\Database;
 
 use Exception;
 use WebFiori\Database\MsSql\MSSQLConnection;
+use WebFiori\Database\Performance\QueryPerformanceMonitor;
+use WebFiori\Database\Performance\PerformanceOption;
 use WebFiori\Database\MsSql\MSSQLQuery;
 use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLConnection;
@@ -25,7 +28,6 @@ use WebFiori\Database\MySql\MySQLTable;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.2
  */
 class Database {
     /**
@@ -44,6 +46,7 @@ class Database {
      *  
      */
     private $connectionInfo;
+    private $lastErr;
     /**
      * An array that holds all generated SQL queries.
      * 
@@ -69,7 +72,18 @@ class Database {
      *  
      */
     private $tablesArr;
-    private $lastErr;
+    /**
+     * Query performance monitor instance.
+     * 
+     * @var QueryPerformanceMonitor|null
+     */
+    private $performanceMonitor = null;
+    /**
+     * Whether performance monitoring is enabled.
+     * 
+     * @var bool
+     */
+    private $performanceEnabled = false;
     /**
      * Creates new instance of the class.
      * 
@@ -93,47 +107,6 @@ class Database {
         ];
     }
     /**
-     * Start SQL transaction.
-     * 
-     * This will disable auto-commit.
-     * 
-     * @param callable $transaction A function that holds the logic of the transaction.
-     * The function must return true or null for success. If false is
-     * returned, it means the transaction failed and will be rolled back.
-     * 
-     * @param array $transactionArgs An optional array of parameters to be passed
-     * to the transaction.
-     * 
-     * @return bool If the transaction completed without errors, the method will
-     * return true. False otherwise.
-     * 
-     * @throws DatabaseException The method will throw an exception if it was
-     * rolled back due to an error.
-     */
-    public function transaction(callable $transaction, array $transactionArgs = []) : bool {
-        $conn = $this->getConnection();
-        $name = 'transation_'. rand();
-        
-        try {
-            
-            $args = array_merge([$this], $transactionArgs);
-            $conn->beginTransaction($name);
-            $result = call_user_func_array($transaction, $args);
-            
-            if ($result === null || $result === true) {
-                $conn->commit($name);
-                return true;
-            } else {
-                $conn->rollBack($name);
-                return false;
-            }
-        } catch (Exception $ex) {
-            $conn->rollBack($name);
-            $query = $ex instanceof DatabaseException ? $ex->getSQLQuery() : '';
-            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query, $ex);
-        }
-    }
-    /**
      * Adds a database query to the set of queries at which they were executed.
      * 
      * This method is called internally by the library to add the query. The 
@@ -151,16 +124,6 @@ class Database {
             'type' => $type,
             'query' => $query
         ];
-    }
-    /**
-     * Reset the bindings which was set by building and executing a query.
-     * 
-     * @return Database The method will return the instance at which the method
-     * is called on.
-     */
-    public function resetBinding() : Database {
-        $this->getQueryGenerator()->resetBinding();
-        return $this;
     }
     /**
      * Adds a table to the instance.
@@ -226,6 +189,12 @@ class Database {
      * 
      * 
      */
+    /**
+     * Clear all queries and reset the query generator state.
+     * 
+     * This method clears the internal query queue and resets the query generator
+     * to its initial state, preparing for new query operations.
+     */
     public function clear() {
         $this->queries = [];
         $this->getQueryGenerator()->reset();
@@ -244,8 +213,8 @@ class Database {
      */
     public function createBlueprint(string $name) : Table {
         $connection = $this->getConnection();
-        
-        if($connection === null) {
+
+        if ($connection === null) {
             $dbType = 'mysql';
         } else {
             $dbType = $connection->getConnectionInfo()->getDatabaseType();
@@ -337,6 +306,9 @@ class Database {
     public function execute() {
         $conn = $this->getConnection();
         $lastQuery = $this->getLastQuery();
+        
+        // Start performance monitoring
+        $startTime = $this->performanceEnabled ? microtime(true) : null;
 
         if (!$conn->runQuery($this->getQueryGenerator())) {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
@@ -350,6 +322,12 @@ class Database {
             $resultSet = $this->getLastResultSet();
         }
         $this->getQueryGenerator()->setQuery(null);
+        
+        // Record performance metrics
+        if ($this->performanceEnabled && $this->performanceMonitor && $startTime !== null) {
+            $executionTime = (microtime(true) - $startTime) * 1000; // Convert to milliseconds
+            $this->performanceMonitor->recordQuery($lastQuery, $executionTime, $resultSet);
+        }
 
         return $resultSet;
     }
@@ -367,7 +345,7 @@ class Database {
      */
     public function getConnection() : ?Connection {
         $connInfo = $this->getConnectionInfo();
-        
+
         if ($this->connection === null && $connInfo !== null) {
             $driver = $connInfo->getDatabaseType();
 
@@ -478,6 +456,7 @@ class Database {
                 throw new DatabaseException("Not connected to database. Error Code: ".$lastErr['code'].'. Message: "'.$lastErr['message']);
             }
         }
+
         return $this->queryGenerator;
     }
     /**
@@ -498,12 +477,12 @@ class Database {
         }
         $engine = 'mysql';
         $info = $this->getConnectionInfo();
-        
+
         if ($info !== null) {
             $engine = $info->getDatabaseType();
         }
         $table = $this->tablesArr[$trimmed];
-        
+
         return TableFactory::map($engine, $table);
     }
     /**
@@ -548,6 +527,11 @@ class Database {
 
         return $this->getQueryGenerator()->insert($colsAndVals);
     }
+    /**
+     * Check if database connection is established and active.
+     * 
+     * @return bool True if connected to database, false otherwise.
+     */
     public function isConnected() : bool {
         if ($this->getConnectionInfo() === null) {
             return false;
@@ -561,9 +545,10 @@ class Database {
                 'code' => $ex->getCode(),
                 'message' => $ex->getMessage()
             ];
+
             return false;
         }
-        
+
         return true;
     }
     /**
@@ -638,6 +623,17 @@ class Database {
      */
     public function page(int $num, int $itemsCount) : AbstractQuery {
         return $this->getQueryGenerator()->page($num, $itemsCount);
+    }
+    /**
+     * Reset the bindings which was set by building and executing a query.
+     * 
+     * @return Database The method will return the instance at which the method
+     * is called on.
+     */
+    public function resetBinding() : Database {
+        $this->getQueryGenerator()->resetBinding();
+
+        return $this;
     }
     /**
      * Constructs a query that can be used to get records from a table.
@@ -725,6 +721,48 @@ class Database {
         return $this->getQueryGenerator()->table($tblName);
     }
     /**
+     * Start SQL transaction.
+     * 
+     * This will disable auto-commit.
+     * 
+     * @param callable $transaction A function that holds the logic of the transaction.
+     * The function must return true or null for success. If false is
+     * returned, it means the transaction failed and will be rolled back.
+     * 
+     * @param array $transactionArgs An optional array of parameters to be passed
+     * to the transaction.
+     * 
+     * @return bool If the transaction completed without errors, the method will
+     * return true. False otherwise.
+     * 
+     * @throws DatabaseException The method will throw an exception if it was
+     * rolled back due to an error.
+     */
+    public function transaction(callable $transaction, array $transactionArgs = []) : bool {
+        $conn = $this->getConnection();
+        $name = 'transaction_'.rand();
+
+        try {
+            $args = array_merge([$this], $transactionArgs);
+            $conn->beginTransaction($name);
+            $result = call_user_func_array($transaction, $args);
+
+            if ($result === null || $result === true) {
+                $conn->commit($name);
+
+                return true;
+            } else {
+                $conn->rollBack($name);
+
+                return false;
+            }
+        } catch (Exception $ex) {
+            $conn->rollBack($name);
+            $query = $ex instanceof DatabaseException ? $ex->getSQLQuery() : '';
+            throw new DatabaseException($ex->getMessage(), $ex->getCode(), $query, $ex);
+        }
+    }
+    /**
      * Constructs a query which will truncate a database table when executed.
      * 
      * @return AbstractQuery The method will return an instance of the class 
@@ -784,4 +822,114 @@ class Database {
     public function where($col, mixed $val = null, string $cond = '=', string $joinCond = 'and') : AbstractQuery {
         return $this->getQueryGenerator()->where($col, $val, $cond, $joinCond);
     }
-}
+    
+    /**
+     * Enable query performance monitoring.
+     * 
+     * Initializes the performance monitoring system with default configuration.
+     * Performance data will be collected for all subsequent query executions.
+     */
+    public function enablePerformanceMonitoring(): void {
+        $this->performanceEnabled = true;
+        
+        if ($this->performanceMonitor === null) {
+            $this->performanceMonitor = new QueryPerformanceMonitor([
+                PerformanceOption::ENABLED => true
+            ], $this);
+        }
+    }
+    
+    /**
+     * Disable query performance monitoring.
+     * 
+     * Stops collecting performance data for query executions.
+     * Existing collected data is preserved.
+     */
+    public function disablePerformanceMonitoring(): void {
+        $this->performanceEnabled = false;
+    }
+    
+    /**
+     * Get all collected performance metrics.
+     * 
+     * @return array Array of QueryMetric instances or metric arrays
+     */
+    public function getPerformanceMetrics(): array {
+        if ($this->performanceMonitor === null) {
+            return [];
+        }
+        
+        return $this->performanceMonitor->getMetrics();
+    }
+    
+    /**
+     * Get slow queries based on configured or custom threshold.
+     * 
+     * @param int|null $thresholdMs Custom threshold in milliseconds. If null,
+     *                              uses configured slow query threshold.
+     * @return array Array of slow query metrics
+     */
+    public function getSlowQueries(?int $thresholdMs = null): array {
+        if ($this->performanceMonitor === null) {
+            return [];
+        }
+        
+        return $this->performanceMonitor->getSlowQueries($thresholdMs);
+    }
+    
+    /**
+     * Get performance statistics summary.
+     * 
+     * @return array Statistics including total queries, average execution time,
+     *               min/max times, and slow query count
+     */
+    public function getPerformanceStatistics(): array {
+        if ($this->performanceMonitor === null) {
+            return [
+                'total_queries' => 0,
+                'avg_execution_time' => 0,
+                'min_execution_time' => 0,
+                'max_execution_time' => 0,
+                'slow_queries_count' => 0
+            ];
+        }
+        
+        return $this->performanceMonitor->getStatistics();
+    }
+    
+    /**
+     * Configure performance monitoring settings.
+     * 
+     * @param array $config Configuration array using PerformanceOption constants
+     * 
+     * @throws InvalidArgumentException If configuration values are invalid
+     */
+    public function setPerformanceConfig(array $config): void {
+        if ($this->performanceMonitor === null) {
+            $this->performanceMonitor = new QueryPerformanceMonitor($config, $this);
+        } else {
+            $this->performanceMonitor->updateConfig($config);
+        }
+        
+        $this->performanceEnabled = $config[PerformanceOption::ENABLED] ?? $this->performanceEnabled;
+    }
+    
+    /**
+     * Clear all collected performance metrics.
+     * 
+     * Removes all stored performance data from memory or database storage.
+     */
+    public function clearPerformanceMetrics(): void {
+        if ($this->performanceMonitor !== null) {
+            $this->performanceMonitor->clearMetrics();
+        }
+    }
+    
+    /**
+     * Get the performance monitor instance.
+     * 
+     * @return QueryPerformanceMonitor|null The performance monitor instance or null if not initialized.
+     */
+    public function getPerformanceMonitor(): ?QueryPerformanceMonitor {
+        return $this->performanceMonitor;
+    }}

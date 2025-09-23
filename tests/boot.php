@@ -5,6 +5,14 @@ ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
 define('SQL_SERVER_HOST', 'localhost');
+// Set default environment variables if not already set
+if (!getenv('MYSQL_ROOT_PASSWORD')) {
+    putenv('MYSQL_ROOT_PASSWORD=123456');
+}
+if (!getenv('SA_SQL_SERVER_PASSWORD')) {
+    putenv('SA_SQL_SERVER_PASSWORD=1234567890@Eu');
+}
+
 $stderr = fopen('php://stderr', 'w');
 $testsDirName = 'tests';
 $rootDir = substr(__DIR__, 0, strlen(__DIR__) - strlen($testsDirName));

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -25,9 +26,9 @@ use WebFiori\Database\ResultSet;
  * 
  */
 class MSSQLConnection extends Connection {
+    private $isTransactionStarted;
     private $link;
     private $sqlState;
-    private $isTransactionStarted;
     /**
      * Creates new instance of the class.
      * 
@@ -48,6 +49,50 @@ class MSSQLConnection extends Connection {
      */
     public function __destruct() {
         sqlsrv_close($this->link);
+    }
+    /**
+     * Starts SQL server transaction.
+     * 
+     * Note that calling this method multiple times will have no effect on number
+     * of created transactions.
+     * 
+     * @param string|null $name This parameter is ignored.
+     * 
+     * @throws DatabaseException If the method was not able to start the transaction.
+     */
+    public function beginTransaction(?string $name = null) {
+        if ($this->isTransactionStarted) {
+            return;
+        }
+        $r = sqlsrv_begin_transaction($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+        $this->isTransactionStarted = true;
+    }
+    /**
+     * Commit transaction changes to database.
+     * 
+     * Note that if no transaction is started, calling this method will have
+     * no effect.
+     * 
+     * @param string|null $name This parameter is ignored.
+     * 
+     * @throws DatabaseException If the method was not able to commit the transaction.
+     */
+    public function commit(?string $name = null) {
+        if (!$this->isTransactionStarted) {
+            return;
+        }
+        $r = sqlsrv_commit($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+        $this->isTransactionStarted = false;
     }
     /**
      * Connect to MSSQL database.
@@ -106,6 +151,28 @@ class MSSQLConnection extends Connection {
         return $this->sqlState;
     }
     /**
+     * Roll back a transaction.
+     * 
+     * Note that if no transaction is started, calling this method will have
+     * no effect.
+     * 
+     * @param string|null $name This parameter is ignored.
+     * 
+     * @throws DatabaseException If the method was not able to rollback the transaction.
+     */
+    public function rollBack(?string $name = null) {
+        if (!$this->isTransactionStarted) {
+            return;
+        }
+        $r = sqlsrv_rollback($this->link);
+
+        if (!$r) {
+            $this->setSqlErr();
+            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
+        }
+        $this->isTransactionStarted = false;
+    }
+    /**
      * Execute MSSQL query.
      * 
      * @param AbstractQuery $query A query builder that has the generated MSSQL 
@@ -129,22 +196,11 @@ class MSSQLConnection extends Connection {
             return $this->runSelectQuery();
         } else if ($qType == 'dbcc') {
             $this->runDBCC();
+
             return true;
         } else {
             return $this->runOtherQuery();
         }
-    }
-    private function runUpdateQuery() {
-        $params = $this->getLastQuery()->getBindings();
-        $sql = $this->getLastQuery()->getQuery();
-        
-        if (count($params) != 0) {
-            $stm = sqlsrv_prepare($this->link, $sql, $params);
-            $r = sqlsrv_execute($stm);
-        } else {
-            $r = sqlsrv_query($this->link, $sql);
-        }
-        return $this->checkInsertOrUpdateResult($r);
     }
     private function checkInsertOrUpdateResult($r) {
         if (!$r) {
@@ -155,36 +211,35 @@ class MSSQLConnection extends Connection {
 
         return true;
     }
-    private function runInsertQuery() {
-        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
-        $sql = $this->getLastQuery()->getQuery();
-        if ($insertBuilder === null) {
-            
-            return false;
-        }
-        
-        $params = $insertBuilder->getQueryParams();
-
-        $stm = sqlsrv_prepare($this->link, $sql, $params);
-        $r = sqlsrv_execute($stm);
-            
-        return $this->checkInsertOrUpdateResult($r);
-        
-    }
     private function runDBCC() {
         $sql = $this->getLastQuery()->getQuery();
         $queryBulder = $this->getLastQuery();
-        
+
         sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
 
         return true;
     }
+    private function runInsertQuery() {
+        $insertBuilder = $this->getLastQuery()->getInsertBuilder();
+        $sql = $this->getLastQuery()->getQuery();
+
+        if ($insertBuilder === null) {
+            return false;
+        }
+
+        $params = $insertBuilder->getQueryParams();
+
+        $stm = sqlsrv_prepare($this->link, $sql, $params);
+        $r = sqlsrv_execute($stm);
+
+        return $this->checkInsertOrUpdateResult($r);
+    }
     private function runOtherQuery() {
         $sql = $this->getLastQuery()->getQuery();
         $queryBulder = $this->getLastQuery();
-        
+
         $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
-            
+
         if (!is_resource($r)) {
             $this->setSqlErr();
 
@@ -196,9 +251,9 @@ class MSSQLConnection extends Connection {
     private function runSelectQuery() {
         $queryBulder = $this->getLastQuery();
         $sql = $queryBulder->getQuery();
-        
+
         $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
-        
+
 
         if (is_resource($r)) {
             $data = [];
@@ -214,6 +269,19 @@ class MSSQLConnection extends Connection {
 
             return false;
         }
+    }
+    private function runUpdateQuery() {
+        $params = $this->getLastQuery()->getBindings();
+        $sql = $this->getLastQuery()->getQuery();
+
+        if (count($params) != 0) {
+            $stm = sqlsrv_prepare($this->link, $sql, $params);
+            $r = sqlsrv_execute($stm);
+        } else {
+            $r = sqlsrv_query($this->link, $sql);
+        }
+
+        return $this->checkInsertOrUpdateResult($r);
     }
     private function setSqlErr() {
         $allErrs = sqlsrv_errors(SQLSRV_ERR_ERRORS);
@@ -235,71 +303,5 @@ class MSSQLConnection extends Connection {
             $this->setErrMessage($lastErr['message']);
             $this->setErrCode($lastErr['code']);
         }
-    }
-    /**
-     * Starts SQL server transaction.
-     * 
-     * Note that calling this method multiple times will have no effect on number
-     * of created transactions.
-     * 
-     * @param string|null $name This parameter is ignored.
-     * 
-     * @throws DatabaseException If the method was not able to start the transaction.
-     */
-    public function beginTransaction(?string $name = null) {
-        if ($this->isTransactionStarted) {
-            return;
-        }
-        $r = sqlsrv_begin_transaction($this->link);
-
-        if (!$r) {
-            $this->setSqlErr();
-            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
-        }
-        $this->isTransactionStarted = true;
-    }
-    /**
-     * Commit transaction changes to database.
-     * 
-     * Note that if no transaction is started, calling this method will have
-     * no effect.
-     * 
-     * @param string|null $name This parameter is ignored.
-     * 
-     * @throws DatabaseException If the method was not able to commit the transaction.
-     */
-    public function commit(?string $name = null) {
-        if (!$this->isTransactionStarted) {
-            return;
-        }
-        $r = sqlsrv_commit($this->link);
-
-        if (!$r) {
-            $this->setSqlErr();
-            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
-        }
-        $this->isTransactionStarted = false;
-    }
-    /**
-     * Roll back a transaction.
-     * 
-     * Note that if no transaction is started, calling this method will have
-     * no effect.
-     * 
-     * @param string|null $name This parameter is ignored.
-     * 
-     * @throws DatabaseException If the method was not able to rollback the transaction.
-     */
-    public function rollBack(?string $name = null) {
-        if (!$this->isTransactionStarted) {
-            return;
-        }
-        $r = sqlsrv_rollback($this->link);
-
-        if (!$r) {
-            $this->setSqlErr();
-            throw new DatabaseException($this->getSQLState().' - '.$this->getLastErrMessage());
-        }
-        $this->isTransactionStarted = false;
     }
 }

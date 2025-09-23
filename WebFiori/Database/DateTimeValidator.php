@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -16,7 +17,6 @@ namespace WebFiori\Database;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  */
 class DateTimeValidator {
     /**
@@ -28,7 +28,6 @@ class DateTimeValidator {
      * @return bool If the string represents a valid date, the method will return
      * true. Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public static function isValidDate(string $date) : bool {
         if (strlen($date) == 10) {
@@ -53,7 +52,6 @@ class DateTimeValidator {
      * @return bool If the string represents correct date and time, the 
      * method will return true. False if it is not valid.
      * 
-     * @since 1.0
      */
     public static function isValidDateTime(string $dateTime) : bool {
         $trimmed = trim($dateTime);
@@ -77,7 +75,6 @@ class DateTimeValidator {
      * @return bool If the string represents a valid time, it will return
      * true. Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public static function isValidTime(string $time) : bool {
         if (strlen($time) == 8) {
