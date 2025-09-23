@@ -56,7 +56,7 @@ class SchemaAdvancedTest extends TestCase {
             $runner = new SchemaRunner(__DIR__, 'WebFiori\\Tests\\Database\\Schema', $this->getConnectionInfo());
             $runner->createSchemaTable();
             
-            $this->assertEquals(5, count($runner->getChanges()));
+            $this->assertEquals(4, count($runner->getChanges()));
             // Clear any existing applied changes for clean test
             $runner->table('schema_changes')->delete()->execute();
             

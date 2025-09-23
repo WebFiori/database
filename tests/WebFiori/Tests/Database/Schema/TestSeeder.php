@@ -15,7 +15,7 @@ class TestSeeder extends AbstractSeeder {
         return ['dev', 'test'];
     }
     
-    public function run(Database $db): bool {
+    public function run(Database $db): void {
         // Insert test data
         $db->table('user_profiles')->insert([
             'name' => 'Test User 1'
@@ -24,8 +24,6 @@ class TestSeeder extends AbstractSeeder {
         $db->table('user_profiles')->insert([
             'name' => 'Test User 2'
         ])->execute();
-        
-        
     }
     
     public function rollback(Database $db): void {

@@ -15,7 +15,7 @@ class TestSeeder2 extends AbstractSeeder {
         return ['dev'];
     }
     
-    public function run(Database $db): bool {
+    public function run(Database $db): void {
         // Update existing records with email
         $db->table('user_profiles')->update([
             'email' => 'user1@test.com'

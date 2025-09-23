@@ -8,7 +8,7 @@ use WebFiori\Database\ColOption;
 
 class TestMigration2 extends AbstractMigration {
     
-    public function getDependencies(): array {
+    public function getDependencies(): array {}
         return ['TestMigration'];
     
     public function up(Database $db): void {

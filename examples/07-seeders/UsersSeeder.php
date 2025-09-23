@@ -22,7 +22,7 @@ class UsersSeeder extends AbstractSeeder {
      * @param Database $db The database instance to execute seeding on.
      * @return bool True if seeding was successful, false otherwise.
      */
-    public function run(Database $db): bool {
+    public function run(Database $db): void {
         // Insert sample users
         $users = [
             [
@@ -55,6 +55,5 @@ class UsersSeeder extends AbstractSeeder {
             $db->table('users')->insert($user)->execute();
         }
         
-        return true;
     }
 }

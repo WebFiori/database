@@ -35,7 +35,7 @@ class CategoriesSeeder extends AbstractSeeder {
      * @param Database $db The database instance to execute seeding on.
      * @return bool True if seeding was successful, false otherwise.
      */
-    public function run(Database $db): bool {
+    public function run(Database $db): void {
         // Insert sample categories
         $categories = [
             [
@@ -64,6 +64,5 @@ class CategoriesSeeder extends AbstractSeeder {
             $db->table('categories')->insert($category)->execute();
         }
         
-        return true;
     }
 }

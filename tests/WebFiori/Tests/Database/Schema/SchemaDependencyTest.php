@@ -71,7 +71,7 @@ class TestSeederForA extends AbstractSeeder {
         return ['dev', 'test'];
     }
     
-    public function run(Database $db): bool {
+    public function run(Database $db): void {
         $this->execute($db);
         
     }    

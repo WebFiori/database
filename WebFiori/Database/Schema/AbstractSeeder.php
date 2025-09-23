@@ -56,9 +56,8 @@ abstract class AbstractSeeder extends DatabaseChange {
      * - Setting up initial application configuration
      * 
      * @param Database $db The database instance to execute seeding on.
-     * @return bool True if seeding was successful, false otherwise.
      */
-    abstract public function run(Database $db): bool;
+    abstract public function run(Database $db): void;
     
     /**
      * Get the environments where this seeder should be executed.
