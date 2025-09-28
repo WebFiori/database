@@ -73,6 +73,27 @@ You can modify the connection parameters in each example as needed.
 - Error handling within transactions
 - Complex multi-table operations
 
+### 06-migrations
+- Creating migration classes extending `AbstractMigration`
+- Using `SchemaRunner` for migration management
+- Registering migrations with the schema runner
+- Applying and rolling back migrations
+- Schema change tracking and versioning
+
+### 07-seeders
+- Creating seeder classes extending `AbstractSeeder`
+- Using `SchemaRunner` for seeder management
+- Registering seeders with the schema runner
+- Populating database with sample data
+- Environment-specific seeding
+
+### 08-performance-monitoring
+- Configuring performance monitoring settings
+- Tracking query execution times and statistics
+- Identifying slow queries and performance bottlenecks
+- Using `PerformanceAnalyzer` for detailed analysis
+- Performance optimization recommendations
+
 ## Notes
 
 - All examples include proper error handling and cleanup

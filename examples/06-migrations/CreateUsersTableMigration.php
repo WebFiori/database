@@ -14,8 +14,6 @@ use WebFiori\Database\ColOption;
  */
 class CreateUsersTableMigration extends AbstractMigration {
     
-
-    
     /**
      * Apply the migration changes to the database.
      * 
@@ -23,9 +21,8 @@ class CreateUsersTableMigration extends AbstractMigration {
      * and basic profile information.
      * 
      * @param Database $db The database instance to execute changes on.
-     * @return bool True if migration was successful, false otherwise.
      */
-    public function up(Database $db): bool {
+    public function up(Database $db): void {
         // Create users table
         $db->createBlueprint('users')->addColumns([
             'id' => [
@@ -57,8 +54,6 @@ class CreateUsersTableMigration extends AbstractMigration {
         
         $db->createTables();
         $db->execute();
-        
-        return true;
     }
     
     /**
@@ -68,11 +63,9 @@ class CreateUsersTableMigration extends AbstractMigration {
      * is irreversible and will result in data loss.
      * 
      * @param Database $db The database instance to execute rollback on.
-     * @return bool True if rollback was successful, false otherwise.
      */
-    public function down(Database $db): bool {
+    public function down(Database $db): void {
         // Drop users table
         $db->setQuery("DROP TABLE IF EXISTS users")->execute();
-        return true;
     }
 }

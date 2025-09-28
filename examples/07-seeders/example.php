@@ -6,6 +6,7 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
 use WebFiori\Database\ColOption;
+use WebFiori\Database\Schema\SchemaRunner;
 
 echo "=== WebFiori Database Seeders Example ===\n\n";
 
@@ -87,32 +88,52 @@ try {
     require_once __DIR__ . '/UsersSeeder.php';
     require_once __DIR__ . '/CategoriesSeeder.php';
     
-    // Create seeder instances
-    $usersSeeder = new UsersSeeder();
-    $categoriesSeeder = new CategoriesSeeder();
+    echo "✓ Seeder classes loaded\n";
     
-    echo "✓ UsersSeeder loaded\n";
-    echo "✓ CategoriesSeeder loaded\n\n";
+    echo "3. Setting up Schema Runner:\n";
     
-    echo "3. Running Seeders (Dev Environment):\n";
+    // Create schema runner
+    $runner = new SchemaRunner($connection);
     
-    // Run seeders manually
-    echo "Running: " . $usersSeeder->getName() . "\n";
-    $usersSeeder->execute($database);
-    echo "✓ Users seeder executed\n";
+    // Register seeder classes
+    $runner->register('UsersSeeder');
+    $runner->register('CategoriesSeeder');
     
-    // Check if categories seeder should run in 'dev' environment
-    $environments = $categoriesSeeder->getEnvironments();
-    if (empty($environments) || in_array('dev', $environments)) {
-        echo "Running: " . $categoriesSeeder->getName() . "\n";
-        $categoriesSeeder->execute($database);
-        echo "✓ Categories seeder executed\n";
-    } else {
-        echo "Skipping: " . $categoriesSeeder->getName() . " (not for dev environment)\n";
+    echo "✓ Schema runner created\n";
+    echo "✓ Seeder classes registered\n";
+    
+    // Create schema tracking table
+    $runner->createSchemaTable();
+    echo "✓ Schema tracking table created\n\n";
+    
+    echo "4. Checking Available Seeders:\n";
+    
+    $changes = $runner->getChanges();
+    echo "Registered seeders:\n";
+    foreach ($changes as $change) {
+        echo "  - " . $change->getName() . "\n";
     }
     echo "\n";
     
-    echo "4. Verifying Seeded Data:\n";
+    echo "5. Running Seeders:\n";
+    
+    // Force apply all seeders
+    $appliedChanges = [];
+    
+    foreach ($changes as $change) {
+        if (!$runner->isApplied($change->getName())) {
+            $change->execute($database);
+            $appliedChanges[] = $change;
+            echo "  ✓ Applied: " . $change->getName() . "\n";
+        }
+    }
+    
+    if (empty($appliedChanges)) {
+        echo "No seeders to apply (all up to date)\n";
+    }
+    echo "\n";
+    
+    echo "6. Verifying Seeded Data:\n";
     
     // Check users data
     $result = $database->table('users')->select()->execute();
@@ -132,28 +153,43 @@ try {
     }
     echo "\n";
     
-    echo "5. Testing Environment-Specific Seeding:\n";
+    echo "7. Testing Seeder Status:\n";
     
-    // Clear categories and test production environment
-    $database->setQuery("DELETE FROM categories")->execute();
+    // Check which seeders are applied
+    echo "Seeder status:\n";
+    foreach ($changes as $change) {
+        $status = $runner->isApplied($change->getName()) ? "✓ Applied" : "✗ Pending";
+        echo "  {$change->getName()}: $status\n";
+    }
+    echo "\n";
     
-    // Check if categories seeder should run in 'prod' environment
-    $environments = $categoriesSeeder->getEnvironments();
-    if (empty($environments) || in_array('prod', $environments)) {
-        echo "Running: " . $categoriesSeeder->getName() . " (prod environment)\n";
-        $categoriesSeeder->execute($database);
-    } else {
-        echo "Skipping: " . $categoriesSeeder->getName() . " (not for prod environment)\n";
+    echo "8. Rolling Back Seeders:\n";
+    
+    // Rollback all seeders (this will clear the data)
+    $rolledBackChanges = [];
+    
+    // Reverse order for rollback
+    $reversedChanges = array_reverse($changes);
+    foreach ($reversedChanges as $change) {
+        $change->rollback($database);
+        $rolledBackChanges[] = $change;
+        echo "  ✓ Rolled back: " . $change->getName() . "\n";
     }
     
-    $result = $database->table('categories')->select()->execute();
-    echo "Categories after 'prod' seeding: {$result->getRowsCount()} records\n";
-    echo "✓ Environment-specific seeding working correctly\n\n";
+    // Verify rollback
+    $userCount = $database->table('users')->select()->execute()->getRowsCount();
+    $categoryCount = $database->table('categories')->select()->execute()->getRowsCount();
     
-    echo "6. Cleanup:\n";
+    echo "After rollback:\n";
+    echo "  Users: $userCount records\n";
+    echo "  Categories: $categoryCount records\n";
+    echo "✓ Seeders rolled back successfully\n\n";
+    
+    echo "9. Cleanup:\n";
+    $runner->dropSchemaTable();
     $database->setQuery("DROP TABLE categories")->execute();
     $database->setQuery("DROP TABLE users")->execute();
-    echo "✓ Test tables dropped\n";
+    echo "✓ Test tables and schema tracking table dropped\n";
     
 } catch (Exception $e) {
     echo "✗ Error: " . $e->getMessage() . "\n";
@@ -162,6 +198,7 @@ try {
     try {
         $database->setQuery("DROP TABLE IF EXISTS categories")->execute();
         $database->setQuery("DROP TABLE IF EXISTS users")->execute();
+        $database->setQuery("DROP TABLE IF EXISTS schema_changes")->execute();
     } catch (Exception $cleanupError) {
         // Ignore cleanup errors
     }

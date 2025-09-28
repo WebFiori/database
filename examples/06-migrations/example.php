@@ -4,6 +4,7 @@ require_once '../../vendor/autoload.php';
 
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
+use WebFiori\Database\Schema\SchemaRunner;
 
 echo "=== WebFiori Database Migrations Example ===\n\n";
 
@@ -18,25 +19,53 @@ try {
     require_once __DIR__ . '/CreateUsersTableMigration.php';
     require_once __DIR__ . '/AddEmailIndexMigration.php';
     
-    // Create migration instances
-    $createUsersMigration = new CreateUsersTableMigration();
-    $addEmailIndexMigration = new AddEmailIndexMigration();
+    echo "✓ Migration classes loaded\n";
     
-    echo "✓ CreateUsersTableMigration loaded\n";
-    echo "✓ AddEmailIndexMigration loaded\n\n";
+    echo "2. Setting up Schema Runner:\n";
     
-    echo "2. Running Migrations (UP):\n";
+    // Create schema runner
+    $runner = new SchemaRunner($connection);
     
-    // Execute migrations manually in order
-    echo "Running: " . $createUsersMigration->getName() . "\n";
-    $createUsersMigration->execute($database);
-    echo "✓ Users table migration executed\n";
+    // Register migration classes
+    $runner->register('CreateUsersTableMigration');
+    $runner->register('AddEmailIndexMigration');
     
-    echo "Running: " . $addEmailIndexMigration->getName() . "\n";
-    $addEmailIndexMigration->execute($database);
-    echo "✓ Email index migration executed\n\n";
+    echo "✓ Schema runner created\n";
+    echo "✓ Migration classes registered\n";
     
-    echo "3. Verifying Database Structure:\n";
+    // Create schema tracking table
+    $runner->createSchemaTable();
+    echo "✓ Schema tracking table created\n\n";
+    
+    echo "3. Checking Available Migrations:\n";
+    
+    $changes = $runner->getChanges();
+    echo "Registered migrations:\n";
+    foreach ($changes as $change) {
+        echo "  - " . $change->getName() . "\n";
+    }
+    echo "\n";
+    
+    echo "4. Running Migrations:\n";
+    
+    // Force apply all migrations
+    $changes = $runner->getChanges();
+    $appliedChanges = [];
+    
+    foreach ($changes as $change) {
+        if (!$runner->isApplied($change->getName())) {
+            $change->execute($database);
+            $appliedChanges[] = $change;
+            echo "  ✓ Applied: " . $change->getName() . "\n";
+        }
+    }
+    
+    if (empty($appliedChanges)) {
+        echo "No migrations to apply (all up to date)\n";
+    }
+    echo "\n";
+    
+    echo "5. Verifying Database Structure:\n";
     
     // Check if table exists
     $result = $database->setQuery("SHOW TABLES LIKE 'users'")->execute();
@@ -58,7 +87,7 @@ try {
     }
     echo "\n";
     
-    echo "4. Testing Data Operations:\n";
+    echo "6. Testing Data Operations:\n";
     
     // Insert test data
     $database->table('users')->insert([
@@ -83,16 +112,29 @@ try {
     }
     echo "\n";
     
-    echo "5. Rolling Back Migrations:\n";
+    echo "7. Checking Migration Status:\n";
     
-    // Rollback migrations in reverse order
-    echo "Rolling back: " . $addEmailIndexMigration->getName() . "\n";
-    $addEmailIndexMigration->rollback($database);
-    echo "✓ Email index migration rolled back\n";
+    // Check which migrations are applied
+    echo "Migration status:\n";
+    foreach ($changes as $change) {
+        $status = $runner->isApplied($change->getName()) ? "✓ Applied" : "✗ Pending";
+        echo "  {$change->getName()}: $status\n";
+    }
+    echo "\n";
     
-    echo "Rolling back: " . $createUsersMigration->getName() . "\n";
-    $createUsersMigration->rollback($database);
-    echo "✓ Users table migration rolled back\n";
+    echo "8. Rolling Back Migrations:\n";
+    
+    // Rollback all migrations
+    $rolledBackChanges = $runner->rollbackUpTo(null);
+    
+    if (!empty($rolledBackChanges)) {
+        echo "Rolled back migrations:\n";
+        foreach ($rolledBackChanges as $change) {
+            echo "  ✓ " . $change->getName() . "\n";
+        }
+    } else {
+        echo "No migrations to rollback\n";
+    }
     
     // Verify rollback
     $result = $database->setQuery("SHOW TABLES LIKE 'users'")->execute();
@@ -100,12 +142,17 @@ try {
         echo "✓ Users table removed\n";
     }
     
+    echo "\n9. Cleanup:\n";
+    $runner->dropSchemaTable();
+    echo "✓ Schema tracking table dropped\n";
+    
 } catch (Exception $e) {
     echo "✗ Error: " . $e->getMessage() . "\n";
     
     // Clean up on error
     try {
         $database->setQuery("DROP TABLE IF EXISTS users")->execute();
+        $database->setQuery("DROP TABLE IF EXISTS schema_changes")->execute();
     } catch (Exception $cleanupError) {
         // Ignore cleanup errors
     }

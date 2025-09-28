@@ -12,8 +12,6 @@ use WebFiori\Database\Database;
  */
 class AddEmailIndexMigration extends AbstractMigration {
     
-
-    
     /**
      * Get the list of migration dependencies.
      * 
@@ -23,7 +21,7 @@ class AddEmailIndexMigration extends AbstractMigration {
      * @return array Array of migration names this migration depends on.
      */
     public function getDependencies(): array {
-        return ['create_users_table'];
+        return ['CreateUsersTableMigration'];
     }
     
     /**
@@ -33,12 +31,10 @@ class AddEmailIndexMigration extends AbstractMigration {
      * email uniqueness and improve query performance.
      * 
      * @param Database $db The database instance to execute changes on.
-     * @return bool True if migration was successful, false otherwise.
      */
-    public function up(Database $db): bool {
+    public function up(Database $db): void {
         // Add unique index on email column
         $db->setQuery("ALTER TABLE users ADD UNIQUE INDEX idx_users_email (email)")->execute();
-        return true;
     }
     
     /**
@@ -48,11 +44,9 @@ class AddEmailIndexMigration extends AbstractMigration {
      * allowing duplicate emails again.
      * 
      * @param Database $db The database instance to execute rollback on.
-     * @return bool True if rollback was successful, false otherwise.
      */
-    public function down(Database $db): bool {
+    public function down(Database $db): void {
         // Drop email index
         $db->setQuery("ALTER TABLE users DROP INDEX idx_users_email")->execute();
-        return true;
     }
 }
