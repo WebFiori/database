@@ -22,6 +22,7 @@ use WebFiori\Database\Database;
 abstract class DatabaseChange {
     private $appliedAt;
     private $id;
+    private ?Database $database = null;
 
     /**
      * Initialize a new database change with optional name and order.
@@ -121,5 +122,23 @@ abstract class DatabaseChange {
      */
     public function setId(int $id) {
         $this->id = $id;
+    }
+
+    /**
+     * Set the database instance for this change.
+     * 
+     * @param Database $db The database instance to use for this change.
+     */
+    public function setDatabase(Database $db): void {
+        $this->database = $db;
+    }
+
+    /**
+     * Get the database instance for this change.
+     * 
+     * @return Database|null The database instance or null if not set.
+     */
+    public function getDatabase(): ?Database {
+        return $this->database;
     }
 }
