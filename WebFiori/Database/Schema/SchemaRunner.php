@@ -3,6 +3,7 @@ namespace WebFiori\Database\Schema;
 
 use Error;
 use Exception;
+use ReflectionClass;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
@@ -149,13 +150,15 @@ class SchemaRunner extends Database {
                 }
 
                 try {
-                    $change->execute($this);
-                    $this->table('schema_changes')
-                            ->insert([
-                                'change_name' => $change->getName(),
-                                'type' => $change->getType(),
-                                'applied-on' => date('Y-m-d H:i:s')
-                            ])->execute();
+                    $this->transaction(function($db) use ($change) {
+                        $change->execute($db);
+                        $db->table('schema_changes')
+                                ->insert([
+                                    'change_name' => $change->getName(),
+                                    'type' => $change->getType(),
+                                    'applied-on' => date('Y-m-d H:i:s')
+                                ])->execute();
+                    });
 
                     $applied[] = $change;
                     $appliedInPass = true;
@@ -192,13 +195,15 @@ class SchemaRunner extends Database {
                     continue;
                 }
 
-                $change->execute($this);
-                $this->table('schema_changes')
-                        ->insert([
-                            'change_name' => $change->getName(),
-                            'type' => $change->getType(),
-                            'applied-on' => date('Y-m-d H:i:s')
-                        ])->execute();
+                $this->transaction(function($db) use ($change) {
+                    $change->execute($db);
+                    $db->table('schema_changes')
+                            ->insert([
+                                'change_name' => $change->getName(),
+                                'type' => $change->getType(),
+                                'applied-on' => date('Y-m-d H:i:s')
+                            ])->execute();
+                });
 
                 return $change;
             }
@@ -304,19 +309,11 @@ class SchemaRunner extends Database {
      * @return bool True if the change has been applied, false otherwise.
      */
     public function isApplied(string $name): bool {
-        try {
-            return $this->table('schema_changes')
-                    ->select(['change_name'])
-                    ->where('change_name', $name)
-                    ->execute()
-                    ->getRowsCount() == 1;
-        } catch (DatabaseException $ex) {
-            // If schema_changes table doesn't exist, no changes have been applied
-            if (strpos($ex->getMessage(), "doesn't exist") !== false) {
-                return false;
-            }
-            throw $ex;
-        }
+        return $this->table('schema_changes')
+                ->select(['change_name'])
+                ->where('change_name', $name)
+                ->execute()
+                ->getRowsCount() == 1;
     }
     /**
      * Rollback database changes up to a specific change.
@@ -406,21 +403,60 @@ class SchemaRunner extends Database {
             throw new DatabaseException('Invalid schema path: "'.$changesPath.'"');
         }
 
-        $dirContents = array_diff(scandir($changesPath), ['.', '..']);
+        $dirContents = scandir($changesPath);
+        if ($dirContents === false) {
+            throw new DatabaseException('Cannot read directory: "'.$changesPath.'"');
+        }
+        $dirContents = array_diff($dirContents, ['.', '..']);
 
         foreach ($dirContents as $file) {
-            if (is_file($changesPath.DIRECTORY_SEPARATOR.$file)) {
+            if (is_file($changesPath.DIRECTORY_SEPARATOR.$file) && pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                $filePath = $changesPath.DIRECTORY_SEPARATOR.$file;
                 $clazz = $this->getNamespace().'\\'.explode('.', $file)[0];
 
                 try {
+                    // Try to load the class if it doesn't exist
+                    if (!class_exists($clazz, false)) {
+                        // Set up error handler to catch fatal errors
+                        $prevHandler = set_error_handler(function($severity, $message, $file, $line) {
+                            throw new ErrorException($message, 0, $severity, $file, $line);
+                        });
+                        
+                        try {
+                            require_once $filePath;
+                        } finally {
+                            restore_error_handler();
+                        }
+                    }
+                    
                     if (class_exists($clazz)) {
+                        $reflection = new ReflectionClass($clazz);
+                        if ($reflection->isAbstract()) {
+                            $ex = new Exception("Cannot instantiate abstract class: {$clazz}");
+                            foreach ($this->onRegErrCallbacks as $callback) {
+                                call_user_func_array($callback, [$ex]);
+                            }
+                            continue;
+                        }
+                        if ($reflection->getConstructor()?->getNumberOfRequiredParameters() > 0) {
+                            $ex = new Exception("Cannot instantiate class with required parameters: {$clazz}");
+                            foreach ($this->onRegErrCallbacks as $callback) {
+                                call_user_func_array($callback, [$ex]);
+                            }
+                            continue;
+                        }
+                        
                         $instance = new $clazz();
 
                         if ($instance instanceof DatabaseChange) {
                             $this->dbChanges[] = $instance;
                         }
                     }
-                } catch (Exception|Error $ex) {
+                } catch (ParseError $ex) {
+                    foreach ($this->onRegErrCallbacks as $callback) {
+                        call_user_func_array($callback, [$ex]);
+                    }
+                } catch (Throwable $ex) {
                     foreach ($this->onRegErrCallbacks as $callback) {
                         call_user_func_array($callback, [$ex]);
                     }
@@ -449,7 +485,7 @@ class SchemaRunner extends Database {
         $this->dbChanges = $sorted;
     }
 
-    private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting = []) {
+    private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting) {
         $className = $change->getName();
 
         if (isset($visiting[$className])) {
