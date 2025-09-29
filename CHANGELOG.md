@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/WebFiori/database/compare/v1.0.0...v1.1.0) (2025-09-29)
+
+
+### Miscellaneous Chores
+
+* Release 1.1.0 ([6389f8b](https://github.com/WebFiori/database/commit/6389f8b762c1c56eb685fecd1c7328d0a1099fe6))
+
 ## [1.0.0](https://github.com/WebFiori/database/compare/v0.10.0...v1.0.0) (2025-09-23)
 
 
