@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Performance;
 
 /**
@@ -15,9 +14,9 @@ class PerformanceAnalyzer {
     public const SCORE_EXCELLENT = 'EXCELLENT';
     public const SCORE_GOOD = 'GOOD';
     public const SCORE_NEEDS_IMPROVEMENT = 'NEEDS_IMPROVEMENT';
-    
+
     private QueryPerformanceMonitor $monitor;
-    
+
     /**
      * Create a new performance analyzer instance.
      * 
@@ -26,20 +25,7 @@ class PerformanceAnalyzer {
     public function __construct(QueryPerformanceMonitor $monitor) {
         $this->monitor = $monitor;
     }
-    
-    /**
-     * Calculate the total execution time of all queries.
-     * 
-     * @return float Total execution time in milliseconds.
-     */
-    public function getTotalTime(): float {
-        $total = 0.0;
-        foreach ($this->monitor->getMetrics() as $metric) {
-            $total += $metric->getExecutionTimeMs();
-        }
-        return $total;
-    }
-    
+
     /**
      * Calculate the average execution time per query.
      * 
@@ -47,21 +33,14 @@ class PerformanceAnalyzer {
      */
     public function getAverageTime(): float {
         $metrics = $this->monitor->getMetrics();
+
         if (empty($metrics)) {
             return 0.0;
         }
+
         return $this->getTotalTime() / count($metrics);
     }
-    
-    /**
-     * Get all queries that exceed the slow query threshold.
-     * 
-     * @return array Array of QueryMetric instances for slow queries.
-     */
-    public function getSlowQueries(): array {
-        return $this->monitor->getSlowQueries();
-    }
-    
+
     /**
      * Calculate query performance efficiency as percentage of fast queries.
      * 
@@ -69,33 +48,17 @@ class PerformanceAnalyzer {
      */
     public function getEfficiency(): float {
         $metrics = $this->monitor->getMetrics();
+
         if (empty($metrics)) {
             return 100.0;
         }
-        
+
         $slowCount = count($this->getSlowQueries());
         $fastCount = count($metrics) - $slowCount;
-        
+
         return ($fastCount / count($metrics)) * 100;
     }
-    
-    /**
-     * Get a performance score based on average execution time.
-     * 
-     * @return string Performance score: SCORE_EXCELLENT, SCORE_GOOD, or SCORE_NEEDS_IMPROVEMENT.
-     */
-    public function getScore(): string {
-        $avgTime = $this->getAverageTime();
-        
-        if ($avgTime < 10) {
-            return self::SCORE_EXCELLENT;
-        } elseif ($avgTime < 50) {
-            return self::SCORE_GOOD;
-        } else {
-            return self::SCORE_NEEDS_IMPROVEMENT;
-        }
-    }
-    
+
     /**
      * Get the total number of queries analyzed.
      * 
@@ -104,7 +67,33 @@ class PerformanceAnalyzer {
     public function getQueryCount(): int {
         return count($this->monitor->getMetrics());
     }
-    
+
+    /**
+     * Get a performance score based on average execution time.
+     * 
+     * @return string Performance score: SCORE_EXCELLENT, SCORE_GOOD, or SCORE_NEEDS_IMPROVEMENT.
+     */
+    public function getScore(): string {
+        $avgTime = $this->getAverageTime();
+
+        if ($avgTime < 10) {
+            return self::SCORE_EXCELLENT;
+        } elseif ($avgTime < 50) {
+            return self::SCORE_GOOD;
+        } else {
+            return self::SCORE_NEEDS_IMPROVEMENT;
+        }
+    }
+
+    /**
+     * Get all queries that exceed the slow query threshold.
+     * 
+     * @return array Array of QueryMetric instances for slow queries.
+     */
+    public function getSlowQueries(): array {
+        return $this->monitor->getSlowQueries();
+    }
+
     /**
      * Get the number of slow queries.
      * 
@@ -112,5 +101,20 @@ class PerformanceAnalyzer {
      */
     public function getSlowQueryCount(): int {
         return count($this->getSlowQueries());
+    }
+
+    /**
+     * Calculate the total execution time of all queries.
+     * 
+     * @return float Total execution time in milliseconds.
+     */
+    public function getTotalTime(): float {
+        $total = 0.0;
+
+        foreach ($this->monitor->getMetrics() as $metric) {
+            $total += $metric->getExecutionTimeMs();
+        }
+
+        return $total;
     }
 }

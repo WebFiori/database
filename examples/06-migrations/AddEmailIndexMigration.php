@@ -1,7 +1,7 @@
 <?php
 
-use WebFiori\Database\Schema\AbstractMigration;
 use WebFiori\Database\Database;
+use WebFiori\Database\Schema\AbstractMigration;
 
 /**
  * Migration to add a unique index on the email column.

@@ -119,3 +119,10 @@ jobs:
     uses: WebFiori/workflows/.github/workflows/quality-sonarcloud.yaml@main
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  
+  release-prod:
+    name: Prepare Production Release Branch / Publish Release
+    needs: [code-coverage, code-quality]
+    uses: WebFiori/workflows/.github/workflows/release-php.yaml@main
+    with:
+      branch: 'main'
