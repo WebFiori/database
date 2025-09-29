@@ -8,7 +8,7 @@ use WebFiori\Database\Schema\AbstractMigration;
 class TestMigration3 extends AbstractMigration {
     
     public function getDependencies(): array {
-        return [TestMigration::class];
+        return ['WebFiori\Tests\Database\Schema\TestMigration'];
     }
     
     public function up(Database $db): void {

@@ -8,7 +8,7 @@ use WebFiori\Database\Schema\AbstractSeeder;
 class TestSeeder extends AbstractSeeder {
     
     public function getDependencies(): array {
-        return [TestMigration::class];
+        return ['WebFiori\Tests\Database\Schema\TestMigration'];
     }
     
     public function getEnvironments(): array {

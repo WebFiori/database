@@ -299,15 +299,34 @@ class CreateUsersTable extends AbstractMigration {
         
         $db->createTables();
         $db->execute();
-        
     }
     
     public function down(Database $db): void {
         $db->setQuery("DROP TABLE users");
         $db->execute();
-        
     }
 }
+```
+
+To run migrations, use the SchemaRunner:
+
+```php
+use WebFiori\Database\Schema\SchemaRunner;
+
+$runner = new SchemaRunner($connectionInfo);
+
+// Register migration classes
+$runner->register('CreateUsersTable');
+$runner->register('AddEmailIndex');
+
+// Create schema tracking table
+$runner->createSchemaTable();
+
+// Apply all pending migrations
+$appliedMigrations = $runner->apply();
+
+// Rollback migrations
+$rolledBackMigrations = $runner->rollbackUpTo(null);
 ```
 
 ### Database Seeders
@@ -320,7 +339,7 @@ use WebFiori\Database\Database;
 
 class UsersSeeder extends AbstractSeeder {
     
-    public function run(Database $db): bool {
+    public function run(Database $db): void {
         $db->table('users')->insert([
             'name' => 'Administrator',
             'email' => 'admin@example.com'
@@ -330,9 +349,26 @@ class UsersSeeder extends AbstractSeeder {
             'name' => 'John Doe',
             'email' => 'john@example.com'
         ])->execute();
-        
     }
 }
+```
+
+To run seeders, use the same SchemaRunner:
+
+```php
+use WebFiori\Database\Schema\SchemaRunner;
+
+$runner = new SchemaRunner($connectionInfo);
+
+// Register seeder classes
+$runner->register('UsersSeeder');
+$runner->register('CategoriesSeeder');
+
+// Create schema tracking table
+$runner->createSchemaTable();
+
+// Apply all pending seeders
+$appliedSeeders = $runner->apply();
 ```
 
 ### Performance Monitoring

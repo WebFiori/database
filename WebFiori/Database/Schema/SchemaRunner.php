@@ -3,6 +3,7 @@ namespace WebFiori\Database\Schema;
 
 use Error;
 use Exception;
+use ReflectionClass;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
@@ -47,22 +48,16 @@ use WebFiori\Database\DataType;
 class SchemaRunner extends Database {
     private $dbChanges;
     private $environment;
-    private $ns;
     private $onErrCallbacks;
     private $onRegErrCallbacks;
-    private $path;
     /**
      * Initialize a new schema runner with configuration.
      * 
-     * @param string $path Filesystem path where migration/seeder classes are located.
-     * @param string $ns PHP namespace for migration/seeder classes (e.g., 'App\\Migrations').
      * @param ConnectionInfo|null $connectionInfo Database connection information.
      * @param string $environment Target environment (dev, test, prod) - affects which changes run.
      */
-    public function __construct(string $path, string $ns, ?ConnectionInfo $connectionInfo, string $environment = 'dev') {
+    public function __construct(?ConnectionInfo $connectionInfo, string $environment = 'dev') {
         parent::__construct($connectionInfo);
-        $this->path = $path;
-        $this->ns = $ns;
         $this->environment = $environment;
         $dbType = $connectionInfo !== null ? $connectionInfo->getDatabaseType() : 'mysql';
         $this->onErrCallbacks = [];
@@ -77,13 +72,18 @@ class SchemaRunner extends Database {
             ],
             'change_name' => [
                 ColOption::TYPE => DataType::VARCHAR,
-                ColOption::SIZE => 125,
+                ColOption::SIZE => 255,
                 ColOption::COMMENT => 'The name of the change.'
             ],
             'type' => [
                 ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 20,
                 ColOption::COMMENT => 'The type of the change (migration, seeder, etc.).'
+            ],
+            'db-name' => [
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 255,
+                ColOption::COMMENT => 'The name of the database at which the migration was applied to.'
             ],
             'applied-on' => [
                 ColOption::TYPE => $dbType == ConnectionInfo::SUPPORTED_DATABASES[1] ? DataType::DATETIME2 : DataType::DATETIME,
@@ -92,7 +92,6 @@ class SchemaRunner extends Database {
         ]);
 
         $this->dbChanges = [];
-        $this->scanPathForChanges();
     }
     /**
      * Register a callback to handle execution errors.
@@ -117,7 +116,7 @@ class SchemaRunner extends Database {
         $this->onRegErrCallbacks[] = $callback;
 
         if (empty($this->dbChanges)) {
-            $this->scanPathForChanges();
+            // No changes registered
         }
     }
 
@@ -149,13 +148,16 @@ class SchemaRunner extends Database {
                 }
 
                 try {
-                    $change->execute($this);
-                    $this->table('schema_changes')
-                            ->insert([
-                                'change_name' => $change->getName(),
-                                'type' => $change->getType(),
-                                'applied-on' => date('Y-m-d H:i:s')
-                            ])->execute();
+                    $this->transaction(function($db) use ($change) {
+                        $change->execute($db);
+                        $db->table('schema_changes')
+                                ->insert([
+                                    'change_name' => $change->getName(),
+                                    'type' => $change->getType(),
+                                    'applied-on' => date('Y-m-d H:i:s'),
+                                    'db-name' => $db->getConnectionInfo()->getDatabase()
+                                ])->execute();
+                    });
 
                     $applied[] = $change;
                     $appliedInPass = true;
@@ -192,13 +194,17 @@ class SchemaRunner extends Database {
                     continue;
                 }
 
-                $change->execute($this);
-                $this->table('schema_changes')
-                        ->insert([
-                            'change_name' => $change->getName(),
-                            'type' => $change->getType(),
-                            'applied-on' => date('Y-m-d H:i:s')
-                        ])->execute();
+                $this->transaction(function($db) use ($change) {
+                    $migrationDb = $change->getDatabase() ?? $db;
+                    $change->execute($migrationDb);
+                    $db->table('schema_changes')
+                            ->insert([
+                                'change_name' => $change->getName(),
+                                'type' => $change->getType(),
+                                'applied-on' => date('Y-m-d H:i:s'),
+                                'db-name' => $db->getConnectionInfo()->getDatabase()
+                            ])->execute();
+                });
 
                 return $change;
             }
@@ -270,24 +276,6 @@ class SchemaRunner extends Database {
     }
 
     /**
-     * Get the PHP namespace used for migration and seeder classes.
-     * 
-     * @return string The namespace prefix for all change classes.
-     */
-    public function getNamespace(): string {
-        return $this->ns;
-    }
-
-    /**
-     * Get the filesystem path where migration and seeder classes are located.
-     * 
-     * @return string The directory path containing change class files.
-     */
-    public function getPath(): string {
-        return $this->path;
-    }
-
-    /**
      * Check if a database change exists in the discovered changes.
      * 
      * @param string $name The class name of the change to check.
@@ -304,19 +292,11 @@ class SchemaRunner extends Database {
      * @return bool True if the change has been applied, false otherwise.
      */
     public function isApplied(string $name): bool {
-        try {
-            return $this->table('schema_changes')
-                    ->select(['change_name'])
-                    ->where('change_name', $name)
-                    ->execute()
-                    ->getRowsCount() == 1;
-        } catch (DatabaseException $ex) {
-            // If schema_changes table doesn't exist, no changes have been applied
-            if (strpos($ex->getMessage(), "doesn't exist") !== false) {
-                return false;
-            }
-            throw $ex;
-        }
+        return $this->table('schema_changes')
+                ->select(['change_name'])
+                ->where('change_name', $name)
+                ->execute()
+                ->getRowsCount() == 1;
     }
     /**
      * Rollback database changes up to a specific change.
@@ -362,7 +342,8 @@ class SchemaRunner extends Database {
     }
     private function attemptRoolback(DatabaseChange $change, &$rolled) : bool {
         try {
-            $change->rollback($this);
+            $migrationDb = $change->getDatabase() ?? $this;
+            $change->rollback($migrationDb);
             $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
             $rolled[] = $change;
 
@@ -399,36 +380,46 @@ class SchemaRunner extends Database {
         return null;
     }
 
-    private function scanPathForChanges() {
-        $changesPath = $this->getPath();
-
-        if (!is_dir($changesPath)) {
-            throw new DatabaseException('Invalid schema path: "'.$changesPath.'"');
-        }
-
-        $dirContents = array_diff(scandir($changesPath), ['.', '..']);
-
-        foreach ($dirContents as $file) {
-            if (is_file($changesPath.DIRECTORY_SEPARATOR.$file)) {
-                $clazz = $this->getNamespace().'\\'.explode('.', $file)[0];
-
-                try {
-                    if (class_exists($clazz)) {
-                        $instance = new $clazz();
-
-                        if ($instance instanceof DatabaseChange) {
-                            $this->dbChanges[] = $instance;
-                        }
-                    }
-                } catch (Exception|Error $ex) {
-                    foreach ($this->onRegErrCallbacks as $callback) {
-                        call_user_func_array($callback, [$ex]);
-                    }
+    /**
+     * Register a database change.
+     * 
+     * @param DatabaseChange|string $change The change instance or class name.
+     * @return bool True if registered successfully, false otherwise.
+     */
+    public function register(DatabaseChange|string $change): bool {
+        try {
+            if (is_string($change)) {
+                if (!class_exists($change)) {
+                    throw new Exception("Class does not exist: {$change}");
                 }
+                
+                if (!is_subclass_of($change, DatabaseChange::class)) {
+                    throw new Exception("Class is not a subclass of DatabaseChange: {$change}");
+                }
+                
+                $change = new $change();
             }
+            
+            $this->dbChanges[] = $change;
+            return true;
+            
+        } catch (Throwable $ex) {
+            foreach ($this->onRegErrCallbacks as $callback) {
+                call_user_func_array($callback, [$ex]);
+            }
+            return false;
         }
+    }
 
-        $this->sortChangesByDependencies();
+    /**
+     * Register multiple database changes.
+     * 
+     * @param array $changes Array of DatabaseChange instances or class names.
+     */
+    public function registerAll(array $changes): void {
+        foreach ($changes as $change) {
+            $this->register($change);
+        }
     }
 
     private function shouldRunInEnvironment(DatabaseChange $change): bool {
@@ -449,7 +440,7 @@ class SchemaRunner extends Database {
         $this->dbChanges = $sorted;
     }
 
-    private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting = []) {
+    private function topologicalSort(DatabaseChange $change, array &$visited, array &$sorted, array &$visiting) {
         $className = $change->getName();
 
         if (isset($visiting[$className])) {

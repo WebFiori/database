@@ -7,5 +7,5 @@
 /php_cs.php.dist export-ignore
 /phpunit.xml export-ignore
 /release-please-config.json export-ignore
-/examples
+/examples export-ignore
 /sonar-project.properties export-ignore

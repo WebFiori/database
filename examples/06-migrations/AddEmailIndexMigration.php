@@ -11,24 +11,7 @@ use WebFiori\Database\Schema\AbstractMigration;
  * This migration depends on the users table existing.
  */
 class AddEmailIndexMigration extends AbstractMigration {
-    /**
-     * Rollback the migration changes from the database.
-     * 
-     * Removes the unique index from the email column,
-     * allowing duplicate emails again.
-     * 
-     * @param Database $db The database instance to execute rollback on.
-     * @return bool True if rollback was successful, false otherwise.
-     */
-    public function down(Database $db): bool {
-        // Drop email index
-        $db->setQuery("ALTER TABLE users DROP INDEX idx_users_email")->execute();
-
-        return true;
-    }
-
-
-
+    
     /**
      * Get the list of migration dependencies.
      * 
@@ -38,9 +21,9 @@ class AddEmailIndexMigration extends AbstractMigration {
      * @return array Array of migration names this migration depends on.
      */
     public function getDependencies(): array {
-        return ['create_users_table'];
+        return ['CreateUsersTableMigration'];
     }
-
+    
     /**
      * Apply the migration changes to the database.
      * 
@@ -48,12 +31,22 @@ class AddEmailIndexMigration extends AbstractMigration {
      * email uniqueness and improve query performance.
      * 
      * @param Database $db The database instance to execute changes on.
-     * @return bool True if migration was successful, false otherwise.
      */
-    public function up(Database $db): bool {
+    public function up(Database $db): void {
         // Add unique index on email column
         $db->setQuery("ALTER TABLE users ADD UNIQUE INDEX idx_users_email (email)")->execute();
-
-        return true;
+    }
+    
+    /**
+     * Rollback the migration changes from the database.
+     * 
+     * Removes the unique index from the email column,
+     * allowing duplicate emails again.
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     */
+    public function down(Database $db): void {
+        // Drop email index
+        $db->setQuery("ALTER TABLE users DROP INDEX idx_users_email")->execute();
     }
 }

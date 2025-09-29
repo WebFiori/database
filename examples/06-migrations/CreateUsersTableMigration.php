@@ -1,9 +1,9 @@
 <?php
 
-use WebFiori\Database\ColOption;
+use WebFiori\Database\Schema\AbstractMigration;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
-use WebFiori\Database\Schema\AbstractMigration;
+use WebFiori\Database\ColOption;
 
 /**
  * Migration to create the users table.
@@ -13,24 +13,7 @@ use WebFiori\Database\Schema\AbstractMigration;
  * password hash, and creation timestamp.
  */
 class CreateUsersTableMigration extends AbstractMigration {
-    /**
-     * Rollback the migration changes from the database.
-     * 
-     * Drops the users table and all its data. This operation
-     * is irreversible and will result in data loss.
-     * 
-     * @param Database $db The database instance to execute rollback on.
-     * @return bool True if rollback was successful, false otherwise.
-     */
-    public function down(Database $db): bool {
-        // Drop users table
-        $db->setQuery("DROP TABLE IF EXISTS users")->execute();
-
-        return true;
-    }
-
-
-
+    
     /**
      * Apply the migration changes to the database.
      * 
@@ -38,9 +21,8 @@ class CreateUsersTableMigration extends AbstractMigration {
      * and basic profile information.
      * 
      * @param Database $db The database instance to execute changes on.
-     * @return bool True if migration was successful, false otherwise.
      */
-    public function up(Database $db): bool {
+    public function up(Database $db): void {
         // Create users table
         $db->createBlueprint('users')->addColumns([
             'id' => [
@@ -69,10 +51,21 @@ class CreateUsersTableMigration extends AbstractMigration {
                 ColOption::DEFAULT => 'current_timestamp'
             ]
         ]);
-
+        
         $db->createTables();
         $db->execute();
-
-        return true;
+    }
+    
+    /**
+     * Rollback the migration changes from the database.
+     * 
+     * Drops the users table and all its data. This operation
+     * is irreversible and will result in data loss.
+     * 
+     * @param Database $db The database instance to execute rollback on.
+     */
+    public function down(Database $db): void {
+        // Drop users table
+        $db->setQuery("DROP TABLE IF EXISTS users")->execute();
     }
 }
