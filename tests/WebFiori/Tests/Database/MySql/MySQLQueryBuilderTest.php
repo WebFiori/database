@@ -2179,4 +2179,28 @@ class MySQLQueryBuilderTest extends TestCase {
         $q->table('users')->selectCount('id');
         $this->assertEquals('select count(`users`.`id`) as `count` from `users`', $q->getQuery());
     }
+    /**
+     * @test
+     */
+    public function testStoredProcedureExecution() {
+        $schema = new MySQLTestSchema();
+        
+        // Clean up first in case procedure exists
+        $schema->raw("DROP PROCEDURE IF EXISTS GetUserCount")->execute();
+        
+        // Create stored procedure that returns results
+        $schema->raw("CREATE PROCEDURE GetUserCount() BEGIN SELECT COUNT(*) as user_count FROM users; END")->execute();
+        
+        // Execute stored procedure - this should call runOtherQuery and return results
+        $result = $schema->raw("CALL GetUserCount()")->execute();
+        $this->assertInstanceOf('WebFiori\\Database\\ResultSet', $result);
+        
+        $this->assertEquals(1, $result->getRowsCount());
+        $row = $result->getRows()[0];
+        $this->assertArrayHasKey('user_count', $row);
+        $this->assertIsNumeric($row['user_count']);
+        
+        // Clean up
+        $schema->raw("DROP PROCEDURE GetUserCount")->execute();
+    }
 }
