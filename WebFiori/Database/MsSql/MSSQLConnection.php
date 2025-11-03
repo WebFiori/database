@@ -244,6 +244,17 @@ class MSSQLConnection extends Connection {
             $this->setSqlErr();
 
             return false;
+        } else {
+            
+
+            if (sqlsrv_has_rows($r)) {
+                $data = [];
+                while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+                    $data[] = $row;
+                }
+                $this->setResultSet(new ResultSet($data));
+            }
+            
         }
 
         return true;
@@ -258,7 +269,7 @@ class MSSQLConnection extends Connection {
         if (is_resource($r)) {
             $data = [];
 
-            while ($row = sqlsrv_fetch_array($r,SQLSRV_FETCH_ASSOC)) {
+            while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }
             $this->setResultSet(new ResultSet($data));

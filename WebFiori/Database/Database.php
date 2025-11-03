@@ -351,13 +351,9 @@ class Database {
             throw new DatabaseException($conn->getLastErrCode().' - '.$conn->getLastErrMessage(), $conn->getLastErrCode());
         }
         $this->queries[] = $lastQuery;
-        $lastQueryType = $this->getQueryGenerator()->getLastQueryType();
         $this->clear();
-        $resultSet = null;
-
-        if (in_array($lastQueryType, ['select', 'show', 'describe'])) {
-            $resultSet = $this->getLastResultSet();
-        }
+        $resultSet = $this->getLastResultSet();
+        
         $this->getQueryGenerator()->setQuery(null);
 
         // Record performance metrics
@@ -808,6 +804,20 @@ class Database {
      * @throws DatabaseException
      */
     public function setQuery(string $query) : Database {
+
+        return $this->raw($query);
+    }
+    /**
+     * Sets the database query to a raw SQL query.
+     *
+     * @param string $query A string that represents the query.
+     *
+     * @return Database The method will return the same instance at which the
+     * method is called on.
+     *
+     * @throws DatabaseException
+     */
+    public function raw(string $query) : Database {
         $t = $this->getQueryGenerator()->getTable();
 
         if ($t !== null) {

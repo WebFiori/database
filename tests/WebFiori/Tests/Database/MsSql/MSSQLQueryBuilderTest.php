@@ -1324,4 +1324,28 @@ class MSSQLQueryBuilderTest extends TestCase{
                 ->groupBy('function');
         $this->assertEquals('select [reports_list].[function], count(*) as count from [reports_list] group by [reports_list].[function] order by [reports_list].[count]', $schema->getLastQuery());
     }
+    /**
+     * @test
+     */
+    public function testStoredProcedureExecution() {
+        $schema = new MSSQLTestSchema();
+        
+        // Clean up first in case procedure exists
+        $schema->raw("IF OBJECT_ID('GetUserCount', 'P') IS NOT NULL DROP PROCEDURE GetUserCount")->execute();
+        
+        // Create stored procedure that returns results
+        $schema->raw("CREATE PROCEDURE GetUserCount AS BEGIN SELECT COUNT(*) as user_count FROM users END")->execute();
+        
+        // Execute stored procedure - this should call runOtherQuery and return results
+        $result = $schema->raw("EXEC GetUserCount")->execute();
+        $this->assertInstanceOf('WebFiori\\Database\\ResultSet', $result);
+        
+        $this->assertEquals(1, $result->getRowsCount());
+        $row = $result->getRows()[0];
+        $this->assertArrayHasKey('user_count', $row);
+        $this->assertIsInt($row['user_count']);
+        
+        // Clean up
+        $schema->raw("DROP PROCEDURE GetUserCount")->execute();
+    }
 }
