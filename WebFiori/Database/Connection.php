@@ -46,7 +46,7 @@ abstract class Connection {
     /**
      * The result set which contains fetched data.
      * 
-     * @var ResultSet 
+     * @var ResultSet|MultiResultSet 
      */
     private $resultSet;
     /**
@@ -140,7 +140,7 @@ abstract class Connection {
     /**
      * Returns last result set.
      * 
-     * @return ResultSet|null The result set. If the result set is not set, the 
+     * @return ResultSet|MultiResultSet|null The result set. If the result set is not set, the 
      * method will return null.
      * 
      */
@@ -189,10 +189,10 @@ abstract class Connection {
     /**
      * Sets result set.
      * 
-     * @param ResultSet $result An object that represents result set.
+     * @param ResultSet|MultiResultSet $result An object that represents result set.
      * 
      */
-    public function setResultSet(ResultSet $result) {
+    public function setResultSet(ResultSet|MultiResultSet $result) {
         $this->resultSet = $result;
     }
 }

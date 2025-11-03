@@ -13,6 +13,7 @@ namespace WebFiori\Database\MsSql;
 
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Connection;
+use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\ResultSet;
@@ -235,51 +236,84 @@ class MSSQLConnection extends Connection {
         return $this->checkInsertOrUpdateResult($r);
     }
     private function runOtherQuery() {
-        $sql = $this->getLastQuery()->getQuery();
-        $queryBulder = $this->getLastQuery();
-
-        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+        $query = $this->getLastQuery();
+        $sql = $query->getQuery();
+        $r = sqlsrv_query($this->link, $sql, $query->getBindings());
 
         if (!is_resource($r)) {
             $this->setSqlErr();
-
             return false;
-        } else {
-            
+        }
 
-            if (sqlsrv_has_rows($r)) {
-                $data = [];
-                while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
-                    $data[] = $row;
-                }
-                $this->setResultSet(new ResultSet($data));
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        if (sqlsrv_has_rows($r)) {
+            $data = [];
+            while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+                $data[] = $row;
             }
-            
+            $allResults[] = $data;
+        } else {
+            $allResults[] = [];
+        }
+
+        // Additional result sets
+        while (sqlsrv_next_result($r)) {
+            $data = [];
+            while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+                $data[] = $row;
+            }
+            $allResults[] = $data;
+        }
+
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
         }
 
         return true;
     }
     private function runSelectQuery() {
-        $queryBulder = $this->getLastQuery();
-        $sql = $queryBulder->getQuery();
+        $query = $this->getLastQuery();
+        $sql = $query->getQuery();
+        $r = sqlsrv_query($this->link, $sql, $query->getBindings());
 
-        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+        if (!is_resource($r)) {
+            $this->setSqlErr();
+            return false;
+        }
 
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        $data = [];
+        while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+            $data[] = $row;
+        }
+        $allResults[] = $data;
 
-        if (is_resource($r)) {
+        // Additional result sets
+        while (sqlsrv_next_result($r)) {
             $data = [];
-
             while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }
-            $this->setResultSet(new ResultSet($data));
-
-            return true;
-        } else {
-            $this->setSqlErr();
-
-            return false;
+            $allResults[] = $data;
         }
+
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
+        }
+
+        return true;
     }
     private function runUpdateQuery() {
         $params = $this->getLastQuery()->getBindings();

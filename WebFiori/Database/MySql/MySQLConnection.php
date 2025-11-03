@@ -13,6 +13,7 @@ namespace WebFiori\Database\MySql;
 
 use mysqli;
 use mysqli_stmt;
+use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Connection;
 use WebFiori\Database\ConnectionInfo;
@@ -273,110 +274,117 @@ class MySQLConnection extends Connection {
         return $this->chechInsertOrUpdateResult($r);
     }
     private function runOtherQuery() {
-        $query = $this->getLastQuery()->getQuery();
-
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
 
-        $r = false;
-
+        // Execute query
         if (count($values) != 0 && !empty($params)) {
-            // Count the number of ? placeholders in the SQL
-            $paramCount = substr_count($sql, '?');
-
-            // Only use prepared statements if parameter counts match
-            if ($paramCount == count($values) && strlen($params) == count($values)) {
-                $sqlStatement = mysqli_prepare($this->link, $sql);
-                $sqlStatement->bind_param($params, ...$values);
-                $sqlStatement->execute();
-                $r = $sqlStatement->get_result();
-
-                if ($sqlStatement) {
-                    mysqli_stmt_close($sqlStatement);
-                }
-            } else {
-                // Fall back to regular query if there's a mismatch
-                $r = mysqli_query($this->link, $sql);
-            }
+            $stmt = mysqli_prepare($this->link, $sql);
+            mysqli_stmt_bind_param($stmt, $params, ...$values);
+            mysqli_stmt_execute($stmt);
+            $r = mysqli_stmt_get_result($stmt);
+            mysqli_stmt_close($stmt);
         } else {
-            $r = mysqli_query($this->link, $query);
+            $r = mysqli_query($this->link, $sql);
         }
 
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
             return false;
+        }
+
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        if (is_object($r) && method_exists($r, 'fetch_assoc')) {
+            $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
+            $allResults[] = $rows;
+            mysqli_free_result($r);
         } else {
-            $this->setErrMessage('NO ERRORS');
-            $this->setErrCode(0);
-            $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
-            
-            // Handle result sets
-            
-            if (gettype($r) == 'object' && method_exists($r, 'fetch_assoc')) {
-                $data = [];
-                while ($row = $r->fetch_assoc()) {
-                    $data[] = $row;
-                }
-                $this->setResultSet(new ResultSet($data));
-                mysqli_free_result($r);
-            }
-            
-            // Clean up any additional result sets (for stored procedures)
-            while (mysqli_more_results($this->link)) {
-                mysqli_next_result($this->link);
-                if ($result = mysqli_store_result($this->link)) {
-                    mysqli_free_result($result);
-                }
+            $allResults[] = [];
+        }
+
+        // Additional result sets
+        while (mysqli_more_results($this->link)) {
+            mysqli_next_result($this->link);
+            if ($result = mysqli_store_result($this->link)) {
+                $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+                $allResults[] = $rows;
+                mysqli_free_result($result);
             }
         }
 
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
+        }
+
+        $this->setErrCode(0);
         return true;
     }
+    /**
+     * Get the mysqli link for testing purposes.
+     * 
+     * @return mysqli The mysqli connection link
+     */
+    public function getMysqliLink() {
+        return $this->link;
+    }
+    
     private function runSelectQuery() {
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
 
+        // Execute query
         if (count($values) != 0) {
-            $sqlStatement = mysqli_prepare($this->link, $sql);
-            $sqlStatement->bind_param($params, ...$values);
-            $r = $sqlStatement->execute();
-
-            if ($r) {
-                $r = mysqli_stmt_get_result($sqlStatement);
-            }
-
-            if ($sqlStatement) {
-                mysqli_stmt_close($sqlStatement);
-            }
+            $stmt = mysqli_prepare($this->link, $sql);
+            mysqli_stmt_bind_param($stmt, $params, ...$values);
+            mysqli_stmt_execute($stmt);
+            $r = mysqli_stmt_get_result($stmt);
+            mysqli_stmt_close($stmt);
         } else {
-            $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
+            $r = mysqli_query($this->link, $sql);
         }
 
-
-
-        if ($r) {
-            $this->setErrCode(0);
-            $rows = [];
-
-            if (function_exists('mysqli_fetch_all')) {
-                $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
-            } else {
-                while ($row = $r->fetch_assoc()) {
-                    $rows[] = $row;
-                }
-            }
-            $this->setResultSet(new ResultSet($rows));
-
-            return true;
-        } else {
+        if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
-
             return false;
         }
+
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
+        $allResults[] = $rows;
+        mysqli_free_result($r);
+
+        // Additional result sets
+        while (mysqli_more_results($this->link)) {
+            mysqli_next_result($this->link);
+            if ($result = mysqli_store_result($this->link)) {
+                $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+                $allResults[] = $rows;
+                mysqli_free_result($result);
+            }
+        }
+
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
+        }
+
+        $this->setErrCode(0);
+        return true;
     }
     private function runUpdateQuery() {
         $sqlStatement = mysqli_prepare($this->link, $this->getLastQuery()->getQuery());
