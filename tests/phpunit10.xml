@@ -21,7 +21,9 @@
     <testsuite name="Schema Tests">
       <directory>./WebFiori/Tests/Database/Schema</directory>
     </testsuite>
-
+    <testsuite name="MultiResultSet Tests">
+      <file>./MultiResultSetTest.php</file>
+    </testsuite>
   </testsuites>
   <source>
     <include>
@@ -29,7 +31,6 @@
       <directory suffix=".php">../WebFiori/Database/MySql</directory>
       <directory suffix=".php">../WebFiori/Database</directory>
       <directory suffix=".php">../WebFiori/Database/Schema</directory>
-
     </include>
   </source>
 </phpunit>
