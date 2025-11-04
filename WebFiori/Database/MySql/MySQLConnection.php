@@ -172,12 +172,14 @@ class MySQLConnection extends Connection {
      * 
      * @param AbstractQuery $query A query builder that has the generated MySQL 
      * query.
+    /**
+     * Execute a query and return execution status.
      * 
-     * @return bool If the query successfully executed, the method will return 
-     * true. Other than that, the method will return true.
+     * @param AbstractQuery|null $query The query to execute. If null, uses the last set query.
      * 
+     * @return bool True if the query executed successfully, false if there were errors.
      */
-    public function runQuery(?AbstractQuery $query = null) {
+    public function runQuery(?AbstractQuery $query = null): bool {
         $this->setLastQuery($query);
 
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate() && !$this->isCollationSet) {
@@ -202,21 +204,23 @@ class MySQLConnection extends Connection {
         $this->addToExecuted($query->getQuery());
 
         try {
+            $result = false;
             if ($qType == 'insert') {
-                return $this->runInsertQuery();
+                $result = $this->runInsertQuery();
             } else if ($qType == 'update') {
-                return $this->runUpdateQuery();
+                $result = $this->runUpdateQuery();
             } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
-                return $this->runSelectQuery();
+                $result = $this->runSelectQuery();
             } else {
-                return $this->runOtherQuery();
+                $result = $this->runOtherQuery();
             }
+            $query->resetBinding();
+            return $result;
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
             $this->setErrMessage($ex->getMessage());
             throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode(), $this->getLastQuery()->getQuery(), $ex);
         }
-        $query->resetBinding();
     }
     private function chechInsertOrUpdateResult($r) {
         $retVal = false;
@@ -277,19 +281,25 @@ class MySQLConnection extends Connection {
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
-
+        $successExec = false;
+        $r = null;
         // Execute query
         if (count($values) != 0 && !empty($params)) {
-            $stmt = mysqli_prepare($this->link, $sql);
-            mysqli_stmt_bind_param($stmt, $params, ...$values);
-            mysqli_stmt_execute($stmt);
-            $r = mysqli_stmt_get_result($stmt);
-            mysqli_stmt_close($stmt);
+            $paramCount = substr_count($sql, '?');
+            if ($paramCount == count($values) && strlen($params) == count($values)) {
+                $stmt = mysqli_prepare($this->link, $sql);
+                mysqli_stmt_bind_param($stmt, $params, ...$values);
+                $successExec = mysqli_stmt_execute($stmt);
+                $r = mysqli_stmt_get_result($stmt);
+                mysqli_stmt_close($stmt);
+            } else {
+                $r = mysqli_query($this->link, $sql);
+            }
         } else {
             $r = mysqli_query($this->link, $sql);
         }
 
-        if (!$r) {
+        if (($r === null || $r === false) && !$successExec) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
             return false;
@@ -303,8 +313,6 @@ class MySQLConnection extends Connection {
             $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
             $allResults[] = $rows;
             mysqli_free_result($r);
-        } else {
-            $allResults[] = [];
         }
 
         // Additional result sets
@@ -320,7 +328,7 @@ class MySQLConnection extends Connection {
         // Set result
         if (count($allResults) > 1) {
             $this->setResultSet(new MultiResultSet($allResults));
-        } else {
+        } else if (count($allResults) == 1) {
             $this->setResultSet(new ResultSet($allResults[0]));
         }
 
