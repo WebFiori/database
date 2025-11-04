@@ -63,6 +63,7 @@ abstract class Connection {
         $this->connParams = $connInfo;
         $this->executedQueries = [];
         $this->lastErrCode = 0;
+        $this->lastErrMsg = 'NO ERROR';
 
         if (!$this->connect()) {
             throw new DatabaseException('Unable to connect to database: '.$this->getLastErrCode().' - '.$this->getLastErrMessage(), $this->getLastErrCode());
