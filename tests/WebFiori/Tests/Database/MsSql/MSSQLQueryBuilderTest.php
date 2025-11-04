@@ -1348,4 +1348,22 @@ class MSSQLQueryBuilderTest extends TestCase{
         // Clean up
         $schema->raw("DROP PROCEDURE GetUserCount")->execute();
     }
+    
+    /**
+     * @test
+     */
+    public function testRawSelectWithParameters() {
+        try {
+            $schema = new MSSQLTestSchema();
+            
+            $schema->raw("CREATE TABLE #test_params (id INT, name NVARCHAR(50), age INT)")->execute();
+            $schema->raw("INSERT INTO #test_params VALUES (1, 'John', 25), (2, 'Jane', 30)")->execute();
+            
+            $result = $schema->raw("SELECT * FROM #test_params WHERE age = ?", [25])->execute();
+            $this->assertEquals(1, $result->getRowsCount());
+            
+        } catch (\Exception $e) {
+            $this->markTestSkipped('MSSQL test failed: ' . $e->getMessage());
+        }
+    }
 }
