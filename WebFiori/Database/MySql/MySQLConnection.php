@@ -252,7 +252,7 @@ class MySQLConnection extends Connection {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
 
         if ($insertBuilder === null) {
-            return false;
+            return $this->runOtherQuery();
         } 
 
         $sqlStatement = mysqli_prepare($this->link, $insertBuilder->getQuery());
