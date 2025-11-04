@@ -226,7 +226,7 @@ class MSSQLConnection extends Connection {
         $sql = $this->getLastQuery()->getQuery();
 
         if ($insertBuilder === null) {
-            return false;
+            return $this->runOtherQuery();
         }
 
         $params = $insertBuilder->getQueryParams();
