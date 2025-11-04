@@ -35,6 +35,11 @@ class SchemaAdvancedTest extends TestCase {
         try {
             $runner = new SchemaRunner($this->getConnectionInfo());
             $runner->registerAll([TestMigration::class, TestSeeder::class]);
+            try {
+                $runner->dropSchemaTable();
+            } catch (DatabaseException $ex) {
+                // Table might not exist, ignore
+            }
             $runner->createSchemaTable();
             
             // Just test that we have changes registered
