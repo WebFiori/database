@@ -177,13 +177,14 @@ class MSSQLConnection extends Connection {
      * Execute MSSQL query.
      * 
      * @param AbstractQuery $query A query builder that has the generated MSSQL 
-     * query.
+    /**
+     * Execute a query and return execution status.
      * 
-     * @return bool If the query successfully executed, the method will return 
-     * true. Other than that, the method will return false.
+     * @param AbstractQuery|null $query The query to execute. If null, uses the last set query.
      * 
+     * @return bool True if the query executed successfully, false if there were errors.
      */
-    public function runQuery(?AbstractQuery $query = null) {
+    public function runQuery(?AbstractQuery $query = null): bool {
         $this->addToExecuted($query->getQuery());
         $this->setLastQuery($query);
 
