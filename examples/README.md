@@ -12,6 +12,7 @@ This directory contains practical examples demonstrating how to use the WebFiori
 6. **[06-migrations](06-migrations/)** - Database schema migrations and versioning
 7. **[07-seeders](07-seeders/)** - Database data seeding and population
 8. **[08-performance-monitoring](08-performance-monitoring/)** - Query performance tracking and analysis
+9. **[09-multi-result-queries](09-multi-result-queries/)** - Multi-result query handling and stored procedures
 
 ## Prerequisites
 
@@ -93,6 +94,13 @@ You can modify the connection parameters in each example as needed.
 - Identifying slow queries and performance bottlenecks
 - Using `PerformanceAnalyzer` for detailed analysis
 - Performance optimization recommendations
+
+### 09-multi-result-queries
+- Executing stored procedures that return multiple result sets
+- Working with `MultiResultSet` objects
+- Processing individual result sets from multi-result queries
+- Parameterized stored procedure calls using `raw()` method
+- Complex business reporting with multiple data views
 
 ## Notes
 
