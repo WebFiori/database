@@ -25,6 +25,7 @@
         </testsuite>
         <testsuite name="MSSQL Tests">
             <directory>./WebFiori/Tests/Database/MsSql</directory>
+            <exclude>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</exclude>
         </testsuite>
         <testsuite name="MSSQL Multi-Result Tests">
             <file>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</file>
