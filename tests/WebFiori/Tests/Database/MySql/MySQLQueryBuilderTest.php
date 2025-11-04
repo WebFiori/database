@@ -2203,4 +2203,35 @@ class MySQLQueryBuilderTest extends TestCase {
         // Clean up
         $schema->raw("DROP PROCEDURE GetUserCount")->execute();
     }
+    
+    /**
+     * @test
+     */
+    public function testRawSelectWithParameters() {
+        $schema = new MySQLTestSchema();
+        
+        $schema->raw("CREATE TEMPORARY TABLE test_params (id INT, name VARCHAR(50), age INT)")->execute();
+        $schema->raw("INSERT INTO test_params VALUES (1, 'John', 25), (2, 'Jane', 30), (3, 'Bob', 25)")->execute();
+        
+        $result = $schema->raw("SELECT * FROM test_params WHERE age = ?", [25])->execute();
+        $this->assertEquals(2, $result->getRowsCount());
+        
+        $result = $schema->raw("SELECT * FROM test_params WHERE name = ? AND age = ?", ['John', 25])->execute();
+        $this->assertEquals(1, $result->getRowsCount());
+        $this->assertEquals('John', $result->getRows()[0]['name']);
+    }
+    
+    /**
+     * @test
+     */
+    public function testRawInsertWithParameters() {
+        $schema = new MySQLTestSchema();
+        
+        $schema->raw("CREATE TEMPORARY TABLE test_insert (id INT, name VARCHAR(50), email VARCHAR(100))")->execute();
+        $schema->raw("INSERT INTO test_insert (id, name, email) VALUES (?, ?, ?)", [1, 'Alice', 'alice@test.com'])->execute();
+        
+        $result = $schema->raw("SELECT * FROM test_insert WHERE id = ?", [1])->execute();
+        $this->assertEquals(1, $result->getRowsCount());
+        $this->assertEquals('Alice', $result->getRows()[0]['name']);
+    }
 }
