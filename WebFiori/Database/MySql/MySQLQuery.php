@@ -335,6 +335,25 @@ class MySQLQuery extends AbstractQuery {
         ];
     }
     public function setBindings(array $bindings, string $merge = 'none') {
+        // Check if it's a simple array (raw parameters) vs structured array
+        if (!isset($bindings['bind']) && !isset($bindings['values'])) {
+            // Simple array - convert to structured format
+            $bindString = '';
+            foreach ($bindings as $value) {
+                if (is_int($value)) {
+                    $bindString .= 'i';
+                } elseif (is_float($value) || is_double($value)) {
+                    $bindString .= 'd';
+                } else {
+                    $bindString .= 's';
+                }
+            }
+            $bindings = [
+                'bind' => $bindString,
+                'values' => $bindings
+            ];
+        }
+        
         $currentBinding = $this->bindings['bind'];
         $values = $this->bindings['values'];
 

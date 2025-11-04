@@ -803,9 +803,9 @@ class Database {
      *
      * @throws DatabaseException
      */
-    public function setQuery(string $query) : Database {
+    public function setQuery(string $query, array $params = []) : Database {
 
-        return $this->raw($query);
+        return $this->raw($query, $params);
     }
     /**
      * Sets the database query to a raw SQL query.
@@ -817,14 +817,14 @@ class Database {
      *
      * @throws DatabaseException
      */
-    public function raw(string $query) : Database {
+    public function raw(string $query, array $params = []) : Database {
         $t = $this->getQueryGenerator()->getTable();
 
         if ($t !== null) {
             $t->getSelect()->clear();
         }
         $this->getQueryGenerator()->setQuery($query);
-
+        $this->getQueryGenerator()->setBindings($params);
         return $this;
     }
     /**
