@@ -13,6 +13,7 @@ namespace WebFiori\Database\MsSql;
 
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Connection;
+use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\ResultSet;
@@ -176,13 +177,14 @@ class MSSQLConnection extends Connection {
      * Execute MSSQL query.
      * 
      * @param AbstractQuery $query A query builder that has the generated MSSQL 
-     * query.
+    /**
+     * Execute a query and return execution status.
      * 
-     * @return bool If the query successfully executed, the method will return 
-     * true. Other than that, the method will return false.
+     * @param AbstractQuery|null $query The query to execute. If null, uses the last set query.
      * 
+     * @return bool True if the query executed successfully, false if there were errors.
      */
-    public function runQuery(?AbstractQuery $query = null) {
+    public function runQuery(?AbstractQuery $query = null): bool {
         $this->addToExecuted($query->getQuery());
         $this->setLastQuery($query);
 
@@ -224,7 +226,7 @@ class MSSQLConnection extends Connection {
         $sql = $this->getLastQuery()->getQuery();
 
         if ($insertBuilder === null) {
-            return false;
+            return $this->runOtherQuery();
         }
 
         $params = $insertBuilder->getQueryParams();
@@ -235,51 +237,84 @@ class MSSQLConnection extends Connection {
         return $this->checkInsertOrUpdateResult($r);
     }
     private function runOtherQuery() {
-        $sql = $this->getLastQuery()->getQuery();
-        $queryBulder = $this->getLastQuery();
-
-        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+        $query = $this->getLastQuery();
+        $sql = $query->getQuery();
+        $r = sqlsrv_query($this->link, $sql, $query->getBindings());
 
         if (!is_resource($r)) {
             $this->setSqlErr();
-
             return false;
-        } else {
-            
+        }
 
-            if (sqlsrv_has_rows($r)) {
-                $data = [];
-                while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
-                    $data[] = $row;
-                }
-                $this->setResultSet(new ResultSet($data));
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        if (sqlsrv_has_rows($r)) {
+            $data = [];
+            while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+                $data[] = $row;
             }
-            
+            $allResults[] = $data;
+        } else {
+            $allResults[] = [];
+        }
+
+        // Additional result sets
+        while (sqlsrv_next_result($r)) {
+            $data = [];
+            while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+                $data[] = $row;
+            }
+            $allResults[] = $data;
+        }
+
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
         }
 
         return true;
     }
     private function runSelectQuery() {
-        $queryBulder = $this->getLastQuery();
-        $sql = $queryBulder->getQuery();
+        $query = $this->getLastQuery();
+        $sql = $query->getQuery();
+        $r = sqlsrv_query($this->link, $sql, $query->getBindings());
 
-        $r = sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+        if (!is_resource($r)) {
+            $this->setSqlErr();
+            return false;
+        }
 
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        $data = [];
+        while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
+            $data[] = $row;
+        }
+        $allResults[] = $data;
 
-        if (is_resource($r)) {
+        // Additional result sets
+        while (sqlsrv_next_result($r)) {
             $data = [];
-
             while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }
-            $this->setResultSet(new ResultSet($data));
-
-            return true;
-        } else {
-            $this->setSqlErr();
-
-            return false;
+            $allResults[] = $data;
         }
+
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
+        }
+
+        return true;
     }
     private function runUpdateQuery() {
         $params = $this->getLastQuery()->getBindings();

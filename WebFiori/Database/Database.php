@@ -334,7 +334,7 @@ class Database {
      * <li>An error has occurred while executing the query.</li>
      * </ul>
      * 
-     * @return ResultSet|null If the last executed query was a select, show or 
+     * @return ResultSet|MultiRsultSet|null If the last executed query was a select, show or 
      * describe query, the method will return an object of type 'ResultSet' that 
      * holds fetched records. Other than that, the method will return null.
      * 
@@ -447,7 +447,7 @@ class Database {
      * Returns the last result set which was generated from executing a query such
      * as a 'select' query.
      *
-     * @return ResultSet|null The last result set. If no result set is available,
+     * @return ResultSet|MultiResultSet|null The last result set. If no result set is available,
      * the method will return null.
      */
     public function getLastResultSet() {

@@ -13,6 +13,7 @@ namespace WebFiori\Database\MySql;
 
 use mysqli;
 use mysqli_stmt;
+use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Connection;
 use WebFiori\Database\ConnectionInfo;
@@ -171,12 +172,14 @@ class MySQLConnection extends Connection {
      * 
      * @param AbstractQuery $query A query builder that has the generated MySQL 
      * query.
+    /**
+     * Execute a query and return execution status.
      * 
-     * @return bool If the query successfully executed, the method will return 
-     * true. Other than that, the method will return true.
+     * @param AbstractQuery|null $query The query to execute. If null, uses the last set query.
      * 
+     * @return bool True if the query executed successfully, false if there were errors.
      */
-    public function runQuery(?AbstractQuery $query = null) {
+    public function runQuery(?AbstractQuery $query = null): bool {
         $this->setLastQuery($query);
 
         if ($query instanceof MySQLQuery && !$query->isBlobInsertOrUpdate() && !$this->isCollationSet) {
@@ -201,21 +204,23 @@ class MySQLConnection extends Connection {
         $this->addToExecuted($query->getQuery());
 
         try {
+            $result = false;
             if ($qType == 'insert') {
-                return $this->runInsertQuery();
+                $result = $this->runInsertQuery();
             } else if ($qType == 'update') {
-                return $this->runUpdateQuery();
+                $result = $this->runUpdateQuery();
             } else if ($qType == 'select' || $qType == 'show' || $qType == 'describe') {
-                return $this->runSelectQuery();
+                $result = $this->runSelectQuery();
             } else {
-                return $this->runOtherQuery();
+                $result = $this->runOtherQuery();
             }
+            $query->resetBinding();
+            return $result;
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
             $this->setErrMessage($ex->getMessage());
             throw new DatabaseException($ex->getCode().' - '.$ex->getMessage(), $ex->getCode(), $this->getLastQuery()->getQuery(), $ex);
         }
-        $query->resetBinding();
     }
     private function chechInsertOrUpdateResult($r) {
         $retVal = false;
@@ -247,7 +252,7 @@ class MySQLConnection extends Connection {
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
 
         if ($insertBuilder === null) {
-            return false;
+            return $this->runOtherQuery();
         } 
 
         $sqlStatement = mysqli_prepare($this->link, $insertBuilder->getQuery());
@@ -273,110 +278,121 @@ class MySQLConnection extends Connection {
         return $this->chechInsertOrUpdateResult($r);
     }
     private function runOtherQuery() {
-        $query = $this->getLastQuery()->getQuery();
+        $sql = $this->getLastQuery()->getQuery();
+        $params = $this->getLastQuery()->getBindings()['bind'];
+        $values = array_merge($this->getLastQuery()->getBindings()['values']);
+        $successExec = false;
+        $r = null;
+        // Execute query
+        if (count($values) != 0 && !empty($params)) {
+            $paramCount = substr_count($sql, '?');
+            if ($paramCount == count($values) && strlen($params) == count($values)) {
+                $stmt = mysqli_prepare($this->link, $sql);
+                mysqli_stmt_bind_param($stmt, $params, ...$values);
+                $successExec = mysqli_stmt_execute($stmt);
+                $r = mysqli_stmt_get_result($stmt);
+                mysqli_stmt_close($stmt);
+            } else {
+                $r = mysqli_query($this->link, $sql);
+            }
+        } else {
+            $r = mysqli_query($this->link, $sql);
+        }
 
+        if (($r === null || $r === false) && !$successExec) {
+            $this->setErrMessage($this->link->error);
+            $this->setErrCode($this->link->errno);
+            return false;
+        }
+
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        if (is_object($r) && method_exists($r, 'fetch_assoc')) {
+            $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
+            $allResults[] = $rows;
+            mysqli_free_result($r);
+        }
+
+        // Additional result sets
+        while (mysqli_more_results($this->link)) {
+            mysqli_next_result($this->link);
+            if ($result = mysqli_store_result($this->link)) {
+                $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+                $allResults[] = $rows;
+                mysqli_free_result($result);
+            }
+        }
+
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else if (count($allResults) == 1) {
+            $this->setResultSet(new ResultSet($allResults[0]));
+        }
+
+        $this->setErrCode(0);
+        return true;
+    }
+    /**
+     * Get the mysqli link for testing purposes.
+     * 
+     * @return mysqli The mysqli connection link
+     */
+    public function getMysqliLink() {
+        return $this->link;
+    }
+    
+    private function runSelectQuery() {
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
 
-        $r = false;
-
-        if (count($values) != 0 && !empty($params)) {
-            // Count the number of ? placeholders in the SQL
-            $paramCount = substr_count($sql, '?');
-
-            // Only use prepared statements if parameter counts match
-            if ($paramCount == count($values) && strlen($params) == count($values)) {
-                $sqlStatement = mysqli_prepare($this->link, $sql);
-                $sqlStatement->bind_param($params, ...$values);
-                $sqlStatement->execute();
-                $r = $sqlStatement->get_result();
-
-                if ($sqlStatement) {
-                    mysqli_stmt_close($sqlStatement);
-                }
-            } else {
-                // Fall back to regular query if there's a mismatch
-                $r = mysqli_query($this->link, $sql);
-            }
+        // Execute query
+        if (count($values) != 0) {
+            $stmt = mysqli_prepare($this->link, $sql);
+            mysqli_stmt_bind_param($stmt, $params, ...$values);
+            mysqli_stmt_execute($stmt);
+            $r = mysqli_stmt_get_result($stmt);
+            mysqli_stmt_close($stmt);
         } else {
-            $r = mysqli_query($this->link, $query);
+            $r = mysqli_query($this->link, $sql);
         }
 
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
             return false;
-        } else {
-            $this->setErrMessage('NO ERRORS');
-            $this->setErrCode(0);
-            $this->getLastQuery()->setIsBlobInsertOrUpdate(false);
-            
-            // Handle result sets
-            
-            if (gettype($r) == 'object' && method_exists($r, 'fetch_assoc')) {
-                $data = [];
-                while ($row = $r->fetch_assoc()) {
-                    $data[] = $row;
-                }
-                $this->setResultSet(new ResultSet($data));
-                mysqli_free_result($r);
-            }
-            
-            // Clean up any additional result sets (for stored procedures)
-            while (mysqli_more_results($this->link)) {
-                mysqli_next_result($this->link);
-                if ($result = mysqli_store_result($this->link)) {
-                    mysqli_free_result($result);
-                }
+        }
+
+        // Collect all result sets
+        $allResults = [];
+        
+        // First result set
+        $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
+        $allResults[] = $rows;
+        mysqli_free_result($r);
+
+        // Additional result sets
+        while (mysqli_more_results($this->link)) {
+            mysqli_next_result($this->link);
+            if ($result = mysqli_store_result($this->link)) {
+                $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+                $allResults[] = $rows;
+                mysqli_free_result($result);
             }
         }
 
+        // Set result
+        if (count($allResults) > 1) {
+            $this->setResultSet(new MultiResultSet($allResults));
+        } else {
+            $this->setResultSet(new ResultSet($allResults[0]));
+        }
+
+        $this->setErrCode(0);
         return true;
-    }
-    private function runSelectQuery() {
-        $sql = $this->getLastQuery()->getQuery();
-        $params = $this->getLastQuery()->getBindings()['bind'];
-        $values = array_merge($this->getLastQuery()->getBindings()['values']);
-
-        if (count($values) != 0) {
-            $sqlStatement = mysqli_prepare($this->link, $sql);
-            $sqlStatement->bind_param($params, ...$values);
-            $r = $sqlStatement->execute();
-
-            if ($r) {
-                $r = mysqli_stmt_get_result($sqlStatement);
-            }
-
-            if ($sqlStatement) {
-                mysqli_stmt_close($sqlStatement);
-            }
-        } else {
-            $r = mysqli_query($this->link, $this->getLastQuery()->getQuery());
-        }
-
-
-
-        if ($r) {
-            $this->setErrCode(0);
-            $rows = [];
-
-            if (function_exists('mysqli_fetch_all')) {
-                $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
-            } else {
-                while ($row = $r->fetch_assoc()) {
-                    $rows[] = $row;
-                }
-            }
-            $this->setResultSet(new ResultSet($rows));
-
-            return true;
-        } else {
-            $this->setErrMessage($this->link->error);
-            $this->setErrCode($this->link->errno);
-
-            return false;
-        }
     }
     private function runUpdateQuery() {
         $sqlStatement = mysqli_prepare($this->link, $this->getLastQuery()->getQuery());

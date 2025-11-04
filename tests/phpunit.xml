@@ -20,11 +20,21 @@
         <testsuite name="MySQL Tests">
             <directory>./WebFiori/Tests/Database/MySql</directory>
         </testsuite>
+        <testsuite name="MySQL Multi-Result Tests">
+            <file>./WebFiori/Tests/Database/MySql/MySQLMultiResultTest.php</file>
+        </testsuite>
         <testsuite name="MSSQL Tests">
             <directory>./WebFiori/Tests/Database/MsSql</directory>
+            <exclude>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</exclude>
+        </testsuite>
+        <testsuite name="MSSQL Multi-Result Tests">
+            <file>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</file>
         </testsuite>
         <testsuite name="Schema Tests">
             <directory>./WebFiori/Tests/Database/Schema</directory>
+        </testsuite>
+        <testsuite name="MultiResultSet Tests">
+            <file>./MultiResultSetTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
