@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.2.0](https://github.com/WebFiori/database/compare/v1.1.0...v1.2.0) (2025-11-05)
+
+
+### Features
+
+* mult-results ([3c275de](https://github.com/WebFiori/database/commit/3c275de161ef4444a1242f9916d5a74a0ef2d68b))
+* Multi Result Set ([8e0e4ab](https://github.com/WebFiori/database/commit/8e0e4aba4388db782b71fad95515d250b1791426))
+* Multi Result Set ([8fecbf8](https://github.com/WebFiori/database/commit/8fecbf8af0d037abe75fa47f08d5140b0e4a213b))
+* Parameterized Raw ([963743b](https://github.com/WebFiori/database/commit/963743bc52281948f8f88dde3c30b617fbd3535b))
+* Parameterized Raw ([098285e](https://github.com/WebFiori/database/commit/098285e04e642b0b797040f7e016459393a14c3e))
+* Result Set Even for Other Type of Queries ([14e9e5c](https://github.com/WebFiori/database/commit/14e9e5c20e5f6bf23b4ba050812386a2041e7d29))
+* Result Set Even for Other Type of Queries ([91551c7](https://github.com/WebFiori/database/commit/91551c70abbc9c7436344cf2a0e0aa0e233c3c42))
+
+
+### Miscellaneous Chores
+
+* Configurations Update ([3705e5d](https://github.com/WebFiori/database/commit/3705e5d97782fb3318c665cff289c433c65ad682))
+* Merge pull request [#114](https://github.com/WebFiori/database/issues/114) from WebFiori/dev ([14e9e5c](https://github.com/WebFiori/database/commit/14e9e5c20e5f6bf23b4ba050812386a2041e7d29))
+* Merge pull request [#115](https://github.com/WebFiori/database/issues/115) from WebFiori/dev ([8e0e4ab](https://github.com/WebFiori/database/commit/8e0e4aba4388db782b71fad95515d250b1791426))
+* Merge pull request [#117](https://github.com/WebFiori/database/issues/117) from WebFiori/dev ([963743b](https://github.com/WebFiori/database/commit/963743bc52281948f8f88dde3c30b617fbd3535b))
+* Merge pull request [#118](https://github.com/WebFiori/database/issues/118) from WebFiori/dev ([43192d2](https://github.com/WebFiori/database/commit/43192d2d0054168a677a713ae45c7b779cb5cb85))
+
 ## [1.1.0](https://github.com/WebFiori/database/compare/v1.0.0...v1.1.0) (2025-09-29)
 
 
