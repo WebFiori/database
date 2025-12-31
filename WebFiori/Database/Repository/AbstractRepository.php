@@ -59,7 +59,8 @@ abstract class AbstractRepository {
         
         $query = $this->db->table($this->getTableName())
             ->select()
-            ->limit($perPage, $offset);
+            ->limit($perPage)
+            ->offset($offset);
         
         if (!empty($orderBy)) {
             $query->orderBy($orderBy);
