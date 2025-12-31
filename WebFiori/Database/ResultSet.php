@@ -51,6 +51,18 @@ class ResultSet implements Countable, Iterator {
     public function __construct(array $resultArr = []) {
         $this->setData($resultArr);
     }
+    public function fetchAll() : array {
+        return $this->getRows();
+    }
+    public function getCount() : int {
+        return $this->getRowsCount();
+    }
+    public function fetch() : array {
+        if ($this->getCount() > 0) {
+            return $this->fetchAll()[0];
+        }
+        return [];
+    }
     /**
      * Reset the values in the set to default values.
      * 
