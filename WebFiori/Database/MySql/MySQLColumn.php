@@ -14,7 +14,7 @@ namespace WebFiori\Database\MySql;
 use WebFiori\Database\Column;
 use WebFiori\Database\ColumnFactory;
 use WebFiori\Database\DatabaseException;
-use WebFiori\Database\DateTimeValidator;
+use WebFiori\Database\Util\DateTimeValidator;
 use WebFiori\Database\Table;
 
 /**

@@ -8,7 +8,10 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Entity;
+
+use WebFiori\Database\Table;
+use WebFiori\Database\Column;
 
 /**
  * Entity code generator using PHP 8 features.

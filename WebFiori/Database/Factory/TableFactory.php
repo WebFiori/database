@@ -9,10 +9,13 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Factory;
 
 use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Table;
+use WebFiori\Database\DatabaseException;
+use WebFiori\Database\ConnectionInfo;
 
 /**
  *

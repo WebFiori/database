@@ -18,6 +18,7 @@ use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLConnection;
 use WebFiori\Database\MySql\MySQLQuery;
 use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Factory\TableFactory;
 use WebFiori\Database\Performance\PerformanceOption;
 use WebFiori\Database\Performance\QueryPerformanceMonitor;
 /**

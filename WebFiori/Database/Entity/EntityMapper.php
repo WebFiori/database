@@ -9,11 +9,13 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Entity;
 
 use InvalidArgumentException;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
+use WebFiori\Database\Table;
+use WebFiori\Database\Column;
 /**
  * Code generator for creating entity classes from table blueprints.
  * 

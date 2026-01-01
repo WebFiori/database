@@ -9,7 +9,7 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Entity;
 
 /**
  * A class which is used to map a database record to a system entity.

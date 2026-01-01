@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 use UserClass;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
-use WebFiori\Database\EntityMapper;
+use WebFiori\Database\Entity\EntityMapper;
 use WebFiori\Tests\Database\MySql\MySQLTestSchema;
 
 /**
