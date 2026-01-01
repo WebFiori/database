@@ -34,39 +34,77 @@ class AttributeTableBuilder {
         $columns = [];
         $foreignKeys = [];
         
-        foreach ($reflection->getProperties() as $property) {
-            $columnAttrs = $property->getAttributes(Column::class);
-            
-            if (empty($columnAttrs)) {
-                continue;
+        // Check for class-level Column attributes
+        $classColumnAttrs = $reflection->getAttributes(Column::class);
+        
+        if (!empty($classColumnAttrs)) {
+            // Class-level approach: columns defined at class level
+            foreach ($classColumnAttrs as $columnAttr) {
+                $columnConfig = $columnAttr->newInstance();
+                $columnKey = $columnConfig->name ?? throw new \RuntimeException("Column name is required for class-level attributes");
+                
+                $columns[$columnKey] = [
+                    ColOption::TYPE => $columnConfig->type,
+                    ColOption::NAME => $columnConfig->name,
+                    ColOption::SIZE => $columnConfig->size,
+                    ColOption::SCALE => $columnConfig->scale,
+                    ColOption::PRIMARY => $columnConfig->primary,
+                    ColOption::UNIQUE => $columnConfig->unique,
+                    ColOption::NULL => $columnConfig->nullable,
+                    ColOption::AUTO_INCREMENT => $columnConfig->autoIncrement,
+                    ColOption::IDENTITY => $columnConfig->identity,
+                    ColOption::AUTO_UPDATE => $columnConfig->autoUpdate,
+                    ColOption::DEFAULT => $columnConfig->default,
+                    ColOption::COMMENT => $columnConfig->comment,
+                    ColOption::VALIDATOR => $columnConfig->callback
+                ];
             }
             
-            $columnConfig = $columnAttrs[0]->newInstance();
-            $columnKey = self::propertyToKey($property->getName());
-            
-            $columns[$columnKey] = [
-                ColOption::TYPE => $columnConfig->type,
-                ColOption::NAME => $columnConfig->name,
-                ColOption::SIZE => $columnConfig->size,
-                ColOption::SCALE => $columnConfig->scale,
-                ColOption::PRIMARY => $columnConfig->primary,
-                ColOption::UNIQUE => $columnConfig->unique,
-                ColOption::NULL => $columnConfig->nullable,
-                ColOption::AUTO_INCREMENT => $columnConfig->autoIncrement,
-                ColOption::IDENTITY => $columnConfig->identity,
-                ColOption::AUTO_UPDATE => $columnConfig->autoUpdate,
-                ColOption::DEFAULT => $columnConfig->default,
-                ColOption::COMMENT => $columnConfig->comment,
-                ColOption::VALIDATOR => $columnConfig->validator
-            ];
-            
-            $fkAttrs = $property->getAttributes(ForeignKey::class);
-            foreach ($fkAttrs as $fkAttr) {
+            // Check for class-level ForeignKey attributes
+            $classFkAttrs = $reflection->getAttributes(ForeignKey::class);
+            foreach ($classFkAttrs as $fkAttr) {
                 $fkConfig = $fkAttr->newInstance();
                 $foreignKeys[] = [
-                    'property' => $columnKey,
+                    'property' => $fkConfig->column,
                     'config' => $fkConfig
                 ];
+            }
+        } else {
+            // Property-level approach: columns defined on properties
+            foreach ($reflection->getProperties() as $property) {
+                $columnAttrs = $property->getAttributes(Column::class);
+                
+                if (empty($columnAttrs)) {
+                    continue;
+                }
+                
+                $columnConfig = $columnAttrs[0]->newInstance();
+                $columnKey = self::propertyToKey($property->getName());
+                
+                $columns[$columnKey] = [
+                    ColOption::TYPE => $columnConfig->type,
+                    ColOption::NAME => $columnConfig->name,
+                    ColOption::SIZE => $columnConfig->size,
+                    ColOption::SCALE => $columnConfig->scale,
+                    ColOption::PRIMARY => $columnConfig->primary,
+                    ColOption::UNIQUE => $columnConfig->unique,
+                    ColOption::NULL => $columnConfig->nullable,
+                    ColOption::AUTO_INCREMENT => $columnConfig->autoIncrement,
+                    ColOption::IDENTITY => $columnConfig->identity,
+                    ColOption::AUTO_UPDATE => $columnConfig->autoUpdate,
+                    ColOption::DEFAULT => $columnConfig->default,
+                    ColOption::COMMENT => $columnConfig->comment,
+                    ColOption::VALIDATOR => $columnConfig->callback
+                ];
+                
+                $fkAttrs = $property->getAttributes(ForeignKey::class);
+                foreach ($fkAttrs as $fkAttr) {
+                    $fkConfig = $fkAttr->newInstance();
+                    $foreignKeys[] = [
+                        'property' => $columnKey,
+                        'config' => $fkConfig
+                    ];
+                }
             }
         }
         

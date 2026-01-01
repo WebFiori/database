@@ -18,6 +18,7 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\DataType;
+use WebFiori\Database\Attributes\AttributeTableBuilder;
 
 /**
  * Database schema management system for executing migrations and seeders.
@@ -59,6 +60,7 @@ class SchemaRunner extends Database {
     private $environment;
     private $onErrCallbacks;
     private $onRegErrCallbacks;
+    private SchemaChangeRepository $repository;
     /**
      * Initialize a new schema runner with configuration.
      * 
@@ -68,38 +70,22 @@ class SchemaRunner extends Database {
     public function __construct(?ConnectionInfo $connectionInfo, string $environment = 'dev') {
         parent::__construct($connectionInfo);
         $this->environment = $environment;
-        $dbType = $connectionInfo !== null ? $connectionInfo->getDatabaseType() : 'mysql';
         $this->onErrCallbacks = [];
         $this->onRegErrCallbacks = [];
-        $this->createBlueprint('schema_changes')->addColumns([
-            'id' => [
-                ColOption::TYPE => DataType::INT,
-                ColOption::PRIMARY => true,
-                ColOption::AUTO_INCREMENT => true,
-                ColOption::IDENTITY => true,
-                ColOption::COMMENT => 'The unique identifier of the change.'
-            ],
-            'change_name' => [
-                ColOption::TYPE => DataType::VARCHAR,
-                ColOption::SIZE => 255,
-                ColOption::COMMENT => 'The name of the change.'
-            ],
-            'type' => [
-                ColOption::TYPE => DataType::VARCHAR,
-                ColOption::SIZE => 20,
-                ColOption::COMMENT => 'The type of the change (migration, seeder, etc.).'
-            ],
-            'db-name' => [
-                ColOption::TYPE => DataType::VARCHAR,
-                ColOption::SIZE => 255,
-                ColOption::COMMENT => 'The name of the database at which the migration was applied to.'
-            ],
-            'applied-on' => [
-                ColOption::TYPE => $dbType == ConnectionInfo::SUPPORTED_DATABASES[1] ? DataType::DATETIME2 : DataType::DATETIME,
-                ColOption::COMMENT => 'The date and time at which the change was applied.'
-            ]
-        ]);
+        
+        $table = AttributeTableBuilder::build(
+            SchemaMigrationsTable::class,
+            $this->getConnectionInfo()->getDatabaseType()
+        );
+        
+        // Handle MSSQL datetime2 type
+        if ($this->getConnectionInfo()->getDatabaseType() === ConnectionInfo::SUPPORTED_DATABASES[1]) {
+            $table->getColByKey('applied-on')->setDatatype(DataType::DATETIME2);
+        }
+        
+        $this->addTable($table);
 
+        $this->repository = new SchemaChangeRepository($this);
         $this->dbChanges = [];
     }
     /**
@@ -157,17 +143,8 @@ class SchemaRunner extends Database {
                 }
 
                 try {
-                    $this->transaction(function($db) use ($change) {
-                        $change->execute($db);
-                        $db->table('schema_changes')
-                                ->insert([
-                                    'change_name' => $change->getName(),
-                                    'type' => $change->getType(),
-                                    'applied-on' => date('Y-m-d H:i:s'),
-                                    'db-name' => $db->getConnectionInfo()->getDatabase()
-                                ])->execute();
-                    });
-
+                    $change->execute($this);
+                    $this->getRepository()->recordChange($change);
                     $applied[] = $change;
                     $appliedInPass = true;
                 } catch (\Throwable $ex) {
@@ -203,17 +180,15 @@ class SchemaRunner extends Database {
                     continue;
                 }
 
-                $this->transaction(function($db) use ($change) {
-                    $migrationDb = $change->getDatabase() ?? $db;
-                    $change->execute($migrationDb);
-                    $db->table('schema_changes')
-                            ->insert([
-                                'change_name' => $change->getName(),
-                                'type' => $change->getType(),
-                                'applied-on' => date('Y-m-d H:i:s'),
-                                'db-name' => $db->getConnectionInfo()->getDatabase()
-                            ])->execute();
-                });
+                try {
+                    $change->execute($this);
+                    $this->getRepository()->recordChange($change);
+                    $applied[] = $change;
+                } catch (\Throwable $ex) {
+                    foreach ($this->onErrCallbacks as $callback) {
+                        call_user_func_array($callback, [$ex, $change, $this]);
+                    }
+                }
 
                 return $change;
             }
@@ -301,11 +276,18 @@ class SchemaRunner extends Database {
      * @return bool True if the change has been applied, false otherwise.
      */
     public function isApplied(string $name): bool {
-        return $this->table('schema_changes')
-                ->select(['change_name'])
-                ->where('change_name', $name)
-                ->execute()
-                ->getRowsCount() == 1;
+        return $this->getRepository()->count([
+            'change_name' => $name
+        ]) == 1;
+    }
+
+    /**
+     * Get the schema change repository.
+     * 
+     * @return SchemaChangeRepository The repository instance
+     */
+    public function getRepository(): SchemaChangeRepository {
+        return $this->repository;
     }
     /**
      * Rollback database changes up to a specific change.
@@ -353,7 +335,7 @@ class SchemaRunner extends Database {
         try {
             $migrationDb = $change->getDatabase() ?? $this;
             $change->rollback($migrationDb);
-            $this->table('schema_changes')->delete()->where('change_name', $change->getName())->execute();
+            $this->repository->removeChange($change->getName());
             $rolled[] = $change;
 
             return true;
@@ -412,7 +394,7 @@ class SchemaRunner extends Database {
             $this->dbChanges[] = $change;
             return true;
             
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             foreach ($this->onRegErrCallbacks as $callback) {
                 call_user_func_array($callback, [$ex]);
             }

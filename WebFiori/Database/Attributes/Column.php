@@ -4,7 +4,7 @@ namespace WebFiori\Database\Attributes;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_PROPERTY)]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 class Column {
     public function __construct(
         public string $type,
@@ -19,6 +19,6 @@ class Column {
         public mixed $default = null,
         public ?string $name = null,
         public ?string $comment = null,
-        public ?callable $callback = null
+        public mixed $callback = null
     ) {}
 }

@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2026-present WebFiori Framework
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
+namespace WebFiori\Database\Schema;
+
+use WebFiori\Database\Attributes\Table;
+use WebFiori\Database\Attributes\Column;
+use WebFiori\Database\DataType;
+
+/**
+ * Schema migrations tracking table.
+ * 
+ * This table stores information about applied migrations and seeders.
+ * Uses class-level attributes for pure schema definition.
+ */
+#[Table(name: 'schema_changes')]
+#[Column(
+    name: 'id',
+    type: DataType::INT,
+    primary: true,
+    autoIncrement: true,
+    identity: true,
+    comment: 'The unique identifier of the change.'
+)]
+#[Column(
+    name: 'change_name',
+    type: DataType::VARCHAR,
+    size: 255,
+    comment: 'The name of the change.'
+)]
+#[Column(
+    name: 'type',
+    type: DataType::VARCHAR,
+    size: 20,
+    comment: 'The type of the change (migration, seeder, etc.).'
+)]
+#[Column(
+    name: 'db-name',
+    type: DataType::VARCHAR,
+    size: 255,
+    comment: 'The name of the database at which the migration was applied to.'
+)]
+#[Column(
+    name: 'applied-on',
+    type: DataType::DATETIME,
+    comment: 'The date and time at which the change was applied.'
+)]
+class SchemaMigrationsTable {}
