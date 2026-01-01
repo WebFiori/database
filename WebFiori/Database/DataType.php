@@ -204,4 +204,19 @@ class DataType {
      * </ul>
      */
     const VARCHAR = 'varchar';
+    
+    /**
+     * Maps database data type to PHP type.
+     * 
+     * @param string $dbType The database data type
+     * @return string The PHP type (int, float, bool, string)
+     */
+    public static function toPHPType(string $dbType): string {
+        return match (strtolower($dbType)) {
+            self::INT, self::BIGINT => 'int',
+            self::FLOAT, self::DOUBLE, self::DECIMAL, self::MONEY => 'float',
+            self::BOOL, self::BIT => 'bool',
+            default => 'string'
+        };
+    }
 }

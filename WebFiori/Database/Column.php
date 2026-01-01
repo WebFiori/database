@@ -325,15 +325,11 @@ abstract class Column {
      * the column to an entity class. For example, the 'varchar' in MySQL is 
      * a 'string' in PHP.
      * 
-     * @return string A string that represents column datatype in PHP.
+     * @return string A string that represents column datatype in PHP (int, float, bool, string).
      * 
      */
     public function getPHPType() : string {
-        if ($this->getDatatype() == 'char') {
-            return 'string';
-        }
-
-        return 'mixed';
+        return DataType::toPHPType($this->getDatatype());
     }
     /**
      * Returns the previous table which was owns the column.
