@@ -14,6 +14,9 @@ namespace WebFiori\Database;
 use Throwable;
 use WebFiori\Database\MsSql\MSSQLQuery;
 use WebFiori\Database\MySql\MySQLQuery;
+use WebFiori\Database\Query\Condition;
+use WebFiori\Database\Query\Expression;
+use WebFiori\Database\Query\InsertBuilder;
 /**
  * A base class that can be used to build SQL queries.
  * 

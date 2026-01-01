@@ -11,7 +11,7 @@
  */
 namespace WebFiori\Database\MsSql;
 
-use WebFiori\Database\InsertBuilder;
+use WebFiori\Database\Query\InsertBuilder;
 
 /**
  * A class which is used to construct insert query for MSSQL server.

@@ -9,7 +9,7 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Query;
 
 /**
  * A class which is used to build insert SQL queries for diffrent database engines.

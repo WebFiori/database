@@ -17,6 +17,7 @@ use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLColumn;
 use WebFiori\Database\MySql\MySQLQuery;
 use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Query\Condition;
 /**
  * A class that represents two joined tables.
  *

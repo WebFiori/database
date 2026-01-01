@@ -9,7 +9,9 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Query;
+
+use WebFiori\Database\Column;
 
 /**
  * Represents a binary conditional statement for SQL WHERE clauses.

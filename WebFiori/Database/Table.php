@@ -380,6 +380,26 @@ abstract class Table {
 
         return $this->mapper;
     }
+    
+    /**
+     * Returns an entity generator for generating PHP 8+ immutable entities.
+     * 
+     * The generator creates entities with:
+     * - Protected properties (extensible)
+     * - Named arguments
+     * - Only getters (immutable)
+     * - Proper type hints
+     * 
+     * @param string $entityName The name of the entity class
+     * @param string $path The directory where the entity will be created
+     * @param string $namespace The namespace for the entity
+     * 
+     * @return EntityGenerator An instance of EntityGenerator
+     */
+    public function getEntityGenerator(string $entityName = 'Entity', string $path = __DIR__, string $namespace = '') : EntityGenerator {
+        return new EntityGenerator($this, $entityName, $path, $namespace);
+    }
+    
     /**
      * Returns a foreign key given its name.
      * 

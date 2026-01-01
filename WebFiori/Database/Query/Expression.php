@@ -9,7 +9,7 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Query;
 
 /**
  * A class that can be used to represent any SQL expression.
