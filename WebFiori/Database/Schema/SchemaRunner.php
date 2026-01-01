@@ -413,6 +413,77 @@ class SchemaRunner extends Database {
         }
     }
 
+    /**
+     * Discover and register database changes from a directory.
+     * 
+     * Scans the specified directory for PHP files containing classes that extend
+     * DatabaseChange (migrations and seeders). Each discovered class is automatically
+     * registered with the schema runner.
+     * 
+     * @param string $path Absolute path to the directory containing migration/seeder files.
+     * @param string $namespace The PHP namespace for classes in the directory.
+     * @param bool $recursive Whether to scan subdirectories recursively. Default is false.
+     * @return int Number of changes discovered and registered.
+     */
+    public function discoverFromPath(string $path, string $namespace, bool $recursive = false): int {
+        $count = 0;
+        
+        if (!is_dir($path)) {
+            return $count;
+        }
+        
+        $namespace = rtrim($namespace, '\\');
+        $iterator = $recursive 
+            ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS))
+            : new \DirectoryIterator($path);
+        
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                $className = $this->resolveClassName($file, $path, $namespace, $recursive);
+                
+                if ($className !== null && $this->register($className)) {
+                    $count++;
+                }
+            }
+        }
+        
+        return $count;
+    }
+
+    /**
+     * Resolve the fully qualified class name from a file.
+     * 
+     * @param \SplFileInfo $file The file to resolve.
+     * @param string $basePath The base directory path.
+     * @param string $namespace The base namespace.
+     * @param bool $recursive Whether recursive scanning is enabled.
+     * @return string|null The fully qualified class name, or null if not a valid change class.
+     */
+    private function resolveClassName(\SplFileInfo $file, string $basePath, string $namespace, bool $recursive): ?string {
+        $filename = $file->getBasename('.php');
+        
+        if ($recursive) {
+            $relativePath = substr($file->getPath(), strlen($basePath));
+            $relativePath = trim(str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath), '\\');
+            $className = $relativePath ? $namespace . '\\' . $relativePath . '\\' . $filename : $namespace . '\\' . $filename;
+        } else {
+            $className = $namespace . '\\' . $filename;
+        }
+        
+        if (!class_exists($className)) {
+            require_once $file->getPathname();
+        }
+        
+        if (class_exists($className) && is_subclass_of($className, DatabaseChange::class)) {
+            $reflection = new ReflectionClass($className);
+            if (!$reflection->isAbstract()) {
+                return $className;
+            }
+        }
+        
+        return null;
+    }
+
     private function shouldRunInEnvironment(DatabaseChange $change): bool {
         $environments = $change->getEnvironments();
 
