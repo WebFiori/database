@@ -118,10 +118,14 @@ class SchemaRunner extends Database {
     /**
      * Apply all pending database changes.
      * 
+     * All changes applied in a single call to apply() are assigned the same
+     * batch number, allowing them to be rolled back together.
+     * 
      * @return array Array of applied DatabaseChange instances.
      */
     public function apply(): array {
         $applied = [];
+        $batch = $this->getRepository()->getNextBatchNumber();
 
         // Keep applying changes until no more can be applied
         $appliedInPass = true;
@@ -144,6 +148,7 @@ class SchemaRunner extends Database {
 
                 try {
                     $change->execute($this);
+                    $change->setBatch($batch);
                     $this->getRepository()->recordChange($change);
                     $applied[] = $change;
                     $appliedInPass = true;
@@ -162,10 +167,14 @@ class SchemaRunner extends Database {
     /**
      * Apply the next pending database change.
      * 
+     * Each call to applyOne() creates a new batch with a single change.
+     * 
      * @return DatabaseChange|null The applied change, or null if no pending changes.
      */
     public function applyOne(): ?DatabaseChange {
         $change = null;
+        $batch = $this->getRepository()->getNextBatchNumber();
+        
         try {
             foreach ($this->dbChanges as $change) {
                 if ($this->isApplied($change->getName())) {
@@ -182,8 +191,8 @@ class SchemaRunner extends Database {
 
                 try {
                     $change->execute($this);
+                    $change->setBatch($batch);
                     $this->getRepository()->recordChange($change);
-                    $applied[] = $change;
                 } catch (\Throwable $ex) {
                     foreach ($this->onErrCallbacks as $callback) {
                         call_user_func_array($callback, [$ex, $change, $this]);
@@ -289,6 +298,41 @@ class SchemaRunner extends Database {
     public function getRepository(): SchemaChangeRepository {
         return $this->repository;
     }
+
+    /**
+     * Rollback all changes from the last batch.
+     * 
+     * @return array Array of rolled back DatabaseChange instances.
+     */
+    public function rollbackLastBatch(): array {
+        $lastBatch = $this->getRepository()->getLastBatchNumber();
+        if ($lastBatch === 0) {
+            return [];
+        }
+        return $this->rollbackBatch($lastBatch);
+    }
+
+    /**
+     * Rollback all changes from a specific batch.
+     * 
+     * @param int $batch The batch number to rollback.
+     * @return array Array of rolled back DatabaseChange instances.
+     */
+    public function rollbackBatch(int $batch): array {
+        $changeNames = array_column($this->getRepository()->getByBatch($batch), 'change_name');
+        $rolled = [];
+
+        // Rollback in reverse order
+        $changes = array_reverse($this->getChanges());
+        foreach ($changes as $change) {
+            if (in_array($change->getName(), $changeNames)) {
+                $this->attemptRoolback($change, $rolled);
+            }
+        }
+
+        return $rolled;
+    }
+
     /**
      * Rollback database changes up to a specific change.
      * 

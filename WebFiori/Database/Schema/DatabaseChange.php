@@ -31,6 +31,7 @@ use WebFiori\Database\Database;
 abstract class DatabaseChange {
     private $appliedAt;
     private $id;
+    private int $batch = 0;
     private ?Database $database = null;
 
     /**
@@ -131,6 +132,24 @@ abstract class DatabaseChange {
      */
     public function setId(int $id) {
         $this->id = $id;
+    }
+
+    /**
+     * Get the batch number when this change was applied.
+     * 
+     * @return int The batch number, or 0 if not yet applied.
+     */
+    public function getBatch(): int {
+        return $this->batch;
+    }
+
+    /**
+     * Set the batch number for this change.
+     * 
+     * @param int $batch The batch number.
+     */
+    public function setBatch(int $batch): void {
+        $this->batch = $batch;
     }
 
     /**

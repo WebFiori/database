@@ -87,7 +87,7 @@ class SchemaChangeRepository extends AbstractRepository {
     /**
      * Record a change as applied.
      * 
-     * @param DatabaseChange $change The change to record
+     * @param DatabaseChange $change The change to record (must have batch set via setBatch())
      * @return int The ID of the inserted record
      */
     public function recordChange(DatabaseChange $change): int {
@@ -96,10 +96,68 @@ class SchemaChangeRepository extends AbstractRepository {
                 'change_name' => $change->getName(),
                 'type' => $change->getType(),
                 'applied-on' => date('Y-m-d H:i:s'),
-                'db-name' => $this->getDatabase()->getConnectionInfo()->getDatabase()
+                'db-name' => $this->getDatabase()->getConnectionInfo()->getDatabase(),
+                'batch' => $change->getBatch()
             ])->execute();
         
         return $this->getDatabase()->getLastInsertId();
+    }
+
+    /**
+     * Get the next batch number.
+     * 
+     * @return int The next batch number
+     */
+    public function getNextBatchNumber(): int {
+        $result = $this->getDatabase()->table($this->getTableName())
+            ->select(['batch'])
+            ->orderBy(['batch' => 'd'])
+            ->limit(1)
+            ->execute();
+        
+        if ($result->getRowsCount() === 0) {
+            return 1;
+        }
+        
+        return (int) $result->getRows()[0]['batch'] + 1;
+    }
+
+    /**
+     * Get the last batch number.
+     * 
+     * @return int The last batch number, or 0 if no batches exist
+     */
+    public function getLastBatchNumber(): int {
+        return $this->getNextBatchNumber() - 1;
+    }
+
+    /**
+     * Get changes by batch number.
+     * 
+     * @param int $batch The batch number
+     * @return array Array of change records
+     */
+    public function getByBatch(int $batch): array {
+        return $this->getDatabase()->table($this->getTableName())
+            ->select()
+            ->where('batch', $batch)
+            ->execute()
+            ->getRows();
+    }
+
+    /**
+     * Get change names from the last batch.
+     * 
+     * @return array Array of change names from the last batch
+     */
+    public function getLastBatchChangeNames(): array {
+        $lastBatch = $this->getLastBatchNumber();
+        if ($lastBatch === 0) {
+            return [];
+        }
+        
+        $records = $this->getByBatch($lastBatch);
+        return array_column($records, 'change_name');
     }
     
     /**

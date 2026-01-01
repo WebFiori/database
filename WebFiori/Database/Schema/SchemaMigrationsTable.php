@@ -53,4 +53,10 @@ use WebFiori\Database\DataType;
     type: DataType::DATETIME,
     comment: 'The date and time at which the change was applied.'
 )]
+#[Column(
+    name: 'batch',
+    type: DataType::INT,
+    default: 1,
+    comment: 'The batch number when this change was applied.'
+)]
 class SchemaMigrationsTable {}
