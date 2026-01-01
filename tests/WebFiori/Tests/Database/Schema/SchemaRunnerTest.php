@@ -301,11 +301,12 @@ class SchemaRunnerTest extends TestCase {
 
     public function testDuplicateChangeDetection() {
         $runner = new SchemaRunner($this->getConnectionInfo());
-        $runner->register(TestMigration::class);
-        $runner->register(TestMigration::class); // Register same class twice
+        $first = $runner->register(TestMigration::class);
+        $second = $runner->register(TestMigration::class); // Register same class twice
         
-        $changes = $runner->getChanges();
-        $this->assertCount(2, $changes); // Both instances are registered
+        $this->assertTrue($first);
+        $this->assertFalse($second); // Second registration returns false
+        $this->assertCount(1, $runner->getChanges()); // Only one instance registered
     }
 
     public function testNameCollisionInFindChangeByName() {

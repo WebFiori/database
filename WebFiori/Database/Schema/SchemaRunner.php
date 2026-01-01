@@ -374,11 +374,20 @@ class SchemaRunner extends Database {
     /**
      * Register a database change.
      * 
+     * If a change with the same name is already registered, this method
+     * returns false without registering a duplicate.
+     * 
      * @param DatabaseChange|string $change The change instance or class name.
-     * @return bool True if registered successfully, false otherwise.
+     * @return bool True if registered successfully, false if already registered or on error.
      */
     public function register(DatabaseChange|string $change): bool {
         try {
+            $name = is_string($change) ? $change : $change->getName();
+            
+            if ($this->hasChange($name)) {
+                return false;
+            }
+            
             if (is_string($change)) {
                 if (!class_exists($change)) {
                     throw new Exception("Class does not exist: {$change}");
