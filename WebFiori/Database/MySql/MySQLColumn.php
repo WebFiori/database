@@ -106,6 +106,12 @@ class MySQLColumn extends Column {
         if ($this->isUnique() && $colDataType != 'boolean' && $colDataType != 'bool') {
             $retVal .= 'unique ';
         }
+        
+        // Add auto_increment before default and comment
+        if ($this->isAutoInc()) {
+            $retVal .= 'auto_increment ';
+        }
+        
         $retVal .= $this->defaultPart();
 
         if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {

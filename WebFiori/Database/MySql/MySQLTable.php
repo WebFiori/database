@@ -296,7 +296,7 @@ class MySQLTable extends Table {
         $index = 0;
 
         foreach ($cols as $colObj) {
-            $autoIncPart = $colObj->isAutoInc() ? ' auto_increment' : '';
+            $autoIncPart = '';
 
             if ($index + 1 == $count) {
                 $queryStr .= '    '.$colObj->asString().$autoIncPart."";
