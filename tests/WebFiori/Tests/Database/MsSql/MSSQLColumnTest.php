@@ -2,7 +2,7 @@
 namespace WebFiori\Tests\Database\MsSql;
 
 use PHPUnit\Framework\TestCase;
-use WebFiori\Database\ColumnFactory;
+use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\MsSql\MSSQLColumn;
 use WebFiori\Database\MySql\MySQLColumn;
 /**
@@ -274,9 +274,9 @@ class MSSQLColumnTest extends TestCase {
      */
     public function testGetPHPType06() {
         $colObj = new MSSQLColumn('col', 'mixed');
-        $this->assertEquals('mixed', $colObj->getPHPType());
+        $this->assertEquals('string', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('mixed|null', $colObj->getPHPType());
+        $this->assertEquals('string|null', $colObj->getPHPType());
     }
     /**
      * @test

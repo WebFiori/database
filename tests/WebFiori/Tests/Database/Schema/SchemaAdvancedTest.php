@@ -48,7 +48,7 @@ class SchemaAdvancedTest extends TestCase {
             
             // Test apply - may return 0 if already applied
             $applied = $runner->apply();
-            $this->assertIsArray($applied);
+            $this->assertInstanceOf(\WebFiori\Database\Schema\DatabaseChangeResult::class, $applied);
             
         } catch (DatabaseException $ex) {
             $this->markTestSkipped('Database connection failed: ' . $ex->getMessage());

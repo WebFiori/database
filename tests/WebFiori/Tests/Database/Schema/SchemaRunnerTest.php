@@ -151,9 +151,10 @@ class SchemaRunnerTest extends TestCase {
             $runner->createSchemaTable();
             
             $applied = $runner->apply();
+            $appliedChanges = $applied->getApplied();
             
-            if (!empty($applied)) {
-                $lastChange = end($applied);
+            if (!empty($appliedChanges)) {
+                $lastChange = end($appliedChanges);
                 $rolled = $runner->rollbackUpTo($lastChange->getName());
                 
                 $this->assertIsArray($rolled);
@@ -248,10 +249,16 @@ class SchemaRunnerTest extends TestCase {
         // Test registration with invalid class name
         $runner = new SchemaRunner($this->getConnectionInfo());
         
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Class does not exist');
+        $errorCaught = false;
+        $runner->addOnRegisterErrorCallback(function($err) use (&$errorCaught) {
+            $errorCaught = true;
+            $this->assertStringContainsString('Class does not exist', $err->getMessage());
+        });
         
-        $runner->register('InvalidNamespace\\NonExistentClass');
+        // Should return false for non-existent class
+        $result = $runner->register('InvalidNamespace\\NonExistentClass');
+        $this->assertFalse($result);
+        $this->assertTrue($errorCaught, 'Error callback should have been called');
     }
 
     public function testConstructorDependencies() {
@@ -301,11 +308,12 @@ class SchemaRunnerTest extends TestCase {
 
     public function testDuplicateChangeDetection() {
         $runner = new SchemaRunner($this->getConnectionInfo());
-        $runner->register(TestMigration::class);
-        $runner->register(TestMigration::class); // Register same class twice
+        $first = $runner->register(TestMigration::class);
+        $second = $runner->register(TestMigration::class); // Register same class twice
         
-        $changes = $runner->getChanges();
-        $this->assertCount(2, $changes); // Both instances are registered
+        $this->assertTrue($first);
+        $this->assertFalse($second); // Second registration returns false
+        $this->assertCount(1, $runner->getChanges()); // Only one instance registered
     }
 
     public function testNameCollisionInFindChangeByName() {

@@ -3,13 +3,13 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2023 Ibrahim BinAlshikh
+ * Copyright (c) 2023-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Util;
 
 /**
  * A class that holds mapping of data types between different DBMSs.

@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2023 Ibrahim BinAlshikh
+ * Copyright (c) 2023-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -11,7 +11,7 @@
  */
 namespace WebFiori\Database\MsSql;
 
-use WebFiori\Database\InsertBuilder;
+use WebFiori\Database\Query\InsertBuilder;
 
 /**
  * A class which is used to construct insert query for MSSQL server.

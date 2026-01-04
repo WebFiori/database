@@ -3,16 +3,19 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2025 Ibrahim BinAlshikh
+ * Copyright (c) 2025-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Factory;
 
+use WebFiori\Database\ConnectionInfo;
+use WebFiori\Database\DatabaseException;
 use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Table;
 
 /**
  *

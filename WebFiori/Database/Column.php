@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -325,15 +325,11 @@ abstract class Column {
      * the column to an entity class. For example, the 'varchar' in MySQL is 
      * a 'string' in PHP.
      * 
-     * @return string A string that represents column datatype in PHP.
+     * @return string A string that represents column datatype in PHP (int, float, bool, string).
      * 
      */
     public function getPHPType() : string {
-        if ($this->getDatatype() == 'char') {
-            return 'string';
-        }
-
-        return 'mixed';
+        return DataType::toPHPType($this->getDatatype());
     }
     /**
      * Returns the previous table which was owns the column.

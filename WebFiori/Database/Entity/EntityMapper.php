@@ -3,15 +3,17 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Entity;
 
 use InvalidArgumentException;
+use WebFiori\Database\Column;
+use WebFiori\Database\Table;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
 /**
@@ -22,6 +24,13 @@ use WebFiori\Json\JsonI;
  * - Getter and setter methods for each property
  * - Static mapping method for converting database records to objects
  * - Proper type hints and documentation
+ *
+ * @deprecated Use manual entity classes with Repository pattern instead.
+ *             This class is kept for legacy support and rapid prototyping only.
+ *             For production code, create entities manually and use AbstractRepository
+ *             with toEntity() method for mapping.
+ * 
+ * @see AbstractRepository For the recommended approach to entity mapping
  *
  * @author Ibrahim
  * 
@@ -175,8 +184,10 @@ class EntityMapper {
                 ."\n";
             }
             $this->classStr .= "/**\n"
-            ." * An auto-generated entity class which maps to a record in the\n"
+            ." * Domain entity which maps to a record in the\n"
             ." * table '".trim($this->getTable()->getNormalName(), "`")."'\n"
+            ." *"
+            ." * Each model consist of table schema + domain entity.'\n"
             ." **/\n";
 
             if ($this->implJsonI) {

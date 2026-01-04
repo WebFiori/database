@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -83,6 +83,16 @@ class ResultSet implements Countable, Iterator {
     public function current() {
         return $this->getRows()[$this->cursorPos];
     }
+    public function fetch() : array {
+        if ($this->getCount() > 0) {
+            return $this->fetchAll()[0];
+        }
+
+        return [];
+    }
+    public function fetchAll() : array {
+        return $this->getRows();
+    }
     /**
      * Filter the records of the result set using a custom callback.
      * 
@@ -115,6 +125,9 @@ class ResultSet implements Countable, Iterator {
         }
 
         return new ResultSet($result);
+    }
+    public function getCount() : int {
+        return $this->getRowsCount();
     }
     /**
      * Returns an array which contains all original records in the set before 

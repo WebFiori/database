@@ -1,4 +1,14 @@
 <?php
+
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2025-present WebFiori Framework
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
 namespace WebFiori\Database\Schema;
 
 use WebFiori\Database\Database;
@@ -21,8 +31,8 @@ use WebFiori\Database\Database;
  */
 abstract class DatabaseChange {
     private $appliedAt;
+    private int $batch = 0;
     private $id;
-    private ?Database $database = null;
 
     /**
      * Initialize a new database change with optional name and order.
@@ -30,11 +40,6 @@ abstract class DatabaseChange {
     public function __construct() {
         $this->setAppliedAt(date('Y-m-d H:i:s'));
     }
-    /**
-     * Execute the database change.
-     * 
-     * @param Database $db The database instance to execute against.
-     */
     /**
      * Execute the database change (apply the migration or seeder).
      * 
@@ -55,6 +60,15 @@ abstract class DatabaseChange {
     }
 
     /**
+     * Get the batch number when this change was applied.
+     * 
+     * @return int The batch number, or 0 if not yet applied.
+     */
+    public function getBatch(): int {
+        return $this->batch;
+    }
+
+    /**
      * Get the list of changes this change depends on.
      * 
      * Dependencies ensure changes are executed in the correct order.
@@ -64,6 +78,17 @@ abstract class DatabaseChange {
      * @return array Array of class names that must be executed before this change.
      */
     public function getDependencies(): array {
+        return [];
+    }
+
+    /**
+     * Get the environments where this change should be executed.
+     * 
+     * Override this method to restrict execution to specific environments.
+     * 
+     * @return array Array of environment names. Empty array means all environments.
+     */
+    public function getEnvironments(): array {
         return [];
     }
 
@@ -115,6 +140,15 @@ abstract class DatabaseChange {
     public function setAppliedAt(string $date) {
         $this->appliedAt = $date;
     }
+
+    /**
+     * Set the batch number for this change.
+     * 
+     * @param int $batch The batch number.
+     */
+    public function setBatch(int $batch): void {
+        $this->batch = $batch;
+    }
     /**
      * Set the unique identifier for this database change.
      * 
@@ -125,20 +159,27 @@ abstract class DatabaseChange {
     }
 
     /**
-     * Set the database instance for this change.
+     * Determine if this change should be wrapped in a database transaction.
      * 
-     * @param Database $db The database instance to use for this change.
-     */
-    public function setDatabase(Database $db): void {
-        $this->database = $db;
-    }
-
-    /**
-     * Get the database instance for this change.
+     * Override this method to control transaction behavior. By default,
+     * changes are wrapped in transactions for safety.
      * 
-     * @return Database|null The database instance or null if not set.
+     * Guidelines:
+     * - Return true for DML operations (INSERT, UPDATE, DELETE) - always safe
+     * - Return true for DDL on MSSQL/PostgreSQL - they support transactional DDL
+     * - Return false for DDL on MySQL - it auto-commits and can't be rolled back
+     * 
+     * For DBMS-aware behavior, override and check the database type:
+     * ```php
+     * public function useTransaction(Database $db): bool {
+     *     return $db->getConnectionInfo()->getDatabaseType() !== 'mysql';
+     * }
+     * ```
+     * 
+     * @param Database $db The database instance (for DBMS-aware decisions).
+     * @return bool True to wrap in transaction, false to execute directly.
      */
-    public function getDatabase(): ?Database {
-        return $this->database;
+    public function useTransaction(Database $db): bool {
+        return true;
     }
 }

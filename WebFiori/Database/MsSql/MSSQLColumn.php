@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -12,9 +12,9 @@
 namespace WebFiori\Database\MsSql;
 
 use WebFiori\Database\Column;
-use WebFiori\Database\ColumnFactory;
 use WebFiori\Database\DatabaseException;
-use WebFiori\Database\DateTimeValidator;
+use WebFiori\Database\Factory\ColumnFactory;
+use WebFiori\Database\Util\DateTimeValidator;
 /**
  * A class that represents a column in MSSQL table.
  *

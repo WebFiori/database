@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2024 Ibrahim BinAlshikh
+ * Copyright (c) 2024-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -204,4 +204,19 @@ class DataType {
      * </ul>
      */
     const VARCHAR = 'varchar';
+
+    /**
+     * Maps database data type to PHP type.
+     * 
+     * @param string $dbType The database data type
+     * @return string The PHP type (int, float, bool, string)
+     */
+    public static function toPHPType(string $dbType): string {
+        return match (strtolower($dbType)) {
+            self::INT, self::BIGINT => 'int',
+            self::FLOAT, self::DOUBLE, self::DECIMAL, self::MONEY => 'float',
+            self::BOOL, self::BIT => 'bool',
+            default => 'string'
+        };
+    }
 }

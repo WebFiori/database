@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -12,6 +12,7 @@
 namespace WebFiori\Database;
 
 use Exception;
+use WebFiori\Database\Factory\TableFactory;
 use WebFiori\Database\MsSql\MSSQLConnection;
 use WebFiori\Database\MsSql\MSSQLQuery;
 use WebFiori\Database\MsSql\MSSQLTable;
@@ -31,6 +32,12 @@ use WebFiori\Database\Performance\QueryPerformanceMonitor;
  */
 class Database {
     /**
+     * Queries captured during dry-run mode.
+     * 
+     * @var array
+     */
+    private array $capturedQueries = [];
+    /**
      * The connection which is used to connect to the database.
      * 
      * @var Connection 
@@ -46,6 +53,12 @@ class Database {
      *  
      */
     private $connectionInfo;
+    /**
+     * Whether dry-run mode is enabled.
+     * 
+     * @var bool
+     */
+    private bool $dryRun = false;
     private $lastErr;
     /**
      * Whether performance monitoring is enabled.
@@ -223,13 +236,8 @@ class Database {
      * and so on.
      */
     public function createBlueprint(string $name) : Table {
-        $connection = $this->getConnection();
-
-        if ($connection === null) {
-            $dbType = 'mysql';
-        } else {
-            $dbType = $connection->getConnectionInfo()->getDatabaseType();
-        }
+        $connInfo = $this->getConnectionInfo();
+        $dbType = $connInfo !== null ? $connInfo->getDatabaseType() : 'mysql';
 
         if ($dbType == 'mssql') {
             $blueprint = new MSSQLTable($name);
@@ -341,8 +349,19 @@ class Database {
      * 
      */
     public function execute() {
-        $conn = $this->getConnection();
         $lastQuery = $this->getLastQuery();
+
+        // Dry-run mode: capture query without executing
+        if ($this->dryRun) {
+            $this->capturedQueries[] = $lastQuery;
+            $this->queries[] = $lastQuery;
+            $this->clear();
+            $this->getQueryGenerator()->setQuery(null);
+
+            return new ResultSet([]);
+        }
+
+        $conn = $this->getConnection();
 
         // Start performance monitoring
         $startTime = $this->performanceEnabled ? microtime(true) : null;
@@ -353,7 +372,7 @@ class Database {
         $this->queries[] = $lastQuery;
         $this->clear();
         $resultSet = $this->getLastResultSet();
-        
+
         $this->getQueryGenerator()->setQuery(null);
 
         // Record performance metrics
@@ -363,6 +382,14 @@ class Database {
         }
 
         return $resultSet;
+    }
+    /**
+     * Get queries captured during dry-run mode.
+     * 
+     * @return array Array of SQL query strings captured during dry-run.
+     */
+    public function getCapturedQueries(): array {
+        return $this->capturedQueries;
     }
     /**
      * Returns the connection at which the instance will use to run SQL queries.
@@ -523,7 +550,20 @@ class Database {
      * 
      */
     public function getQueryGenerator() : AbstractQuery {
-        if (!$this->isConnected()) {
+        // In dry-run mode, create query generator without connection
+        if ($this->dryRun && $this->queryGenerator === null) {
+            $connInfo = $this->getConnectionInfo();
+            $dbType = $connInfo !== null ? $connInfo->getDatabaseType() : 'mysql';
+
+            if ($dbType == 'mssql') {
+                $this->queryGenerator = new MSSQLQuery();
+            } else {
+                $this->queryGenerator = new MySQLQuery();
+            }
+            $this->queryGenerator->setSchema($this);
+        }
+
+        if ($this->queryGenerator === null && !$this->isConnected()) {
             if ($this->getConnectionInfo() === null) {
                 throw new DatabaseException("Connection information not set.");
             } else {
@@ -642,6 +682,14 @@ class Database {
         return true;
     }
     /**
+     * Check if dry-run mode is enabled.
+     * 
+     * @return bool True if dry-run mode is enabled, false otherwise.
+     */
+    public function isDryRun(): bool {
+        return $this->dryRun;
+    }
+    /**
      * Sets the number of records that will be fetched by the query.
      * 
      * @param int $limit A number which is greater than 0.
@@ -715,6 +763,27 @@ class Database {
         return $this->getQueryGenerator()->page($num, $itemsCount);
     }
     /**
+     * Sets the database query to a raw SQL query.
+     *
+     * @param string $query A string that represents the query.
+     *
+     * @return Database The method will return the same instance at which the
+     * method is called on.
+     *
+     * @throws DatabaseException
+     */
+    public function raw(string $query, array $params = []) : Database {
+        $t = $this->getQueryGenerator()->getTable();
+
+        if ($t !== null) {
+            $t->getSelect()->clear();
+        }
+        $this->getQueryGenerator()->setQuery($query);
+        $this->getQueryGenerator()->setBindings($params);
+
+        return $this;
+    }
+    /**
      * Reset the bindings which was set by building and executing a query.
      * 
      * @return Database The method will return the instance at which the method
@@ -775,6 +844,21 @@ class Database {
         }
         $this->connectionInfo = $info;
     }
+    /**
+     * Enable or disable dry-run mode.
+     * 
+     * When dry-run mode is enabled, queries are captured but not executed.
+     * This is useful for previewing what SQL would be generated.
+     * 
+     * @param bool $dryRun True to enable dry-run mode, false to disable.
+     */
+    public function setDryRun(bool $dryRun): void {
+        $this->dryRun = $dryRun;
+
+        if ($dryRun) {
+            $this->capturedQueries = [];
+        }
+    }
 
     /**
      * Configure performance monitoring settings.
@@ -804,28 +888,7 @@ class Database {
      * @throws DatabaseException
      */
     public function setQuery(string $query, array $params = []) : Database {
-
         return $this->raw($query, $params);
-    }
-    /**
-     * Sets the database query to a raw SQL query.
-     *
-     * @param string $query A string that represents the query.
-     *
-     * @return Database The method will return the same instance at which the
-     * method is called on.
-     *
-     * @throws DatabaseException
-     */
-    public function raw(string $query, array $params = []) : Database {
-        $t = $this->getQueryGenerator()->getTable();
-
-        if ($t !== null) {
-            $t->getSelect()->clear();
-        }
-        $this->getQueryGenerator()->setQuery($query);
-        $this->getQueryGenerator()->setBindings($params);
-        return $this;
     }
     /**
      * Select one of the tables which exist on the schema and use it to build

@@ -1,4 +1,14 @@
 <?php
+
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2025-present WebFiori Framework
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
 namespace WebFiori\Database\Schema;
 
 use WebFiori\Database\Database;
@@ -29,21 +39,6 @@ abstract class AbstractSeeder extends DatabaseChange {
      */
     public function execute(Database $db): void {
         $this->run($db);
-    }
-
-    /**
-     * Get the environments where this seeder should be executed.
-     * 
-     * Seeders often need environment-specific behavior:
-     * - Production seeders: essential reference data only
-     * - Development seeders: sample data for testing
-     * - Test seeders: specific test fixtures
-     * Override this method to control execution environments.
-     * 
-     * @return array Array of environment names. Empty array means all environments.
-     */
-    public function getEnvironments(): array {
-        return [];
     }
 
     /**

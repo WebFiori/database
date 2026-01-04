@@ -113,25 +113,25 @@ try {
 
     if ($result instanceof MultiResultSet) {
         echo "✓ Multi-result query executed successfully!\n";
-        echo "Number of result sets: " . $result->count() . "\n\n";
+        echo "Number of result sets: ".$result->count()."\n\n";
 
         // Process each result set
         for ($i = 0; $i < $result->count(); $i++) {
             $resultSet = $result->getResultSet($i);
-            
+
             if ($resultSet->getRowsCount() > 0) {
                 $firstRow = $resultSet->getRows()[0];
-                
+
                 if (isset($firstRow['report_section'])) {
                     echo "--- {$firstRow['report_section']} ---\n";
-                    
+
                     foreach ($resultSet as $row) {
                         if ($row['report_section'] === 'Product Inventory') {
-                            echo "  {$row['category']}: {$row['name']} - $" . number_format($row['price'], 2) . " (Stock: {$row['stock']})\n";
+                            echo "  {$row['category']}: {$row['name']} - $".number_format($row['price'], 2)." (Stock: {$row['stock']})\n";
                         } elseif ($row['report_section'] === 'Sales by Category') {
-                            echo "  {$row['category']}: {$row['total_orders']} orders, {$row['total_quantity']} items, $" . number_format($row['total_revenue'], 2) . " revenue\n";
+                            echo "  {$row['category']}: {$row['total_orders']} orders, {$row['total_quantity']} items, $".number_format($row['total_revenue'], 2)." revenue\n";
                         } elseif ($row['report_section'] === 'Recent Orders') {
-                            echo "  {$row['customer_name']}: {$row['product_name']} x{$row['quantity']} = $" . number_format($row['order_total'], 2) . " ({$row['order_date']})\n";
+                            echo "  {$row['customer_name']}: {$row['product_name']} x{$row['quantity']} = $".number_format($row['order_total'], 2)." ({$row['order_date']})\n";
                         }
                     }
                     echo "\n";
@@ -184,21 +184,21 @@ try {
 
         for ($i = 0; $i < $categoryResult->count(); $i++) {
             $rs = $categoryResult->getResultSet($i);
-            
+
             if ($rs->getRowsCount() > 0) {
                 $firstRow = $rs->getRows()[0];
-                
+
                 if (isset($firstRow['report_section'])) {
                     echo "--- {$firstRow['report_section']} ---\n";
-                    
+
                     foreach ($rs as $row) {
                         if ($row['report_section'] === 'Products in Category') {
-                            echo "  {$row['name']}: $" . number_format($row['price'], 2) . " (Stock: {$row['stock']})\n";
+                            echo "  {$row['name']}: $".number_format($row['price'], 2)." (Stock: {$row['stock']})\n";
                         } elseif ($row['report_section'] === 'Category Statistics') {
                             echo "  Category: {$row['category']}\n";
                             echo "  Product Count: {$row['product_count']}\n";
-                            echo "  Average Price: $" . number_format($row['avg_price'], 2) . "\n";
-                            echo "  Price Range: $" . number_format($row['min_price'], 2) . " - $" . number_format($row['max_price'], 2) . "\n";
+                            echo "  Average Price: $".number_format($row['avg_price'], 2)."\n";
+                            echo "  Price Range: $".number_format($row['min_price'], 2)." - $".number_format($row['max_price'], 2)."\n";
                             echo "  Total Stock: {$row['total_stock']}\n";
                         } elseif ($row['report_section'] === 'Category Orders') {
                             echo "  {$row['customer_name']}: {$row['product_name']} x{$row['quantity']} ({$row['order_date']})\n";
@@ -222,12 +222,13 @@ try {
         $ordersResults = $businessReport->getResultSet(2);
 
         echo "✓ Extracted individual result sets:\n";
-        echo "  - Inventory results: " . $inventoryResults->getRowsCount() . " products\n";
-        echo "  - Sales results: " . $salesResults->getRowsCount() . " categories\n";
-        echo "  - Orders results: " . $ordersResults->getRowsCount() . " orders\n\n";
+        echo "  - Inventory results: ".$inventoryResults->getRowsCount()." products\n";
+        echo "  - Sales results: ".$salesResults->getRowsCount()." categories\n";
+        echo "  - Orders results: ".$ordersResults->getRowsCount()." orders\n\n";
 
         // Process specific result set
         echo "Low stock products (< 20 items):\n";
+
         foreach ($inventoryResults as $product) {
             if ($product['stock'] < 20) {
                 echo "  ⚠️  {$product['name']}: {$product['stock']} remaining\n";
@@ -238,16 +239,16 @@ try {
         // Find best selling category
         $bestCategory = null;
         $bestRevenue = 0;
-        
+
         foreach ($salesResults as $category) {
             if ($category['total_revenue'] > $bestRevenue) {
                 $bestRevenue = $category['total_revenue'];
                 $bestCategory = $category['category'];
             }
         }
-        
+
         if ($bestCategory) {
-            echo "🏆 Best performing category: {$bestCategory} ($" . number_format($bestRevenue, 2) . " revenue)\n\n";
+            echo "🏆 Best performing category: {$bestCategory} ($".number_format($bestRevenue, 2)." revenue)\n\n";
         }
     }
 
@@ -290,15 +291,16 @@ try {
     // Test with different parameters
     echo "Summary Report:\n";
     $summaryResult = $database->raw("CALL GetDynamicReport(?)", ['summary'])->execute();
-    
+
     if ($summaryResult instanceof MultiResultSet) {
         for ($i = 0; $i < $summaryResult->count(); $i++) {
             $rs = $summaryResult->getResultSet($i);
+
             foreach ($rs as $row) {
                 if (isset($row['metric'])) {
                     echo "  {$row['metric']}: {$row['value']}\n";
                 } elseif (isset($row['month'])) {
-                    echo "  {$row['month']}: $" . number_format($row['revenue'], 2) . "\n";
+                    echo "  {$row['month']}: $".number_format($row['revenue'], 2)."\n";
                 }
             }
         }
@@ -311,10 +313,9 @@ try {
     $database->raw("DROP TABLE orders")->execute();
     $database->raw("DROP TABLE products")->execute();
     echo "✓ Test tables and procedures dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
-    echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+    echo "Stack trace:\n".$e->getTraceAsString()."\n";
 
     // Clean up on error
     try {

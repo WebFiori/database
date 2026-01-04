@@ -162,7 +162,7 @@ try {
     }
 
     echo "6. Multi-Result Transaction Analysis:\n";
-    
+
     // Create a stored procedure for transaction analysis
     $database->raw("DROP PROCEDURE IF EXISTS TransactionAnalysis")->execute();
     $database->raw("
@@ -191,29 +191,30 @@ try {
             LIMIT 5;
         END
     ")->execute();
-    
+
     $analysisResult = $database->raw("CALL TransactionAnalysis()")->execute();
-    
+
     if (method_exists($analysisResult, 'count') && $analysisResult->count() > 1) {
         echo "✓ Multi-result transaction analysis completed!\n";
-        
+
         for ($i = 0; $i < $analysisResult->count(); $i++) {
             $rs = $analysisResult->getResultSet($i);
+
             if ($rs->getRowsCount() > 0) {
                 $firstRow = $rs->getRows()[0];
-                
+
                 if (isset($firstRow['report_type'])) {
                     echo "\n--- {$firstRow['report_type']} ---\n";
-                    
+
                     foreach ($rs as $row) {
                         if ($row['report_type'] === 'Account Summary') {
-                            echo "  {$row['name']}: $" . number_format($row['balance'], 2) . "\n";
+                            echo "  {$row['name']}: $".number_format($row['balance'], 2)."\n";
                         } elseif ($row['report_type'] === 'Transaction Summary') {
                             echo "  Total Transactions: {$row['total_transactions']}\n";
-                            echo "  Total Amount: $" . number_format($row['total_amount'], 2) . "\n";
-                            echo "  Average Amount: $" . number_format($row['avg_amount'], 2) . "\n";
+                            echo "  Total Amount: $".number_format($row['total_amount'], 2)."\n";
+                            echo "  Average Amount: $".number_format($row['avg_amount'], 2)."\n";
                         } elseif ($row['report_type'] === 'Recent Transactions') {
-                            echo "  {$row['from_name']} → {$row['to_name']}: $" . number_format($row['amount'], 2) . " ({$row['created_at']})\n";
+                            echo "  {$row['from_name']} → {$row['to_name']}: $".number_format($row['amount'], 2)." ({$row['created_at']})\n";
                         }
                     }
                 }
@@ -226,7 +227,6 @@ try {
     $database->raw("DROP TABLE transactions")->execute();
     $database->raw("DROP TABLE accounts")->execute();
     echo "✓ Test tables and procedures dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
 

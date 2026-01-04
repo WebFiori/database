@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -17,6 +17,7 @@ use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLColumn;
 use WebFiori\Database\MySql\MySQLQuery;
 use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Query\Condition;
 /**
  * A class that represents two joined tables.
  *

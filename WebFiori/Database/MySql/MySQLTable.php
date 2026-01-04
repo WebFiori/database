@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -296,7 +296,7 @@ class MySQLTable extends Table {
         $index = 0;
 
         foreach ($cols as $colObj) {
-            $autoIncPart = $colObj->isAutoInc() ? ' auto_increment' : '';
+            $autoIncPart = '';
 
             if ($index + 1 == $count) {
                 $queryStr .= '    '.$colObj->asString().$autoIncPart."";

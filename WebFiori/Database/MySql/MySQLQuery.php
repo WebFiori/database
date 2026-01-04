@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -339,6 +339,7 @@ class MySQLQuery extends AbstractQuery {
         if (!isset($bindings['bind']) && !isset($bindings['values'])) {
             // Simple array - convert to structured format
             $bindString = '';
+
             foreach ($bindings as $value) {
                 if (is_int($value)) {
                     $bindString .= 'i';
@@ -353,7 +354,7 @@ class MySQLQuery extends AbstractQuery {
                 'values' => $bindings
             ];
         }
-        
+
         $currentBinding = $this->bindings['bind'];
         $values = $this->bindings['values'];
 
