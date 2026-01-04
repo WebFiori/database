@@ -32,7 +32,7 @@ class SchemaErrorHandlingTest extends TestCase {
             // Apply changes first
             $applied = $runner->apply();
             
-            if (!empty($applied)) {
+            if (!empty($applied->getApplied())) {
                 $errorCaught = false;
                 $runner->addOnErrorCallback(function($err, $change, $schema) use (&$errorCaught) {
                     $errorCaught = true;
