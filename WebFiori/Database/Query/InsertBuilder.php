@@ -11,6 +11,9 @@
  */
 namespace WebFiori\Database\Query;
 
+use WebFiori\Database\Column;
+use WebFiori\Database\Table;
+
 /**
  * A class which is used to build insert SQL queries for diffrent database engines.
  *

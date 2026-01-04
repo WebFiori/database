@@ -11,6 +11,8 @@
  */
 namespace WebFiori\Database\Entity;
 
+use WebFiori\Database\DatabaseException;
+
 /**
  * A class which is used to map a database record to a system entity.
  *

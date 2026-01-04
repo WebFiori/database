@@ -12,6 +12,9 @@
 namespace WebFiori\Database\Query;
 
 use InvalidArgumentException;
+use WebFiori\Database\AbstractQuery;
+use WebFiori\Database\Column;
+use WebFiori\Database\JoinTable;
 use WebFiori\Database\Table;
 
 /**

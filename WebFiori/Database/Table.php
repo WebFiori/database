@@ -11,8 +11,10 @@
  */
 namespace WebFiori\Database;
 
+use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Query\SelectExpression;
 
 /**
  * Abstract base class for representing database table structures.
