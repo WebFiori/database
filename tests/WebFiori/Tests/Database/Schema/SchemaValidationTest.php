@@ -93,7 +93,7 @@ class SchemaValidationTest extends TestCase {
             $applied = $runner->apply();
             
             // Should handle incomplete implementation
-            $this->assertIsArray($applied);
+            $this->assertInstanceOf(\WebFiori\Database\Schema\DatabaseChangeResult::class, $applied);
         } catch (DatabaseException $ex) {
             $this->markTestSkipped('Database connection failed: ' . $ex->getMessage());
         }
