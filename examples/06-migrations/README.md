@@ -24,3 +24,10 @@ php example.php
 ## Expected Output
 
 The example will create migration classes, run them to modify the database schema, and demonstrate rollback functionality.
+
+
+## Related Examples
+
+- [03-table-blueprints](../03-table-blueprints/) - Define table structures
+- [07-seeders](../07-seeders/) - Populate data after migrations
+- [05-transactions](../05-transactions/) - Understand rollback behavior

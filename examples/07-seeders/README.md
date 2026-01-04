@@ -24,3 +24,10 @@ php example.php
 ## Expected Output
 
 The example will create seeder classes, run them to populate the database with initial data, and show the seeded records.
+
+
+## Related Examples
+
+- [06-migrations](../06-migrations/) - Create tables before seeding
+- [05-transactions](../05-transactions/) - Wrap seeding in transactions
+- [11-repository-pattern](../11-repository-pattern/) - Use repositories for data insertion

@@ -22,3 +22,10 @@ php example.php
 ## Expected Output
 
 The example will demonstrate both successful transactions and failed transactions with rollback functionality.
+
+
+## Related Examples
+
+- [02-basic-queries](../02-basic-queries/) - Basic CRUD operations
+- [06-migrations](../06-migrations/) - Schema changes with rollback support
+- [07-seeders](../07-seeders/) - Populate data within transactions

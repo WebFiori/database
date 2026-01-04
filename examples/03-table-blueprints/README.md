@@ -24,3 +24,11 @@ php example.php
 ## Expected Output
 
 The example will create table blueprints using both the fluent API and custom table classes, generate SQL statements, and create the actual tables in the database.
+
+
+## Related Examples
+
+- [04-entity-mapping](../04-entity-mapping/) - Map tables to entity classes
+- [06-migrations](../06-migrations/) - Version control your schema changes
+- [10-attribute-based-tables](../10-attribute-based-tables/) - Define tables using PHP 8 attributes
+- [11-repository-pattern](../11-repository-pattern/) - Use repositories for data access

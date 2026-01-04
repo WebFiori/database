@@ -23,3 +23,10 @@ php example.php
 ## Expected Output
 
 The example will create a table blueprint, generate an entity class, and demonstrate mapping database records to objects.
+
+
+## Related Examples
+
+- [03-table-blueprints](../03-table-blueprints/) - Create table structures first
+- [11-repository-pattern](../11-repository-pattern/) - Recommended approach for entity mapping
+- [12-clean-architecture](../12-clean-architecture/) - Separate domain entities from infrastructure
