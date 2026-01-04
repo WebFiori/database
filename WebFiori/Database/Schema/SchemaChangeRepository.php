@@ -96,11 +96,11 @@ class SchemaChangeRepository extends AbstractRepository {
                 'change_name' => $change->getName(),
                 'type' => $change->getType(),
                 'applied-on' => date('Y-m-d H:i:s'),
-                'db-name' => $this->getDatabase()->getConnectionInfo()->getDatabase(),
+                'db-name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
                 'batch' => $change->getBatch()
             ])->execute();
         
-        return $this->getDatabase()->getLastInsertId();
+        return $this->getLastInsertId();
     }
 
     /**
@@ -241,5 +241,18 @@ class SchemaChangeRepository extends AbstractRepository {
      */
     public function clearAll(): int {
         return $this->deleteAll();
+    }
+    
+    /**
+     * Get the last insert ID from the database connection.
+     * 
+     * @return int The last insert ID, or 0 if not available
+     */
+    private function getLastInsertId(): int {
+        return (int)$this->getDatabase()
+        ->getQueryGenerator()
+        ->selectMax($this->getIdField(), 'max')
+        ->execute()
+        ->getRows()[0]['max'];
     }
 }
