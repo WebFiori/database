@@ -55,20 +55,6 @@ abstract class AbstractMigration extends DatabaseChange {
     }
 
     /**
-     * Get the environments where this migration should be executed.
-     * 
-     * By default, migrations run in all environments (dev, test, prod).
-     * Override this method to restrict execution to specific environments.
-     * For example, return ['dev'] to only run in development.
-     * Migrations run in all environments by default.
-     * 
-     * @return array Empty array means all environments.
-     */
-    public function getEnvironments(): array {
-        return [];
-    }
-
-    /**
      * Get the type identifier for this database change.
      * 
      * This method is used by the SchemaRunner to categorize and track

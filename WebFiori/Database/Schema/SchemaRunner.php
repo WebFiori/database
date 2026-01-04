@@ -162,7 +162,7 @@ class SchemaRunner extends Database {
                 }
 
                 try {
-                    $change->execute($this);
+                    $this->executeChange($change);
                     $change->setBatch($batch);
                     $this->getRepository()->recordChange($change);
                     $result->addApplied($change);
@@ -215,7 +215,7 @@ class SchemaRunner extends Database {
                 }
 
                 try {
-                    $change->execute($this);
+                    $this->executeChange($change);
                     $change->setBatch($batch);
                     $this->getRepository()->recordChange($change);
                 } catch (\Throwable $ex) {
@@ -233,6 +233,24 @@ class SchemaRunner extends Database {
         }
 
         return null;
+    }
+
+    /**
+     * Execute a database change, optionally wrapped in a transaction.
+     * 
+     * This method checks the change's useTransaction() method to determine
+     * whether to wrap the execution in a database transaction.
+     * 
+     * @param DatabaseChange $change The change to execute.
+     */
+    protected function executeChange(DatabaseChange $change): void {
+        if ($change->useTransaction($this)) {
+            $this->transaction(function (Database $db) use ($change) {
+                $change->execute($db);
+            });
+        } else {
+            $change->execute($this);
+        }
     }
 
     /**

@@ -72,6 +72,42 @@ abstract class DatabaseChange {
     }
 
     /**
+     * Get the environments where this change should be executed.
+     * 
+     * Override this method to restrict execution to specific environments.
+     * 
+     * @return array Array of environment names. Empty array means all environments.
+     */
+    public function getEnvironments(): array {
+        return [];
+    }
+
+    /**
+     * Determine if this change should be wrapped in a database transaction.
+     * 
+     * Override this method to control transaction behavior. By default,
+     * changes are wrapped in transactions for safety.
+     * 
+     * Guidelines:
+     * - Return true for DML operations (INSERT, UPDATE, DELETE) - always safe
+     * - Return true for DDL on MSSQL/PostgreSQL - they support transactional DDL
+     * - Return false for DDL on MySQL - it auto-commits and can't be rolled back
+     * 
+     * For DBMS-aware behavior, override and check the database type:
+     * ```php
+     * public function useTransaction(Database $db): bool {
+     *     return $db->getConnectionInfo()->getDatabaseType() !== 'mysql';
+     * }
+     * ```
+     * 
+     * @param Database $db The database instance (for DBMS-aware decisions).
+     * @return bool True to wrap in transaction, false to execute directly.
+     */
+    public function useTransaction(Database $db): bool {
+        return true;
+    }
+
+    /**
      * Get the unique identifier for this database change.
      * 
      * @return int The unique identifier assigned by the schema tracking system.

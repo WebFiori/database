@@ -41,21 +41,6 @@ abstract class AbstractSeeder extends DatabaseChange {
     }
 
     /**
-     * Get the environments where this seeder should be executed.
-     * 
-     * Seeders often need environment-specific behavior:
-     * - Production seeders: essential reference data only
-     * - Development seeders: sample data for testing
-     * - Test seeders: specific test fixtures
-     * Override this method to control execution environments.
-     * 
-     * @return array Array of environment names. Empty array means all environments.
-     */
-    public function getEnvironments(): array {
-        return [];
-    }
-
-    /**
      * Get the type identifier for this database change.
      * 
      * This method is used by the SchemaRunner to categorize and track
