@@ -29,15 +29,15 @@ class UserTable extends MySQLTable {
                 ColOption::SIZE => 150,
                 ColOption::NULL => false
             ],
-            'full_name' => [
+            'full-name' => [
                 ColOption::TYPE => DataType::VARCHAR,
                 ColOption::SIZE => 100
             ],
-            'is_active' => [
+            'is-active' => [
                 ColOption::TYPE => DataType::BOOL,
                 ColOption::DEFAULT => true
             ],
-            'created_at' => [
+            'created-at' => [
                 ColOption::TYPE => DataType::TIMESTAMP,
                 ColOption::DEFAULT => 'current_timestamp'
             ]
