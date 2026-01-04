@@ -121,11 +121,15 @@ class SchemaRunner extends Database {
      * All changes applied in a single call to apply() are assigned the same
      * batch number, allowing them to be rolled back together.
      * 
-     * @return array Array of applied DatabaseChange instances.
+     * @return DatabaseChangeResult Result containing applied, skipped, and failed changes.
      */
-    public function apply(): array {
-        $applied = [];
+    public function apply(): DatabaseChangeResult {
+        $result = new DatabaseChangeResult();
         $batch = $this->getRepository()->getNextBatchNumber();
+        $startTime = microtime(true);
+
+        // Track which changes we've already processed
+        $processed = [];
 
         // Keep applying changes until no more can be applied
         $appliedInPass = true;
@@ -134,34 +138,54 @@ class SchemaRunner extends Database {
             $appliedInPass = false;
 
             foreach ($this->dbChanges as $change) {
-                if ($this->isApplied($change->getName())) {
+                $name = $change->getName();
+                
+                if (isset($processed[$name])) {
+                    continue;
+                }
+
+                if ($this->isApplied($name)) {
+                    $processed[$name] = true;
+                    $result->addSkipped($change, 'Already applied');
                     continue;
                 }
 
                 if (!$this->shouldRunInEnvironment($change)) {
+                    $processed[$name] = true;
+                    $result->addSkipped($change, 'Environment mismatch');
                     continue;
                 }
 
                 if (!$this->areDependenciesSatisfied($change)) {
-                    continue;
+                    continue; // Don't mark as processed - may be satisfied later
                 }
 
                 try {
                     $change->execute($this);
                     $change->setBatch($batch);
                     $this->getRepository()->recordChange($change);
-                    $applied[] = $change;
+                    $result->addApplied($change);
+                    $processed[$name] = true;
                     $appliedInPass = true;
                 } catch (\Throwable $ex) {
+                    $result->addFailed($change, $ex);
+                    $processed[$name] = true;
                     foreach ($this->onErrCallbacks as $callback) {
                         call_user_func_array($callback, [$ex, $change, $this]);
                     }
-                    // Continue with next change instead of breaking
                 }
             }
         }
 
-        return $applied;
+        // Mark unprocessed changes as skipped (unsatisfied dependencies)
+        foreach ($this->dbChanges as $change) {
+            if (!isset($processed[$change->getName()])) {
+                $result->addSkipped($change, 'Unsatisfied dependencies');
+            }
+        }
+
+        $result->setTotalTime((microtime(true) - $startTime) * 1000);
+        return $result;
     }
 
     /**
