@@ -97,4 +97,17 @@ class DatabaseChangeResultTest extends TestCase {
         
         $this->assertFalse($result->isSuccessful());
     }
+
+    public function testConnectionInfo() {
+        $result = new DatabaseChangeResult();
+        
+        $this->assertNull($result->getConnectionInfo());
+        $this->assertNull($result->getDatabaseName());
+        
+        $connInfo = new \WebFiori\Database\ConnectionInfo('mysql', 'root', '123456', 'test_db');
+        $result->setConnectionInfo($connInfo);
+        
+        $this->assertSame($connInfo, $result->getConnectionInfo());
+        $this->assertEquals('test_db', $result->getDatabaseName());
+    }
 }

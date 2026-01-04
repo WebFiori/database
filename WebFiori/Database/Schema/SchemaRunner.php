@@ -125,6 +125,7 @@ class SchemaRunner extends Database {
      */
     public function apply(): DatabaseChangeResult {
         $result = new DatabaseChangeResult();
+        $result->setConnectionInfo($this->getConnectionInfo());
         $batch = $this->getRepository()->getNextBatchNumber();
         $startTime = microtime(true);
 

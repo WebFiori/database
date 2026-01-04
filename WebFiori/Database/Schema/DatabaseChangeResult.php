@@ -14,6 +14,7 @@ use Countable;
 use IteratorAggregate;
 use ArrayIterator;
 use Traversable;
+use WebFiori\Database\ConnectionInfo;
 
 /**
  * Result of applying database changes (migrations and seeders).
@@ -42,6 +43,11 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
      * @var float Total execution time in milliseconds
      */
     private float $totalTimeMs = 0;
+
+    /**
+     * @var ConnectionInfo|null Connection info for the database changes were applied to
+     */
+    private ?ConnectionInfo $connectionInfo = null;
 
     /**
      * Add an applied change.
@@ -110,6 +116,27 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
      */
     public function isSuccessful(): bool {
         return empty($this->failed);
+    }
+
+    /**
+     * Set the connection info for the database changes were applied to.
+     */
+    public function setConnectionInfo(ConnectionInfo $connectionInfo): void {
+        $this->connectionInfo = $connectionInfo;
+    }
+
+    /**
+     * Get the connection info for the database changes were applied to.
+     */
+    public function getConnectionInfo(): ?ConnectionInfo {
+        return $this->connectionInfo;
+    }
+
+    /**
+     * Get the database name changes were applied to.
+     */
+    public function getDatabaseName(): ?string {
+        return $this->connectionInfo?->getDBName();
     }
 
     /**
