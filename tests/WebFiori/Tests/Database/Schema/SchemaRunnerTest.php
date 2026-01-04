@@ -151,9 +151,10 @@ class SchemaRunnerTest extends TestCase {
             $runner->createSchemaTable();
             
             $applied = $runner->apply();
+            $appliedChanges = $applied->getApplied();
             
-            if (!empty($applied)) {
-                $lastChange = end($applied);
+            if (!empty($appliedChanges)) {
+                $lastChange = end($appliedChanges);
                 $rolled = $runner->rollbackUpTo($lastChange->getName());
                 
                 $this->assertIsArray($rolled);
