@@ -157,6 +157,8 @@ class SchemaErrorHandlingTest extends TestCase {
         $this->expectExceptionMessage('Unable to connect to database');
         
         $runner = new SchemaRunner($badConnection);
+        // Trigger actual database connection attempt
+        $runner->createSchemaTable();
     }
 
     // Type Safety and Validation Issues
