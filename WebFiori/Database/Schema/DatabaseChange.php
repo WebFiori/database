@@ -32,7 +32,6 @@ abstract class DatabaseChange {
     private $appliedAt;
     private $id;
     private int $batch = 0;
-    private ?Database $database = null;
 
     /**
      * Initialize a new database change with optional name and order.
@@ -40,11 +39,6 @@ abstract class DatabaseChange {
     public function __construct() {
         $this->setAppliedAt(date('Y-m-d H:i:s'));
     }
-    /**
-     * Execute the database change.
-     * 
-     * @param Database $db The database instance to execute against.
-     */
     /**
      * Execute the database change (apply the migration or seeder).
      * 
@@ -150,23 +144,5 @@ abstract class DatabaseChange {
      */
     public function setBatch(int $batch): void {
         $this->batch = $batch;
-    }
-
-    /**
-     * Set the database instance for this change.
-     * 
-     * @param Database $db The database instance to use for this change.
-     */
-    public function setDatabase(Database $db): void {
-        $this->database = $db;
-    }
-
-    /**
-     * Get the database instance for this change.
-     * 
-     * @return Database|null The database instance or null if not set.
-     */
-    public function getDatabase(): ?Database {
-        return $this->database;
     }
 }

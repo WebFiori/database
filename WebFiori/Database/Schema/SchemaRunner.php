@@ -444,8 +444,7 @@ class SchemaRunner extends Database {
     }
     private function attemptRoolback(DatabaseChange $change, &$rolled) : bool {
         try {
-            $migrationDb = $change->getDatabase() ?? $this;
-            $change->rollback($migrationDb);
+            $change->rollback($this);
             $this->repository->removeChange($change->getName());
             $rolled[] = $change;
 
