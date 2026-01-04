@@ -2,7 +2,7 @@
 namespace WebFiori\Tests\Database\MsSql;
 
 use PHPUnit\Framework\TestCase;
-use WebFiori\Database\ColumnFactory;
+use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\MsSql\MSSQLColumn;
 use WebFiori\Database\MySql\MySQLColumn;
 /**
