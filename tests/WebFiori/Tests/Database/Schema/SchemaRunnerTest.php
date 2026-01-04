@@ -249,10 +249,16 @@ class SchemaRunnerTest extends TestCase {
         // Test registration with invalid class name
         $runner = new SchemaRunner($this->getConnectionInfo());
         
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Class does not exist');
+        $errorCaught = false;
+        $runner->addOnRegisterErrorCallback(function($err) use (&$errorCaught) {
+            $errorCaught = true;
+            $this->assertStringContainsString('Class does not exist', $err->getMessage());
+        });
         
-        $runner->register('InvalidNamespace\\NonExistentClass');
+        // Should return false for non-existent class
+        $result = $runner->register('InvalidNamespace\\NonExistentClass');
+        $this->assertFalse($result);
+        $this->assertTrue($errorCaught, 'Error callback should have been called');
     }
 
     public function testConstructorDependencies() {
