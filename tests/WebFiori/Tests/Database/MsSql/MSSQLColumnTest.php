@@ -274,9 +274,9 @@ class MSSQLColumnTest extends TestCase {
      */
     public function testGetPHPType06() {
         $colObj = new MSSQLColumn('col', 'mixed');
-        $this->assertEquals('mixed', $colObj->getPHPType());
+        $this->assertEquals('string', $colObj->getPHPType());
         $colObj->setIsNull(true);
-        $this->assertEquals('mixed|null', $colObj->getPHPType());
+        $this->assertEquals('string|null', $colObj->getPHPType());
     }
     /**
      * @test
