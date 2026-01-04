@@ -289,6 +289,49 @@ class SchemaRunner extends Database {
             'change_name' => $name
         ]) == 1;
     }
+    /**
+     * Get pending database changes that would be applied.
+     * 
+     * This method returns changes that have not been applied yet and would
+     * run in the current environment. Optionally captures the SQL queries
+     * that would be executed using dry-run mode.
+     * 
+     * @param bool $withQueries If true, executes each change in dry-run mode
+     *                          to capture the SQL queries. Default is false.
+     * @return array Array of associative arrays with keys:
+     *               - 'change': The DatabaseChange instance
+     *               - 'queries': Array of SQL strings (only if $withQueries is true)
+     */
+    public function getPendingChanges(bool $withQueries = false): array {
+        $pending = [];
+        
+        foreach ($this->dbChanges as $change) {
+            if ($this->isApplied($change->getName())) {
+                continue;
+            }
+            
+            if (!$this->shouldRunInEnvironment($change)) {
+                continue;
+            }
+            
+            $info = ['change' => $change, 'queries' => []];
+            
+            if ($withQueries) {
+                $this->setDryRun(true);
+                try {
+                    $change->execute($this);
+                    $info['queries'] = $this->getCapturedQueries();
+                } catch (\Throwable $ex) {
+                    // Capture failed, queries may be partial
+                }
+                $this->setDryRun(false);
+            }
+            
+            $pending[] = $info;
+        }
+        
+        return $pending;
+    }
 
     /**
      * Get the schema change repository.

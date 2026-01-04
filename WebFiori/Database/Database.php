@@ -68,6 +68,18 @@ class Database {
      *  
      */
     private $queries;
+    /**
+     * Whether dry-run mode is enabled.
+     * 
+     * @var bool
+     */
+    private bool $dryRun = false;
+    /**
+     * Queries captured during dry-run mode.
+     * 
+     * @var array
+     */
+    private array $capturedQueries = [];
 
     /**
      * The instance which is used to build database queries.
@@ -224,13 +236,8 @@ class Database {
      * and so on.
      */
     public function createBlueprint(string $name) : Table {
-        $connection = $this->getConnection();
-
-        if ($connection === null) {
-            $dbType = 'mysql';
-        } else {
-            $dbType = $connection->getConnectionInfo()->getDatabaseType();
-        }
+        $connInfo = $this->getConnectionInfo();
+        $dbType = $connInfo !== null ? $connInfo->getDatabaseType() : 'mysql';
 
         if ($dbType == 'mssql') {
             $blueprint = new MSSQLTable($name);
@@ -342,8 +349,18 @@ class Database {
      * 
      */
     public function execute() {
-        $conn = $this->getConnection();
         $lastQuery = $this->getLastQuery();
+
+        // Dry-run mode: capture query without executing
+        if ($this->dryRun) {
+            $this->capturedQueries[] = $lastQuery;
+            $this->queries[] = $lastQuery;
+            $this->clear();
+            $this->getQueryGenerator()->setQuery(null);
+            return new ResultSet([]);
+        }
+
+        $conn = $this->getConnection();
 
         // Start performance monitoring
         $startTime = $this->performanceEnabled ? microtime(true) : null;
@@ -403,6 +420,36 @@ class Database {
      */
     public function getConnectionInfo() : ?ConnectionInfo {
         return $this->connectionInfo;
+    }
+    /**
+     * Enable or disable dry-run mode.
+     * 
+     * When dry-run mode is enabled, queries are captured but not executed.
+     * This is useful for previewing what SQL would be generated.
+     * 
+     * @param bool $dryRun True to enable dry-run mode, false to disable.
+     */
+    public function setDryRun(bool $dryRun): void {
+        $this->dryRun = $dryRun;
+        if ($dryRun) {
+            $this->capturedQueries = [];
+        }
+    }
+    /**
+     * Check if dry-run mode is enabled.
+     * 
+     * @return bool True if dry-run mode is enabled, false otherwise.
+     */
+    public function isDryRun(): bool {
+        return $this->dryRun;
+    }
+    /**
+     * Get queries captured during dry-run mode.
+     * 
+     * @return array Array of SQL query strings captured during dry-run.
+     */
+    public function getCapturedQueries(): array {
+        return $this->capturedQueries;
     }
 
     /**
@@ -524,7 +571,20 @@ class Database {
      * 
      */
     public function getQueryGenerator() : AbstractQuery {
-        if (!$this->isConnected()) {
+        // In dry-run mode, create query generator without connection
+        if ($this->dryRun && $this->queryGenerator === null) {
+            $connInfo = $this->getConnectionInfo();
+            $dbType = $connInfo !== null ? $connInfo->getDatabaseType() : 'mysql';
+            
+            if ($dbType == 'mssql') {
+                $this->queryGenerator = new MSSQLQuery();
+            } else {
+                $this->queryGenerator = new MySQLQuery();
+            }
+            $this->queryGenerator->setSchema($this);
+        }
+        
+        if ($this->queryGenerator === null && !$this->isConnected()) {
             if ($this->getConnectionInfo() === null) {
                 throw new DatabaseException("Connection information not set.");
             } else {
