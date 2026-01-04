@@ -366,24 +366,7 @@ abstract class Table {
     public function getComment() {
         return $this->comment;
     }
-    /**
-     * Returns an instance of the class 'EntityMapper' which can be used to map the 
-     * table to an entity class.
-     * 
-     * Note that the developer can modify the name of the entity and the namespace 
-     * that it belongs to in addition to the path that the class will be created on.
-     * 
-     * @return EntityMapper An instance of the class 'EntityMapper'
-     * 
-     */
-    public function getEntityMapper() : EntityMapper {
-        if ($this->mapper === null) {
-            $this->mapper = new EntityMapper($this, 'C');
-        }
 
-        return $this->mapper;
-    }
-    
     /**
      * Returns an entity generator for generating PHP 8+ immutable entities.
      * 
@@ -402,7 +385,24 @@ abstract class Table {
     public function getEntityGenerator(string $entityName = 'Entity', string $path = __DIR__, string $namespace = '') : EntityGenerator {
         return new EntityGenerator($this, $entityName, $path, $namespace);
     }
-    
+    /**
+     * Returns an instance of the class 'EntityMapper' which can be used to map the 
+     * table to an entity class.
+     * 
+     * Note that the developer can modify the name of the entity and the namespace 
+     * that it belongs to in addition to the path that the class will be created on.
+     * 
+     * @return EntityMapper An instance of the class 'EntityMapper'
+     * 
+     */
+    public function getEntityMapper() : EntityMapper {
+        if ($this->mapper === null) {
+            $this->mapper = new EntityMapper($this, 'C');
+        }
+
+        return $this->mapper;
+    }
+
     /**
      * Returns a foreign key given its name.
      * 

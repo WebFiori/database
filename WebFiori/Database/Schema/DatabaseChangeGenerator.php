@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -17,62 +18,9 @@ namespace WebFiori\Database\Schema;
  * changes, including proper namespace, imports, and method stubs.
  */
 class DatabaseChangeGenerator {
-    private string $path = '';
     private string $namespace = '';
+    private string $path = '';
     private bool $useTimestamp = false;
-
-    /**
-     * Set the directory path where generated files will be saved.
-     * 
-     * @param string $path Absolute path to the directory.
-     */
-    public function setPath(string $path): self {
-        $this->path = rtrim($path, DIRECTORY_SEPARATOR);
-        return $this;
-    }
-
-    /**
-     * Get the configured path.
-     */
-    public function getPath(): string {
-        return $this->path;
-    }
-
-    /**
-     * Set the namespace for generated classes.
-     * 
-     * @param string $namespace The PHP namespace.
-     */
-    public function setNamespace(string $namespace): self {
-        $this->namespace = trim($namespace, '\\');
-        return $this;
-    }
-
-    /**
-     * Get the configured namespace.
-     */
-    public function getNamespace(): string {
-        return $this->namespace;
-    }
-
-    /**
-     * Enable or disable timestamp prefix in filenames.
-     * 
-     * When enabled, files are named like: 2026_01_04_175000_CreateUsersTable.php
-     * 
-     * @param bool $use True to enable timestamp prefix.
-     */
-    public function useTimestampPrefix(bool $use): self {
-        $this->useTimestamp = $use;
-        return $this;
-    }
-
-    /**
-     * Check if timestamp prefix is enabled.
-     */
-    public function isTimestampPrefixEnabled(): bool {
-        return $this->useTimestamp;
-    }
 
     /**
      * Create a migration class file.
@@ -88,6 +36,7 @@ class DatabaseChangeGenerator {
         $table = $options[GeneratorOption::TABLE] ?? null;
 
         $content = $this->buildMigrationContent($name, $dependencies, $table);
+
         return $this->writeFile($name, $content);
     }
 
@@ -105,38 +54,97 @@ class DatabaseChangeGenerator {
         $dependencies = $options[GeneratorOption::DEPENDENCIES] ?? [];
 
         $content = $this->buildSeederContent($name, $environments, $dependencies);
+
         return $this->writeFile($name, $content);
+    }
+
+    /**
+     * Get the configured namespace.
+     */
+    public function getNamespace(): string {
+        return $this->namespace;
+    }
+
+    /**
+     * Get the configured path.
+     */
+    public function getPath(): string {
+        return $this->path;
+    }
+
+    /**
+     * Check if timestamp prefix is enabled.
+     */
+    public function isTimestampPrefixEnabled(): bool {
+        return $this->useTimestamp;
+    }
+
+    /**
+     * Set the namespace for generated classes.
+     * 
+     * @param string $namespace The PHP namespace.
+     */
+    public function setNamespace(string $namespace): self {
+        $this->namespace = trim($namespace, '\\');
+
+        return $this;
+    }
+
+    /**
+     * Set the directory path where generated files will be saved.
+     * 
+     * @param string $path Absolute path to the directory.
+     */
+    public function setPath(string $path): self {
+        $this->path = rtrim($path, DIRECTORY_SEPARATOR);
+
+        return $this;
+    }
+
+    /**
+     * Enable or disable timestamp prefix in filenames.
+     * 
+     * When enabled, files are named like: 2026_01_04_175000_CreateUsersTable.php
+     * 
+     * @param bool $use True to enable timestamp prefix.
+     */
+    public function useTimestampPrefix(bool $use): self {
+        $this->useTimestamp = $use;
+
+        return $this;
     }
 
     private function buildMigrationContent(string $name, array $dependencies, ?string $table): string {
         $lines = [];
         $lines[] = '<?php';
         $lines[] = '';
-        
+
         if ($this->namespace) {
-            $lines[] = 'namespace ' . $this->namespace . ';';
+            $lines[] = 'namespace '.$this->namespace.';';
             $lines[] = '';
         }
-        
+
         $lines[] = 'use WebFiori\Database\Schema\AbstractMigration;';
         $lines[] = 'use WebFiori\Database\Database;';
         $lines[] = '';
         $lines[] = "class {$name} extends AbstractMigration {";
-        
+
         // Add getDependencies if specified
         if (!empty($dependencies)) {
             $lines[] = '';
             $lines[] = '    public function getDependencies(): array {';
             $lines[] = '        return [';
+
             foreach ($dependencies as $dep) {
-                $lines[] = '            ' . $this->formatDependency($dep) . ',';
+                $lines[] = '            '.$this->formatDependency($dep).',';
             }
             $lines[] = '        ];';
             $lines[] = '    }';
         }
-        
+
         $lines[] = '';
         $lines[] = '    public function up(Database $db): void {';
+
         if ($table) {
             $lines[] = "        // TODO: Create or modify table '{$table}'";
         } else {
@@ -145,6 +153,7 @@ class DatabaseChangeGenerator {
         $lines[] = '    }';
         $lines[] = '';
         $lines[] = '    public function down(Database $db): void {';
+
         if ($table) {
             $lines[] = "        // TODO: Reverse changes to table '{$table}'";
         } else {
@@ -161,37 +170,38 @@ class DatabaseChangeGenerator {
         $lines = [];
         $lines[] = '<?php';
         $lines[] = '';
-        
+
         if ($this->namespace) {
-            $lines[] = 'namespace ' . $this->namespace . ';';
+            $lines[] = 'namespace '.$this->namespace.';';
             $lines[] = '';
         }
-        
+
         $lines[] = 'use WebFiori\Database\Schema\AbstractSeeder;';
         $lines[] = 'use WebFiori\Database\Database;';
         $lines[] = '';
         $lines[] = "class {$name} extends AbstractSeeder {";
-        
+
         // Add getEnvironments if specified
         if (!empty($environments)) {
             $lines[] = '';
             $lines[] = '    public function getEnvironments(): array {';
-            $lines[] = '        return [' . $this->formatStringArray($environments) . '];';
+            $lines[] = '        return ['.$this->formatStringArray($environments).'];';
             $lines[] = '    }';
         }
-        
+
         // Add getDependencies if specified
         if (!empty($dependencies)) {
             $lines[] = '';
             $lines[] = '    public function getDependencies(): array {';
             $lines[] = '        return [';
+
             foreach ($dependencies as $dep) {
-                $lines[] = '            ' . $this->formatDependency($dep) . ',';
+                $lines[] = '            '.$this->formatDependency($dep).',';
             }
             $lines[] = '        ];';
             $lines[] = '    }';
         }
-        
+
         $lines[] = '';
         $lines[] = '    public function run(Database $db): void {';
         $lines[] = '        // TODO: Implement seeder';
@@ -205,18 +215,21 @@ class DatabaseChangeGenerator {
     private function formatDependency(string $dep): string {
         // If it looks like a fully qualified class name, use ::class syntax
         if (str_contains($dep, '\\')) {
-            return $dep . '::class';
+            return $dep.'::class';
         }
+
         // If it's a simple class name, also use ::class syntax
         if (preg_match('/^[A-Z][a-zA-Z0-9_]*$/', $dep)) {
-            return $dep . '::class';
+            return $dep.'::class';
         }
+
         // Otherwise treat as string
-        return "'" . $dep . "'";
+        return "'".$dep."'";
     }
 
     private function formatStringArray(array $items): string {
         $formatted = array_map(fn($item) => "'{$item}'", $items);
+
         return implode(', ', $formatted);
     }
 
@@ -230,10 +243,10 @@ class DatabaseChangeGenerator {
         }
 
         $filename = $this->useTimestamp 
-            ? date('Y_m_d_His') . '_' . $name . '.php'
-            : $name . '.php';
+            ? date('Y_m_d_His').'_'.$name.'.php'
+            : $name.'.php';
 
-        $fullPath = $this->path . DIRECTORY_SEPARATOR . $filename;
+        $fullPath = $this->path.DIRECTORY_SEPARATOR.$filename;
         file_put_contents($fullPath, $content);
 
         return $fullPath;

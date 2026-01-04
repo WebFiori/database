@@ -13,9 +13,9 @@ namespace WebFiori\Database\MsSql;
 
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Connection;
-use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\ResultSet;
 /**
  * A class that represents a connection to MSSQL server.
@@ -177,7 +177,7 @@ class MSSQLConnection extends Connection {
      * Execute MSSQL query.
      * 
      * @param AbstractQuery $query A query builder that has the generated MSSQL 
-    /**
+     * /**
      * Execute a query and return execution status.
      * 
      * @param AbstractQuery|null $query The query to execute. If null, uses the last set query.
@@ -243,15 +243,17 @@ class MSSQLConnection extends Connection {
 
         if (!is_resource($r)) {
             $this->setSqlErr();
+
             return false;
         }
 
         // Collect all result sets
         $allResults = [];
-        
+
         // First result set
         if (sqlsrv_has_rows($r)) {
             $data = [];
+
             while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }
@@ -263,6 +265,7 @@ class MSSQLConnection extends Connection {
         // Additional result sets
         while (sqlsrv_next_result($r)) {
             $data = [];
+
             while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }
@@ -285,14 +288,16 @@ class MSSQLConnection extends Connection {
 
         if (!is_resource($r)) {
             $this->setSqlErr();
+
             return false;
         }
 
         // Collect all result sets
         $allResults = [];
-        
+
         // First result set
         $data = [];
+
         while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
             $data[] = $row;
         }
@@ -301,6 +306,7 @@ class MSSQLConnection extends Connection {
         // Additional result sets
         while (sqlsrv_next_result($r)) {
             $data = [];
+
             while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
                 $data[] = $row;
             }

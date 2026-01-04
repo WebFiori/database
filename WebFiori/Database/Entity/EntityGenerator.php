@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -10,8 +11,8 @@
  */
 namespace WebFiori\Database\Entity;
 
-use WebFiori\Database\Table;
 use WebFiori\Database\Column;
+use WebFiori\Database\Table;
 
 /**
  * Entity code generator using PHP 8 features.
@@ -25,11 +26,11 @@ use WebFiori\Database\Column;
  * @author Ibrahim
  */
 class EntityGenerator {
-    private Table $table;
     private string $entityName;
     private string $namespace;
     private string $path;
-    
+    private Table $table;
+
     /**
      * Creates a new entity generator.
      * 
@@ -44,7 +45,7 @@ class EntityGenerator {
         $this->path = rtrim($path, '/\\');
         $this->namespace = trim($namespace, '\\');
     }
-    
+
     /**
      * Generates the entity class file.
      * 
@@ -52,10 +53,11 @@ class EntityGenerator {
      */
     public function generate(): bool {
         $code = $this->buildClass();
-        $filePath = $this->path . DIRECTORY_SEPARATOR . $this->entityName . '.php';
+        $filePath = $this->path.DIRECTORY_SEPARATOR.$this->entityName.'.php';
+
         return file_put_contents($filePath, $code) !== false;
     }
-    
+
     /**
      * Builds the complete class code.
      * 
@@ -63,15 +65,15 @@ class EntityGenerator {
      */
     private function buildClass(): string {
         $code = "<?php\n\n";
-        
+
         if ($this->namespace) {
             $code .= "namespace {$this->namespace};\n\n";
         }
-        
+
         $code .= "/**\n";
         $code .= " * Auto-generated immutable entity for table '{$this->table->getName()}'\n";
         $code .= " * \n";
-        $code .= " * Generated on: " . date('Y-m-d H:i:s') . "\n";
+        $code .= " * Generated on: ".date('Y-m-d H:i:s')."\n";
         $code .= " * \n";
         $code .= " * This entity uses:\n";
         $code .= " * - Protected properties (extensible)\n";
@@ -79,15 +81,15 @@ class EntityGenerator {
         $code .= " * - Immutable (no setters)\n";
         $code .= " */\n";
         $code .= "class {$this->entityName} {\n";
-        
+
         $code .= $this->buildConstructor();
         $code .= $this->buildGetters();
-        
+
         $code .= "}\n";
-        
+
         return $code;
     }
-    
+
     /**
      * Builds the constructor with promoted properties.
      * 
@@ -96,22 +98,22 @@ class EntityGenerator {
     private function buildConstructor(): string {
         $code = "    public function __construct(\n";
         $params = [];
-        
+
         foreach ($this->table->getCols() as $key => $col) {
             $phpType = $col->getPHPType();
             $propName = $this->toCamelCase($key);
             $nullable = $this->isNullable($col) ? '?' : '';
             $default = $this->getDefault($col);
-            
+
             $params[] = "        protected {$nullable}{$phpType} \${$propName}{$default}";
         }
-        
+
         $code .= implode(",\n", $params);
         $code .= "\n    ) {}\n\n";
-        
+
         return $code;
     }
-    
+
     /**
      * Builds getter methods for all properties.
      * 
@@ -119,31 +121,21 @@ class EntityGenerator {
      */
     private function buildGetters(): string {
         $code = '';
-        
+
         foreach ($this->table->getCols() as $key => $col) {
             $phpType = $col->getPHPType();
             $propName = $this->toCamelCase($key);
-            $methodName = 'get' . ucfirst($propName);
+            $methodName = 'get'.ucfirst($propName);
             $nullable = $this->isNullable($col) ? '?' : '';
-            
+
             $code .= "    public function {$methodName}(): {$nullable}{$phpType} {\n";
             $code .= "        return \$this->{$propName};\n";
             $code .= "    }\n\n";
         }
-        
+
         return $code;
     }
-    
-    /**
-     * Checks if column should be nullable in PHP.
-     * 
-     * @param Column $col The column to check
-     * @return bool True if nullable, false otherwise
-     */
-    private function isNullable(Column $col): bool {
-        return $col->isNull() || $col->isAutoInc();
-    }
-    
+
     /**
      * Gets the default value for a property.
      * 
@@ -154,44 +146,61 @@ class EntityGenerator {
         if ($col->isAutoInc()) {
             return ' = null';
         }
-        
+
         if ($col->isNull()) {
             return ' = null';
         }
-        
+
         $default = $col->getDefault();
+
         if ($default !== null) {
             $phpType = $col->getPHPType();
-            
+
             if ($phpType === 'string') {
-                return " = '" . addslashes($default) . "'";
+                return " = '".addslashes($default)."'";
             }
+
             if ($phpType === 'int' || $phpType === 'float') {
                 return " = {$default}";
             }
+
             if ($phpType === 'bool') {
                 return $default ? ' = true' : ' = false';
             }
         }
-        
+
         // Required field with no default
         $phpType = $col->getPHPType();
+
         if ($phpType === 'string') {
             return " = ''";
         }
+
         if ($phpType === 'int') {
             return ' = 0';
         }
+
         if ($phpType === 'float') {
             return ' = 0.0';
         }
+
         if ($phpType === 'bool') {
             return ' = false';
         }
-        
+
         return '';
     }
-    
+
+    /**
+     * Checks if column should be nullable in PHP.
+     * 
+     * @param Column $col The column to check
+     * @return bool True if nullable, false otherwise
+     */
+    private function isNullable(Column $col): bool {
+        return $col->isNull() || $col->isAutoInc();
+    }
+
     /**
      * Converts kebab-case to camelCase.
      * 
@@ -201,11 +210,11 @@ class EntityGenerator {
     private function toCamelCase(string $key): string {
         $parts = explode('-', $key);
         $camelCase = array_shift($parts);
-        
+
         foreach ($parts as $part) {
             $camelCase .= ucfirst($part);
         }
-        
+
         return $camelCase;
     }
 }

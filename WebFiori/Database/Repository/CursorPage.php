@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Repository;
 
 /**
@@ -8,12 +7,12 @@ namespace WebFiori\Database\Repository;
  * @template T
  */
 class CursorPage {
+    private bool $hasMore;
     /** @var T[] */
     private array $items;
     private ?string $nextCursor;
     private ?string $previousCursor;
-    private bool $hasMore;
-    
+
     /**
      * @param T[] $items
      */
@@ -23,20 +22,20 @@ class CursorPage {
         $this->previousCursor = $previousCursor;
         $this->hasMore = $hasMore;
     }
-    
+
     /** @return T[] */
     public function getItems(): array {
         return $this->items;
     }
-    
+
     public function getNextCursor(): ?string {
         return $this->nextCursor;
     }
-    
+
     public function getPreviousCursor(): ?string {
         return $this->previousCursor;
     }
-    
+
     public function hasMore(): bool {
         return $this->hasMore;
     }

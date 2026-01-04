@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Attributes;
 
 use Attribute;
@@ -9,5 +8,6 @@ class Table {
     public function __construct(
         public string $name,
         public ?string $comment = null
-    ) {}
+    ) {
+    }
 }

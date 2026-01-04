@@ -12,8 +12,8 @@
 namespace WebFiori\Database\MsSql;
 
 use WebFiori\Database\Column;
-use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\Util\DateTimeValidator;
 /**
  * A class that represents a column in MSSQL table.

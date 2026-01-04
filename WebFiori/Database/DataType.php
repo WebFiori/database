@@ -204,7 +204,7 @@ class DataType {
      * </ul>
      */
     const VARCHAR = 'varchar';
-    
+
     /**
      * Maps database data type to PHP type.
      * 

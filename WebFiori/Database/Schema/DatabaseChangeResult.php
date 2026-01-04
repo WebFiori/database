@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -10,9 +11,9 @@
  */
 namespace WebFiori\Database\Schema;
 
+use ArrayIterator;
 use Countable;
 use IteratorAggregate;
-use ArrayIterator;
 use Traversable;
 use WebFiori\Database\ConnectionInfo;
 
@@ -28,21 +29,6 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
      * @var array<DatabaseChange> Changes that were successfully applied
      */
     private array $applied = [];
-    
-    /**
-     * @var array<array{change: DatabaseChange, reason: string}> Changes that were skipped
-     */
-    private array $skipped = [];
-    
-    /**
-     * @var array<array{change: DatabaseChange, error: \Throwable}> Changes that failed
-     */
-    private array $failed = [];
-    
-    /**
-     * @var float Total execution time in milliseconds
-     */
-    private float $totalTimeMs = 0;
 
     /**
      * @var ConnectionInfo|null Connection info for the database changes were applied to
@@ -50,10 +36,32 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
     private ?ConnectionInfo $connectionInfo = null;
 
     /**
+     * @var array<array{change: DatabaseChange, error: \Throwable}> Changes that failed
+     */
+    private array $failed = [];
+
+    /**
+     * @var array<array{change: DatabaseChange, reason: string}> Changes that were skipped
+     */
+    private array $skipped = [];
+
+    /**
+     * @var float Total execution time in milliseconds
+     */
+    private float $totalTimeMs = 0;
+
+    /**
      * Add an applied change.
      */
     public function addApplied(DatabaseChange $change): void {
         $this->applied[] = $change;
+    }
+
+    /**
+     * Add a failed change with error.
+     */
+    public function addFailed(DatabaseChange $change, \Throwable $error): void {
+        $this->failed[] = ['change' => $change, 'error' => $error];
     }
 
     /**
@@ -64,10 +72,10 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
     }
 
     /**
-     * Add a failed change with error.
+     * Get count of applied changes (Countable interface).
      */
-    public function addFailed(DatabaseChange $change, \Throwable $error): void {
-        $this->failed[] = ['change' => $change, 'error' => $error];
+    public function count(): int {
+        return count($this->applied);
     }
 
     /**
@@ -80,12 +88,17 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
     }
 
     /**
-     * Get all skipped changes with reasons.
-     * 
-     * @return array<array{change: DatabaseChange, reason: string}>
+     * Get the connection info for the database changes were applied to.
      */
-    public function getSkipped(): array {
-        return $this->skipped;
+    public function getConnectionInfo(): ?ConnectionInfo {
+        return $this->connectionInfo;
+    }
+
+    /**
+     * Get the database name changes were applied to.
+     */
+    public function getDatabaseName(): ?string {
+        return $this->connectionInfo?->getDBName();
     }
 
     /**
@@ -98,10 +111,19 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
     }
 
     /**
-     * Set total execution time.
+     * Iterate over applied changes (IteratorAggregate interface).
      */
-    public function setTotalTime(float $timeMs): void {
-        $this->totalTimeMs = $timeMs;
+    public function getIterator(): Traversable {
+        return new ArrayIterator($this->applied);
+    }
+
+    /**
+     * Get all skipped changes with reasons.
+     * 
+     * @return array<array{change: DatabaseChange, reason: string}>
+     */
+    public function getSkipped(): array {
+        return $this->skipped;
     }
 
     /**
@@ -126,30 +148,9 @@ class DatabaseChangeResult implements Countable, IteratorAggregate {
     }
 
     /**
-     * Get the connection info for the database changes were applied to.
+     * Set total execution time.
      */
-    public function getConnectionInfo(): ?ConnectionInfo {
-        return $this->connectionInfo;
-    }
-
-    /**
-     * Get the database name changes were applied to.
-     */
-    public function getDatabaseName(): ?string {
-        return $this->connectionInfo?->getDBName();
-    }
-
-    /**
-     * Get count of applied changes (Countable interface).
-     */
-    public function count(): int {
-        return count($this->applied);
-    }
-
-    /**
-     * Iterate over applied changes (IteratorAggregate interface).
-     */
-    public function getIterator(): Traversable {
-        return new ArrayIterator($this->applied);
+    public function setTotalTime(float $timeMs): void {
+        $this->totalTimeMs = $timeMs;
     }
 }

@@ -11,13 +11,13 @@
  */
 namespace WebFiori\Database\Factory;
 
+use WebFiori\Database\ColOption;
+use WebFiori\Database\Column;
+use WebFiori\Database\ConnectionInfo;
+use WebFiori\Database\DatabaseException;
 use WebFiori\Database\MsSql\MSSQLColumn;
 use WebFiori\Database\MySql\MySQLColumn;
-use WebFiori\Database\Column;
-use WebFiori\Database\DatabaseException;
-use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Util\TypesMap;
-use WebFiori\Database\ColOption;
 
 /**
  * A factory class for creating column objects.

@@ -51,18 +51,6 @@ class ResultSet implements Countable, Iterator {
     public function __construct(array $resultArr = []) {
         $this->setData($resultArr);
     }
-    public function fetchAll() : array {
-        return $this->getRows();
-    }
-    public function getCount() : int {
-        return $this->getRowsCount();
-    }
-    public function fetch() : array {
-        if ($this->getCount() > 0) {
-            return $this->fetchAll()[0];
-        }
-        return [];
-    }
     /**
      * Reset the values in the set to default values.
      * 
@@ -94,6 +82,16 @@ class ResultSet implements Countable, Iterator {
      */
     public function current() {
         return $this->getRows()[$this->cursorPos];
+    }
+    public function fetch() : array {
+        if ($this->getCount() > 0) {
+            return $this->fetchAll()[0];
+        }
+
+        return [];
+    }
+    public function fetchAll() : array {
+        return $this->getRows();
     }
     /**
      * Filter the records of the result set using a custom callback.
@@ -127,6 +125,9 @@ class ResultSet implements Countable, Iterator {
         }
 
         return new ResultSet($result);
+    }
+    public function getCount() : int {
+        return $this->getRowsCount();
     }
     /**
      * Returns an array which contains all original records in the set before 

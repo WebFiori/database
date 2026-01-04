@@ -11,8 +11,6 @@
  */
 namespace WebFiori\Database\Query;
 
-use WebFiori\Database\Column;
-
 /**
  * Represents a binary conditional statement for SQL WHERE clauses.
  * 

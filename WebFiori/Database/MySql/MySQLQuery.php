@@ -339,6 +339,7 @@ class MySQLQuery extends AbstractQuery {
         if (!isset($bindings['bind']) && !isset($bindings['values'])) {
             // Simple array - convert to structured format
             $bindString = '';
+
             foreach ($bindings as $value) {
                 if (is_int($value)) {
                     $bindString .= 'i';
@@ -353,7 +354,7 @@ class MySQLQuery extends AbstractQuery {
                 'values' => $bindings
             ];
         }
-        
+
         $currentBinding = $this->bindings['bind'];
         $values = $this->bindings['values'];
 

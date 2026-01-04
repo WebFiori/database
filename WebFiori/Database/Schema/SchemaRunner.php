@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -13,12 +14,11 @@ namespace WebFiori\Database\Schema;
 use Error;
 use Exception;
 use ReflectionClass;
-use WebFiori\Database\ColOption;
+use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\DataType;
-use WebFiori\Database\Attributes\AttributeTableBuilder;
 
 /**
  * Database schema management system for executing migrations and seeders.
@@ -72,17 +72,17 @@ class SchemaRunner extends Database {
         $this->environment = $environment;
         $this->onErrCallbacks = [];
         $this->onRegErrCallbacks = [];
-        
+
         $table = AttributeTableBuilder::build(
             SchemaMigrationsTable::class,
             $this->getConnectionInfo()->getDatabaseType()
         );
-        
+
         // Handle MSSQL datetime2 type
         if ($this->getConnectionInfo()->getDatabaseType() === ConnectionInfo::SUPPORTED_DATABASES[1]) {
             $table->getColByKey('applied-on')->setDatatype(DataType::DATETIME2);
         }
-        
+
         $this->addTable($table);
 
         $this->repository = new SchemaChangeRepository($this);
@@ -140,7 +140,7 @@ class SchemaRunner extends Database {
 
             foreach ($this->dbChanges as $change) {
                 $name = $change->getName();
-                
+
                 if (isset($processed[$name])) {
                     continue;
                 }
@@ -171,6 +171,7 @@ class SchemaRunner extends Database {
                 } catch (\Throwable $ex) {
                     $result->addFailed($change, $ex);
                     $processed[$name] = true;
+
                     foreach ($this->onErrCallbacks as $callback) {
                         call_user_func_array($callback, [$ex, $change, $this]);
                     }
@@ -186,6 +187,7 @@ class SchemaRunner extends Database {
         }
 
         $result->setTotalTime((microtime(true) - $startTime) * 1000);
+
         return $result;
     }
 
@@ -199,7 +201,7 @@ class SchemaRunner extends Database {
     public function applyOne(): ?DatabaseChange {
         $change = null;
         $batch = $this->getRepository()->getNextBatchNumber();
-        
+
         try {
             foreach ($this->dbChanges as $change) {
                 if ($this->isApplied($change->getName())) {
@@ -236,24 +238,6 @@ class SchemaRunner extends Database {
     }
 
     /**
-     * Execute a database change, optionally wrapped in a transaction.
-     * 
-     * This method checks the change's useTransaction() method to determine
-     * whether to wrap the execution in a database transaction.
-     * 
-     * @param DatabaseChange $change The change to execute.
-     */
-    protected function executeChange(DatabaseChange $change): void {
-        if ($change->useTransaction($this)) {
-            $this->transaction(function (Database $db) use ($change) {
-                $change->execute($db);
-            });
-        } else {
-            $change->execute($this);
-        }
-    }
-
-    /**
      * Remove all registered execution error callbacks.
      */
     public function clearErrorCallbacks(): void {
@@ -277,6 +261,43 @@ class SchemaRunner extends Database {
     public function createSchemaTable() {
         $this->createTables();
         $this->execute();
+    }
+
+    /**
+     * Discover and register database changes from a directory.
+     * 
+     * Scans the specified directory for PHP files containing classes that extend
+     * DatabaseChange (migrations and seeders). Each discovered class is automatically
+     * registered with the schema runner.
+     * 
+     * @param string $path Absolute path to the directory containing migration/seeder files.
+     * @param string $namespace The PHP namespace for classes in the directory.
+     * @param bool $recursive Whether to scan subdirectories recursively. Default is false.
+     * @return int Number of changes discovered and registered.
+     */
+    public function discoverFromPath(string $path, string $namespace, bool $recursive = false): int {
+        $count = 0;
+
+        if (!is_dir($path)) {
+            return $count;
+        }
+
+        $namespace = rtrim($namespace, '\\');
+        $iterator = $recursive 
+            ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS))
+            : new \DirectoryIterator($path);
+
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                $className = $this->resolveClassName($file, $path, $namespace, $recursive);
+
+                if ($className !== null && $this->register($className)) {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
     }
 
     /**
@@ -310,6 +331,58 @@ class SchemaRunner extends Database {
     public function getEnvironment(): string {
         return $this->environment;
     }
+    /**
+     * Get pending database changes that would be applied.
+     * 
+     * This method returns changes that have not been applied yet and would
+     * run in the current environment. Optionally captures the SQL queries
+     * that would be executed using dry-run mode.
+     * 
+     * @param bool $withQueries If true, executes each change in dry-run mode
+     *                          to capture the SQL queries. Default is false.
+     * @return array Array of associative arrays with keys:
+     *               - 'change': The DatabaseChange instance
+     *               - 'queries': Array of SQL strings (only if $withQueries is true)
+     */
+    public function getPendingChanges(bool $withQueries = false): array {
+        $pending = [];
+
+        foreach ($this->dbChanges as $change) {
+            if ($this->isApplied($change->getName())) {
+                continue;
+            }
+
+            if (!$this->shouldRunInEnvironment($change)) {
+                continue;
+            }
+
+            $info = ['change' => $change, 'queries' => []];
+
+            if ($withQueries) {
+                $this->setDryRun(true);
+                try {
+                    $change->execute($this);
+                    $info['queries'] = $this->getCapturedQueries();
+                } catch (\Throwable $ex) {
+                    // Capture failed, queries may be partial
+                }
+                $this->setDryRun(false);
+            }
+
+            $pending[] = $info;
+        }
+
+        return $pending;
+    }
+
+    /**
+     * Get the schema change repository.
+     * 
+     * @return SchemaChangeRepository The repository instance
+     */
+    public function getRepository(): SchemaChangeRepository {
+        return $this->repository;
+    }
 
     /**
      * Check if a database change exists in the discovered changes.
@@ -332,70 +405,57 @@ class SchemaRunner extends Database {
             'change_name' => $name
         ]) == 1;
     }
+
     /**
-     * Get pending database changes that would be applied.
+     * Register a database change.
      * 
-     * This method returns changes that have not been applied yet and would
-     * run in the current environment. Optionally captures the SQL queries
-     * that would be executed using dry-run mode.
+     * If a change with the same name is already registered, this method
+     * returns false without registering a duplicate.
      * 
-     * @param bool $withQueries If true, executes each change in dry-run mode
-     *                          to capture the SQL queries. Default is false.
-     * @return array Array of associative arrays with keys:
-     *               - 'change': The DatabaseChange instance
-     *               - 'queries': Array of SQL strings (only if $withQueries is true)
+     * @param DatabaseChange|string $change The change instance or class name.
+     * @return bool True if registered successfully, false if already registered or on error.
      */
-    public function getPendingChanges(bool $withQueries = false): array {
-        $pending = [];
-        
-        foreach ($this->dbChanges as $change) {
-            if ($this->isApplied($change->getName())) {
-                continue;
+    public function register(DatabaseChange|string $change): bool {
+        try {
+            $name = is_string($change) ? $change : $change->getName();
+
+            if ($this->hasChange($name)) {
+                return false;
             }
-            
-            if (!$this->shouldRunInEnvironment($change)) {
-                continue;
-            }
-            
-            $info = ['change' => $change, 'queries' => []];
-            
-            if ($withQueries) {
-                $this->setDryRun(true);
-                try {
-                    $change->execute($this);
-                    $info['queries'] = $this->getCapturedQueries();
-                } catch (\Throwable $ex) {
-                    // Capture failed, queries may be partial
+
+            if (is_string($change)) {
+                if (!class_exists($change)) {
+                    throw new Exception("Class does not exist: {$change}");
                 }
-                $this->setDryRun(false);
+
+                if (!is_subclass_of($change, DatabaseChange::class)) {
+                    throw new Exception("Class is not a subclass of DatabaseChange: {$change}");
+                }
+
+                $change = new $change();
             }
-            
-            $pending[] = $info;
+
+            $this->dbChanges[] = $change;
+
+            return true;
+        } catch (\Throwable $ex) {
+            foreach ($this->onRegErrCallbacks as $callback) {
+                call_user_func_array($callback, [$ex]);
+            }
+
+            return false;
         }
-        
-        return $pending;
     }
 
     /**
-     * Get the schema change repository.
+     * Register multiple database changes.
      * 
-     * @return SchemaChangeRepository The repository instance
+     * @param array $changes Array of DatabaseChange instances or class names.
      */
-    public function getRepository(): SchemaChangeRepository {
-        return $this->repository;
-    }
-
-    /**
-     * Rollback all changes from the last batch.
-     * 
-     * @return array Array of rolled back DatabaseChange instances.
-     */
-    public function rollbackLastBatch(): array {
-        $lastBatch = $this->getRepository()->getLastBatchNumber();
-        if ($lastBatch === 0) {
-            return [];
+    public function registerAll(array $changes): void {
+        foreach ($changes as $change) {
+            $this->register($change);
         }
-        return $this->rollbackBatch($lastBatch);
     }
 
     /**
@@ -410,6 +470,7 @@ class SchemaRunner extends Database {
 
         // Rollback in reverse order
         $changes = array_reverse($this->getChanges());
+
         foreach ($changes as $change) {
             if (in_array($change->getName(), $changeNames)) {
                 $this->attemptRoolback($change, $rolled);
@@ -417,6 +478,21 @@ class SchemaRunner extends Database {
         }
 
         return $rolled;
+    }
+
+    /**
+     * Rollback all changes from the last batch.
+     * 
+     * @return array Array of rolled back DatabaseChange instances.
+     */
+    public function rollbackLastBatch(): array {
+        $lastBatch = $this->getRepository()->getLastBatchNumber();
+
+        if ($lastBatch === 0) {
+            return [];
+        }
+
+        return $this->rollbackBatch($lastBatch);
     }
 
     /**
@@ -501,94 +577,6 @@ class SchemaRunner extends Database {
     }
 
     /**
-     * Register a database change.
-     * 
-     * If a change with the same name is already registered, this method
-     * returns false without registering a duplicate.
-     * 
-     * @param DatabaseChange|string $change The change instance or class name.
-     * @return bool True if registered successfully, false if already registered or on error.
-     */
-    public function register(DatabaseChange|string $change): bool {
-        try {
-            $name = is_string($change) ? $change : $change->getName();
-            
-            if ($this->hasChange($name)) {
-                return false;
-            }
-            
-            if (is_string($change)) {
-                if (!class_exists($change)) {
-                    throw new Exception("Class does not exist: {$change}");
-                }
-                
-                if (!is_subclass_of($change, DatabaseChange::class)) {
-                    throw new Exception("Class is not a subclass of DatabaseChange: {$change}");
-                }
-                
-                $change = new $change();
-            }
-            
-            $this->dbChanges[] = $change;
-            return true;
-            
-        } catch (\Throwable $ex) {
-            foreach ($this->onRegErrCallbacks as $callback) {
-                call_user_func_array($callback, [$ex]);
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Register multiple database changes.
-     * 
-     * @param array $changes Array of DatabaseChange instances or class names.
-     */
-    public function registerAll(array $changes): void {
-        foreach ($changes as $change) {
-            $this->register($change);
-        }
-    }
-
-    /**
-     * Discover and register database changes from a directory.
-     * 
-     * Scans the specified directory for PHP files containing classes that extend
-     * DatabaseChange (migrations and seeders). Each discovered class is automatically
-     * registered with the schema runner.
-     * 
-     * @param string $path Absolute path to the directory containing migration/seeder files.
-     * @param string $namespace The PHP namespace for classes in the directory.
-     * @param bool $recursive Whether to scan subdirectories recursively. Default is false.
-     * @return int Number of changes discovered and registered.
-     */
-    public function discoverFromPath(string $path, string $namespace, bool $recursive = false): int {
-        $count = 0;
-        
-        if (!is_dir($path)) {
-            return $count;
-        }
-        
-        $namespace = rtrim($namespace, '\\');
-        $iterator = $recursive 
-            ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS))
-            : new \DirectoryIterator($path);
-        
-        foreach ($iterator as $file) {
-            if ($file->isFile() && $file->getExtension() === 'php') {
-                $className = $this->resolveClassName($file, $path, $namespace, $recursive);
-                
-                if ($className !== null && $this->register($className)) {
-                    $count++;
-                }
-            }
-        }
-        
-        return $count;
-    }
-
-    /**
      * Resolve the fully qualified class name from a file.
      * 
      * @param \SplFileInfo $file The file to resolve.
@@ -599,26 +587,27 @@ class SchemaRunner extends Database {
      */
     private function resolveClassName(\SplFileInfo $file, string $basePath, string $namespace, bool $recursive): ?string {
         $filename = $file->getBasename('.php');
-        
+
         if ($recursive) {
             $relativePath = substr($file->getPath(), strlen($basePath));
             $relativePath = trim(str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath), '\\');
-            $className = $relativePath ? $namespace . '\\' . $relativePath . '\\' . $filename : $namespace . '\\' . $filename;
+            $className = $relativePath ? $namespace.'\\'.$relativePath.'\\'.$filename : $namespace.'\\'.$filename;
         } else {
-            $className = $namespace . '\\' . $filename;
+            $className = $namespace.'\\'.$filename;
         }
-        
+
         if (!class_exists($className)) {
             require_once $file->getPathname();
         }
-        
+
         if (class_exists($className) && is_subclass_of($className, DatabaseChange::class)) {
             $reflection = new ReflectionClass($className);
+
             if (!$reflection->isAbstract()) {
                 return $className;
             }
         }
-        
+
         return null;
     }
 
@@ -665,5 +654,24 @@ class SchemaRunner extends Database {
         unset($visiting[$className]);
         $visited[$className] = true;
         $sorted[] = $change;
+    }
+
+    /**
+     * Execute a database change, optionally wrapped in a transaction.
+     * 
+     * This method checks the change's useTransaction() method to determine
+     * whether to wrap the execution in a database transaction.
+     * 
+     * @param DatabaseChange $change The change to execute.
+     */
+    protected function executeChange(DatabaseChange $change): void {
+        if ($change->useTransaction($this)) {
+            $this->transaction(function (Database $db) use ($change)
+            {
+                $change->execute($db);
+            });
+        } else {
+            $change->execute($this);
+        }
     }
 }

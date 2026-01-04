@@ -12,10 +12,10 @@
 namespace WebFiori\Database\Entity;
 
 use InvalidArgumentException;
+use WebFiori\Database\Column;
+use WebFiori\Database\Table;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
-use WebFiori\Database\Table;
-use WebFiori\Database\Column;
 /**
  * Code generator for creating entity classes from table blueprints.
  * 

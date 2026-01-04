@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Attributes;
 
 use Attribute;
@@ -20,5 +19,6 @@ class Column {
         public ?string $name = null,
         public ?string $comment = null,
         public mixed $callback = null
-    ) {}
+    ) {
+    }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace WebFiori\Database\Attributes;
 
 use Attribute;
@@ -12,5 +11,6 @@ class ForeignKey {
         public ?string $name = null,
         public string $onUpdate = 'set null',
         public string $onDelete = 'set null'
-    ) {}
+    ) {
+    }
 }

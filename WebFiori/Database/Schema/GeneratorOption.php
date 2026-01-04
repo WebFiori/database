@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -19,13 +20,13 @@ class GeneratorOption {
      * Used in both migrations and seeders.
      */
     const DEPENDENCIES = 'dependencies';
-    
+
     /**
      * Array of environment names where the seeder should run.
      * Used in seeders only.
      */
     const ENVIRONMENTS = 'environments';
-    
+
     /**
      * Table name hint for generated migration.
      * Adds a TODO comment in up() and down() methods.

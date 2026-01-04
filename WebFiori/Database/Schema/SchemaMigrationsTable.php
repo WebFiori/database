@@ -11,8 +11,8 @@
  */
 namespace WebFiori\Database\Schema;
 
-use WebFiori\Database\Attributes\Table;
 use WebFiori\Database\Attributes\Column;
+use WebFiori\Database\Attributes\Table;
 use WebFiori\Database\DataType;
 
 /**
@@ -59,4 +59,5 @@ use WebFiori\Database\DataType;
     default: 1,
     comment: 'The batch number when this change was applied.'
 )]
-class SchemaMigrationsTable {}
+class SchemaMigrationsTable {
+}
