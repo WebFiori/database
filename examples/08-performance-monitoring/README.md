@@ -12,7 +12,7 @@ This example demonstrates how to monitor database query performance using WebFio
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 
 ## Running the Example
 

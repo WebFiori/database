@@ -4,8 +4,7 @@ namespace WebFiori\Database\Attributes;
 use ReflectionClass;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
-use WebFiori\Database\MsSql\MSSQLTable;
-use WebFiori\Database\MySql\MySQLTable;
+use WebFiori\Database\Factory\TableFactory;
 use WebFiori\Database\Table as TableClass;
 
 class AttributeTableBuilder {
@@ -13,136 +12,137 @@ class AttributeTableBuilder {
         $reflection = new ReflectionClass($entityClass);
 
         $tableAttr = $reflection->getAttributes(Table::class)[0] ?? null;
-
         if (!$tableAttr) {
             throw new \RuntimeException("Class $entityClass must have #[Table] attribute");
         }
 
         $tableConfig = $tableAttr->newInstance();
-
-        $table = $dbType === 'mysql' 
-            ? new MySQLTable($tableConfig->name) 
-            : new MSSQLTable($tableConfig->name);
-
-        if ($tableConfig->comment) {
-            $table->setComment($tableConfig->comment);
-        }
-
         $columns = [];
         $foreignKeys = [];
 
-        // Check for class-level Column attributes
         $classColumnAttrs = $reflection->getAttributes(Column::class);
 
         if (!empty($classColumnAttrs)) {
-            // Class-level approach: columns defined at class level
             foreach ($classColumnAttrs as $columnAttr) {
                 $columnConfig = $columnAttr->newInstance();
                 $columnKey = $columnConfig->name ?? throw new \RuntimeException("Column name is required for class-level attributes");
-
-                $columns[$columnKey] = [
-                    ColOption::TYPE => $columnConfig->type,
-                    ColOption::NAME => $columnConfig->name,
-                    ColOption::SIZE => $columnConfig->size,
-                    ColOption::SCALE => $columnConfig->scale,
-                    ColOption::PRIMARY => $columnConfig->primary,
-                    ColOption::UNIQUE => $columnConfig->unique,
-                    ColOption::NULL => $columnConfig->nullable,
-                    ColOption::AUTO_INCREMENT => $columnConfig->autoIncrement,
-                    ColOption::IDENTITY => $columnConfig->identity,
-                    ColOption::AUTO_UPDATE => $columnConfig->autoUpdate,
-                    ColOption::DEFAULT => $columnConfig->default,
-                    ColOption::COMMENT => $columnConfig->comment,
-                    ColOption::VALIDATOR => $columnConfig->callback
-                ];
+                $columns[$columnKey] = self::columnConfigToArray($columnConfig);
             }
 
-            // Check for class-level ForeignKey attributes
-            $classFkAttrs = $reflection->getAttributes(ForeignKey::class);
-
-            foreach ($classFkAttrs as $fkAttr) {
-                $fkConfig = $fkAttr->newInstance();
-                $foreignKeys[] = [
-                    'property' => $fkConfig->column,
-                    'config' => $fkConfig
-                ];
+            foreach ($reflection->getAttributes(ForeignKey::class) as $fkAttr) {
+                $foreignKeys[] = $fkAttr->newInstance();
             }
         } else {
-            // Property-level approach: columns defined on properties
             foreach ($reflection->getProperties() as $property) {
                 $columnAttrs = $property->getAttributes(Column::class);
-
                 if (empty($columnAttrs)) {
                     continue;
                 }
 
                 $columnConfig = $columnAttrs[0]->newInstance();
                 $columnKey = self::propertyToKey($property->getName());
+                $columns[$columnKey] = self::columnConfigToArray($columnConfig);
 
-                $columns[$columnKey] = [
-                    ColOption::TYPE => $columnConfig->type,
-                    ColOption::NAME => $columnConfig->name,
-                    ColOption::SIZE => $columnConfig->size,
-                    ColOption::SCALE => $columnConfig->scale,
-                    ColOption::PRIMARY => $columnConfig->primary,
-                    ColOption::UNIQUE => $columnConfig->unique,
-                    ColOption::NULL => $columnConfig->nullable,
-                    ColOption::AUTO_INCREMENT => $columnConfig->autoIncrement,
-                    ColOption::IDENTITY => $columnConfig->identity,
-                    ColOption::AUTO_UPDATE => $columnConfig->autoUpdate,
-                    ColOption::DEFAULT => $columnConfig->default,
-                    ColOption::COMMENT => $columnConfig->comment,
-                    ColOption::VALIDATOR => $columnConfig->callback
-                ];
-
-                $fkAttrs = $property->getAttributes(ForeignKey::class);
-
-                foreach ($fkAttrs as $fkAttr) {
-                    $fkConfig = $fkAttr->newInstance();
-                    $foreignKeys[] = [
-                        'property' => $columnKey,
-                        'config' => $fkConfig
-                    ];
+                foreach ($property->getAttributes(ForeignKey::class) as $fkAttr) {
+                    $fk = $fkAttr->newInstance();
+                    // For property-level FK, the local column is the property itself
+                    $foreignKeys[] = ['localColumn' => $columnKey, 'config' => $fk];
                 }
             }
         }
 
-        $table->addColumns($columns);
+        $table = TableFactory::create($dbType, $tableConfig->name, $columns);
 
-        // Store table references for foreign keys
-        $tableRegistry = [];
+        if ($tableConfig->comment) {
+            $table->setComment($tableConfig->comment);
+        }
 
+        // Add foreign keys
         foreach ($foreignKeys as $fk) {
-            $refTableName = $fk['config']->table;
-            $refColName = $fk['config']->column;
-
-            // Create a minimal table reference if not exists
-            if (!isset($tableRegistry[$refTableName])) {
-                $refTable = $dbType === 'mysql' 
-                    ? new MySQLTable($refTableName) 
-                    : new MSSQLTable($refTableName);
-
-                // Add the referenced column to make FK work
-                $refTable->addColumns([
-                    $refColName => [
-                        ColOption::TYPE => DataType::INT,
-                        ColOption::PRIMARY => true
-                    ]
-                ]);
-
-                $tableRegistry[$refTableName] = $refTable;
+            if ($fk instanceof ForeignKey) {
+                // Class-level FK
+                self::addForeignKey($table, $fk, $dbType);
+            } else {
+                // Property-level FK
+                self::addPropertyForeignKey($table, $fk['localColumn'], $fk['config'], $dbType);
             }
-
-            $table->addReference(
-                $tableRegistry[$refTableName],
-                [$fk['property'] => $refColName],
-                $fk['config']->name ?? 'fk_'.$fk['property'],
-                $fk['config']->onUpdate,
-                $fk['config']->onDelete
-            );
         }
 
         return $table;
+    }
+
+    private static function addForeignKey(TableClass $table, ForeignKey $fk, string $dbType): void {
+        $refTableName = self::resolveTableName($fk->table);
+        $columnsMap = $fk->getColumnsMap();
+
+        // Build reference columns for the referenced table
+        $refColumns = [];
+        $mapping = [];
+
+        foreach ($columnsMap as $local => $ref) {
+            if (is_int($local)) {
+                // Simple array ['col1', 'col2'] - same name on both sides
+                $local = $ref;
+            }
+            $refColumns[$ref] = [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true];
+            $mapping[$local] = $ref;
+        }
+
+        $refTable = TableFactory::create($dbType, $refTableName, $refColumns);
+
+        $table->addReference(
+            $refTable,
+            $mapping,
+            $fk->name ?? 'fk_'.implode('_', array_keys($mapping)),
+            $fk->onUpdate,
+            $fk->onDelete
+        );
+    }
+
+    private static function addPropertyForeignKey(TableClass $table, string $localColumn, ForeignKey $fk, string $dbType): void {
+        $refTableName = self::resolveTableName($fk->table);
+        $refColName = $fk->column ?? $localColumn;
+
+        $refTable = TableFactory::create($dbType, $refTableName, [
+            $refColName => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true]
+        ]);
+
+        $table->addReference(
+            $refTable,
+            [$localColumn => $refColName],
+            $fk->name ?? 'fk_'.$localColumn,
+            $fk->onUpdate,
+            $fk->onDelete
+        );
+    }
+
+    private static function resolveTableName(string $tableOrClass): string {
+        if (class_exists($tableOrClass)) {
+            $reflection = new ReflectionClass($tableOrClass);
+            $tableAttr = $reflection->getAttributes(Table::class)[0] ?? null;
+            if ($tableAttr) {
+                return $tableAttr->newInstance()->name;
+            }
+        }
+        return $tableOrClass;
+    }
+
+    private static function columnConfigToArray(Column $config): array {
+        return [
+            ColOption::TYPE => $config->type,
+            ColOption::NAME => $config->name,
+            ColOption::SIZE => $config->size,
+            ColOption::SCALE => $config->scale,
+            ColOption::PRIMARY => $config->primary,
+            ColOption::UNIQUE => $config->unique,
+            ColOption::NULL => $config->nullable,
+            ColOption::AUTO_INCREMENT => $config->autoIncrement,
+            ColOption::IDENTITY => $config->identity,
+            ColOption::AUTO_UPDATE => $config->autoUpdate,
+            ColOption::DEFAULT => $config->default,
+            ColOption::COMMENT => $config->comment,
+            ColOption::VALIDATOR => $config->callback
+        ];
     }
 
     private static function propertyToKey(string $propertyName): string {

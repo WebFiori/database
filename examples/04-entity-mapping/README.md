@@ -11,7 +11,7 @@ This example demonstrates how to create and use entity classes for object-relati
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 - `User.php` - Generated entity class (created during execution)
 
 ## Running the Example

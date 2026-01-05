@@ -10,7 +10,7 @@ This example demonstrates how to establish a connection to a database using the 
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 
 ## Running the Example
 

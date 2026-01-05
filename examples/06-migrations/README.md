@@ -11,9 +11,9 @@ This example demonstrates how to create and run database migrations using WebFio
 
 ## Files
 
-- `example.php` - Main example code
-- `CreateUsersTableMigration.php` - Migration to create users table
-- `AddEmailIndexMigration.php` - Migration to add email index
+- [`example.php`](example.php) - Main example code
+- [`CreateUsersTableMigration.php`](CreateUsersTableMigration.php) - Migration to create users table
+- [`AddEmailIndexMigration.php`](AddEmailIndexMigration.php) - Migration to add email index
 
 ## Running the Example
 

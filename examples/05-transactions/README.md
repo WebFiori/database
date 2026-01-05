@@ -11,7 +11,7 @@ This example demonstrates how to use database transactions to ensure data integr
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 
 ## Running the Example
 

@@ -1,92 +1,23 @@
 <?php
 
 require_once '../../vendor/autoload.php';
+require_once __DIR__.'/Product.php';
+require_once __DIR__.'/ProductRepository.php';
 
 use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
-use WebFiori\Database\Repository\AbstractRepository;
 
 echo "=== WebFiori Database Repository Pattern Example ===\n\n";
 
-// Define a simple entity class
-class Product {
-    public ?int $id = null;
-    public string $name;
-    public string $category;
-    public float $price;
-    public int $stock;
-
-    public function __construct(string $name = '', string $category = '', float $price = 0, int $stock = 0) {
-        $this->name = $name;
-        $this->category = $category;
-        $this->price = $price;
-        $this->stock = $stock;
-    }
-}
-
-// Define a repository for the Product entity
-class ProductRepository extends AbstractRepository {
-    protected function getTableName(): string {
-        return 'products';
-    }
-
-    protected function getIdField(): string {
-        return 'id';
-    }
-
-    protected function toEntity(array $row): object {
-        $product = new Product();
-        $product->id = (int) $row['id'];
-        $product->name = $row['name'];
-        $product->category = $row['category'];
-        $product->price = (float) $row['price'];
-        $product->stock = (int) $row['stock'];
-        return $product;
-    }
-
-    protected function toArray(object $entity): array {
-        return [
-            'id' => $entity->id,
-            'name' => $entity->name,
-            'category' => $entity->category,
-            'price' => $entity->price,
-            'stock' => $entity->stock
-        ];
-    }
-
-    // Custom method: find products by category
-    public function findByCategory(string $category): array {
-        $result = $this->getDatabase()->table($this->getTableName())
-            ->select()
-            ->where('category', $category)
-            ->execute();
-
-        return array_map(fn($row) => $this->toEntity($row), $result->fetchAll());
-    }
-
-    // Custom method: find low stock products
-    public function findLowStock(int $threshold = 10): array {
-        $result = $this->getDatabase()->table($this->getTableName())
-            ->select()
-            ->where('stock', $threshold, '<')
-            ->execute();
-
-        return array_map(fn($row) => $this->toEntity($row), $result->fetchAll());
-    }
-}
-
 try {
-    // Create connection
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
     $database = new Database($connection);
 
     echo "1. Setting up Database:\n";
 
-    // Clean up and create table
     $database->raw("DROP TABLE IF EXISTS products")->execute();
-
     $database->createBlueprint('products')->addColumns([
         'id' => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
         'name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 100],
@@ -94,7 +25,6 @@ try {
         'price' => [ColOption::TYPE => DataType::DECIMAL, ColOption::SIZE => 10],
         'stock' => [ColOption::TYPE => DataType::INT]
     ]);
-
     $database->table('products')->createTable();
     $database->execute();
     echo "✓ Products table created\n\n";
@@ -104,7 +34,6 @@ try {
     echo "✓ ProductRepository created\n\n";
 
     echo "3. Saving Products (Create):\n";
-
     $products = [
         new Product('Laptop', 'Electronics', 999.99, 15),
         new Product('Mouse', 'Electronics', 29.99, 50),
@@ -165,33 +94,25 @@ try {
     echo "Page 1 (3 per page):\n";
     echo "  Total items: {$page1->getTotalItems()}\n";
     echo "  Total pages: {$page1->getTotalPages()}\n";
-    echo "  Items on this page: ".count($page1->getItems())."\n";
     foreach ($page1->getItems() as $p) {
         echo "    - {$p->name}\n";
     }
     echo "\n";
 
     echo "10. Counting Products:\n";
-    $count = $productRepo->count();
-    echo "  Total products in database: $count\n\n";
+    echo "  Total products in database: ".$productRepo->count()."\n\n";
 
     echo "11. Deleting a Product:\n";
     $productRepo->deleteById(6);
     echo "  ✓ Deleted product with ID 6\n";
-    $newCount = $productRepo->count();
-    echo "  Products remaining: $newCount\n\n";
+    echo "  Products remaining: ".$productRepo->count()."\n\n";
 
     echo "12. Cleanup:\n";
     $database->raw("DROP TABLE products")->execute();
     echo "✓ Products table dropped\n";
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
-
-    try {
-        $database->raw("DROP TABLE IF EXISTS products")->execute();
-    } catch (Exception $cleanupError) {
-        // Ignore
-    }
+    try { $database->raw("DROP TABLE IF EXISTS products")->execute(); } catch (Exception $cleanupError) {}
 }
 
 echo "\n=== Example Complete ===\n";

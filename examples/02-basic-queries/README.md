@@ -12,7 +12,7 @@ This example demonstrates CRUD operations (Create, Read, Update, Delete) using t
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 
 ## Running the Example
 

@@ -11,7 +11,9 @@ This example demonstrates offset-based and cursor-based pagination techniques.
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
+- [`User.php`](User.php) - User entity class
+- [`UserRepository.php`](UserRepository.php) - Repository extending AbstractRepository
 
 ## Running the Example
 

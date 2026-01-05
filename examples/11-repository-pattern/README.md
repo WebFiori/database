@@ -12,7 +12,9 @@ This example demonstrates how to use the Repository pattern with `AbstractReposi
 
 ## Files
 
-- `example.php` - Main example code with entity and repository classes
+- [`example.php`](example.php) - Main example code
+- [`Product.php`](Product.php) - Product entity class
+- [`ProductRepository.php`](ProductRepository.php) - Repository extending AbstractRepository
 
 ## Running the Example
 

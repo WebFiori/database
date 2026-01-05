@@ -11,9 +11,9 @@ This example demonstrates how to create and run database seeders using WebFiori'
 
 ## Files
 
-- `example.php` - Main example code
-- `UsersSeeder.php` - Seeder for user data
-- `CategoriesSeeder.php` - Seeder for category data
+- [`example.php`](example.php) - Main example code
+- [`UsersSeeder.php`](UsersSeeder.php) - Seeder for user data
+- [`CategoriesSeeder.php`](CategoriesSeeder.php) - Seeder for category data
 
 ## Running the Example
 

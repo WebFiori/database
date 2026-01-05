@@ -11,7 +11,7 @@ This example demonstrates how to handle stored procedures and queries that retur
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 
 ## Running the Example
 

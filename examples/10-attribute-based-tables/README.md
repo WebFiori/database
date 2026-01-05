@@ -11,7 +11,9 @@ This example demonstrates how to define database tables using PHP 8 attributes.
 
 ## Files
 
-- `example.php` - Main example code with entity classes
+- [`example.php`](example.php) - Main example code
+- [`Author.php`](Author.php) - Author table definition with attributes
+- [`Article.php`](Article.php) - Article table definition with attributes and foreign key
 
 ## Running the Example
 

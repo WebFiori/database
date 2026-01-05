@@ -11,10 +11,10 @@ This example demonstrates clean architecture with separation between Domain and 
 
 ## Files
 
-- `example.php` - Main example code
-- `Domain/User.php` - Pure domain entity
-- `Infrastructure/Schema/UserTable.php` - Table definition with attributes
-- `Infrastructure/Repository/UserRepository.php` - Repository using AbstractRepository
+- [`example.php`](example.php) - Main example code
+- [`Domain/User.php`](Domain/User.php) - Pure domain entity
+- [`Infrastructure/Schema/UserTable.php`](Infrastructure/Schema/UserTable.php) - Table definition with attributes
+- [`Infrastructure/Repository/UserRepository.php`](Infrastructure/Repository/UserRepository.php) - Repository using AbstractRepository
 
 ## Running the Example
 

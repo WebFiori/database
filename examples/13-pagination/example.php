@@ -1,41 +1,15 @@
 <?php
 
 require_once '../../vendor/autoload.php';
+require_once __DIR__.'/User.php';
+require_once __DIR__.'/UserRepository.php';
 
 use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
-use WebFiori\Database\Repository\AbstractRepository;
 
 echo "=== WebFiori Database Pagination Example ===\n\n";
-
-// Simple entity
-class User {
-    public ?int $id = null;
-    public string $name;
-    public string $email;
-    public int $age;
-}
-
-// Repository with pagination
-class UserRepository extends AbstractRepository {
-    protected function getTableName(): string { return 'users'; }
-    protected function getIdField(): string { return 'id'; }
-
-    protected function toEntity(array $row): object {
-        $user = new User();
-        $user->id = (int) $row['id'];
-        $user->name = $row['name'];
-        $user->email = $row['email'];
-        $user->age = (int) $row['age'];
-        return $user;
-    }
-
-    protected function toArray(object $entity): array {
-        return ['id' => $entity->id, 'name' => $entity->name, 'email' => $entity->email, 'age' => $entity->age];
-    }
-}
 
 try {
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
@@ -53,7 +27,6 @@ try {
     $database->table('users')->createTable();
     $database->execute();
 
-    // Insert 25 test users
     $names = ['Ahmed', 'Fatima', 'Omar', 'Layla', 'Hassan', 'Sara', 'Yusuf', 'Maryam', 'Ali', 'Noor',
               'Khalid', 'Aisha', 'Ibrahim', 'Zahra', 'Mahmoud', 'Hana', 'Tariq', 'Salma', 'Rami', 'Dina',
               'Faisal', 'Lina', 'Samir', 'Rania', 'Walid'];
@@ -72,11 +45,8 @@ try {
     echo "2. Offset-Based Pagination:\n";
     echo "   (Traditional page numbers)\n\n";
 
-    $perPage = 5;
-    $totalPages = (int) ceil($repo->count() / $perPage);
-
     for ($page = 1; $page <= 3; $page++) {
-        $result = $repo->paginate($page, $perPage);
+        $result = $repo->paginate($page, 5);
         echo "Page $page of {$result->getTotalPages()}:\n";
         foreach ($result->getItems() as $user) {
             echo "  - {$user->name} ({$user->email})\n";
@@ -87,7 +57,7 @@ try {
     echo "3. Cursor-Based Pagination:\n";
     echo "   (Better for large datasets, infinite scroll)\n\n";
 
-    $cursor = null;
+    $cursor = null; // null = start from beginning (first page)
     $pageNum = 1;
 
     while ($pageNum <= 3) {
@@ -100,6 +70,7 @@ try {
 
         if (!$result->hasMore()) break;
 
+        // Next cursor is base64-encoded ID of last item, used to fetch next page
         $cursor = $result->getNextCursor();
         echo "  Next cursor: $cursor\n\n";
         $pageNum++;

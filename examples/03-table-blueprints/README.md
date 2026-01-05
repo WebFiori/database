@@ -12,8 +12,8 @@ This example demonstrates how to create database table structures using WebFiori
 
 ## Files
 
-- `example.php` - Main example code
-- `UserTable.php` - Custom table class extending MySQLTable
+- [`example.php`](example.php) - Main example code
+- [`UserTable.php`](UserTable.php) - Custom table class extending MySQLTable
 
 ## Running the Example
 
