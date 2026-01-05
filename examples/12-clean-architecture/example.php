@@ -2,51 +2,49 @@
 
 require_once '../../vendor/autoload.php';
 require_once __DIR__.'/Domain/User.php';
-require_once __DIR__.'/Domain/UserRepositoryInterface.php';
-require_once __DIR__.'/Infrastructure/Repository/MySQLUserRepository.php';
+require_once __DIR__.'/Infrastructure/Schema/UserTable.php';
+require_once __DIR__.'/Infrastructure/Repository/UserRepository.php';
 
 use Domain\User;
-use Infrastructure\Repository\MySQLUserRepository;
-use WebFiori\Database\ColOption;
+use Infrastructure\Repository\UserRepository;
+use Infrastructure\Schema\UserTable;
+use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
-use WebFiori\Database\DataType;
 
 echo "=== WebFiori Database Clean Architecture Example ===\n\n";
 
-echo "This example demonstrates separation of concerns:\n";
-echo "  - Domain: Pure entities and interfaces (no framework dependencies)\n";
-echo "  - Infrastructure: Database implementation (WebFiori Database)\n\n";
+echo "Architecture layers:\n";
+echo "  - Domain: Pure entities (User.php)\n";
+echo "  - Infrastructure/Schema: Table definitions with attributes (UserTable.php)\n";
+echo "  - Infrastructure/Repository: Data access with AbstractRepository\n\n";
 
 try {
-    // Infrastructure setup
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
     $database = new Database($connection);
 
-    echo "1. Setting up Database (Infrastructure):\n";
+    echo "1. Building Table from Attributes:\n";
 
+    // Build table from attribute-based class
+    $table = AttributeTableBuilder::build(UserTable::class, 'mysql');
+    echo "✓ Table blueprint built from UserTable attributes\n";
+    echo "  Columns: ".implode(', ', array_keys($table->getCols()))."\n\n";
+
+    echo "2. Creating Table:\n";
     $database->raw("DROP TABLE IF EXISTS users")->execute();
-    $database->createBlueprint('users')->addColumns([
-        'id' => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
-        'name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 100],
-        'email' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 150],
-        'age' => [ColOption::TYPE => DataType::INT]
-    ]);
-    $database->table('users')->createTable();
-    $database->execute();
-    echo "✓ Database table created\n\n";
+    $database->addTable($table);
+    $database->createTables()->execute();
+    echo "✓ Users table created\n\n";
 
-    echo "2. Creating Repository (Infrastructure implements Domain interface):\n";
-    $userRepo = new MySQLUserRepository($database);
-    echo "✓ MySQLUserRepository created\n\n";
+    echo "3. Using Repository (extends AbstractRepository):\n";
+    $userRepo = new UserRepository($database);
+    echo "✓ UserRepository created\n\n";
 
-    echo "3. Working with Domain Entities:\n";
-
-    // Create domain entities (pure PHP, no DB knowledge)
+    echo "4. Saving Domain Entities:\n";
     $users = [
         new User(null, 'Ahmed Ali', 'ahmed@example.com', 28),
-        new User(null, 'Sara Hassan', 'sara@example.com', 32),
-        new User(null, 'Omar Khalil', 'omar@example.com', 25)
+        new User(null, 'Sara Hassan', 'sara@example.com', 35),
+        new User(null, 'Omar Khalil', 'omar@example.com', 22)
     ];
 
     foreach ($users as $user) {
@@ -55,27 +53,34 @@ try {
     }
     echo "\n";
 
-    echo "4. Querying through Repository:\n";
-    $allUsers = $userRepo->findAll();
-    echo "All users:\n";
-    foreach ($allUsers as $user) {
-        echo "  - {$user->name} ({$user->email}) - Age: {$user->age}\n";
-    }
-    echo "\n";
+    echo "5. Repository Operations:\n";
 
-    echo "5. Finding by ID:\n";
+    // findAll()
+    $all = $userRepo->findAll();
+    echo "All users (".count($all)."):\n";
+    foreach ($all as $u) {
+        echo "  - {$u->name} ({$u->email}) - Age: {$u->age}\n";
+    }
+
+    // findById()
     $user = $userRepo->findById(1);
-    if ($user) {
-        echo "  Found: {$user->name}\n\n";
+    echo "\nFind by ID 1: {$user->name}\n";
+
+    // Custom method
+    $adults = $userRepo->findByAge(25);
+    echo "\nUsers age >= 25 (".count($adults)."):\n";
+    foreach ($adults as $u) {
+        echo "  - {$u->name} (Age: {$u->age})\n";
     }
 
-    echo "6. Benefits of Clean Architecture:\n";
-    echo "  ✓ Domain entities are framework-agnostic\n";
-    echo "  ✓ Repository interface defines contract\n";
-    echo "  ✓ Easy to swap implementations (MySQL, PostgreSQL, etc.)\n";
-    echo "  ✓ Domain logic is testable without database\n\n";
+    // Pagination
+    $page = $userRepo->paginate(1, 2);
+    echo "\nPage 1 (2 per page): {$page->getTotalItems()} total, {$page->getTotalPages()} pages\n";
 
-    echo "7. Cleanup:\n";
+    // count()
+    echo "\nTotal count: ".$userRepo->count()."\n\n";
+
+    echo "6. Cleanup:\n";
     $database->raw("DROP TABLE users")->execute();
     echo "✓ Table dropped\n";
 } catch (Exception $e) {
