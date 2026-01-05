@@ -13,40 +13,31 @@ try {
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
     $database = new Database($connection);
 
-    echo "1. Loading Migration Classes:\n";
-
-    // Include migration classes
-    require_once __DIR__.'/CreateUsersTableMigration.php';
-    require_once __DIR__.'/AddEmailIndexMigration.php';
-
-    echo "✓ Migration classes loaded\n\n";
-
-    echo "2. Setting up Schema Runner:\n";
+    echo "1. Setting up Schema Runner:\n";
 
     // Create schema runner
     $runner = new SchemaRunner($connection);
 
-    // Register migration classes
-    $runner->register('CreateUsersTableMigration');
-    $runner->register('AddEmailIndexMigration');
+    // Discover and register migration classes from directory
+    $runner->discoverFromPath(__DIR__, '');
 
     echo "✓ Schema runner created\n";
-    echo "✓ Migration classes registered\n";
+    echo "✓ Migration classes discovered from path\n";
 
     // Create schema tracking table
     $runner->createSchemaTable();
     echo "✓ Schema tracking table created\n\n";
 
-    echo "3. Checking Available Migrations:\n";
+    echo "2. Checking Available Migrations:\n";
 
     $changes = $runner->getChanges();
-    echo "Registered migrations:\n";
+    echo "Discovered migrations:\n";
     foreach ($changes as $change) {
         echo "  - ".$change->getName()."\n";
     }
     echo "\n";
 
-    echo "4. Running Migrations (using apply()):\n";
+    echo "3. Running Migrations (using apply()):\n";
 
     // Apply all pending migrations
     $result = $runner->apply();
@@ -68,7 +59,7 @@ try {
     }
     echo "\n";
 
-    echo "5. Verifying Database Structure:\n";
+    echo "4. Verifying Database Structure:\n";
 
     // Check if table exists
     $tableResult = $database->raw("SHOW TABLES LIKE 'users'")->execute();
@@ -90,7 +81,7 @@ try {
     }
     echo "\n";
 
-    echo "6. Testing Data Operations:\n";
+    echo "5. Testing Data Operations:\n";
 
     // Insert test data
     $database->table('users')->insert([
@@ -115,7 +106,7 @@ try {
     }
     echo "\n";
 
-    echo "7. Checking Migration Status:\n";
+    echo "6. Checking Migration Status:\n";
     echo "Migration status:\n";
     foreach ($changes as $change) {
         $status = $runner->isApplied($change->getName()) ? "✓ Applied" : "✗ Pending";
@@ -123,7 +114,7 @@ try {
     }
     echo "\n";
 
-    echo "8. Rolling Back Migrations:\n";
+    echo "7. Rolling Back Migrations:\n";
 
     // Rollback all migrations
     $rolledBack = $runner->rollbackUpTo(null);
@@ -143,7 +134,7 @@ try {
         echo "✓ Users table removed\n";
     }
 
-    echo "\n9. Cleanup:\n";
+    echo "\n8. Cleanup:\n";
     $runner->dropSchemaTable();
     echo "✓ Schema tracking table dropped\n";
 } catch (Exception $e) {

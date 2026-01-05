@@ -86,40 +86,31 @@ try {
     $database->execute();
     echo "✓ Categories table created\n\n";
 
-    echo "2. Loading Seeder Classes:\n";
-
-    // Include seeder classes
-    require_once __DIR__.'/UsersSeeder.php';
-    require_once __DIR__.'/CategoriesSeeder.php';
-
-    echo "✓ Seeder classes loaded\n\n";
-
-    echo "3. Setting up Schema Runner:\n";
+    echo "2. Setting up Schema Runner:\n";
 
     // Create schema runner
     $runner = new SchemaRunner($connection);
 
-    // Register seeder classes
-    $runner->register('UsersSeeder');
-    $runner->register('CategoriesSeeder');
+    // Discover and register seeder classes from directory
+    $runner->discoverFromPath(__DIR__, '');
 
     echo "✓ Schema runner created\n";
-    echo "✓ Seeder classes registered\n";
+    echo "✓ Seeder classes discovered from path\n";
 
     // Create schema tracking table
     $runner->createSchemaTable();
     echo "✓ Schema tracking table created\n\n";
 
-    echo "4. Checking Available Seeders:\n";
+    echo "3. Checking Available Seeders:\n";
 
     $changes = $runner->getChanges();
-    echo "Registered seeders:\n";
+    echo "Discovered seeders:\n";
     foreach ($changes as $change) {
         echo "  - ".$change->getName()."\n";
     }
     echo "\n";
 
-    echo "5. Running Seeders (using apply()):\n";
+    echo "4. Running Seeders (using apply()):\n";
 
     // Apply all pending seeders
     $result = $runner->apply();
@@ -134,7 +125,7 @@ try {
     }
     echo "\n";
 
-    echo "6. Verifying Seeded Data:\n";
+    echo "5. Verifying Seeded Data:\n";
 
     // Check users data
     $usersResult = $database->table('users')->select()->execute();
@@ -153,7 +144,7 @@ try {
     }
     echo "\n";
 
-    echo "7. Checking Seeder Status:\n";
+    echo "6. Checking Seeder Status:\n";
     echo "Seeder status:\n";
     foreach ($changes as $change) {
         $status = $runner->isApplied($change->getName()) ? "✓ Applied" : "✗ Pending";
@@ -161,7 +152,7 @@ try {
     }
     echo "\n";
 
-    echo "8. Rolling Back Seeders:\n";
+    echo "7. Rolling Back Seeders:\n";
 
     // Rollback all seeders (note: seeders don't clear data by default)
     $rolledBack = $runner->rollbackUpTo(null);
@@ -183,7 +174,7 @@ try {
     echo "  Users: $userCount records\n";
     echo "  Categories: $categoryCount records\n\n";
 
-    echo "9. Cleanup:\n";
+    echo "8. Cleanup:\n";
     $runner->dropSchemaTable();
     $database->raw("DROP TABLE categories")->execute();
     $database->raw("DROP TABLE users")->execute();
