@@ -275,7 +275,7 @@ class SchemaRunner extends Database {
      * @param bool $recursive Whether to scan subdirectories recursively. Default is false.
      * @return int Number of changes discovered and registered.
      */
-    public function discoverFromPath(string $path, string $namespace, bool $recursive = false): int {
+    public function discoverFromPath(string $path, string $namespace = '', bool $recursive = false): int {
         $count = 0;
 
         if (!is_dir($path)) {

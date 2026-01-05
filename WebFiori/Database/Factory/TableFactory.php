@@ -24,7 +24,7 @@ use WebFiori\Database\Table;
 class TableFactory {
     public static function create(string $database, string $name, array $cols = []) : Table {
         if (!in_array($database, ConnectionInfo::SUPPORTED_DATABASES)) {
-            throw new DatabaseException('Not support database: '.$database);
+            throw new DatabaseException('Not support database: '.$database.'. Supported: '.implode(', ', ConnectionInfo::SUPPORTED_DATABASES));
         }
 
         if ($database == 'mssql') {

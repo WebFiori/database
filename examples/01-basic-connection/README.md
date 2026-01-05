@@ -10,7 +10,7 @@ This example demonstrates how to establish a connection to a database using the 
 
 ## Files
 
-- `example.php` - Main example code
+- [`example.php`](example.php) - Main example code
 
 ## Running the Example
 
@@ -21,3 +21,10 @@ php example.php
 ## Expected Output
 
 The example will output connection status and basic database information.
+
+
+## Related Examples
+
+- [02-basic-queries](../02-basic-queries/) - Learn CRUD operations after connecting
+- [03-table-blueprints](../03-table-blueprints/) - Create table structures programmatically
+- [06-migrations](../06-migrations/) - Manage schema changes with migrations
