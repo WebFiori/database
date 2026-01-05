@@ -1,22 +1,37 @@
 <?php
 namespace WebFiori\Database\Repository;
 
+use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Database;
 
 /**
- * Minimal abstract repository with core CRUD operations.
+ * Abstract repository providing core CRUD operations for entities.
  * 
- * For complex queries, use createQuery() or getDatabase() in subclasses.
+ * Subclasses must implement the abstract methods to define table mapping.
+ * For complex queries, use createQuery() or getDatabase().
  * 
- * @template T
+ * @template T of object
  */
 abstract class AbstractRepository {
+    /**
+     * @var Database Database instance for executing queries.
+     */
     protected Database $db;
 
+    /**
+     * Creates a new repository instance.
+     * 
+     * @param Database $db Database connection to use.
+     */
     public function __construct(Database $db) {
         $this->db = $db;
     }
 
+    /**
+     * Returns the total number of records in the table.
+     * 
+     * @return int Total record count.
+     */
     public function count(): int {
         $result = $this->db->table($this->getTableName())
             ->selectCount(null, 'total')
@@ -25,12 +40,20 @@ abstract class AbstractRepository {
         return (int) $result->fetch()['total'];
     }
 
+    /**
+     * Deletes all records from the table.
+     */
     public function deleteAll(): void {
         $this->db->table($this->getTableName())
             ->delete()
             ->execute();
     }
 
+    /**
+     * Deletes a record by its ID.
+     * 
+     * @param mixed $id The ID of the record to delete.
+     */
     public function deleteById(mixed $id): void {
         $this->db->table($this->getTableName())
             ->delete()
@@ -38,7 +61,11 @@ abstract class AbstractRepository {
             ->execute();
     }
 
-    /** @return T[] */
+    /**
+     * Retrieves all records from the table.
+     * 
+     * @return T[] Array of all entities.
+     */
     public function findAll(): array {
         $result = $this->db->table($this->getTableName())
             ->select()
@@ -47,7 +74,13 @@ abstract class AbstractRepository {
         return array_map(fn($row) => $this->toEntity($row), $result->fetchAll());
     }
 
-    /** @return T|null */
+    /**
+     * Finds a single record by its ID.
+     * 
+     * @param mixed $id The ID to search for.
+     * 
+     * @return T|null The entity if found, null otherwise.
+     */
     public function findById(mixed $id): ?object {
         $result = $this->db->table($this->getTableName())
             ->select()
@@ -57,7 +90,15 @@ abstract class AbstractRepository {
         return $result->getCount() > 0 ? $this->toEntity($result->fetch()) : null;
     }
 
-    /** @return Page<T> */
+    /**
+     * Retrieves paginated records using offset-based pagination.
+     * 
+     * @param int $page Page number (1-based).
+     * @param int $perPage Number of records per page.
+     * @param array $orderBy Associative array of column => direction for sorting.
+     * 
+     * @return Page<T> Page object containing results and pagination metadata.
+     */
     public function paginate(int $page = 1, int $perPage = 20, array $orderBy = []): Page {
         $page = max(1, $page);
         $offset = ($page - 1) * $perPage;
@@ -79,7 +120,16 @@ abstract class AbstractRepository {
         return new Page($items, $page, $perPage, $total);
     }
 
-    /** @return CursorPage<T> */
+    /**
+     * Retrieves paginated records using cursor-based pagination.
+     * 
+     * @param string|null $cursor Base64-encoded cursor value, null for first page.
+     * @param int $limit Maximum number of records to return.
+     * @param string|null $cursorField Column to use for cursor, defaults to ID field.
+     * @param string $direction Sort direction ('ASC' or 'DESC').
+     * 
+     * @return CursorPage<T> CursorPage object containing results and next cursor.
+     */
     public function paginateByCursor(
         ?string $cursor = null,
         int $limit = 20,
@@ -119,7 +169,13 @@ abstract class AbstractRepository {
         return new CursorPage($items, $nextCursor, null, $hasMore);
     }
 
-    /** @param T $entity */
+    /**
+     * Saves an entity (insert if new, update if existing).
+     * 
+     * An entity is considered new if its ID field is null.
+     * 
+     * @param T $entity The entity to save.
+     */
     public function save(object $entity): void {
         $data = $this->toArray($entity);
         $id = $data[$this->getIdField()] ?? null;
@@ -135,16 +191,99 @@ abstract class AbstractRepository {
         }
     }
 
-    protected function createQuery(): \WebFiori\Database\AbstractQuery {
+    /**
+     * Saves multiple entities in a single transaction.
+     * 
+     * New entities (null ID) are batch inserted in one query.
+     * Existing entities are updated individually.
+     * 
+     * @param T[] $entities Array of entities to save.
+     */
+    public function saveAll(array $entities): void {
+        if (empty($entities)) {
+            return;
+        }
+
+        $newEntities = [];
+        $existingEntities = [];
+        $idField = $this->getIdField();
+
+        foreach ($entities as $entity) {
+            $data = $this->toArray($entity);
+            if (($data[$idField] ?? null) === null) {
+                unset($data[$idField]);
+                $newEntities[] = $data;
+            } else {
+                $existingEntities[] = $data;
+            }
+        }
+
+        $this->db->transaction(function (Database $db) use ($newEntities, $existingEntities, $idField) {
+            if (!empty($newEntities)) {
+                $db->table($this->getTableName())->insert([
+                    'cols' => array_keys($newEntities[0]),
+                    'values' => array_map(fn($e) => array_values($e), $newEntities)
+                ])->execute();
+            }
+
+            foreach ($existingEntities as $data) {
+                $id = $data[$idField];
+                unset($data[$idField]);
+                $db->table($this->getTableName())
+                    ->update($data)
+                    ->where($idField, $id)
+                    ->execute();
+            }
+        });
+    }
+
+    /**
+     * Creates a select query for the repository's table.
+     * 
+     * @return AbstractQuery Query builder instance.
+     */
+    protected function createQuery(): AbstractQuery {
         return $this->db->table($this->getTableName())->select();
     }
 
+    /**
+     * Returns the underlying database instance.
+     * 
+     * @return Database The database connection.
+     */
     protected function getDatabase(): Database {
         return $this->db;
     }
+
+    /**
+     * Returns the name of the ID/primary key field.
+     * 
+     * @return string Column name of the primary key.
+     */
     abstract protected function getIdField(): string;
 
+    /**
+     * Returns the database table name for this repository.
+     * 
+     * @return string Table name.
+     */
     abstract protected function getTableName(): string;
+
+    /**
+     * Converts an entity to an associative array for database operations.
+     * 
+     * @param T $entity The entity to convert.
+     * 
+     * @return array Associative array with column names as keys.
+     */
     abstract protected function toArray(object $entity): array;
+
+    /**
+     * Converts a database row to an entity object.
+     * 
+     * @param array $row Associative array from database.
+     * 
+     * @return T The mapped entity.
+     */
     abstract protected function toEntity(array $row): object;
 }
