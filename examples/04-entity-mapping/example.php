@@ -9,9 +9,7 @@ use WebFiori\Database\DataType;
 
 echo "=== WebFiori Database Entity Mapping Example ===\n\n";
 
-echo "NOTE: EntityMapper is deprecated for production use.\n";
-echo "      Use manual entity classes with Repository pattern instead.\n";
-echo "      This example shows both approaches.\n\n";
+echo "This example shows entity generation and manual mapping approaches.\n\n";
 
 try {
     $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
@@ -41,21 +39,24 @@ try {
     // ============================================
     // APPROACH 1: Using EntityMapper (Deprecated)
     // ============================================
-    echo "3. DEPRECATED: Using EntityMapper (for rapid prototyping only):\n";
+    echo "3. Using EntityGenerator:\n";
 
-    $entityMapper = $userTable->getEntityMapper();
-    $entityMapper->setEntityName('User');
-    $entityMapper->setNamespace('');
-    $entityMapper->setPath(__DIR__);
-    $entityMapper->create();
+    $entityGenerator = $userTable->getEntityGenerator('User', __DIR__, '');
+    $entityGenerator->generate();
     echo "✓ User entity class generated at: ".__DIR__."/User.php\n";
 
     require_once __DIR__.'/User.php';
 
     $resultSet = $database->table('users')->select()->execute();
-    $mappedUsers = $resultSet->map(fn($record) => User::map($record));
+    $mappedUsers = $resultSet->map(fn($record) => new User(
+        id: (int) $record['id'],
+        firstName: $record['first_name'],
+        lastName: $record['last_name'],
+        email: $record['email'],
+        age: (int) $record['age']
+    ));
 
-    echo "Mapped users (EntityMapper):\n";
+    echo "Mapped users (EntityGenerator):\n";
     foreach ($mappedUsers as $user) {
         echo "  - {$user->getFirstName()} {$user->getLastName()} ({$user->getEmail()})\n";
     }
@@ -64,7 +65,7 @@ try {
     // ============================================
     // APPROACH 2: Manual Entity (Recommended)
     // ============================================
-    echo "4. RECOMMENDED: Manual Entity with Repository Pattern:\n";
+    echo "4. Alternative: Manual Entity Mapping:\n";
 
     // Define entity manually (in real code, this would be in a separate file)
     // See example 11-repository-pattern for full implementation

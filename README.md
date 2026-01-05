@@ -4,7 +4,7 @@ Database abstraction layer of WebFiori framework.
 
 <p style="text-align: center">
   <a href="https://github.com/WebFiori/database/actions">
-    <img alt="PHP 8 Build Status" src="https://github.com/WebFiori/database/actions/workflows/php83.yaml/badge.svg?branch=main">
+    <img alt="PHP 8 Build Status" src="https://github.com/WebFiori/database/actions/workflows/php85.yaml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/database">
     <img alt="CodeCov" src="https://codecov.io/gh/WebFiori/database/branch/main/graph/badge.svg?token=cDF6CxGTFi" />
@@ -29,16 +29,10 @@ Database abstraction layer of WebFiori framework.
 * [Usage](#usage)
   * [Connecting to Database](#connecting-to-database)
   * [Running Basic SQL Queries](#running-basic-sql-queries)
-    * [Insert Query](#insert-query)
-    * [Select Query](#select-query)
-    * [Update Query](#update-query)
-    * [Delete Query](#delete-query)
   * [Building Database Structure](#building-database-structure)
-    * [Creating Table Blueprint](#creating-table-blueprint)
-    * [Seeding Structure to Database](#seeding-structure-to-database)
-  * [Creating Entity Classes and Using Them](#creating-entity-classes-and-using-them)
-    * [Creating an Entity Class](#creating-an-entity-class) 
-    * [Using Entity Class](#using-entity-class)
+  * [Repository Pattern](#repository-pattern)
+  * [Active Record Pattern](#active-record-pattern)
+  * [Entity Generation](#entity-generation)
   * [Database Migrations](#database-migrations)
   * [Database Seeders](#database-seeders)
   * [Performance Monitoring](#performance-monitoring)
@@ -51,6 +45,7 @@ Database abstraction layer of WebFiori framework.
 | <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/database/actions/workflows/php82.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/database/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/database/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/database/actions/workflows/php85.yaml"><img src="https://github.com/WebFiori/database/actions/workflows/php85.yaml/badge.svg?branch=main"></a> |
 
 ## Supported Databases
 - MySQL
@@ -60,9 +55,12 @@ Database abstraction layer of WebFiori framework.
 * Building your database structure within PHP
 * Fast and easy to use query builder
 * Database abstraction which makes it easy to migrate your system to different DBMS
+* Repository pattern with `AbstractRepository` for clean data access
+* Active Record pattern support for rapid development
+* PHP 8 attributes for table definitions
 * Database migrations and seeders
 * Performance monitoring and query analysis
-* Entity mapping for object-relational mapping
+* Entity generation for object-relational mapping
 * Transaction support with automatic rollback
 
 ## Installation
@@ -78,369 +76,323 @@ Connecting to a database is simple. First step is to define database connection 
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 
-// This assumes that MySQL is installed on localhost
-// and root password is set to '123456' 
-// and there is a schema with name 'testing_db'
 $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
 $database = new Database($connection);
 ```
 
 ### Running Basic SQL Queries
 
-Most common SQL queries that will be executed in any relational DBMS are insert, select, update, and delete. Following examples shows how the 4 types can be constructed.
+For every query, the table must be specified using `Database::table(string $tblName)`. The method returns an `AbstractQuery` instance with methods for building queries:
 
-For every query, the table that the query will be executed on must be specified. To specify the table, use the method `Database::table(string $tblName)`. The method will return an instance of the class `AbstractQuery`. The class `AbstractQuery` has many methods which are used to further build the query. Commonly used methods include the following:
+* `insert(array $cols)`: Construct an insert query.
+* `select(array $cols)`: Construct a select query.
+* `update(array $cols)`: Construct an update query.
+* `delete()`: Construct a delete query.
+* `where($col, $val)`: Adds a condition to the query.
 
-* `AbstractQuery::insert(array $cols)`: Construct an insert query.
-* `AbstractQuery::select(array $cols)`: Construct a select query.
-* `AbstractQuery::update(array $cols)`: Construct an update query.
-* `AbstractQuery::delete()`: Construct a delete query.
-* `AbstractQuery::where($col, $val)`: Adds a condition to the query.
-
-After building the query, the method `AbstractQuery::execute()` can be called to execute the query. If the query is a `select` query, the method will return an instance of the class `ResultSet`. The instance can be used to traverse the records that was returned by the DBMS.
-
-#### Insert Query
-
-Insert query is used to add records to the database. To execute an insert query, use the method `AbstractQuery::insert(array $cols)`. The method accepts one parameter. The parameter is an associative array. The indices of the array are columns names and the values of the indices are the values that will be inserted.
+After building the query, call `execute()` to run it.
 
 ```php
-$connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
-$database = new Database($connection);
-
+// Insert
 $database->table('posts')->insert([
     'title' => 'Super New Post',
     'author' => 'Me'
 ])->execute();
-```
 
-#### Select Query
-
-A select query is used to fetch database records and use them in application logic. To execute a select query, use the method `AbstractQuery::select(array $cols)`. The method accepts one optional parameter. The parameter is an array that holds the names of the columns that will be selected. In this case, the method `AbstractQuery::execute()` will return an object of type `ResultSet`. The result set will contain raw fetched records as big array that holds the actual records. Each record is stored as an associative array.
-
-```php
-$connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
-$database = new Database($connection);
-
-// This assumes that we have a table called 'posts' in the database.
-$resultSet = $database->table('posts')->select()->execute();
-
-foreach ($resultSet as $record) {
-    echo $record['title'];
-}
-```
-
-It is possible to add a condition to the select query using the method `AbstractQuery::where()`.
-
-```php
-$connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
-$database = new Database($connection);
-
-// This assumes that we have a table called 'posts' in the database.
+// Select
 $resultSet = $database->table('posts')
-                      ->select()
-                      ->where('author', 'Ibrahim')
-                      ->execute();
+    ->select()
+    ->where('author', 'Ibrahim')
+    ->execute();
 
 foreach ($resultSet as $record) {
     echo $record['title'];
 }
-```
 
-#### Update Query
-
-Update query is used to update a single record or multiple records. To execute an update query, use the method `AbstractQuery::update(array $cols)`. The method accepts one parameter. The parameter is an associative array. The indices of the array are columns names and the values of the indices are the updated values. Usually, for any update query, a `where` condition will be included. To include a `where` condition, the method `AbstractQuery::where()` can be used.
-
-```php
-$connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
-$database = new Database($connection);
-
+// Update
 $database->table('posts')->update([
-    'title' => 'Super New Post By Ibrahim',
-])->where('author', 'Ibrahim')
-  ->andWhere('created-on', '2023-03-24')
-  ->execute();
-```
+    'title' => 'Updated Title',
+])->where('id', 1)->execute();
 
-#### Delete Query
-
-This query is used to delete specific record from the database. To execute delete query, use the method `AbstractQuery::delete()`. A `where` condition should be included to delete specific record. To include a `where` condition, the method `AbstractQuery::where()` can be used.
-
-```php
-$connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
-$database = new Database($connection);
-
-$database->table('posts')->delete()->where('author', 'Ibrahim')->execute();
+// Delete
+$database->table('posts')->delete()->where('id', 1)->execute();
 ```
 
 ### Building Database Structure
 
-One of the features of the library is the ability to define database structure in the source code and later, seed the created structure to create database tables. The blueprint of tables are represented by the class `Table`. The main aim of the blueprint is to make sure that data types in database are represented correctly in the source code.
-
-#### Creating Table Blueprint
-
-Each blueprint must have following attributes defined:
-
-* Name of the blueprint (database table name).
-* Columns and their properties such as data type.
-* Any relations with other tables.
-
-The method `Database::createBlueprint()` is used to create a table based on connected DBMS. The method will return an instance of the class `Table` which can be used to further customize the blueprint.
+Define database structure in PHP code using blueprints:
 
 ```php
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
 
-$database->createBlueprint('users_information')->addColumns([
+$database->createBlueprint('users')->addColumns([
     'id' => [
         ColOption::TYPE => DataType::INT,
-        ColOption::SIZE => 5,
         ColOption::PRIMARY => true,
         ColOption::AUTO_INCREMENT => true
     ],
-    'first-name' => [
+    'name' => [
         ColOption::TYPE => DataType::VARCHAR,
-        ColOption::SIZE => 15
-    ],
-    'last-name' => [
-        ColOption::TYPE => DataType::VARCHAR,
-        ColOption::SIZE => 15
+        ColOption::SIZE => 100
     ],
     'email' => [
         ColOption::TYPE => DataType::VARCHAR,
-        ColOption::SIZE => 128
+        ColOption::SIZE => 150
     ]
 ]);
+
+// Create the table
+$database->table('users')->createTable()->execute();
 ```
 
-#### Seeding Structure to Database
+### Repository Pattern
 
-After creating all blueprints, a query must be structured and executed to create database tables. Building the query can be performed using the method `Database::createTables()`. After calling this method, the method `Database::execute()` must be called to create all database tables.
+The `AbstractRepository` class provides a clean way to handle data access with separation between entities and database logic.
 
-```php 
-// Build the query
-$database->createTables();
-
-// Execute
-$database->execute();
-```
-
-### Creating Entity Classes and Using Them
-
-Entity classes are classes which are based on blueprints (or tables). They can be used to map records of tables to objects. Every blueprint will have an instance of the class `EntityMapper` which can be used to create an entity class.
-
-Entity classes that are generated using the class `EntityMapper` are special. They will have one static method with name `map()` which can automatically map a record to an instance of the entity.
-
-#### Creating an Entity Class
-
-First step in creating an entity is to have the blueprint at which the entity will be based on. From the blueprint, an instance of the class `EntityMapper` is generated. After having the instance, the properties of the entity is set such as its name, namespace and where it will be created. Finally, the method `EntityMapper::create()` can be invoked to write the source code of the class.
+#### Creating an Entity
 
 ```php
-$blueprint = $database->getTable('users_information');
-
-// Get entity mapper
-$entityMapper = $blueprint->getEntityMapper();
-
-// Set properties of the entity
-$entityMapper->setEntityName('UserInformation');
-$entityMapper->setNamespace('');
-$entityMapper->setPath(__DIR__);
-
-// Create the entity. The output will be the class 'UserInformation'.
-$entityMapper->create();
-```
-
-#### Using Entity Class
-
-Entity class can be used to map a record to an object. Each entity will have a special method called `map()`. The method accepts a single parameter which is an associative array that represents fetched record.
-
-The result set instance has one of array methods which is called `map($callback)` This method acts exactly as the function `array_map($callback, $array)`. The return value of the method is another result set with mapped records.
-
-```php
-$resultSet = $database->table('users_information')
-        ->select()
-        ->execute();
-
-$mappedSet = $resultSet->map(function (array $record) {
-    return UserInformation::map($record);
-});
-
-foreach ($mappedSet as $record) {
-    // $record is an object of type UserInformation
-    echo $record->getFirstName() . ' ' . $record->getLastName() . "\n";
+class Product {
+    public ?int $id = null;
+    public string $name;
+    public float $price;
 }
+```
+
+#### Creating a Repository
+
+```php
+use WebFiori\Database\Repository\AbstractRepository;
+
+class ProductRepository extends AbstractRepository {
+    protected function getTableName(): string {
+        return 'products';
+    }
+
+    protected function getIdField(): string {
+        return 'id';
+    }
+
+    protected function toEntity(array $row): object {
+        $product = new Product();
+        $product->id = (int) $row['id'];
+        $product->name = $row['name'];
+        $product->price = (float) $row['price'];
+        return $product;
+    }
+
+    protected function toArray(object $entity): array {
+        return [
+            'id' => $entity->id,
+            'name' => $entity->name,
+            'price' => $entity->price
+        ];
+    }
+}
+```
+
+#### Using the Repository
+
+```php
+$repo = new ProductRepository($database);
+
+// Create
+$product = new Product();
+$product->name = 'Widget';
+$product->price = 29.99;
+$repo->save($product);
+
+// Read
+$product = $repo->findById(1);
+$allProducts = $repo->findAll();
+
+// Update
+$product->price = 24.99;
+$repo->save($product);
+
+// Delete
+$repo->deleteById(1);
+
+// Pagination
+$page = $repo->paginate(page: 1, perPage: 20);
+```
+
+### Active Record Pattern
+
+For rapid development, you can merge entity and repository into a single model class:
+
+```php
+use WebFiori\Database\Attributes\Column;
+use WebFiori\Database\Attributes\Table;
+use WebFiori\Database\DataType;
+use WebFiori\Database\Repository\AbstractRepository;
+
+#[Table(name: 'articles')]
+class Article extends AbstractRepository {
+    #[Column(type: DataType::INT, primary: true, autoIncrement: true)]
+    public ?int $id = null;
+
+    #[Column(type: DataType::VARCHAR, size: 200)]
+    public string $title = '';
+
+    #[Column(type: DataType::TEXT)]
+    public string $content = '';
+
+    protected function getTableName(): string { return 'articles'; }
+    protected function getIdField(): string { return 'id'; }
+    
+    protected function toEntity(array $row): object {
+        $article = new self($this->db);
+        $article->id = (int) $row['id'];
+        $article->title = $row['title'];
+        $article->content = $row['content'];
+        return $article;
+    }
+
+    protected function toArray(object $entity): array {
+        return [
+            'id' => $entity->id,
+            'title' => $entity->title,
+            'content' => $entity->content
+        ];
+    }
+}
+```
+
+Usage:
+
+```php
+// Create and save
+$article = new Article($database);
+$article->title = 'Hello World';
+$article->content = 'My first article';
+$article->save();
+
+// Query
+$all = $article->findAll();
+$one = $article->findById(1);
+
+// Update
+$article->title = 'Updated Title';
+$article->save();
+
+// Delete
+$article->deleteById();
+
+// Reload from database
+$fresh = $article->reload();
+```
+
+### Entity Generation
+
+Generate entity classes from table blueprints:
+
+```php
+$blueprint = $database->getTable('users');
+
+$generator = $blueprint->getEntityGenerator('User', __DIR__, 'App\\Entity');
+$generator->generate();
 ```
 
 ### Database Migrations
 
-Migrations allow you to version control your database schema changes. Each migration represents a specific change to your database structure.
+Version control your database schema changes:
 
 ```php
 use WebFiori\Database\Schema\AbstractMigration;
-use WebFiori\Database\Database;
 
 class CreateUsersTable extends AbstractMigration {
-    
     public function up(Database $db): void {
         $db->createBlueprint('users')->addColumns([
-            'id' => [
-                ColOption::TYPE => DataType::INT,
-                ColOption::PRIMARY => true,
-                ColOption::AUTO_INCREMENT => true
-            ],
-            'name' => [
-                ColOption::TYPE => DataType::VARCHAR,
-                ColOption::SIZE => 100
-            ],
-            'email' => [
-                ColOption::TYPE => DataType::VARCHAR,
-                ColOption::SIZE => 150
-            ]
+            'id' => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
+            'name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 100]
         ]);
-        
-        $db->createTables();
-        $db->execute();
+        $db->table('users')->createTable()->execute();
     }
     
     public function down(Database $db): void {
-        $db->setQuery("DROP TABLE users");
-        $db->execute();
+        $db->raw("DROP TABLE users")->execute();
     }
 }
 ```
 
-To run migrations, use the SchemaRunner:
+Run migrations:
 
 ```php
 use WebFiori\Database\Schema\SchemaRunner;
 
 $runner = new SchemaRunner($connectionInfo);
-
-// Register migration classes
-$runner->register('CreateUsersTable');
-$runner->register('AddEmailIndex');
-
-// Create schema tracking table
+$runner->discoverFromPath(__DIR__ . '/migrations', 'App\\Migrations');
 $runner->createSchemaTable();
-
-// Apply all pending migrations
-$appliedMigrations = $runner->apply();
-
-// Rollback migrations
-$rolledBackMigrations = $runner->rollbackUpTo(null);
+$runner->apply();
 ```
 
 ### Database Seeders
 
-Seeders allow you to populate your database with sample or default data.
+Populate your database with sample data:
 
 ```php
 use WebFiori\Database\Schema\AbstractSeeder;
-use WebFiori\Database\Database;
 
 class UsersSeeder extends AbstractSeeder {
-    
     public function run(Database $db): void {
         $db->table('users')->insert([
             'name' => 'Administrator',
             'email' => 'admin@example.com'
         ])->execute();
-        
-        $db->table('users')->insert([
-            'name' => 'John Doe',
-            'email' => 'john@example.com'
-        ])->execute();
     }
 }
-```
-
-To run seeders, use the same SchemaRunner:
-
-```php
-use WebFiori\Database\Schema\SchemaRunner;
-
-$runner = new SchemaRunner($connectionInfo);
-
-// Register seeder classes
-$runner->register('UsersSeeder');
-$runner->register('CategoriesSeeder');
-
-// Create schema tracking table
-$runner->createSchemaTable();
-
-// Apply all pending seeders
-$appliedSeeders = $runner->apply();
 ```
 
 ### Performance Monitoring
 
-The library includes built-in performance monitoring to help you identify slow queries and optimize database performance.
+Track and analyze query performance:
 
 ```php
 use WebFiori\Database\Performance\PerformanceOption;
-use WebFiori\Database\Performance\PerformanceAnalyzer;
 
-// Configure performance monitoring
 $database->setPerformanceConfig([
     PerformanceOption::ENABLED => true,
-    PerformanceOption::SLOW_QUERY_THRESHOLD => 50, // 50ms threshold
-    PerformanceOption::SAMPLING_RATE => 1.0        // Monitor all queries
+    PerformanceOption::SLOW_QUERY_THRESHOLD => 50
 ]);
 
-// Execute some queries
-$database->table('users')->select()->execute();
-$database->table('posts')->select()->where('status', 'published')->execute();
+// Execute queries...
 
-// Analyze performance
 $analyzer = $database->getPerformanceMonitor()->getAnalyzer();
-
-echo "Total queries: " . $analyzer->getQueryCount() . "\n";
-echo "Average execution time: " . $analyzer->getAverageTime() . "ms\n";
-echo "Performance score: " . $analyzer->getScore() . "\n";
-echo "Slow queries: " . $analyzer->getSlowQueryCount() . "\n";
-
-// Check if performance needs improvement
-if ($analyzer->getScore() === PerformanceAnalyzer::SCORE_NEEDS_IMPROVEMENT) {
-    $slowQueries = $analyzer->getSlowQueries();
-    foreach ($slowQueries as $metric) {
-        echo "Slow query: " . $metric->getQuery() . " (" . $metric->getExecutionTimeMs() . "ms)\n";
-    }
-}
+echo "Total queries: " . $analyzer->getQueryCount();
+echo "Slow queries: " . $analyzer->getSlowQueryCount();
 ```
 
 ### Transactions
 
-Database transactions ensure that multiple operations are executed as a single unit of work. If any operation fails, all operations are rolled back.
+Execute multiple operations as a single unit:
 
 ```php
 $database->transaction(function (Database $db) {
-    // Insert user
-    $db->table('users')->insert([
-        'name' => 'John Doe',
-        'email' => 'john@example.com'
-    ])->execute();
-    
-    // Insert user profile
-    $db->table('user_profiles')->insert([
+    $db->table('users')->insert(['name' => 'John'])->execute();
+    $db->table('profiles')->insert([
         'user_id' => $db->getLastInsertId(),
-        'bio' => 'Software Developer'
+        'bio' => 'Developer'
     ])->execute();
-    
-    // If any query fails, the entire transaction is rolled back
 });
 ```
 
-You can also pass additional parameters to the transaction closure:
+## Examples
 
-```php
-$userData = ['name' => 'Jane Doe', 'email' => 'jane@example.com'];
+See the [examples](examples/) directory for complete working examples:
 
-$database->transaction(function (Database $db, array $user) {
-    $db->table('users')->insert($user)->execute();
-    
-    $db->table('user_profiles')->insert([
-        'user_id' => $db->getLastInsertId(),
-        'created_at' => date('Y-m-d H:i:s')
-    ])->execute();
-    
-}, [$userData]);
-```
+- [01-basic-connection](examples/01-basic-connection/) - Database connections
+- [02-basic-queries](examples/02-basic-queries/) - CRUD operations
+- [03-table-blueprints](examples/03-table-blueprints/) - Table structures
+- [04-entity-mapping](examples/04-entity-mapping/) - Entity generation
+- [05-transactions](examples/05-transactions/) - Transaction handling
+- [06-migrations](examples/06-migrations/) - Schema migrations
+- [07-seeders](examples/07-seeders/) - Data seeding
+- [08-performance-monitoring](examples/08-performance-monitoring/) - Query analysis
+- [09-multi-result-queries](examples/09-multi-result-queries/) - Stored procedures
+- [10-attribute-based-tables](examples/10-attribute-based-tables/) - PHP 8 attributes
+- [11-repository-pattern](examples/11-repository-pattern/) - Repository pattern
+- [12-clean-architecture](examples/12-clean-architecture/) - Domain separation
+- [13-pagination](examples/13-pagination/) - Pagination techniques
+- [14-active-record-model](examples/14-active-record-model/) - Active Record pattern

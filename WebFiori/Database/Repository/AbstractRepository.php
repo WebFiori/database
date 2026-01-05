@@ -52,9 +52,17 @@ abstract class AbstractRepository {
     /**
      * Deletes a record by its ID.
      * 
-     * @param mixed $id The ID of the record to delete.
+     * If no ID is passed, uses the ID from $this.
+     * 
+     * @param mixed $id The ID of the record to delete, or null to use $this->id.
+     * 
+     * @throws \InvalidArgumentException If no ID is provided and $this has no ID.
      */
-    public function deleteById(mixed $id): void {
+    public function deleteById(mixed $id = null): void {
+        $id = $id ?? $this->getEntityId();
+        if ($id === null) {
+            throw new \InvalidArgumentException('Cannot delete: no ID provided');
+        }
         $this->db->table($this->getTableName())
             ->delete()
             ->where($this->getIdField(), $id)
@@ -77,17 +85,53 @@ abstract class AbstractRepository {
     /**
      * Finds a single record by its ID.
      * 
-     * @param mixed $id The ID to search for.
+     * @param mixed $id The ID to search for, or null to use $this->id.
      * 
      * @return T|null The entity if found, null otherwise.
+     * 
+     * @throws \InvalidArgumentException If no ID is provided and $this has no ID.
      */
-    public function findById(mixed $id): ?object {
+    public function findById(mixed $id = null): ?object {
+        $id = $id ?? $this->getEntityId();
+        if ($id === null) {
+            throw new \InvalidArgumentException('Cannot find: no ID provided');
+        }
         $result = $this->db->table($this->getTableName())
             ->select()
             ->where($this->getIdField(), $id)
             ->execute();
 
         return $result->getCount() > 0 ? $this->toEntity($result->fetch()) : null;
+    }
+
+    /**
+     * Reloads $this or the given entity from the database.
+     * 
+     * @param T|null $entity The entity to reload, or null to reload $this.
+     * 
+     * @return T|null Fresh entity from database, or null if not found.
+     * 
+     * @throws \InvalidArgumentException If no entity provided and $this has no ID.
+     */
+    public function reload(?object $entity = null): ?object {
+        if ($entity === null) {
+            return $this->findById();
+        }
+        $id = $this->toArray($entity)[$this->getIdField()] ?? null;
+        return $this->findById($id);
+    }
+
+    /**
+     * Gets the ID value from $this if it has entity properties.
+     * 
+     * @return mixed The ID value or null.
+     */
+    private function getEntityId(): mixed {
+        $idField = $this->getIdField();
+        if (property_exists($this, $idField)) {
+            return $this->$idField;
+        }
+        return null;
     }
 
     /**
@@ -173,10 +217,17 @@ abstract class AbstractRepository {
      * Saves an entity (insert if new, update if existing).
      * 
      * An entity is considered new if its ID field is null.
+     * If no entity is passed and $this has entity properties, saves $this.
      * 
-     * @param T $entity The entity to save.
+     * @param T|null $entity The entity to save, or null to save $this.
+     * 
+     * @throws \InvalidArgumentException If no entity is provided and $this has no entity properties.
      */
-    public function save(object $entity): void {
+    public function save(?object $entity = null): void {
+        if ($entity === null && !property_exists($this, $this->getIdField())) {
+            throw new \InvalidArgumentException('Cannot save: no entity provided');
+        }
+        $entity = $entity ?? $this;
         $data = $this->toArray($entity);
         $id = $data[$this->getIdField()] ?? null;
         unset($data[$this->getIdField()]);

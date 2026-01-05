@@ -101,28 +101,3 @@ jobs:
         with:
           name: code-coverage
           path: php-8.4-coverage.xml
-
-
-  code-coverage:
-    name: Coverage
-    needs: test
-    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@main
-    with:
-      php-version: '8.1'
-      coverage-file: 'php-8.1-coverage.xml'
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  code-quality:
-    name: Code Quality
-    needs: test
-    uses: WebFiori/workflows/.github/workflows/quality-sonarcloud.yaml@main
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  
-  release-prod:
-    name: Prepare Production Release Branch / Publish Release
-    needs: [code-coverage, code-quality]
-    uses: WebFiori/workflows/.github/workflows/release-php.yaml@main
-    with:
-      branch: 'main'

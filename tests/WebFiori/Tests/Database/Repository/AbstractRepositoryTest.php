@@ -174,4 +174,69 @@ class AbstractRepositoryTest extends TestCase {
         $this->assertContains('New1', $names);
         $this->assertContains('New2', $names);
     }
+
+    public function testFindByIdWithNullThrowsException() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot find: no ID provided');
+
+        self::$repo->findById(null);
+    }
+
+    public function testDeleteByIdWithNullThrowsException() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot delete: no ID provided');
+
+        self::$repo->deleteById(null);
+    }
+
+    public function testFindByIdWithValidId() {
+        self::$repo->save(new TestEntity(null, 'FindMe', 42));
+        $all = self::$repo->findAll();
+        $id = $all[0]->id;
+
+        $found = self::$repo->findById($id);
+
+        $this->assertNotNull($found);
+        $this->assertEquals('FindMe', $found->name);
+    }
+
+    public function testDeleteByIdWithValidId() {
+        self::$repo->save(new TestEntity(null, 'DeleteMe', 99));
+        $all = self::$repo->findAll();
+        $id = $all[0]->id;
+
+        self::$repo->deleteById($id);
+
+        $this->assertEquals(0, self::$repo->count());
+    }
+
+    public function testSaveWithNullOnPureRepoThrowsException() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot save: no entity provided');
+
+        self::$repo->save();
+    }
+
+    public function testReloadWithEntity() {
+        $entity = new TestEntity(null, 'Original', 100);
+        self::$repo->save($entity);
+        $saved = self::$repo->findAll()[0];
+
+        // Modify in database directly
+        self::$db->table('test_entities')
+            ->update(['name' => 'Modified'])
+            ->where('id', $saved->id)
+            ->execute();
+
+        $reloaded = self::$repo->reload($saved);
+
+        $this->assertEquals('Modified', $reloaded->name);
+    }
+
+    public function testReloadWithNullOnPureRepoThrowsException() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot find: no ID provided');
+
+        self::$repo->reload();
+    }
 }
