@@ -556,7 +556,7 @@ class MSSQLQueryBuilderTest extends TestCase{
      */
     public function testInsert03() {
         $schema = new MSSQLTestSchema();
-        $schema->createTables()->execute();
+        $schema->createTables();
         // Clear table first to ensure clean state
         $schema->table('users')->delete()->execute();
         // Reset identity to start from 1
