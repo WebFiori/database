@@ -101,3 +101,14 @@ jobs:
         with:
           name: code-coverage
           path: php-8.4-coverage.xml
+
+
+  code-coverage:
+    name: Coverage
+    needs: test
+    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@v1.2
+    with:
+      php-version: '8.4'
+      coverage-file: 'php-8.4-coverage.xml'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
