@@ -18,8 +18,8 @@ try {
     echo "1. Creating Test Tables:\n";
 
     // Clean up any existing tables first
-    $database->setQuery("DROP TABLE IF EXISTS categories")->execute();
-    $database->setQuery("DROP TABLE IF EXISTS users")->execute();
+    $database->raw("DROP TABLE IF EXISTS categories")->execute();
+    $database->raw("DROP TABLE IF EXISTS users")->execute();
 
     // Create users table
     $database->createBlueprint('users')->addColumns([
@@ -39,7 +39,7 @@ try {
             ColOption::SIZE => 150,
             ColOption::NULL => false
         ],
-        'full_name' => [
+        'full-name' => [
             ColOption::TYPE => DataType::VARCHAR,
             ColOption::SIZE => 100
         ],
@@ -48,7 +48,7 @@ try {
             ColOption::SIZE => 20,
             ColOption::DEFAULT => 'user'
         ],
-        'is_active' => [
+        'is-active' => [
             ColOption::TYPE => DataType::BOOL,
             ColOption::DEFAULT => true
         ]
@@ -77,132 +77,116 @@ try {
         ]
     ]);
 
-    $database->createTables();
+    // Create tables one by one
+    $database->table('users')->createTable();
     $database->execute();
+    echo "✓ Users table created\n";
 
-    echo "✓ Test tables created\n\n";
+    $database->table('categories')->createTable();
+    $database->execute();
+    echo "✓ Categories table created\n\n";
 
-    echo "2. Loading Seeder Classes:\n";
-
-    // Include seeder classes
-    require_once __DIR__.'/UsersSeeder.php';
-    require_once __DIR__.'/CategoriesSeeder.php';
-
-    echo "✓ Seeder classes loaded\n";
-
-    echo "3. Setting up Schema Runner:\n";
+    echo "2. Setting up Schema Runner:\n";
 
     // Create schema runner
     $runner = new SchemaRunner($connection);
 
-    // Register seeder classes
-    $runner->register('UsersSeeder');
-    $runner->register('CategoriesSeeder');
+    // Discover and register seeder classes from directory
+    $runner->discoverFromPath(__DIR__, '');
 
     echo "✓ Schema runner created\n";
-    echo "✓ Seeder classes registered\n";
+    echo "✓ Seeder classes discovered from path\n";
 
     // Create schema tracking table
     $runner->createSchemaTable();
     echo "✓ Schema tracking table created\n\n";
 
-    echo "4. Checking Available Seeders:\n";
+    echo "3. Checking Available Seeders:\n";
 
     $changes = $runner->getChanges();
-    echo "Registered seeders:\n";
-
+    echo "Discovered seeders:\n";
     foreach ($changes as $change) {
         echo "  - ".$change->getName()."\n";
     }
     echo "\n";
 
-    echo "5. Running Seeders:\n";
+    echo "4. Running Seeders (using apply()):\n";
 
-    // Force apply all seeders
-    $appliedChanges = [];
+    // Apply all pending seeders
+    $result = $runner->apply();
 
-    foreach ($changes as $change) {
-        if (!$runner->isApplied($change->getName())) {
-            $change->execute($database);
-            $appliedChanges[] = $change;
-            echo "  ✓ Applied: ".$change->getName()."\n";
+    if ($result->count() > 0) {
+        echo "Applied seeders:\n";
+        foreach ($result->getApplied() as $change) {
+            echo "  ✓ ".$change->getName()."\n";
         }
-    }
-
-    if (empty($appliedChanges)) {
+    } else {
         echo "No seeders to apply (all up to date)\n";
     }
     echo "\n";
 
-    echo "6. Verifying Seeded Data:\n";
+    echo "5. Verifying Seeded Data:\n";
 
     // Check users data
-    $result = $database->table('users')->select()->execute();
-    echo "Seeded users ({$result->getRowsCount()} records):\n";
-
-    foreach ($result as $user) {
+    $usersResult = $database->table('users')->select()->execute();
+    echo "Seeded users ({$usersResult->getRowsCount()} records):\n";
+    foreach ($usersResult as $user) {
         $status = $user['is_active'] ? 'Active' : 'Inactive';
-        echo "  - {$user['full_name']} (@{$user['username']}) - {$user['role']} - {$status}\n";
+        echo "  - {$user['full_name']} (@{$user['username']}) - {$user['role']} - $status\n";
     }
     echo "\n";
 
     // Check categories data
-    $result = $database->table('categories')->select()->execute();
-    echo "Seeded categories ({$result->getRowsCount()} records):\n";
-
-    foreach ($result as $category) {
+    $categoriesResult = $database->table('categories')->select()->execute();
+    echo "Seeded categories ({$categoriesResult->getRowsCount()} records):\n";
+    foreach ($categoriesResult as $category) {
         echo "  - {$category['name']} ({$category['slug']})\n";
-        echo "    {$category['description']}\n";
     }
     echo "\n";
 
-    echo "7. Testing Seeder Status:\n";
-
-    // Check which seeders are applied
+    echo "6. Checking Seeder Status:\n";
     echo "Seeder status:\n";
-
     foreach ($changes as $change) {
         $status = $runner->isApplied($change->getName()) ? "✓ Applied" : "✗ Pending";
         echo "  {$change->getName()}: $status\n";
     }
     echo "\n";
 
-    echo "8. Rolling Back Seeders:\n";
+    echo "7. Rolling Back Seeders:\n";
 
-    // Rollback all seeders (this will clear the data)
-    $rolledBackChanges = [];
+    // Rollback all seeders (note: seeders don't clear data by default)
+    $rolledBack = $runner->rollbackUpTo(null);
 
-    // Reverse order for rollback
-    $reversedChanges = array_reverse($changes);
-
-    foreach ($reversedChanges as $change) {
-        $change->rollback($database);
-        $rolledBackChanges[] = $change;
-        echo "  ✓ Rolled back: ".$change->getName()."\n";
+    if (!empty($rolledBack)) {
+        echo "Rolled back seeders (tracking removed):\n";
+        foreach ($rolledBack as $change) {
+            echo "  ✓ ".$change->getName()."\n";
+        }
+    } else {
+        echo "No seeders to rollback\n";
     }
 
-    // Verify rollback
+    // Note: Data remains because seeders don't implement rollback by default
     $userCount = $database->table('users')->select()->execute()->getRowsCount();
     $categoryCount = $database->table('categories')->select()->execute()->getRowsCount();
 
-    echo "After rollback:\n";
+    echo "Note: Data remains after rollback (seeders don't clear data by default):\n";
     echo "  Users: $userCount records\n";
-    echo "  Categories: $categoryCount records\n";
-    echo "✓ Seeders rolled back successfully\n\n";
+    echo "  Categories: $categoryCount records\n\n";
 
-    echo "9. Cleanup:\n";
+    echo "8. Cleanup:\n";
     $runner->dropSchemaTable();
-    $database->setQuery("DROP TABLE categories")->execute();
-    $database->setQuery("DROP TABLE users")->execute();
+    $database->raw("DROP TABLE categories")->execute();
+    $database->raw("DROP TABLE users")->execute();
     echo "✓ Test tables and schema tracking table dropped\n";
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
 
     // Clean up on error
     try {
-        $database->setQuery("DROP TABLE IF EXISTS categories")->execute();
-        $database->setQuery("DROP TABLE IF EXISTS users")->execute();
-        $database->setQuery("DROP TABLE IF EXISTS schema_changes")->execute();
+        $database->raw("DROP TABLE IF EXISTS categories")->execute();
+        $database->raw("DROP TABLE IF EXISTS users")->execute();
+        $database->raw("DROP TABLE IF EXISTS schema_changes")->execute();
     } catch (Exception $cleanupError) {
         // Ignore cleanup errors
     }

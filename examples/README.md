@@ -4,15 +4,22 @@ This directory contains practical examples demonstrating how to use the WebFiori
 
 ## Examples Overview
 
-1. **[01-basic-connection](01-basic-connection/)** - How to establish database connections
-2. **[02-basic-queries](02-basic-queries/)** - CRUD operations (Insert, Select, Update, Delete)
-3. **[03-table-blueprints](03-table-blueprints/)** - Creating and managing database table structures
-4. **[04-entity-mapping](04-entity-mapping/)** - Working with entity classes and object mapping
-5. **[05-transactions](05-transactions/)** - Database transactions for data integrity
-6. **[06-migrations](06-migrations/)** - Database schema migrations and versioning
-7. **[07-seeders](07-seeders/)** - Database data seeding and population
-8. **[08-performance-monitoring](08-performance-monitoring/)** - Query performance tracking and analysis
-9. **[09-multi-result-queries](09-multi-result-queries/)** - Multi-result query handling and stored procedures
+| # | Example | Description |
+|---|---------|-------------|
+| 01 | [basic-connection](01-basic-connection/) | Establishing database connections |
+| 02 | [basic-queries](02-basic-queries/) | CRUD operations (Insert, Select, Update, Delete) |
+| 03 | [table-blueprints](03-table-blueprints/) | Creating and managing database table structures |
+| 04 | [entity-mapping](04-entity-mapping/) | Working with entity classes and object mapping |
+| 05 | [transactions](05-transactions/) | Database transactions for data integrity |
+| 06 | [migrations](06-migrations/) | Database schema migrations and versioning |
+| 07 | [seeders](07-seeders/) | Database data seeding and population |
+| 08 | [performance-monitoring](08-performance-monitoring/) | Query performance tracking and analysis |
+| 09 | [multi-result-queries](09-multi-result-queries/) | Multi-result query handling and stored procedures |
+| 10 | [attribute-based-tables](10-attribute-based-tables/) | PHP 8 attributes for table definitions |
+| 11 | [repository-pattern](11-repository-pattern/) | Repository pattern with AbstractRepository |
+| 12 | [clean-architecture](12-clean-architecture/) | Clean architecture with domain/infrastructure separation |
+| 13 | [pagination](13-pagination/) | Offset and cursor-based pagination |
+| 14 | [active-record-model](14-active-record-model/) | Entity + Repository merged into single Model class |
 
 ## Prerequisites
 
@@ -47,64 +54,82 @@ You can modify the connection parameters in each example as needed.
 - Testing connections with simple queries
 
 ### 02-basic-queries
-- Table creation and management
-- INSERT operations with data validation
-- SELECT operations with filtering and conditions
-- UPDATE operations with WHERE clauses
-- DELETE operations with conditions
-- Query result handling
+- Using `raw()` method for SQL queries with parameters
+- INSERT, SELECT, UPDATE, DELETE operations
+- Multi-result queries with stored procedures
 
 ### 03-table-blueprints
-- Creating table blueprints with column definitions
-- Using different data types (INT, VARCHAR, TEXT, TIMESTAMP)
+- Creating table blueprints with `createBlueprint()`
+- Using `ColOption` and `DataType` constants
 - Setting column constraints (PRIMARY KEY, NOT NULL, AUTO_INCREMENT)
-- Creating foreign key relationships
+- Creating foreign key relationships with `addReference()`
 - Generating and executing CREATE TABLE statements
 
 ### 04-entity-mapping
-- Generating entity classes from table blueprints
+- Generating entity classes from table blueprints using `EntityMapper`
+- Auto-generated getters/setters and `map()` method
 - Mapping database records to PHP objects
-- Working with mapped objects and their methods
-- Filtering and manipulating object collections
 
 ### 05-transactions
-- Creating database transactions for data integrity
-- Handling successful transaction commits
-- Automatic rollback on transaction failures
-- Error handling within transactions
+- Creating database transactions with `transaction()` method
+- Automatic commit on success
+- Automatic rollback on exception
 - Complex multi-table operations
 
 ### 06-migrations
 - Creating migration classes extending `AbstractMigration`
+- Implementing `up()` and `down()` methods
 - Using `SchemaRunner` for migration management
-- Registering migrations with the schema runner
-- Applying and rolling back migrations
-- Schema change tracking and versioning
+- Applying migrations with `apply()`
+- Rolling back with `rollbackUpTo()`
+- Schema change tracking
 
 ### 07-seeders
 - Creating seeder classes extending `AbstractSeeder`
+- Implementing `run()` method
+- Environment-specific seeding with `getEnvironments()`
 - Using `SchemaRunner` for seeder management
-- Registering seeders with the schema runner
-- Populating database with sample data
-- Environment-specific seeding
 
 ### 08-performance-monitoring
-- Configuring performance monitoring settings
-- Tracking query execution times and statistics
-- Identifying slow queries and performance bottlenecks
-- Using `PerformanceAnalyzer` for detailed analysis
-- Performance optimization recommendations
+- Configuring performance monitoring with `setPerformanceConfig()`
+- Using `PerformanceOption` constants
+- Tracking query execution times
+- Using `PerformanceAnalyzer` for metrics
+- Identifying slow queries
 
 ### 09-multi-result-queries
-- Executing stored procedures that return multiple result sets
+- Executing stored procedures returning multiple result sets
 - Working with `MultiResultSet` objects
-- Processing individual result sets from multi-result queries
-- Parameterized stored procedure calls using `raw()` method
-- Complex business reporting with multiple data views
+- Processing individual result sets
 
-## Notes
+### 10-attribute-based-tables
+- Using PHP 8 attributes: `#[Table]`, `#[Column]`, `#[ForeignKey]`
+- Building tables with `AttributeTableBuilder::build()`
+- Defining entities with attribute-based schema
 
-- All examples include proper error handling and cleanup
-- Generated files (like entity classes) are automatically cleaned up
-- Examples use temporary tables that are dropped after execution
-- Each example is thoroughly tested and produces expected output
+### 11-repository-pattern
+- Extending `AbstractRepository` for CRUD operations
+- Implementing `toEntity()` and `toArray()` methods
+- Using built-in methods: `findAll()`, `findById()`, `save()`, `deleteById()`
+- Creating custom query methods
+- Pagination with `paginate()`
+
+### 13-pagination
+- Offset-based pagination with `paginate()`
+- Cursor-based pagination with `paginateByCursor()`
+- Working with `Page` and `CursorPage` objects
+- Pagination with ordering
+
+
+### 12-clean-architecture
+- Separating Domain from Infrastructure
+- Pure domain entities (no framework dependencies)
+- Repository interface in Domain layer
+- Database implementation in Infrastructure layer
+- Dependency inversion principle
+
+### 14-active-record-model
+- Merging Entity and Repository into a single Model class
+- Using attributes to define table structure on the model
+- Active Record pattern for simpler projects
+- Trade-offs vs Repository pattern

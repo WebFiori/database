@@ -131,11 +131,13 @@ class AbstractRepositoryTest extends TestCase {
     }
 
     public function testSaveAllExistingEntities() {
+        // Insert initial entities
         self::$repo->saveAll([
             new TestEntity(null, 'A', 1),
             new TestEntity(null, 'B', 2)
         ]);
 
+        // Update them
         $all = self::$repo->findAll();
         foreach ($all as $entity) {
             $entity->value = $entity->value * 10;
@@ -150,10 +152,12 @@ class AbstractRepositoryTest extends TestCase {
     }
 
     public function testSaveAllMixed() {
+        // Insert one entity first
         self::$repo->save(new TestEntity(null, 'Existing', 100));
         $existing = self::$repo->findAll()[0];
         $existing->name = 'Modified';
 
+        // Save mix of new and existing
         self::$repo->saveAll([
             $existing,
             new TestEntity(null, 'New1', 200),
@@ -218,6 +222,7 @@ class AbstractRepositoryTest extends TestCase {
         self::$repo->save($entity);
         $saved = self::$repo->findAll()[0];
 
+        // Modify in database directly
         self::$db->table('test_entities')
             ->update(['name' => 'Modified'])
             ->where('id', $saved->id)

@@ -275,7 +275,7 @@ class SchemaRunner extends Database {
      * @param bool $recursive Whether to scan subdirectories recursively. Default is false.
      * @return int Number of changes discovered and registered.
      */
-    public function discoverFromPath(string $path, string $namespace, bool $recursive = false): int {
+    public function discoverFromPath(string $path, string $namespace = '', bool $recursive = false): int {
         $count = 0;
 
         if (!is_dir($path)) {
@@ -425,11 +425,11 @@ class SchemaRunner extends Database {
 
             if (is_string($change)) {
                 if (!class_exists($change)) {
-                    throw new Exception("Class does not exist: {$change}");
+                    throw new SchemaException("Class does not exist: {$change}");
                 }
 
                 if (!is_subclass_of($change, DatabaseChange::class)) {
-                    throw new Exception("Class is not a subclass of DatabaseChange: {$change}");
+                    throw new SchemaException("Class is not a subclass of DatabaseChange: {$change}");
                 }
 
                 $change = new $change();

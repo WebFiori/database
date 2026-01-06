@@ -24,6 +24,9 @@ class ForeignKey {
         }
     }
 
+    /**
+     * Get columns mapping as array ['localCol' => 'refCol']
+     */
     public function getColumnsMap(): array {
         if ($this->column !== null) {
             return [$this->column];

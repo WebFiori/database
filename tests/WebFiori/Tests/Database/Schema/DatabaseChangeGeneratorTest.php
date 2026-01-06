@@ -174,7 +174,7 @@ class DatabaseChangeGeneratorTest extends TestCase {
     public function testCreateWithoutPathThrows() {
         $generator = new DatabaseChangeGenerator();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(\WebFiori\Database\DatabaseException::class);
         $this->expectExceptionMessage('Path not set');
 
         $generator->createMigration('CreateUsersTable');

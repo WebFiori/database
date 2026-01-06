@@ -128,11 +128,8 @@ class RecordMapper {
         foreach ($this->getSettersMap() as $method => $colsNames) {
             if (is_callable([$instance, $method])) {
                 foreach ($colsNames as $colName) {
-                    try {
-                        if (isset($record[$colName])) {
-                            $instance->$method($record[$colName]);
-                        }
-                    } catch (\Throwable $ex) {
+                    if (isset($record[$colName])) {
+                        $instance->$method($record[$colName]);
                     }
                 }
             }

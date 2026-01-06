@@ -40,7 +40,9 @@ class SchemaChangeRepository extends AbstractRepository {
      * @return int Number of records deleted
      */
     public function clearAll(): int {
-        return $this->deleteAll();
+        $count = $this->count();
+        $this->deleteAll();
+        return $count;
     }
 
     /**

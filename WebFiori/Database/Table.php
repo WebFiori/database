@@ -11,6 +11,7 @@
  */
 namespace WebFiori\Database;
 
+use WebFiori\Database\Entity\EntityGenerator;
 use WebFiori\Database\Entity\EntityMapper;
 use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\MsSql\MSSQLTable;

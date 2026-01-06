@@ -11,6 +11,8 @@
  */
 namespace WebFiori\Database\Schema;
 
+use WebFiori\Database\DatabaseException;
+
 /**
  * Generator for creating migration and seeder class files.
  * 
@@ -235,7 +237,7 @@ class DatabaseChangeGenerator {
 
     private function writeFile(string $name, string $content): string {
         if (empty($this->path)) {
-            throw new \RuntimeException('Path not set. Call setPath() first.');
+            throw new DatabaseException('Path not set. Call setPath() first.');
         }
 
         if (!is_dir($this->path)) {
