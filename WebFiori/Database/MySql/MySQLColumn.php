@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -12,10 +12,10 @@
 namespace WebFiori\Database\MySql;
 
 use WebFiori\Database\Column;
-use WebFiori\Database\ColumnFactory;
 use WebFiori\Database\DatabaseException;
-use WebFiori\Database\DateTimeValidator;
+use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\Table;
+use WebFiori\Database\Util\DateTimeValidator;
 
 /**
  * A class that represents a column in MySQL table.
@@ -106,6 +106,12 @@ class MySQLColumn extends Column {
         if ($this->isUnique() && $colDataType != 'boolean' && $colDataType != 'bool') {
             $retVal .= 'unique ';
         }
+
+        // Add auto_increment before default and comment
+        if ($this->isAutoInc()) {
+            $retVal .= 'auto_increment ';
+        }
+
         $retVal .= $this->defaultPart();
 
         if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {

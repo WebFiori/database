@@ -3,13 +3,16 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2023 Ibrahim BinAlshikh
+ * Copyright (c) 2023-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace WebFiori\Database;
+namespace WebFiori\Database\Query;
+
+use WebFiori\Database\Column;
+use WebFiori\Database\Table;
 
 /**
  * A class which is used to build insert SQL queries for diffrent database engines.
@@ -203,17 +206,16 @@ abstract class InsertBuilder {
     }
     private function buildColsArr() {
         $colsArr = [];
-        $colsStr = '';
-        $table = $this->getTable();
+        $tableObj = $this->getTable();
 
         foreach ($this->cols as $colKey) {
-            $colObj = $table->getColByKey($colKey);
+            $colObj = $tableObj->getColByKey($colKey);
 
             if ($colObj === null) {
-                $table->addColumns([
+                $tableObj->addColumns([
                     $colKey => []
                 ]);
-                $colObj = $table->getColByKey($colKey);
+                $colObj = $tableObj->getColByKey($colKey);
             }
             $colObj->setWithTablePrefix(false);
             $colsArr[] = $colObj->getName();
@@ -263,7 +265,7 @@ abstract class InsertBuilder {
         $colsAndVals = $this->data;
 
         if (isset($colsAndVals['cols']) && isset($colsAndVals['values'])) {
-            $cols = $colsAndVals['cols'];
+            $colsArr = $colsAndVals['cols'];
             $tempVals = $colsAndVals['values'];
             $temp = [];
             $topIndex = 0;
@@ -272,14 +274,14 @@ abstract class InsertBuilder {
                 $index = 0;
                 $temp[] = [];
 
-                foreach ($cols as $colKey) {
+                foreach ($colsArr as $colKey) {
                     $temp[$topIndex][$colKey] = $valsArr[$index];
                     $index++;
                 }
                 $topIndex++;
             }
             $this->vals = $temp;
-            $this->cols = $cols;
+            $this->cols = $colsArr;
         } else {
             $this->cols = array_keys($colsAndVals);
             $this->vals = [$colsAndVals];

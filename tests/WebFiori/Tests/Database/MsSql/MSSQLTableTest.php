@@ -567,4 +567,41 @@ class MSSQLTableTest extends TestCase {
         ]);
         $this->assertEquals('boolean',$table->getColByKey('is-active')->getDatatype());
     }
+    /**
+     * @test
+     */
+    public function testAttributeBasedTable() {
+        $table = \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \WebFiori\Tests\Database\MsSql\MSSQLAttributeTestUser::class,
+            'mssql'
+        );
+        
+        $this->assertEquals('[test_users]', $table->getName());
+        $this->assertTrue($table->hasColumn('id'));
+        $this->assertTrue($table->hasColumn('name'));
+        $this->assertTrue($table->hasColumn('email'));
+        
+        $idCol = $table->getColByKey('id');
+        $this->assertTrue($idCol->isPrimary());
+        $this->assertTrue($idCol->isIdentity());
+        
+        $emailCol = $table->getColByKey('email');
+        $this->assertTrue($emailCol->isUnique());
+    }
+    /**
+     * @test
+     */
+    public function testAttributeBasedTableWithFK() {
+        $table = \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \WebFiori\Tests\Database\MsSql\MSSQLAttributeTestPost::class,
+            'mssql'
+        );
+        
+        $this->assertEquals('[test_posts]', $table->getName());
+        $this->assertTrue($table->hasColumnWithKey('user-id'));
+        
+        $fk = $table->getForeignKey('fk_post_user');
+        $this->assertNotNull($fk);
+        $this->assertEquals('[test_users]', $fk->getSourceName());
+    }
 }

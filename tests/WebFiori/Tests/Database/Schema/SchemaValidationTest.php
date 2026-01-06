@@ -93,7 +93,7 @@ class SchemaValidationTest extends TestCase {
             $applied = $runner->apply();
             
             // Should handle incomplete implementation
-            $this->assertIsArray($applied);
+            $this->assertInstanceOf(\WebFiori\Database\Schema\DatabaseChangeResult::class, $applied);
         } catch (DatabaseException $ex) {
             $this->markTestSkipped('Database connection failed: ' . $ex->getMessage());
         }
@@ -129,13 +129,14 @@ class SchemaValidationTest extends TestCase {
     public function testMemoryUsageWithManyMigrations() {
         $runner = new SchemaRunner($this->getConnectionInfo());
         
-        // Register the expected number of migrations
+        // Register the same class multiple times - duplicates are now prevented
         for ($i = 0; $i < 50; $i++) {
             $runner->register(TestMigration::class);
         }
         
+        // Only 1 should be registered due to duplicate prevention
         $changes = $runner->getChanges();
-        $this->assertCount(50, $changes);
+        $this->assertCount(1, $changes);
     }
 
     public function testRepeatedDirectoryScanningOverhead() {
@@ -153,13 +154,14 @@ class SchemaValidationTest extends TestCase {
     public function testTopologicalSortPerformance() {
         $runner = new SchemaRunner($this->getConnectionInfo());
         
-        // Register the expected number of migrations
+        // Register the same class multiple times - duplicates are now prevented
         for ($i = 0; $i < 20; $i++) {
             $runner->register(TestMigration::class);
         }
         
+        // Only 1 should be registered due to duplicate prevention
         $changes = $runner->getChanges();
-        $this->assertCount(20, $changes);
+        $this->assertCount(1, $changes);
     }
 
     // File System Edge Cases

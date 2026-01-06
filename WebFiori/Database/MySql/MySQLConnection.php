@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -13,11 +13,11 @@ namespace WebFiori\Database\MySql;
 
 use mysqli;
 use mysqli_stmt;
-use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\AbstractQuery;
 use WebFiori\Database\Connection;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\MultiResultSet;
 use WebFiori\Database\ResultSet;
 /**
  * MySQL database connection handler with prepared statement support.
@@ -151,6 +151,14 @@ class MySQLConnection extends Connection {
     public function getMysqli() {
         return $this->link;
     }
+    /**
+     * Get the mysqli link for testing purposes.
+     * 
+     * @return mysqli The mysqli connection link
+     */
+    public function getMysqliLink() {
+        return $this->link;
+    }
 
     public function rollBack(?string $name = null) {
         //The null check is for php<8
@@ -172,7 +180,7 @@ class MySQLConnection extends Connection {
      * 
      * @param AbstractQuery $query A query builder that has the generated MySQL 
      * query.
-    /**
+     * /**
      * Execute a query and return execution status.
      * 
      * @param AbstractQuery|null $query The query to execute. If null, uses the last set query.
@@ -205,6 +213,7 @@ class MySQLConnection extends Connection {
 
         try {
             $result = false;
+
             if ($qType == 'insert') {
                 $result = $this->runInsertQuery();
             } else if ($qType == 'update') {
@@ -215,6 +224,7 @@ class MySQLConnection extends Connection {
                 $result = $this->runOtherQuery();
             }
             $query->resetBinding();
+
             return $result;
         } catch (\Exception $ex) {
             $this->setErrCode($ex->getCode());
@@ -283,9 +293,11 @@ class MySQLConnection extends Connection {
         $values = array_merge($this->getLastQuery()->getBindings()['values']);
         $successExec = false;
         $r = null;
+
         // Execute query
         if (count($values) != 0 && !empty($params)) {
             $paramCount = substr_count($sql, '?');
+
             if ($paramCount == count($values) && strlen($params) == count($values)) {
                 $stmt = mysqli_prepare($this->link, $sql);
                 mysqli_stmt_bind_param($stmt, $params, ...$values);
@@ -302,12 +314,13 @@ class MySQLConnection extends Connection {
         if (($r === null || $r === false) && !$successExec) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
+
             return false;
         }
 
         // Collect all result sets
         $allResults = [];
-        
+
         // First result set
         if (is_object($r) && method_exists($r, 'fetch_assoc')) {
             $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
@@ -318,6 +331,7 @@ class MySQLConnection extends Connection {
         // Additional result sets
         while (mysqli_more_results($this->link)) {
             mysqli_next_result($this->link);
+
             if ($result = mysqli_store_result($this->link)) {
                 $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
                 $allResults[] = $rows;
@@ -333,17 +347,10 @@ class MySQLConnection extends Connection {
         }
 
         $this->setErrCode(0);
+
         return true;
     }
-    /**
-     * Get the mysqli link for testing purposes.
-     * 
-     * @return mysqli The mysqli connection link
-     */
-    public function getMysqliLink() {
-        return $this->link;
-    }
-    
+
     private function runSelectQuery() {
         $sql = $this->getLastQuery()->getQuery();
         $params = $this->getLastQuery()->getBindings()['bind'];
@@ -363,12 +370,13 @@ class MySQLConnection extends Connection {
         if (!$r) {
             $this->setErrMessage($this->link->error);
             $this->setErrCode($this->link->errno);
+
             return false;
         }
 
         // Collect all result sets
         $allResults = [];
-        
+
         // First result set
         $rows = mysqli_fetch_all($r, MYSQLI_ASSOC);
         $allResults[] = $rows;
@@ -377,6 +385,7 @@ class MySQLConnection extends Connection {
         // Additional result sets
         while (mysqli_more_results($this->link)) {
             mysqli_next_result($this->link);
+
             if ($result = mysqli_store_result($this->link)) {
                 $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
                 $allResults[] = $rows;
@@ -392,6 +401,7 @@ class MySQLConnection extends Connection {
         }
 
         $this->setErrCode(0);
+
         return true;
     }
     private function runUpdateQuery() {

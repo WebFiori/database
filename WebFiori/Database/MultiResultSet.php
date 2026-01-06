@@ -3,7 +3,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2025 WebFiori Framework
+ * Copyright (c) 2025-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -29,12 +29,12 @@ class MultiResultSet implements Countable, Iterator {
      * @var int Current position in the result sets array
      */
     private $cursorPos;
-    
+
     /**
      * @var ResultSet[] Array of ResultSet objects
      */
     private $resultSets;
-    
+
     /**
      * Creates new instance of MultiResultSet.
      * 
@@ -43,12 +43,12 @@ class MultiResultSet implements Countable, Iterator {
     public function __construct(array $resultSets = []) {
         $this->cursorPos = 0;
         $this->resultSets = [];
-        
+
         foreach ($resultSets as $resultData) {
             $this->addResultSet($resultData);
         }
     }
-    
+
     /**
      * Add a result set to the collection.
      * 
@@ -61,7 +61,7 @@ class MultiResultSet implements Countable, Iterator {
             $this->resultSets[] = new ResultSet($resultData);
         }
     }
-    
+
     /**
      * Get the number of result sets.
      * 
@@ -70,7 +70,7 @@ class MultiResultSet implements Countable, Iterator {
     public function count(): int {
         return count($this->resultSets);
     }
-    
+
     /**
      * Get the current ResultSet object.
      * 
@@ -80,7 +80,7 @@ class MultiResultSet implements Countable, Iterator {
     public function current() {
         return $this->valid() ? $this->resultSets[$this->cursorPos] : null;
     }
-    
+
     /**
      * Get a specific result set by index.
      * 
@@ -90,7 +90,7 @@ class MultiResultSet implements Countable, Iterator {
     public function getResultSet(int $index): ?ResultSet {
         return isset($this->resultSets[$index]) ? $this->resultSets[$index] : null;
     }
-    
+
     /**
      * Get all result sets.
      * 
@@ -99,7 +99,22 @@ class MultiResultSet implements Countable, Iterator {
     public function getResultSets(): array {
         return $this->resultSets;
     }
-    
+
+    /**
+     * Get total number of records across all result sets.
+     * 
+     * @return int Total number of records
+     */
+    public function getTotalRecordCount(): int {
+        $total = 0;
+
+        foreach ($this->resultSets as $resultSet) {
+            $total += $resultSet->getRowsCount();
+        }
+
+        return $total;
+    }
+
     /**
      * Get the current cursor position.
      * 
@@ -109,7 +124,7 @@ class MultiResultSet implements Countable, Iterator {
     public function key() {
         return $this->cursorPos;
     }
-    
+
     /**
      * Move to the next result set.
      */
@@ -117,7 +132,7 @@ class MultiResultSet implements Countable, Iterator {
     public function next(): void {
         $this->cursorPos++;
     }
-    
+
     /**
      * Reset cursor to the first result set.
      */
@@ -125,20 +140,7 @@ class MultiResultSet implements Countable, Iterator {
     public function rewind(): void {
         $this->cursorPos = 0;
     }
-    
-    /**
-     * Get total number of records across all result sets.
-     * 
-     * @return int Total number of records
-     */
-    public function getTotalRecordCount(): int {
-        $total = 0;
-        foreach ($this->resultSets as $resultSet) {
-            $total += $resultSet->getRowsCount();
-        }
-        return $total;
-    }
-    
+
     /**
      * Check if current position is valid.
      * 

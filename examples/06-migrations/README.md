@@ -11,9 +11,9 @@ This example demonstrates how to create and run database migrations using WebFio
 
 ## Files
 
-- `example.php` - Main example code
-- `CreateUsersTableMigration.php` - Migration to create users table
-- `AddEmailIndexMigration.php` - Migration to add email index
+- [`example.php`](example.php) - Main example code
+- [`CreateUsersTableMigration.php`](CreateUsersTableMigration.php) - Migration to create users table
+- [`AddEmailIndexMigration.php`](AddEmailIndexMigration.php) - Migration to add email index
 
 ## Running the Example
 
@@ -24,3 +24,10 @@ php example.php
 ## Expected Output
 
 The example will create migration classes, run them to modify the database schema, and demonstrate rollback functionality.
+
+
+## Related Examples
+
+- [03-table-blueprints](../03-table-blueprints/) - Define table structures
+- [07-seeders](../07-seeders/) - Populate data after migrations
+- [05-transactions](../05-transactions/) - Understand rollback behavior

@@ -1,7 +1,7 @@
 <?php
 
 namespace WebFiori\Tests\Database\Common;
-use WebFiori\Database\Condition;
+use WebFiori\Database\Query\Condition;
 use PHPUnit\Framework\TestCase;
 /**
  * Description of ConditionTest

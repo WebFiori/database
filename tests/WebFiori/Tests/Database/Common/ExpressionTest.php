@@ -1,10 +1,10 @@
 <?php
 namespace WebFiori\Tests\Database\Common;
 use PHPUnit\Framework\TestCase;
-use WebFiori\Database\Expression;
-use WebFiori\Database\WhereExpression;
-use WebFiori\Database\Condition;
-use WebFiori\Database\SelectExpression;
+use WebFiori\Database\Query\Expression;
+use WebFiori\Database\Query\WhereExpression;
+use WebFiori\Database\Query\Condition;
+use WebFiori\Database\Query\SelectExpression;
 use WebFiori\Database\MySql\MySQLTable;
 use WebFiori\Database\MsSql\MSSQLTable;
 /**

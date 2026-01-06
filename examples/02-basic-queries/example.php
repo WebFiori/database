@@ -104,7 +104,7 @@ try {
 
     // Multi-Result Query Example
     echo "\n6. Multi-Result Query Example:\n";
-    
+
     // Create a stored procedure that returns multiple result sets
     $database->raw("DROP PROCEDURE IF EXISTS GetUserStats")->execute();
     $database->raw("
@@ -115,20 +115,21 @@ try {
             SELECT COUNT(*) as total_users, AVG(age) as avg_age FROM test_users;
         END
     ")->execute();
-    
+
     // Execute the stored procedure
     $result = $database->raw("CALL GetUserStats()")->execute();
-    
+
     if ($result instanceof MultiResultSet) {
         echo "✓ Multi-result query executed successfully!\n";
-        echo "Number of result sets: " . $result->count() . "\n";
-        
+        echo "Number of result sets: ".$result->count()."\n";
+
         for ($i = 0; $i < $result->count(); $i++) {
             $resultSet = $result->getResultSet($i);
-            echo "\nResult Set " . ($i + 1) . ":\n";
-            
+            echo "\nResult Set ".($i + 1).":\n";
+
             foreach ($resultSet as $row) {
                 echo "  ";
+
                 foreach ($row as $key => $value) {
                     echo "$key: $value  ";
                 }
@@ -137,8 +138,10 @@ try {
         }
     } else {
         echo "Single result set returned:\n";
+
         foreach ($result as $row) {
             echo "  ";
+
             foreach ($row as $key => $value) {
                 echo "$key: $value  ";
             }
@@ -148,7 +151,7 @@ try {
 
     // Another multi-result example with conditional logic
     echo "\n7. Complex Multi-Result Example:\n";
-    
+
     $database->raw("DROP PROCEDURE IF EXISTS ComplexStats")->execute();
     $database->raw("
         CREATE PROCEDURE ComplexStats()
@@ -177,26 +180,27 @@ try {
             GROUP BY age_group;
         END
     ")->execute();
-    
+
     $complexResult = $database->raw("CALL ComplexStats()")->execute();
-    
+
     if ($complexResult instanceof MultiResultSet) {
         echo "✓ Complex multi-result query executed!\n";
-        
+
         // Process each result set with specific handling
         for ($i = 0; $i < $complexResult->count(); $i++) {
             $rs = $complexResult->getResultSet($i);
+
             if ($rs->getRowsCount() > 0) {
                 $firstRow = $rs->getRows()[0];
-                
+
                 if (isset($firstRow['section'])) {
                     echo "\n--- {$firstRow['section']} ---\n";
-                    
+
                     foreach ($rs as $row) {
                         if ($row['section'] === 'All Users') {
                             echo "  User: {$row['name']} ({$row['email']}) - Age: {$row['age']}\n";
                         } elseif ($row['section'] === 'Statistics') {
-                            echo "  Total: {$row['total_count']}, Min Age: {$row['min_age']}, Max Age: {$row['max_age']}, Avg Age: " . round($row['avg_age'], 1) . "\n";
+                            echo "  Total: {$row['total_count']}, Min Age: {$row['min_age']}, Max Age: {$row['max_age']}, Avg Age: ".round($row['avg_age'], 1)."\n";
                         } elseif ($row['section'] === 'Age Groups') {
                             echo "  {$row['age_group']}: {$row['count']} users\n";
                         }
@@ -212,10 +216,9 @@ try {
     $database->raw("DROP PROCEDURE IF EXISTS ComplexStats")->execute();
     $database->raw("DROP TABLE test_users")->execute();
     echo "✓ Test table and procedures dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
-    echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+    echo "Stack trace:\n".$e->getTraceAsString()."\n";
 }
 
 echo "\n=== Example Complete ===\n";

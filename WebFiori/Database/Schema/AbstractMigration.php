@@ -1,4 +1,14 @@
 <?php
+
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2025-present WebFiori Framework
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/.github/blob/main/LICENSE
+ * 
+ */
 namespace WebFiori\Database\Schema;
 
 use WebFiori\Database\Database;
@@ -43,20 +53,6 @@ abstract class AbstractMigration extends DatabaseChange {
      */
     public function execute(Database $db): void {
         $this->up($db);
-    }
-
-    /**
-     * Get the environments where this migration should be executed.
-     * 
-     * By default, migrations run in all environments (dev, test, prod).
-     * Override this method to restrict execution to specific environments.
-     * For example, return ['dev'] to only run in development.
-     * Migrations run in all environments by default.
-     * 
-     * @return array Empty array means all environments.
-     */
-    public function getEnvironments(): array {
-        return [];
     }
 
     /**
