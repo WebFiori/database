@@ -15,7 +15,8 @@ class ForeignKey {
         public ?string $name = null,
         public string $onUpdate = 'set null',
         public string $onDelete = 'set null',
-        public ?string $property = null  // For belongsTo relationship
+        public ?string $property = null,
+        public ?string $entity = null
     ) {
         if ($column !== null && !empty($columns)) {
             throw new InvalidAttributeException(

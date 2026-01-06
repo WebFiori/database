@@ -3,11 +3,11 @@
 namespace WebFiori\Tests\Database\Repository;
 
 use PHPUnit\Framework\TestCase;
+use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\Attributes\Column;
 use WebFiori\Database\Attributes\ForeignKey;
 use WebFiori\Database\Attributes\HasMany;
 use WebFiori\Database\Attributes\Table;
-use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
@@ -47,7 +47,7 @@ class PostsTable {
     public string $title;
 
     #[Column(name: 'author-id', type: DataType::INT)]
-    #[ForeignKey(table: AuthorsTable::class, column: 'id', property: 'author')]
+    #[ForeignKey(table: AuthorsTable::class, column: 'id', property: 'author', entity: Author::class, name: 'fk_post_author', onDelete: 'cascade', onUpdate: 'cascade')]
     public int $authorId;
 }
 
@@ -78,17 +78,6 @@ class AuthorRepository extends AbstractRepository {
             'name' => $entity->name
         ];
     }
-
-    protected function relatedToEntity(string $relation, array $row): object {
-        if ($relation === 'posts') {
-            $post = new Post();
-            $post->id = (int) $row['id'];
-            $post->title = $row['title'];
-            $post->authorId = (int) ($row['author-id'] ?? $row['author_id']);
-            return $post;
-        }
-        return (object) $row;
-    }
 }
 
 class PostRepository extends AbstractRepository {
@@ -108,7 +97,7 @@ class PostRepository extends AbstractRepository {
         $post = new Post();
         $post->id = (int) $row['id'];
         $post->title = $row['title'];
-        $post->authorId = (int) ($row['author-id'] ?? $row['author_id']);
+        $post->authorId = (int) ($row['author-id'] ?? $row['author_id'] ?? 0);
         return $post;
     }
 
@@ -118,16 +107,6 @@ class PostRepository extends AbstractRepository {
             'title' => $entity->title,
             'author-id' => $entity->authorId
         ];
-    }
-
-    protected function relatedToEntity(string $relation, array $row): object {
-        if ($relation === 'author') {
-            $author = new Author();
-            $author->id = (int) $row['id'];
-            $author->name = $row['name'];
-            return $author;
-        }
-        return (object) $row;
     }
 }
 
@@ -140,21 +119,13 @@ class EagerLoadingTest extends TestCase {
         $conn = new ConnectionInfo('mysql', 'root', '123456', 'testing_db', '127.0.0.1');
         self::$db = new Database($conn);
 
-        // Create authors table
-        self::$db->createBlueprint('authors')->addColumns([
-            'id' => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
-            'name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 100]
-        ]);
+        self::$db->raw('DROP TABLE IF EXISTS posts')->execute();
+        self::$db->raw('DROP TABLE IF EXISTS authors')->execute();
 
-        // Create posts table
-        self::$db->createBlueprint('posts')->addColumns([
-            'id' => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true, ColOption::AUTO_INCREMENT => true],
-            'title' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 200],
-            'author-id' => [ColOption::TYPE => DataType::INT]
-        ]);
-
-        self::$db->table('authors')->createTable()->execute();
-        self::$db->table('posts')->createTable()->execute();
+        // Use attribute-based tables for consistency
+        self::$db->addTable(AttributeTableBuilder::build(AuthorsTable::class, 'mysql'));
+        self::$db->addTable(AttributeTableBuilder::build(PostsTable::class, 'mysql'));
+        self::$db->createTables();
 
         self::$authorRepo = new AuthorRepository(self::$db);
         self::$postRepo = new PostRepository(self::$db);
@@ -310,5 +281,74 @@ class EagerLoadingTest extends TestCase {
 
         $this->assertCount(1, $authors);
         $this->assertEmpty($authors[0]->posts);
+    }
+
+    public function testWithJoinFindAll() {
+        $this->seedData();
+
+        $posts = self::$postRepo->withJoin(['author'])->findAll();
+
+        $this->assertCount(3, $posts);
+        foreach ($posts as $post) {
+            $this->assertNotNull($post->author);
+            $this->assertInstanceOf(Author::class, $post->author);
+        }
+    }
+
+    public function testWithJoinFindById() {
+        $this->seedData();
+
+        $posts = self::$db->table('posts')->select()->execute()->fetchAll();
+        $postId = $posts[0]['id'];
+
+        $post = self::$postRepo->withJoin(['author'])->findById($postId);
+
+        $this->assertNotNull($post);
+        $this->assertNotNull($post->author);
+        $this->assertInstanceOf(Author::class, $post->author);
+    }
+
+    public function testWithJoinThrowsExceptionForHasMany() {
+        $this->expectException(\WebFiori\Database\Repository\RepositoryException::class);
+        $this->expectExceptionMessage("Cannot use withJoin() for hasMany relation 'posts'");
+
+        self::$authorRepo->withJoin(['posts'])->findAll();
+    }
+
+    public function testWithJoinThrowsExceptionForUnknownRelation() {
+        $this->expectException(\WebFiori\Database\Repository\RepositoryException::class);
+        $this->expectExceptionMessage('Unknown relationship: unknown');
+
+        self::$postRepo->withJoin(['unknown'])->findAll();
+    }
+
+    public function testWithJoinReturnsClone() {
+        $repo1 = self::$postRepo;
+        $repo2 = $repo1->withJoin(['author']);
+
+        $this->assertNotSame($repo1, $repo2);
+    }
+
+    public function testWithAcceptsString() {
+        $this->seedData();
+
+        $posts = self::$postRepo->with('author')->findAll();
+
+        $this->assertCount(3, $posts);
+        foreach ($posts as $post) {
+            $this->assertNotNull($post->author);
+        }
+    }
+
+    public function testWithJoinAcceptsString() {
+        $this->seedData();
+
+        $posts = self::$db->table('posts')->select()->execute()->fetchAll();
+        $postId = $posts[0]['id'];
+
+        $post = self::$postRepo->withJoin('author')->findById($postId);
+
+        $this->assertNotNull($post);
+        $this->assertNotNull($post->author);
     }
 }
