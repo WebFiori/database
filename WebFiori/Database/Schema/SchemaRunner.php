@@ -260,7 +260,6 @@ class SchemaRunner extends Database {
      */
     public function createSchemaTable() {
         $this->createTables();
-        $this->execute();
     }
 
     /**

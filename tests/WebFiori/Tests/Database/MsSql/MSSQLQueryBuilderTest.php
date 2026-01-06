@@ -399,7 +399,11 @@ class MSSQLQueryBuilderTest extends TestCase{
      */
     public function testCreateTables() {
         $schema = new MSSQLTestSchema();
-        $schema->createTables();
+        
+        // Verify each table's SQL individually since createTables() now executes directly
+        $tables = $schema->getTables();
+        $this->assertCount(4, $tables);
+        
         $this->assertEquals("if not exists (select * from sysobjects where name='users' and xtype='U')\n"
                 . "create table [users] (\n"
                 . "    [id] [int] identity(1,1) not null,\n"
@@ -407,9 +411,9 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [last_name] [nvarchar](20) not null,\n"
                 . "    [age] [int] not null,\n"
                 . "    constraint users_pk primary key clustered([id]) on [PRIMARY]\n"
-                . ")\n"
-                . "\n"
-                . "if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
+                . ")\n", $schema->getTable('users')->toSQL());
+        
+        $this->assertEquals("if not exists (select * from sysobjects where name='users_privileges' and xtype='U')\n"
                 . "create table [users_privileges] (\n"
                 . "    [id] [int] not null,\n"
                 . "    [can_edit_price] [bit] not null default 0,\n"
@@ -417,9 +421,9 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [can_do_anything] [bit] not null,\n"
                 . "    constraint users_privileges_pk primary key clustered([id]) on [PRIMARY],\n"
                 . "    constraint user_privilege_fk foreign key ([id]) references [users] ([id]) on update no action on delete no action\n"
-                . ")\n"
-                . "\n"
-                . "if not exists (select * from sysobjects where name='users_tasks' and xtype='U')\n"
+                . ")\n", $schema->getTable('users_privileges')->toSQL());
+        
+        $this->assertEquals("if not exists (select * from sysobjects where name='users_tasks' and xtype='U')\n"
                 . "create table [users_tasks] (\n"
                 . "    [task_id] [int] identity(1,1) not null,\n"
                 . "    [user_id] [int] not null,\n"
@@ -429,16 +433,15 @@ class MSSQLQueryBuilderTest extends TestCase{
                 . "    [details] [varchar](1500) not null,\n"
                 . "    constraint users_tasks_pk primary key clustered([task_id]) on [PRIMARY],\n"
                 . "    constraint user_task_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
-                . ")\n"
-                . "\n"
-                . "if not exists (select * from sysobjects where name='profile_pics' and xtype='U')\n"
+                . ")\n", $schema->getTable('users_tasks')->toSQL());
+        
+        $this->assertEquals("if not exists (select * from sysobjects where name='profile_pics' and xtype='U')\n"
                 . "create table [profile_pics] (\n"
                 . "    [user_id] [int] not null,\n"
                 . "    [pic] [binary](1) not null,\n"
                 . "    constraint profile_pics_pk primary key clustered([user_id]) on [PRIMARY],\n"
                 . "    constraint user_profile_pic_fk foreign key ([user_id]) references [users] ([id]) on update no action on delete no action\n"
-                . ")"
-                , $schema->getLastQuery());
+                . ")\n", $schema->getTable('profile_pics')->toSQL());
     }
     /**
      * 
@@ -553,7 +556,7 @@ class MSSQLQueryBuilderTest extends TestCase{
      */
     public function testInsert03() {
         $schema = new MSSQLTestSchema();
-        $schema->createTables()->execute();
+        $schema->createTables();
         // Clear table first to ensure clean state
         $schema->table('users')->delete()->execute();
         // Reset identity to start from 1

@@ -8,52 +8,55 @@ use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 
+const SEP = "────────────────────────────────────────────────────────────────────\n";
+
 echo "=== WebFiori Database Attribute-Based Tables Example ===\n\n";
 
 try {
-    $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
+    $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
     $database = new Database($connection);
 
+    echo SEP;
     echo "1. Building Tables from Attributes:\n";
 
     $authorsTable = AttributeTableBuilder::build(Author::class, 'mysql');
     $articlesTable = AttributeTableBuilder::build(Article::class, 'mysql');
 
-    echo "✓ Authors table blueprint created\n";
-    echo "  Columns: ".implode(', ', array_keys($authorsTable->getCols()))."\n";
+    echo "   ✓ Authors table blueprint created\n";
+    echo "     Columns: ".implode(', ', array_keys($authorsTable->getCols()))."\n";
 
-    echo "✓ Articles table blueprint created\n";
-    echo "  Columns: ".implode(', ', array_keys($articlesTable->getCols()))."\n\n";
+    echo "   ✓ Articles table blueprint created\n";
+    echo "     Columns: ".implode(', ', array_keys($articlesTable->getCols()))."\n\n";
 
+    echo SEP;
     echo "2. Generated SQL:\n";
-    echo "Authors table:\n".$authorsTable->toSQL()."\n\n";
-    echo "Articles table:\n".$articlesTable->toSQL()."\n\n";
+    echo "   Authors table:\n   ".$authorsTable->toSQL()."\n\n";
+    echo "   Articles table:\n   ".$articlesTable->toSQL()."\n\n";
 
-    echo "3. Creating Tables in Database:\n";
-
-    $database->raw("DROP TABLE IF EXISTS articles")->execute();
-    $database->raw("DROP TABLE IF EXISTS authors")->execute();
-
-    $database->raw($authorsTable->toSQL())->execute();
-    echo "✓ Authors table created\n";
-
-    $database->raw($articlesTable->toSQL())->execute();
-    echo "✓ Articles table created\n\n";
-
-    echo "4. Inserting Test Data:\n";
+    echo SEP;
+    echo "3. Creating Tables:\n";
 
     $database->addTable($authorsTable);
     $database->addTable($articlesTable);
 
+    $database->table('articles')->drop(true)->execute();
+    $database->table('authors')->drop(true)->execute();
+    $database->createTables();
+    echo "   ✓ Tables created\n\n";
+
+    echo SEP;
+    echo "4. Inserting Test Data:\n";
+
     $database->table('authors')->insert(['name' => 'Ibrahim Ali', 'email' => 'ibrahim@example.com'])->execute();
     $database->table('authors')->insert(['name' => 'Sara Ahmed', 'email' => 'sara@example.com'])->execute();
-    echo "✓ Authors inserted\n";
+    echo "   ✓ 2 authors inserted\n";
 
     $database->table('articles')->insert(['author-id' => 1, 'title' => 'Introduction to PHP 8 Attributes', 'content' => 'PHP 8 introduced attributes...'])->execute();
     $database->table('articles')->insert(['author-id' => 1, 'title' => 'Database Design Patterns', 'content' => 'Learn about patterns...'])->execute();
     $database->table('articles')->insert(['author-id' => 2, 'title' => 'Clean Architecture in PHP', 'content' => 'Implementing clean architecture...'])->execute();
-    echo "✓ Articles inserted\n\n";
+    echo "   ✓ 3 articles inserted\n\n";
 
+    echo SEP;
     echo "5. Querying Data:\n";
 
     $result = $database->raw("
@@ -62,22 +65,25 @@ try {
         ORDER BY ar.`published-at` DESC
     ")->execute();
 
-    echo "Articles with authors:\n";
+    echo "   Articles with authors:\n";
     foreach ($result as $row) {
-        echo "  - {$row['title']} by {$row['author']} ({$row['published-at']})\n";
+        echo "   - {$row['title']} by {$row['author']} ({$row['published-at']})\n";
     }
     echo "\n";
 
+    echo SEP;
     echo "6. Cleanup:\n";
-    $database->raw("DROP TABLE articles")->execute();
-    $database->raw("DROP TABLE authors")->execute();
-    echo "✓ Tables dropped\n";
+    $database->table('articles')->drop()->execute();
+    $database->table('authors')->drop()->execute();
+    echo "   ✓ Tables dropped\n";
+
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
-        $database->raw("DROP TABLE IF EXISTS articles")->execute();
-        $database->raw("DROP TABLE IF EXISTS authors")->execute();
+        $database->table('articles')->drop(true)->execute();
+        $database->table('authors')->drop(true)->execute();
     } catch (Exception $cleanupError) {}
 }
 
-echo "\n=== Example Complete ===\n";
+echo "\n" . SEP;
+echo "=== Example Complete ===\n";

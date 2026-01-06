@@ -6,147 +6,98 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\Schema\SchemaRunner;
 
+const SEP = "────────────────────────────────────────────────────────────────────\n";
+
 echo "=== WebFiori Database Migrations Example ===\n\n";
 
 try {
-    // Create connection
-    $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
+    $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
     $database = new Database($connection);
 
+    echo SEP;
     echo "1. Setting up Schema Runner:\n";
 
-    // Create schema runner
     $runner = new SchemaRunner($connection);
-
-    // Discover and register migration classes from directory
     $runner->discoverFromPath(__DIR__, '');
-
-    echo "✓ Schema runner created\n";
-    echo "✓ Migration classes discovered from path\n";
-
-    // Create schema tracking table
     $runner->createSchemaTable();
-    echo "✓ Schema tracking table created\n\n";
+    echo "   ✓ Schema runner created\n";
+    echo "   ✓ Migration classes discovered\n\n";
 
-    echo "2. Checking Available Migrations:\n";
+    echo SEP;
+    echo "2. Available Migrations:\n";
 
     $changes = $runner->getChanges();
-    echo "Discovered migrations:\n";
     foreach ($changes as $change) {
-        echo "  - ".$change->getName()."\n";
+        echo "   - ".$change->getName()."\n";
     }
     echo "\n";
 
-    echo "3. Running Migrations (using apply()):\n";
+    echo SEP;
+    echo "3. Running Migrations:\n";
 
-    // Apply all pending migrations
     $result = $runner->apply();
 
     if ($result->count() > 0) {
-        echo "Applied migrations:\n";
         foreach ($result->getApplied() as $change) {
-            echo "  ✓ ".$change->getName()."\n";
+            echo "   ✓ ".$change->getName()."\n";
         }
     } else {
-        echo "No migrations to apply (all up to date)\n";
-    }
-
-    if (!empty($result->getFailed())) {
-        echo "Failed migrations:\n";
-        foreach ($result->getFailed() as $failure) {
-            echo "  ✗ ".$failure['change']->getName().": ".$failure['error']->getMessage()."\n";
-        }
+        echo "   No migrations to apply\n";
     }
     echo "\n";
 
-    echo "4. Verifying Database Structure:\n";
+    echo SEP;
+    echo "4. Verifying Structure:\n";
 
-    // Check if table exists
-    $tableResult = $database->raw("SHOW TABLES LIKE 'users'")->execute();
-    if ($tableResult->getRowsCount() > 0) {
-        echo "✓ Users table created\n";
-    }
-
-    // Check table structure
     $descResult = $database->raw("DESCRIBE users")->execute();
-    echo "Users table columns:\n";
+    echo "   Users table columns:\n";
     foreach ($descResult as $column) {
-        echo "  - {$column['Field']} ({$column['Type']})\n";
-    }
-
-    // Check indexes
-    $indexResult = $database->raw("SHOW INDEX FROM users WHERE Key_name = 'idx_users_email'")->execute();
-    if ($indexResult->getRowsCount() > 0) {
-        echo "✓ Email index created\n";
+        echo "   - {$column['Field']} ({$column['Type']})\n";
     }
     echo "\n";
 
+    echo SEP;
     echo "5. Testing Data Operations:\n";
 
-    // Insert test data
     $database->table('users')->insert([
-        'username' => 'ahmad_hassan',
-        'email' => 'ahmad@example.com',
-        'password-hash' => password_hash('password123', PASSWORD_DEFAULT)
+        'cols' => ['username', 'email', 'password-hash'],
+        'values' => [
+            ['ahmad_hassan', 'ahmad@example.com', password_hash('password123', PASSWORD_DEFAULT)],
+            ['fatima_ali', 'fatima@example.com', password_hash('password456', PASSWORD_DEFAULT)]
+        ]
     ])->execute();
+    echo "   ✓ Test users inserted\n";
 
-    $database->table('users')->insert([
-        'username' => 'fatima_ali',
-        'email' => 'fatima@example.com',
-        'password-hash' => password_hash('password456', PASSWORD_DEFAULT)
-    ])->execute();
-
-    echo "✓ Test users inserted\n";
-
-    // Query data
-    $selectResult = $database->table('users')->select(['username', 'email', 'created-at'])->execute();
-    echo "Inserted users:\n";
+    $selectResult = $database->table('users')->select(['username', 'email'])->execute();
+    echo "   Users:\n";
     foreach ($selectResult as $user) {
-        echo "  - {$user['username']} ({$user['email']}) - {$user['created_at']}\n";
+        echo "   - {$user['username']} ({$user['email']})\n";
     }
     echo "\n";
 
-    echo "6. Checking Migration Status:\n";
-    echo "Migration status:\n";
-    foreach ($changes as $change) {
-        $status = $runner->isApplied($change->getName()) ? "✓ Applied" : "✗ Pending";
-        echo "  {$change->getName()}: $status\n";
-    }
-    echo "\n";
+    echo SEP;
+    echo "6. Rolling Back Migrations:\n";
 
-    echo "7. Rolling Back Migrations:\n";
-
-    // Rollback all migrations
     $rolledBack = $runner->rollbackUpTo(null);
-
     if (!empty($rolledBack)) {
-        echo "Rolled back migrations:\n";
         foreach ($rolledBack as $change) {
-            echo "  ✓ ".$change->getName()."\n";
+            echo "   ✓ Rolled back: ".$change->getName()."\n";
         }
-    } else {
-        echo "No migrations to rollback\n";
     }
+    echo "\n";
 
-    // Verify rollback
-    $verifyResult = $database->raw("SHOW TABLES LIKE 'users'")->execute();
-    if ($verifyResult->getRowsCount() == 0) {
-        echo "✓ Users table removed\n";
-    }
-
-    echo "\n8. Cleanup:\n";
+    echo SEP;
+    echo "7. Cleanup:\n";
     $runner->dropSchemaTable();
-    echo "✓ Schema tracking table dropped\n";
+    echo "   ✓ Schema tracking table dropped\n";
+
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
-
-    // Clean up on error
     try {
-        $database->raw("DROP TABLE IF EXISTS users")->execute();
+        $database->table('users')->drop(true)->execute();
         $database->raw("DROP TABLE IF EXISTS schema_changes")->execute();
-    } catch (Exception $cleanupError) {
-        // Ignore cleanup errors
-    }
+    } catch (Exception $cleanupError) {}
 }
 
-echo "\n=== Example Complete ===\n";
+echo "\n" . SEP;
+echo "=== Example Complete ===\n";

@@ -27,6 +27,13 @@ class MSSQLQuery extends AbstractQuery {
         $this->bindings = [];
     }
 
+    protected function buildDropQuery(string $tableName, bool $ifExists): string {
+        if ($ifExists) {
+            return "if object_id('{$tableName}', 'U') is not null drop table {$tableName};";
+        }
+        return "drop table {$tableName};";
+    }
+
     public function addBinding(Column $col, $value) {
         $this->bindings[] = $value;
     }

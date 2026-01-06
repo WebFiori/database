@@ -12,8 +12,8 @@ use WebFiori\Database\Repository\RepositoryException;
 
 class TestEntity {
     public ?int $id = null;
-    public string $name;
-    public int $value;
+    public string $name = '';
+    public int $value = 0;
 
     public function __construct(?int $id = null, string $name = '', int $value = 0) {
         $this->id = $id;
@@ -76,8 +76,7 @@ class AbstractRepositoryTest extends TestCase {
     }
 
     public static function tearDownAfterClass(): void {
-        self::$db->setQuery('DROP TABLE IF EXISTS test_entities');
-        self::$db->execute();
+        self::$db->raw('DROP TABLE IF EXISTS test_entities')->execute();
     }
 
     protected function setUp(): void {
