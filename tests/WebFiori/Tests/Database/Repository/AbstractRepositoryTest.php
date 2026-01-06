@@ -8,6 +8,7 @@ use WebFiori\Database\Database;
 use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
 use WebFiori\Database\Repository\AbstractRepository;
+use WebFiori\Database\Repository\RepositoryException;
 
 class TestEntity {
     public ?int $id = null;
@@ -176,14 +177,14 @@ class AbstractRepositoryTest extends TestCase {
     }
 
     public function testFindByIdWithNullThrowsException() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RepositoryException::class);
         $this->expectExceptionMessage('Cannot find: no ID provided');
 
         self::$repo->findById(null);
     }
 
     public function testDeleteByIdWithNullThrowsException() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RepositoryException::class);
         $this->expectExceptionMessage('Cannot delete: no ID provided');
 
         self::$repo->deleteById(null);
@@ -211,7 +212,7 @@ class AbstractRepositoryTest extends TestCase {
     }
 
     public function testSaveWithNullOnPureRepoThrowsException() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RepositoryException::class);
         $this->expectExceptionMessage('Cannot save: no entity provided');
 
         self::$repo->save();
@@ -234,7 +235,7 @@ class AbstractRepositoryTest extends TestCase {
     }
 
     public function testReloadWithNullOnPureRepoThrowsException() {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RepositoryException::class);
         $this->expectExceptionMessage('Cannot find: no ID provided');
 
         self::$repo->reload();

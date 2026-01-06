@@ -2,7 +2,6 @@
 namespace WebFiori\Database\Attributes;
 
 use Attribute;
-use InvalidArgumentException;
 
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 class ForeignKey {
@@ -15,7 +14,7 @@ class ForeignKey {
         public string $onDelete = 'set null'
     ) {
         if ($column !== null && !empty($columns)) {
-            throw new InvalidArgumentException(
+            throw new InvalidAttributeException(
                 "ForeignKey: Use either 'column' or 'columns', not both"
             );
         }

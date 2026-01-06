@@ -2,11 +2,11 @@
 
 namespace WebFiori\Tests\Database\Attributes;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\Attributes\Column;
 use WebFiori\Database\Attributes\ForeignKey;
+use WebFiori\Database\Attributes\InvalidAttributeException;
 use WebFiori\Database\Attributes\Table;
 use WebFiori\Database\DataType;
 
@@ -63,7 +63,7 @@ class ForeignKeyAttributeTest extends TestCase {
     }
 
     public function testBothColumnAndColumnsThrowsException() {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidAttributeException::class);
         $this->expectExceptionMessage("ForeignKey: Use either 'column' or 'columns', not both");
         
         new ForeignKey(table: 'users', column: 'id', columns: ['local_id' => 'id']);

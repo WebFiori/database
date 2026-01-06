@@ -61,7 +61,7 @@ abstract class AbstractRepository {
     public function deleteById(mixed $id = null): void {
         $id = $id ?? $this->getEntityId();
         if ($id === null) {
-            throw new \InvalidArgumentException('Cannot delete: no ID provided');
+            throw new RepositoryException('Cannot delete: no ID provided');
         }
         $this->db->table($this->getTableName())
             ->delete()
@@ -94,7 +94,7 @@ abstract class AbstractRepository {
     public function findById(mixed $id = null): ?object {
         $id = $id ?? $this->getEntityId();
         if ($id === null) {
-            throw new \InvalidArgumentException('Cannot find: no ID provided');
+            throw new RepositoryException('Cannot find: no ID provided');
         }
         $result = $this->db->table($this->getTableName())
             ->select()
@@ -225,7 +225,7 @@ abstract class AbstractRepository {
      */
     public function save(?object $entity = null): void {
         if ($entity === null && !property_exists($this, $this->getIdField())) {
-            throw new \InvalidArgumentException('Cannot save: no entity provided');
+            throw new RepositoryException('Cannot save: no entity provided');
         }
         $entity = $entity ?? $this;
         $data = $this->toArray($entity);

@@ -13,7 +13,7 @@ class AttributeTableBuilder {
 
         $tableAttr = $reflection->getAttributes(Table::class)[0] ?? null;
         if (!$tableAttr) {
-            throw new \RuntimeException("Class $entityClass must have #[Table] attribute");
+            throw new InvalidAttributeException("Class $entityClass must have #[Table] attribute");
         }
 
         $tableConfig = $tableAttr->newInstance();
@@ -25,7 +25,7 @@ class AttributeTableBuilder {
         if (!empty($classColumnAttrs)) {
             foreach ($classColumnAttrs as $columnAttr) {
                 $columnConfig = $columnAttr->newInstance();
-                $columnKey = $columnConfig->name ?? throw new \RuntimeException("Column name is required for class-level attributes");
+                $columnKey = $columnConfig->name ?? throw new InvalidAttributeException("Column name is required for class-level attributes");
                 $columns[$columnKey] = self::columnConfigToArray($columnConfig);
             }
 
