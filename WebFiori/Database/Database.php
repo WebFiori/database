@@ -262,22 +262,32 @@ class Database {
     /**
      * Create SQL query which can be used to create all database tables.
      * 
-     * @return AbstractQuery The method will return an instance of the class 
-     * 'AbstractQuery' which can be used to build SQL queries.
+     * Tables are created in the order they were added. On failure, any
+     * successfully created tables are dropped in reverse order to handle
+     * foreign key constraints properly.
      * 
-     * .1
+     * @throws DatabaseException If table creation fails.
      */
-    public function createTables() : AbstractQuery {
-        $generatedQuery = '';
+    public function createTables(): void {
+        $created = [];
 
-        foreach ($this->getTables() as $tableObj) {
-            if ($tableObj->getColsCount() != 0) {
-                $generatedQuery .= $tableObj->toSQL()."\n";
+        try {
+            foreach ($this->getTables() as $tableObj) {
+                if ($tableObj->getColsCount() != 0) {
+                    $this->table($tableObj->getNormalName())->createTable()->execute();
+                    $created[] = $tableObj;
+                }
             }
+        } catch (DatabaseException $e) {
+            foreach (array_reverse($created) as $tableObj) {
+                try {
+                    $this->table($tableObj->getNormalName())->drop()->execute();
+                } catch (DatabaseException $dropError) {
+                    // Continue cleanup
+                }
+            }
+            throw $e;
         }
-        $this->getQueryGenerator()->setQuery($generatedQuery, true);
-
-        return $this->getQueryGenerator();
     }
     /**
      * Constructs a query which can be used to remove a record from the 

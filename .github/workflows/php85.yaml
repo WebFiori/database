@@ -47,7 +47,7 @@ jobs:
         with:
           php-version: 8.5
           extensions: mysqli, mbstring, sqlsrv
-          tools: phpunit:11.5.27, composer
+          tools: phpunit:11.5.46, composer
           
       - name: Install ODBC Driver for SQL Server
         run: |
@@ -106,7 +106,7 @@ jobs:
   code-coverage:
     name: Coverage
     needs: test
-    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@main
+    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@v1.2
     with:
       php-version: '8.5'
       coverage-file: 'php-8.5-coverage.xml'
@@ -116,13 +116,13 @@ jobs:
   code-quality:
     name: Code Quality
     needs: test
-    uses: WebFiori/workflows/.github/workflows/quality-sonarcloud.yaml@main
+    uses: WebFiori/workflows/.github/workflows/quality-sonarcloud.yaml@v1.2
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
   release-prod:
     name: Prepare Production Release Branch / Publish Release
     needs: [code-coverage, code-quality]
-    uses: WebFiori/workflows/.github/workflows/release-php.yaml@main
+    uses: WebFiori/workflows/.github/workflows/release-php.yaml@v1.2
     with:
       branch: 'main'

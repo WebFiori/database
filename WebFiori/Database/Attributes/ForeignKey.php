@@ -3,6 +3,9 @@ namespace WebFiori\Database\Attributes;
 
 use Attribute;
 
+/**
+ * Defines a foreign key constraint and optionally a belongsTo relationship.
+ */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 class ForeignKey {
     public function __construct(
@@ -11,7 +14,9 @@ class ForeignKey {
         public array $columns = [],
         public ?string $name = null,
         public string $onUpdate = 'set null',
-        public string $onDelete = 'set null'
+        public string $onDelete = 'set null',
+        public ?string $property = null,
+        public ?string $entity = null
     ) {
         if ($column !== null && !empty($columns)) {
             throw new InvalidAttributeException(

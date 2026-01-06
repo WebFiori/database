@@ -40,7 +40,11 @@ class MySQLQueryBuilderTest extends TestCase {
             "set character_set_client='utf8'",
             "set character_set_results='utf8'"
         ],$schema->getExecutedQueries());
-        $schema->createTables();
+        
+        // Verify each table's SQL individually since createTables() now executes directly
+        $tables = $schema->getTables();
+        $this->assertCount(4, $tables);
+        
         $this->assertEquals("create table if not exists `users` (\n"
                 . "    `id` int not null unique auto_increment,\n"
                 . "    `first_name` varchar(15) not null collate utf8mb4_unicode_520_ci,\n"
@@ -50,8 +54,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 . ")\n"
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
-                . "collate = utf8mb4_unicode_520_ci;\n"
-                . "create table if not exists `users_privileges` (\n"
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getTable('users')->toSQL());
+        
+        $this->assertEquals("create table if not exists `users_privileges` (\n"
                 . "    `id` int not null unique,\n"
                 . "    `can_edit_price` bit(1) not null default b'0',\n"
                 . "    `can_change_username` bit(1) not null,\n"
@@ -61,8 +66,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 . ")\n"
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
-                . "collate = utf8mb4_unicode_520_ci;\n"
-                . "create table if not exists `users_tasks` (\n"
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getTable('users_privileges')->toSQL());
+        
+        $this->assertEquals("create table if not exists `users_tasks` (\n"
                 . "    `task_id` int not null unique auto_increment,\n"
                 . "    `user_id` int not null comment 'The ID of the user who must perform the activity.',\n"
                 . "    `created_on` timestamp not null default now(),\n"
@@ -75,8 +81,9 @@ class MySQLQueryBuilderTest extends TestCase {
                 . "comment 'The tasks at which each user can have.'\n"
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
-                . "collate = utf8mb4_unicode_520_ci;\n"
-                . "create table if not exists `profile_pics` (\n"
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getTable('users_tasks')->toSQL());
+        
+        $this->assertEquals("create table if not exists `profile_pics` (\n"
                 . "    `user_id` int not null unique,\n"
                 . "    `pic` mediumblob not null,\n"
                 . "    constraint `profile_pics_pk` primary key (`user_id`),\n"
@@ -84,7 +91,7 @@ class MySQLQueryBuilderTest extends TestCase {
                 . ")\n"
                 . "engine = InnoDB\n"
                 . "default charset = utf8mb4\n"
-                . "collate = utf8mb4_unicode_520_ci;", $schema->getLastQuery());
+                . "collate = utf8mb4_unicode_520_ci;", $schema->getTable('profile_pics')->toSQL());
     }
     /**
      * 

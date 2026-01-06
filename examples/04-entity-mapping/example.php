@@ -7,14 +7,16 @@ use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
 
-echo "=== WebFiori Database Entity Mapping Example ===\n\n";
+const SEP = "────────────────────────────────────────────────────────────────────\n";
 
+echo "=== WebFiori Database Entity Mapping Example ===\n\n";
 echo "This example shows entity generation and manual mapping approaches.\n\n";
 
 try {
-    $connection = new ConnectionInfo('mysql', 'root', '123456', 'mysql');
+    $connection = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
     $database = new Database($connection);
 
+    echo SEP;
     echo "1. Creating User Table:\n";
 
     $userTable = $database->createBlueprint('users')->addColumns([
@@ -22,28 +24,32 @@ try {
         'first-name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 50],
         'last-name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 50],
         'email' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 150],
-        'age' => [ColOption::TYPE => DataType::INT, ColOption::SIZE => 3]
+        'age' => [ColOption::TYPE => DataType::INT]
     ]);
 
-    $database->table('users')->createTable();
-    $database->execute();
-    echo "✓ User table created\n\n";
+    $database->table('users')->drop(true)->execute();
+    $database->table('users')->createTable()->execute();
+    echo "   ✓ User table created\n\n";
 
+    echo SEP;
     echo "2. Inserting Test Data:\n";
 
-    $database->table('users')->insert(['first-name' => 'Khalid', 'last-name' => 'Al-Rashid', 'email' => 'khalid@example.com', 'age' => 30])->execute();
-    $database->table('users')->insert(['first-name' => 'Aisha', 'last-name' => 'Mahmoud', 'email' => 'aisha@example.com', 'age' => 25])->execute();
-    $database->table('users')->insert(['first-name' => 'Hassan', 'last-name' => 'Al-Najjar', 'email' => 'hassan@example.com', 'age' => 35])->execute();
-    echo "✓ Test users inserted\n\n";
+    $database->table('users')->insert([
+        'cols' => ['first-name', 'last-name', 'email', 'age'],
+        'values' => [
+            ['Khalid', 'Al-Rashid', 'khalid@example.com', 30],
+            ['Aisha', 'Mahmoud', 'aisha@example.com', 25],
+            ['Hassan', 'Al-Najjar', 'hassan@example.com', 35]
+        ]
+    ])->execute();
+    echo "   ✓ 3 test users inserted\n\n";
 
-    // ============================================
-    // APPROACH 1: Using EntityMapper (Deprecated)
-    // ============================================
+    echo SEP;
     echo "3. Using EntityGenerator:\n";
 
     $entityGenerator = $userTable->getEntityGenerator('User', __DIR__, '');
     $entityGenerator->generate();
-    echo "✓ User entity class generated at: ".__DIR__."/User.php\n";
+    echo "   ✓ User entity class generated at: ".__DIR__."/User.php\n";
 
     require_once __DIR__.'/User.php';
 
@@ -56,50 +62,45 @@ try {
         age: (int) $record['age']
     ));
 
-    echo "Mapped users (EntityGenerator):\n";
+    echo "   Mapped users:\n";
     foreach ($mappedUsers as $user) {
-        echo "  - {$user->getFirstName()} {$user->getLastName()} ({$user->getEmail()})\n";
+        echo "   - {$user->getFirstName()} {$user->getLastName()} ({$user->getEmail()})\n";
     }
     echo "\n";
 
-    // ============================================
-    // APPROACH 2: Manual Entity (Recommended)
-    // ============================================
-    echo "4. Alternative: Manual Entity Mapping:\n";
+    echo SEP;
+    echo "4. Manual Entity Mapping:\n";
 
-    // Define entity manually (in real code, this would be in a separate file)
-    // See example 11-repository-pattern for full implementation
-
-    echo "Manual entity mapping example:\n";
     $result = $database->table('users')->select()->execute();
     foreach ($result as $row) {
-        // Manual mapping - more control, no code generation
         $user = (object) [
             'id' => (int) $row['id'],
             'firstName' => $row['first_name'],
             'lastName' => $row['last_name'],
             'email' => $row['email'],
-            'age' => (int) $row['age'],
             'fullName' => $row['first_name'].' '.$row['last_name']
         ];
-        echo "  - {$user->fullName} ({$user->email}) - Age: {$user->age}\n";
+        echo "   - {$user->fullName} ({$user->email})\n";
     }
     echo "\n";
 
+    echo SEP;
     echo "5. Cleanup:\n";
-    $database->raw("DROP TABLE users")->execute();
-    echo "✓ User table dropped\n";
+    $database->table('users')->drop()->execute();
+    echo "   ✓ User table dropped\n";
 
     if (file_exists(__DIR__.'/User.php')) {
         unlink(__DIR__.'/User.php');
-        echo "✓ Generated User.php file removed\n";
+        echo "   ✓ Generated User.php file removed\n";
     }
+
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
-        $database->raw("DROP TABLE IF EXISTS users")->execute();
+        $database->table('users')->drop(true)->execute();
         if (file_exists(__DIR__.'/User.php')) unlink(__DIR__.'/User.php');
     } catch (Exception $cleanupError) {}
 }
 
-echo "\n=== Example Complete ===\n";
+echo "\n" . SEP;
+echo "=== Example Complete ===\n";

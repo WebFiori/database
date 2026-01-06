@@ -20,6 +20,7 @@ This directory contains practical examples demonstrating how to use the WebFiori
 | 12 | [clean-architecture](12-clean-architecture/) | Clean architecture with domain/infrastructure separation |
 | 13 | [pagination](13-pagination/) | Offset and cursor-based pagination |
 | 14 | [active-record-model](14-active-record-model/) | Entity + Repository merged into single Model class |
+| 15 | [eager-loading](15-eager-loading/) | Avoid N+1 queries with relationship eager loading |
 
 ## Prerequisites
 
@@ -133,3 +134,9 @@ You can modify the connection parameters in each example as needed.
 - Using attributes to define table structure on the model
 - Active Record pattern for simpler projects
 - Trade-offs vs Repository pattern
+
+### 15-eager-loading
+- Avoiding N+1 query problem with `with()` method
+- HasMany relationships (one-to-many)
+- BelongsTo relationships (many-to-one)
+- Eager loading with pagination
