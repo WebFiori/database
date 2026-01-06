@@ -258,11 +258,19 @@ abstract class AbstractQuery {
      * the method is called on.
      * 
      */
-    public function drop() {
+    public function drop(bool $ifExists = false) {
         $table = $this->getTable();
-        $this->setQuery('drop table '.$table->getName().';');
+        $this->setQuery($this->buildDropQuery($table->getName(), $ifExists));
 
         return $this;
+    }
+
+    /**
+     * Builds the DROP TABLE query. Override in subclasses for DBMS-specific syntax.
+     */
+    protected function buildDropQuery(string $tableName, bool $ifExists): string {
+        $ifExistsStr = $ifExists ? 'if exists ' : '';
+        return 'drop table ' . $ifExistsStr . $tableName . ';';
     }
     /**
      * Constructs a query which can be used to drop a column from associated 
