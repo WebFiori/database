@@ -1,5 +1,46 @@
 # Changelog
 
+## [2.0.0](https://github.com/WebFiori/database/compare/v1.2.0...v2.0.0) (2026-01-06)
+
+
+### Features
+
+* `saveAll` in Repo ([a4fd027](https://github.com/WebFiori/database/commit/a4fd02774df742d3f3774d2b571a183a6fb88260))
+* Add Support for `DatabaseChangeGenerator` ([4ebe09d](https://github.com/WebFiori/database/commit/4ebe09db88b3812e247e474b921674dda32943b9))
+* Add Support for `DatabaseChangeResult` ([a5d4ef6](https://github.com/WebFiori/database/commit/a5d4ef6c4b74e19eb0679eba0a9ffb902af90b5d))
+* Add Support for Dry Run ([699673a](https://github.com/WebFiori/database/commit/699673a8a0a6930ea52d6f7fc80c0c7e6e33f3b3))
+* Add Support for Getting Connection Info Under Change ([dca1048](https://github.com/WebFiori/database/commit/dca1048d0281185e71eb48e70c7c3a3dd149f811))
+* Attributes ([83c4a5c](https://github.com/WebFiori/database/commit/83c4a5cc76029b8ed7da6302f728bf025ef67af6))
+* Batching of Migrations ([e5694e6](https://github.com/WebFiori/database/commit/e5694e635b3fc232eba9800ae610a8a7af14f459))
+* Eager Loading ([6ce98b8](https://github.com/WebFiori/database/commit/6ce98b8629bb80cbc71a5e1ae2825dc2972d3c0a))
+* Entity Generator ([dbde80c](https://github.com/WebFiori/database/commit/dbde80c0e7c89acfe94f7754a97af79c204bfaf8))
+* Migration/Seeder Discovery ([aaae1f0](https://github.com/WebFiori/database/commit/aaae1f06b6abe26e9bce009ce5d3a663caa8b808))
+* Repo ([ff78798](https://github.com/WebFiori/database/commit/ff787982ba3c9bc6d88eb4b2eb54700d429392ee))
+* Wrap Transitions in Changes ([145ad9c](https://github.com/WebFiori/database/commit/145ad9c4f8a85ab99bdb4524cdd1c83b96a231a8))
+
+
+### Bug Fixes
+
+* Ignore if Migration Already Registered ([23c2a9b](https://github.com/WebFiori/database/commit/23c2a9ba4a496b6a86e5256cd3288b837877c2f5))
+* Imports Correction ([bf09ed1](https://github.com/WebFiori/database/commit/bf09ed16149f4a7e75ac7d8fe3f22a79d5c8243e))
+* **mysql:** Auto-Increment ([e56a1ba](https://github.com/WebFiori/database/commit/e56a1ba6f044327766a53049b6517b313a992840))
+* Return Count of Deleted ([6414b6e](https://github.com/WebFiori/database/commit/6414b6e95b2bbbf1e544de6566c51776015229af))
+
+
+### Miscellaneous Chores
+
+* Exclude Examples from Scan ([45fc84a](https://github.com/WebFiori/database/commit/45fc84a33a28eccef4ab67efeee770289703f571))
+* Merge pull request [#119](https://github.com/WebFiori/database/issues/119) from WebFiori/feat-attributes ([f49786d](https://github.com/WebFiori/database/commit/f49786d924cf6bcf8057dc6826070733608bf5a7))
+* Merge pull request [#120](https://github.com/WebFiori/database/issues/120) from WebFiori/docs ([8c329ad](https://github.com/WebFiori/database/commit/8c329adf88e16966e29a75228e29d296492d8312))
+* Merge pull request [#121](https://github.com/WebFiori/database/issues/121) from WebFiori/dev ([9d71dd9](https://github.com/WebFiori/database/commit/9d71dd962ed8c0227c2fa2503efb34d3e4c6dd78))
+* Merge pull request [#122](https://github.com/WebFiori/database/issues/122) from WebFiori/docs ([526655e](https://github.com/WebFiori/database/commit/526655eb9a86770c4a3337692acd0b5dfe7c26bf))
+* Merge pull request [#124](https://github.com/WebFiori/database/issues/124) from WebFiori/feat-eager-load ([aa9de3e](https://github.com/WebFiori/database/commit/aa9de3e45fe258c2b2159c0eec1b4444c6204ab5))
+* Merge pull request [#125](https://github.com/WebFiori/database/issues/125) from WebFiori/dev ([e43de85](https://github.com/WebFiori/database/commit/e43de85b005d7982591909281e732e48f4767588))
+* Run CS Fixer ([74d3ffd](https://github.com/WebFiori/database/commit/74d3ffd8da5f3c55f08d7adce731fafdf81c8a72))
+* Updated License ([ed99655](https://github.com/WebFiori/database/commit/ed99655cf0542d7be8d2bcfb92147e708cf7015e))
+* Updated License Headers ([2803828](https://github.com/WebFiori/database/commit/2803828fba506fe80b6e08a286ca4fbc6424234b))
+* Updated License Headers ([a7fc0ce](https://github.com/WebFiori/database/commit/a7fc0ce3c9ffbd18034eb7691a8eaeb6d4762d38))
+
 ## [1.2.0](https://github.com/WebFiori/database/compare/v1.1.0...v1.2.0) (2025-11-05)
 
 
