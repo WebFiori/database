@@ -143,52 +143,30 @@ class EntityGenerator {
      * @return string The default value as PHP code
      */
     private function getDefault(Column $col): string {
-        if ($col->isAutoInc()) {
+        if ($col->isAutoInc() || $col->isNull()) {
             return ' = null';
         }
 
-        if ($col->isNull()) {
-            return ' = null';
-        }
-
+        $phpType = $col->getPHPType();
         $default = $col->getDefault();
 
+        $typeDefaults = [
+            'string' => " = ''",
+            'int' => ' = 0',
+            'float' => ' = 0.0',
+            'bool' => ' = false'
+        ];
+
         if ($default !== null) {
-            $phpType = $col->getPHPType();
-
-            if ($phpType === 'string') {
-                return " = '".addslashes($default)."'";
-            }
-
-            if ($phpType === 'int' || $phpType === 'float') {
-                return " = {$default}";
-            }
-
-            if ($phpType === 'bool') {
-                return $default ? ' = true' : ' = false';
-            }
+            return match ($phpType) {
+                'string' => " = '" . addslashes($default) . "'",
+                'int', 'float' => " = {$default}",
+                'bool' => $default ? ' = true' : ' = false',
+                default => ''
+            };
         }
 
-        // Required field with no default
-        $phpType = $col->getPHPType();
-
-        if ($phpType === 'string') {
-            return " = ''";
-        }
-
-        if ($phpType === 'int') {
-            return ' = 0';
-        }
-
-        if ($phpType === 'float') {
-            return ' = 0.0';
-        }
-
-        if ($phpType === 'bool') {
-            return ' = false';
-        }
-
-        return '';
+        return $typeDefaults[$phpType] ?? '';
     }
 
     /**

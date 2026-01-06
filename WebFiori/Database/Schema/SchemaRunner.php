@@ -425,11 +425,11 @@ class SchemaRunner extends Database {
 
             if (is_string($change)) {
                 if (!class_exists($change)) {
-                    throw new Exception("Class does not exist: {$change}");
+                    throw new SchemaException("Class does not exist: {$change}");
                 }
 
                 if (!is_subclass_of($change, DatabaseChange::class)) {
-                    throw new Exception("Class is not a subclass of DatabaseChange: {$change}");
+                    throw new SchemaException("Class is not a subclass of DatabaseChange: {$change}");
                 }
 
                 $change = new $change();
