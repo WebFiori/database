@@ -1,6 +1,5 @@
 <?php
 
-use WebFiori\Database\Database;
 use WebFiori\Database\Repository\AbstractRepository;
 
 require_once __DIR__.'/Author.php';
@@ -9,6 +8,9 @@ require_once __DIR__.'/Comment.php';
 require_once __DIR__.'/PostsTable.php';
 
 class PostRepository extends AbstractRepository {
+    protected function getIdField(): string {
+        return 'id';
+    }
     protected function getTableClass(): string {
         return PostsTable::class;
     }
@@ -17,8 +19,12 @@ class PostRepository extends AbstractRepository {
         return 'posts';
     }
 
-    protected function getIdField(): string {
-        return 'id';
+    protected function toArray(object $entity): array {
+        return [
+            'id' => $entity->id,
+            'title' => $entity->title,
+            'author-id' => $entity->authorId
+        ];
     }
 
     protected function toEntity(array $row): object {
@@ -26,14 +32,7 @@ class PostRepository extends AbstractRepository {
         $post->id = (int) $row['id'];
         $post->title = $row['title'];
         $post->authorId = (int) ($row['author-id'] ?? $row['author_id'] ?? 0);
-        return $post;
-    }
 
-    protected function toArray(object $entity): array {
-        return [
-            'id' => $entity->id,
-            'title' => $entity->title,
-            'author-id' => $entity->authorId
-        ];
+        return $post;
     }
 }

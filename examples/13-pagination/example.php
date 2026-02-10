@@ -31,10 +31,11 @@ try {
     $database->table('users')->createTable()->execute();
 
     $names = ['Ahmed', 'Fatima', 'Omar', 'Layla', 'Hassan', 'Sara', 'Yusuf', 'Maryam', 'Ali', 'Noor',
-              'Khalid', 'Aisha', 'Ibrahim', 'Zahra', 'Mahmoud', 'Hana', 'Tariq', 'Salma', 'Rami', 'Dina',
-              'Faisal', 'Lina', 'Samir', 'Rania', 'Walid'];
+        'Khalid', 'Aisha', 'Ibrahim', 'Zahra', 'Mahmoud', 'Hana', 'Tariq', 'Salma', 'Rami', 'Dina',
+        'Faisal', 'Lina', 'Samir', 'Rania', 'Walid'];
 
     $values = [];
+
     foreach ($names as $i => $name) {
         $values[] = [$name, strtolower($name).'@example.com', 20 + ($i % 30)];
     }
@@ -54,6 +55,7 @@ try {
     for ($page = 1; $page <= 3; $page++) {
         $result = $repo->paginate($page, 5);
         echo "   Page $page of {$result->getTotalPages()}:\n";
+
         foreach ($result->getItems() as $user) {
             echo "   - {$user->name} ({$user->email})\n";
         }
@@ -70,12 +72,15 @@ try {
     while ($pageNum <= 3) {
         $result = $repo->paginateByCursor($cursor, 5, 'id', 'ASC');
         echo "   Cursor Page $pageNum:\n";
+
         foreach ($result->getItems() as $user) {
             echo "   - ID {$user->id}: {$user->name}\n";
         }
         echo "   Has more: ".($result->hasMore() ? 'Yes' : 'No')."\n";
 
-        if (!$result->hasMore()) break;
+        if (!$result->hasMore()) {
+            break;
+        }
 
         $cursor = $result->getNextCursor();
         echo "   Next cursor: $cursor\n\n";
@@ -87,6 +92,7 @@ try {
     echo "4. Pagination with Ordering:\n";
     $result = $repo->paginate(1, 5, ['age' => 'DESC']);
     echo "   Top 5 oldest users:\n";
+
     foreach ($result->getItems() as $user) {
         echo "   - {$user->name} (Age: {$user->age})\n";
     }
@@ -96,13 +102,13 @@ try {
     echo "5. Cleanup:\n";
     $database->table('users')->drop()->execute();
     echo "   ✓ Table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('users')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

@@ -14,5 +14,6 @@ class HasMany {
         public string $property,
         public ?string $localKey = null,
         public ?string $table = null
-    ) {}
+    ) {
+    }
 }

@@ -63,6 +63,7 @@ try {
 
     $all = $userRepo->findAll();
     echo "   All users (".count($all)."):\n";
+
     foreach ($all as $u) {
         echo "   - {$u->name} ({$u->email}) - Age: {$u->age}\n";
     }
@@ -72,6 +73,7 @@ try {
 
     $adults = $userRepo->findByAge(25);
     echo "\n   Users age >= 25 (".count($adults)."):\n";
+
     foreach ($adults as $u) {
         echo "   - {$u->name} (Age: {$u->age})\n";
     }
@@ -85,13 +87,13 @@ try {
     echo "6. Cleanup:\n";
     $database->table('users')->drop()->execute();
     echo "   ✓ Table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('users')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

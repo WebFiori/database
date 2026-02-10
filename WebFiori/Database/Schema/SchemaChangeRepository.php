@@ -42,6 +42,7 @@ class SchemaChangeRepository extends AbstractRepository {
     public function clearAll(): int {
         $count = $this->count();
         $this->deleteAll();
+
         return $count;
     }
 

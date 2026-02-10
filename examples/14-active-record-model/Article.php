@@ -8,41 +8,40 @@ use WebFiori\Database\Repository\AbstractRepository;
 
 #[Table(name: 'articles')]
 class Article extends AbstractRepository {
+    #[Column(name: 'author-name', type: DataType::VARCHAR, size: 100)]
+    public string $authorName = '';
+
+    #[Column(type: DataType::TEXT)]
+    public string $content = '';
+
+    #[Column(name: 'created-at', type: DataType::TIMESTAMP, default: 'now()')]
+    public ?string $createdAt = null;
     #[Column(type: DataType::INT, primary: true, autoIncrement: true)]
     public ?int $id = null;
 
     #[Column(type: DataType::VARCHAR, size: 200)]
     public string $title = '';
 
-    #[Column(type: DataType::TEXT)]
-    public string $content = '';
-
-    #[Column(name: 'author-name', type: DataType::VARCHAR, size: 100)]
-    public string $authorName = '';
-
-    #[Column(name: 'created-at', type: DataType::TIMESTAMP, default: 'now()')]
-    public ?string $createdAt = null;
-
     public function __construct(Database $db) {
         parent::__construct($db);
     }
 
-    protected function getTableName(): string {
-        return 'articles';
+    // Custom query methods
+    public function findByAuthor(string $author): array {
+        $result = $this->getDatabase()->table($this->getTableName())
+            ->select()
+            ->where('author-name', $author)
+            ->execute();
+
+        return array_map(fn($row) => $this->toEntity($row), $result->fetchAll());
     }
 
     protected function getIdField(): string {
         return 'id';
     }
 
-    protected function toEntity(array $row): object {
-        $article = new self($this->db);
-        $article->id = (int) $row['id'];
-        $article->title = $row['title'];
-        $article->content = $row['content'];
-        $article->authorName = $row['author-name'] ?? '';
-        $article->createdAt = $row['created-at'] ?? null;
-        return $article;
+    protected function getTableName(): string {
+        return 'articles';
     }
 
     protected function toArray(object $entity): array {
@@ -54,13 +53,14 @@ class Article extends AbstractRepository {
         ];
     }
 
-    // Custom query methods
-    public function findByAuthor(string $author): array {
-        $result = $this->getDatabase()->table($this->getTableName())
-            ->select()
-            ->where('author-name', $author)
-            ->execute();
+    protected function toEntity(array $row): object {
+        $article = new self($this->db);
+        $article->id = (int) $row['id'];
+        $article->title = $row['title'];
+        $article->content = $row['content'];
+        $article->authorName = $row['author-name'] ?? '';
+        $article->createdAt = $row['created-at'] ?? null;
 
-        return array_map(fn($row) => $this->toEntity($row), $result->fetchAll());
+        return $article;
     }
 }

@@ -10,11 +10,10 @@ use WebFiori\Database\DataType;
  */
 #[Table(name: 'comments')]
 class CommentsTable {
-    #[Column(type: DataType::INT, primary: true, autoIncrement: true)]
-    public int $id;
-
     #[Column(type: DataType::TEXT)]
     public string $content;
+    #[Column(type: DataType::INT, primary: true, autoIncrement: true)]
+    public int $id;
 
     #[Column(name: 'post-id', type: DataType::INT)]
     #[ForeignKey(table: PostsTable::class, column: 'id', property: 'post', name: 'fk_comment_post', onUpdate: 'cascade', onDelete: 'cascade')]

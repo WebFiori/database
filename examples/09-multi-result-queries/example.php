@@ -104,10 +104,13 @@ try {
 
         for ($i = 0; $i < $result->count(); $i++) {
             $resultSet = $result->getResultSet($i);
+
             if ($resultSet->getRowsCount() > 0) {
                 $firstRow = $resultSet->getRows()[0];
+
                 if (isset($firstRow['report_section'])) {
                     echo "   --- {$firstRow['report_section']} ---\n";
+
                     foreach ($resultSet as $row) {
                         if ($row['report_section'] === 'Product Inventory') {
                             echo "     {$row['category']}: {$row['name']} - $".number_format($row['price'], 2)." (Stock: {$row['stock']})\n";
@@ -144,12 +147,16 @@ try {
 
     if ($categoryResult instanceof MultiResultSet) {
         echo "   ✓ Category analysis for 'Electronics':\n\n";
+
         for ($i = 0; $i < $categoryResult->count(); $i++) {
             $rs = $categoryResult->getResultSet($i);
+
             if ($rs->getRowsCount() > 0) {
                 $firstRow = $rs->getRows()[0];
+
                 if (isset($firstRow['section'])) {
                     echo "   --- {$firstRow['section']} ---\n";
+
                     foreach ($rs as $row) {
                         if ($row['section'] === 'Products') {
                             echo "     {$row['name']}: $".number_format($row['price'], 2)." (Stock: {$row['stock']})\n";
@@ -181,6 +188,7 @@ try {
         echo "     - Orders: ".$ordersResults->getRowsCount()." orders\n\n";
 
         echo "   Low stock products (< 20 items):\n";
+
         foreach ($inventoryResults as $product) {
             if ($product['stock'] < 20) {
                 echo "     ⚠️  {$product['name']}: {$product['stock']} remaining\n";
@@ -196,7 +204,6 @@ try {
     $database->table('orders')->drop()->execute();
     $database->table('products')->drop()->execute();
     echo "   ✓ Tables and procedures dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
@@ -204,8 +211,9 @@ try {
         $database->raw("DROP PROCEDURE IF EXISTS GetCategoryAnalysis")->execute();
         $database->table('orders')->drop(true)->execute();
         $database->table('products')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

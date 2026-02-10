@@ -1,5 +1,4 @@
 <?php
-
 namespace Infrastructure\Repository;
 
 use Domain\User;
@@ -11,16 +10,22 @@ use WebFiori\Database\Repository\AbstractRepository;
  * Infrastructure implementation - depends on WebFiori Database
  */
 class MySQLUserRepository extends AbstractRepository implements UserRepositoryInterface {
-    protected function getTableName(): string { return 'users'; }
-    protected function getIdField(): string { return 'id'; }
+    public function delete(mixed $id): void {
+        $this->deleteById($id);
+    }
 
-    protected function toEntity(array $row): object {
-        return new User(
-            (int) $row['id'],
-            $row['name'],
-            $row['email'],
-            (int) $row['age']
-        );
+    public function findAll(): array {
+        return parent::findAll();
+    }
+
+    public function findById(mixed $id): ?User {
+        return parent::findById($id);
+    }
+    protected function getIdField(): string {
+        return 'id';
+    }
+    protected function getTableName(): string {
+        return 'users';
     }
 
     protected function toArray(object $entity): array {
@@ -32,15 +37,12 @@ class MySQLUserRepository extends AbstractRepository implements UserRepositoryIn
         ];
     }
 
-    public function findById(mixed $id): ?User {
-        return parent::findById($id);
-    }
-
-    public function findAll(): array {
-        return parent::findAll();
-    }
-
-    public function delete(mixed $id): void {
-        $this->deleteById($id);
+    protected function toEntity(array $row): object {
+        return new User(
+            (int) $row['id'],
+            $row['name'],
+            $row['email'],
+            (int) $row['age']
+        );
     }
 }

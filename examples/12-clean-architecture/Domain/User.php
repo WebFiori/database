@@ -1,5 +1,4 @@
 <?php
-
 namespace Domain;
 
 /**
@@ -11,5 +10,6 @@ class User {
         public string $name,
         public string $email,
         public int $age
-    ) {}
+    ) {
+    }
 }

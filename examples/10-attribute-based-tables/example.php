@@ -66,6 +66,7 @@ try {
     ")->execute();
 
     echo "   Articles with authors:\n";
+
     foreach ($result as $row) {
         echo "   - {$row['title']} by {$row['author']} ({$row['published-at']})\n";
     }
@@ -76,14 +77,14 @@ try {
     $database->table('articles')->drop()->execute();
     $database->table('authors')->drop()->execute();
     echo "   ✓ Tables dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('articles')->drop(true)->execute();
         $database->table('authors')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

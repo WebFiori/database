@@ -159,7 +159,7 @@ class EntityGenerator {
 
         if ($default !== null) {
             return match ($phpType) {
-                'string' => " = '" . addslashes($default) . "'",
+                'string' => " = '".addslashes($default)."'",
                 'int', 'float' => " = {$default}",
                 'bool' => $default ? ' = true' : ' = false',
                 default => ''

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Domain entity - pure, no database knowledge.
  */

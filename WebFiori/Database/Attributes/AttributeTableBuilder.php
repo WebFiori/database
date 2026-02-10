@@ -12,6 +12,7 @@ class AttributeTableBuilder {
         $reflection = new ReflectionClass($entityClass);
 
         $tableAttr = $reflection->getAttributes(Table::class)[0] ?? null;
+
         if (!$tableAttr) {
             throw new InvalidAttributeException("Class $entityClass must have #[Table] attribute");
         }
@@ -35,6 +36,7 @@ class AttributeTableBuilder {
         } else {
             foreach ($reflection->getProperties() as $property) {
                 $columnAttrs = $property->getAttributes(Column::class);
+
                 if (empty($columnAttrs)) {
                     continue;
                 }
@@ -116,17 +118,6 @@ class AttributeTableBuilder {
         );
     }
 
-    private static function resolveTableName(string $tableOrClass): string {
-        if (class_exists($tableOrClass)) {
-            $reflection = new ReflectionClass($tableOrClass);
-            $tableAttr = $reflection->getAttributes(Table::class)[0] ?? null;
-            if ($tableAttr) {
-                return $tableAttr->newInstance()->name;
-            }
-        }
-        return $tableOrClass;
-    }
-
     private static function columnConfigToArray(Column $config): array {
         return [
             ColOption::TYPE => $config->type,
@@ -147,5 +138,18 @@ class AttributeTableBuilder {
 
     private static function propertyToKey(string $propertyName): string {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $propertyName));
+    }
+
+    private static function resolveTableName(string $tableOrClass): string {
+        if (class_exists($tableOrClass)) {
+            $reflection = new ReflectionClass($tableOrClass);
+            $tableAttr = $reflection->getAttributes(Table::class)[0] ?? null;
+
+            if ($tableAttr) {
+                return $tableAttr->newInstance()->name;
+            }
+        }
+
+        return $tableOrClass;
     }
 }

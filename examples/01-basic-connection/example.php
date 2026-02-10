@@ -45,30 +45,33 @@ try {
     echo "4. Additional Connection Info:\n";
 
     $result = $database->raw("SELECT DATABASE() as current_db")->execute();
+
     if ($result && $result->getRowsCount() > 0) {
         echo "   ✓ Current database: ".$result->getRows()[0]['current_db']."\n";
     }
 
     $result = $database->raw("SHOW STATUS LIKE 'Uptime'")->execute();
+
     if ($result && $result->getRowsCount() > 0) {
         $uptime = $result->getRows()[0]['Value'];
         echo "   ✓ Server uptime: ".$uptime." seconds\n";
     }
 
     $result = $database->raw("SELECT CONNECTION_ID() as connection_id")->execute();
+
     if ($result && $result->getRowsCount() > 0) {
         echo "   ✓ Connection ID: ".$result->getRows()[0]['connection_id']."\n";
     }
 
     $result = $database->raw("SELECT USER() as user_name")->execute();
+
     if ($result && $result->getRowsCount() > 0) {
         echo "   ✓ Current User: ".$result->getRows()[0]['user_name']."\n";
     }
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     echo "Note: Make sure MySQL is running and accessible with the provided credentials.\n";
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

@@ -1,8 +1,8 @@
 <?php
 
 class Comment {
-    public ?int $id = null;
     public string $content = '';
-    public int $postId = 0;
+    public ?int $id = null;
     public ?object $post = null;
+    public int $postId = 0;
 }
