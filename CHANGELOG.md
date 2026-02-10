@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.1](https://github.com/WebFiori/database/compare/v2.0.0...v2.0.1) (2026-02-10)
+
+
+### Features
+
+* Added `getSupportedDataTypes` ([7ec96e3](https://github.com/WebFiori/database/commit/7ec96e3e4979d9cc5f0908daee0cd65a4f116e89))
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#126](https://github.com/WebFiori/database/issues/126) from WebFiori/dev ([c1af0df](https://github.com/WebFiori/database/commit/c1af0df6aa033c1105e607ef169f555e681d3fb3))
+* Run CS Fixer ([3eec245](https://github.com/WebFiori/database/commit/3eec2458b45695af3b95d0667b29f8aa7511c806))
+* Run CS Fixer ([a9c7596](https://github.com/WebFiori/database/commit/a9c7596b7302da820b3abc36b654e3fdd8f24560))
+
 ## [2.0.0](https://github.com/WebFiori/database/compare/v1.2.0...v2.0.0) (2026-01-06)
 
 
