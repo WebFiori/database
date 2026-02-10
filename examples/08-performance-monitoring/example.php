@@ -87,6 +87,7 @@ try {
 
     if (!empty($slowQueries)) {
         echo "   - Slow query details:\n";
+
         foreach ($slowQueries as $index => $metric) {
             $query = $metric->getQuery();
             $time = $metric->getExecutionTimeMs();
@@ -133,13 +134,13 @@ try {
     echo "7. Cleanup:\n";
     $database->table('performance_test')->drop()->execute();
     echo "   ✓ Test table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('performance_test')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

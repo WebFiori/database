@@ -55,6 +55,7 @@ try {
 
     $all = $articleModel->findAll();
     echo "   All articles ({$articleModel->count()}):\n";
+
     foreach ($all as $article) {
         echo "   - {$article->title} by {$article->authorName}\n";
     }
@@ -62,6 +63,7 @@ try {
 
     $byAuthor = $articleModel->findByAuthor('Ahmad Hassan');
     echo "   Articles by Ahmad Hassan:\n";
+
     foreach ($byAuthor as $article) {
         echo "   - {$article->title}\n";
     }
@@ -80,6 +82,7 @@ try {
     echo "   ✓ Article deleted\n";
 
     echo "\n   Remaining articles:\n";
+
     foreach ($articleModel->findAll() as $article) {
         echo "   - [{$article->id}] {$article->title}\n";
     }
@@ -89,13 +92,13 @@ try {
     echo "5. Cleanup:\n";
     $database->table('articles')->drop()->execute();
     echo "   ✓ Table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('articles')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

@@ -50,6 +50,7 @@ try {
     ])->execute();
 
     $result = $database->table('accounts')->select()->execute();
+
     foreach ($result as $account) {
         echo "   {$account['name']}: $".number_format($account['balance'], 2)."\n";
     }
@@ -60,15 +61,16 @@ try {
 
     $transferAmount = 200.00;
 
-    $database->transaction(function (Database $db) use ($transferAmount) {
+    $database->transaction(function (Database $db) use ($transferAmount)
+    {
         $sender = $db->table('accounts')->select()->where('id', 1)->execute()->fetch();
-        
+
         if ($sender['balance'] < $transferAmount) {
             throw new DatabaseException("Insufficient funds");
         }
 
         $db->table('accounts')->update(['balance' => $sender['balance'] - $transferAmount])->where('id', 1)->execute();
-        
+
         $receiver = $db->table('accounts')->select()->where('id', 2)->execute()->fetch();
         $db->table('accounts')->update(['balance' => $receiver['balance'] + $transferAmount])->where('id', 2)->execute();
 
@@ -84,6 +86,7 @@ try {
 
     $result = $database->table('accounts')->select()->execute();
     echo "   Balances after transfer:\n";
+
     foreach ($result as $account) {
         echo "   - {$account['name']}: $".number_format($account['balance'], 2)."\n";
     }
@@ -93,9 +96,10 @@ try {
     echo "4. Failed Transaction (Insufficient Funds):\n";
 
     try {
-        $database->transaction(function (Database $db) {
+        $database->transaction(function (Database $db)
+        {
             $sender = $db->table('accounts')->select()->where('id', 1)->execute()->fetch();
-            
+
             if ($sender['balance'] < 2000.00) {
                 throw new DatabaseException("Insufficient funds for $2000.00 transfer");
             }
@@ -107,6 +111,7 @@ try {
 
     $result = $database->table('accounts')->select()->execute();
     echo "   Balances unchanged:\n";
+
     foreach ($result as $account) {
         echo "   - {$account['name']}: $".number_format($account['balance'], 2)."\n";
     }
@@ -117,14 +122,14 @@ try {
     $database->table('transactions')->drop()->execute();
     $database->table('accounts')->drop()->execute();
     echo "   ✓ Tables dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('transactions')->drop(true)->execute();
         $database->table('accounts')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

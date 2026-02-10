@@ -27,6 +27,7 @@ try {
     echo "2. Available Migrations:\n";
 
     $changes = $runner->getChanges();
+
     foreach ($changes as $change) {
         echo "   - ".$change->getName()."\n";
     }
@@ -51,6 +52,7 @@ try {
 
     $descResult = $database->raw("DESCRIBE users")->execute();
     echo "   Users table columns:\n";
+
     foreach ($descResult as $column) {
         echo "   - {$column['Field']} ({$column['Type']})\n";
     }
@@ -70,6 +72,7 @@ try {
 
     $selectResult = $database->table('users')->select(['username', 'email'])->execute();
     echo "   Users:\n";
+
     foreach ($selectResult as $user) {
         echo "   - {$user['username']} ({$user['email']})\n";
     }
@@ -79,6 +82,7 @@ try {
     echo "6. Rolling Back Migrations:\n";
 
     $rolledBack = $runner->rollbackUpTo(null);
+
     if (!empty($rolledBack)) {
         foreach ($rolledBack as $change) {
             echo "   ✓ Rolled back: ".$change->getName()."\n";
@@ -90,14 +94,14 @@ try {
     echo "7. Cleanup:\n";
     $runner->dropSchemaTable();
     echo "   ✓ Schema tracking table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('users')->drop(true)->execute();
         $database->raw("DROP TABLE IF EXISTS schema_changes")->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

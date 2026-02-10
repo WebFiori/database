@@ -6,10 +6,8 @@ require_once __DIR__.'/PostRepository.php';
 require_once __DIR__.'/CommentRepository.php';
 
 use WebFiori\Database\Attributes\AttributeTableBuilder;
-use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
-use WebFiori\Database\DataType;
 
 const SEP = "────────────────────────────────────────────────────────────────────\n";
 
@@ -88,6 +86,7 @@ try {
 
     foreach ($authors as $author) {
         echo "   {$author->name} ({$author->id}):\n";
+
         if (empty($author->posts)) {
             echo "     - No posts\n";
         } else {
@@ -149,8 +148,8 @@ try {
     try {
         $authorRepo->withJoin('posts')->findAll();
         echo "   ✗ Should have thrown exception\n";
-    } catch (\WebFiori\Database\Repository\RepositoryException $e) {
-        echo "   ✓ Exception thrown: " . $e->getMessage() . "\n";
+    } catch (WebFiori\Database\Repository\RepositoryException $e) {
+        echo "   ✓ Exception thrown: ".$e->getMessage()."\n";
     }
     echo "\n";
 
@@ -162,7 +161,7 @@ try {
 
     $author = $authorRepo->with('posts')->findById(1);
     echo "   Author: {$author->name}\n";
-    echo "   Posts: " . count($author->posts) . "\n\n";
+    echo "   Posts: ".count($author->posts)."\n\n";
 
     // =============================================
     // Eager Loading with Pagination
@@ -171,9 +170,10 @@ try {
     echo "10. Eager Loading with Pagination:\n";
 
     $page = $authorRepo->with('posts')->paginate(page: 1, perPage: 2);
-    echo "    Page 1 of " . $page->getTotalPages() . " (2 per page):\n";
+    echo "    Page 1 of ".$page->getTotalPages()." (2 per page):\n";
+
     foreach ($page->getItems() as $author) {
-        echo "    - {$author->name}: " . count($author->posts) . " posts\n";
+        echo "    - {$author->name}: ".count($author->posts)." posts\n";
     }
     echo "\n";
 
@@ -196,10 +196,11 @@ try {
     $comments = $commentRepo->with('post')->findAll();
 
     echo "    Comments with related posts (stdClass):\n";
+
     foreach ($comments as $comment) {
         $postTitle = $comment->post->title ?? 'N/A';
         echo "    - \"{$comment->content}\" on post: \"{$postTitle}\"\n";
-        echo "      post type: " . get_class($comment->post) . "\n";
+        echo "      post type: ".get_class($comment->post)."\n";
     }
     echo "\n";
 
@@ -210,15 +211,15 @@ try {
     $database->table('posts')->drop()->execute();
     $database->table('authors')->drop()->execute();
     echo "✓ Tables dropped\n";
-
 } catch (Exception $e) {
-    echo "✗ Error: " . $e->getMessage() . "\n";
+    echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('comments')->drop(true)->execute();
         $database->table('posts')->drop(true)->execute();
         $database->table('authors')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

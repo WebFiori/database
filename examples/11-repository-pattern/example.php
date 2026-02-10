@@ -58,6 +58,7 @@ try {
     echo "4. Finding All Products (Read):\n";
     $allProducts = $productRepo->findAll();
     echo "   Total products: ".count($allProducts)."\n";
+
     foreach ($allProducts as $p) {
         echo "   - {$p->name} ({$p->category}): \${$p->price} - Stock: {$p->stock}\n";
     }
@@ -66,6 +67,7 @@ try {
     echo SEP;
     echo "5. Finding by ID:\n";
     $product = $productRepo->findById(1);
+
     if ($product) {
         echo "   Found: {$product->name} - \${$product->price}\n\n";
     }
@@ -74,6 +76,7 @@ try {
     echo "6. Custom Query - Find by Category:\n";
     $electronics = $productRepo->findByCategory('Electronics');
     echo "   Electronics products: ".count($electronics)."\n";
+
     foreach ($electronics as $p) {
         echo "   - {$p->name}: \${$p->price}\n";
     }
@@ -83,6 +86,7 @@ try {
     echo "7. Custom Query - Find Low Stock:\n";
     $lowStock = $productRepo->findLowStock(10);
     echo "   Low stock products (< 10): ".count($lowStock)."\n";
+
     foreach ($lowStock as $p) {
         echo "   ⚠️  {$p->name}: {$p->stock} remaining\n";
     }
@@ -91,6 +95,7 @@ try {
     echo SEP;
     echo "8. Updating a Product:\n";
     $product = $productRepo->findById(3);
+
     if ($product) {
         echo "   Before: {$product->name} - Stock: {$product->stock}\n";
         $product->stock = 25;
@@ -105,6 +110,7 @@ try {
     echo "   Page 1 (3 per page):\n";
     echo "   Total items: {$page1->getTotalItems()}\n";
     echo "   Total pages: {$page1->getTotalPages()}\n";
+
     foreach ($page1->getItems() as $p) {
         echo "   - {$p->name}\n";
     }
@@ -124,13 +130,13 @@ try {
     echo "12. Cleanup:\n";
     $database->table('products')->drop()->execute();
     echo "    ✓ Products table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('products')->drop(true)->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

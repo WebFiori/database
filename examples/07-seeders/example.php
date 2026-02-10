@@ -53,6 +53,7 @@ try {
     echo "3. Available Seeders:\n";
 
     $changes = $runner->getChanges();
+
     foreach ($changes as $change) {
         echo "   - ".$change->getName()."\n";
     }
@@ -62,6 +63,7 @@ try {
     echo "4. Running Seeders:\n";
 
     $result = $runner->apply();
+
     if ($result->count() > 0) {
         foreach ($result->getApplied() as $change) {
             echo "   ✓ ".$change->getName()."\n";
@@ -74,6 +76,7 @@ try {
 
     $usersResult = $database->table('users')->select()->execute();
     echo "   Users ({$usersResult->getRowsCount()} records):\n";
+
     foreach ($usersResult as $user) {
         echo "   - {$user['full_name']} (@{$user['username']}) - {$user['role']}\n";
     }
@@ -81,6 +84,7 @@ try {
 
     $categoriesResult = $database->table('categories')->select()->execute();
     echo "   Categories ({$categoriesResult->getRowsCount()} records):\n";
+
     foreach ($categoriesResult as $category) {
         echo "   - {$category['name']} ({$category['slug']})\n";
     }
@@ -92,15 +96,15 @@ try {
     $database->table('categories')->drop()->execute();
     $database->table('users')->drop()->execute();
     echo "   ✓ Tables dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('categories')->drop(true)->execute();
         $database->table('users')->drop(true)->execute();
         $database->raw("DROP TABLE IF EXISTS schema_changes")->execute();
-    } catch (Exception $cleanupError) {}
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

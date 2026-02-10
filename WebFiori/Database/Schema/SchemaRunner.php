@@ -12,7 +12,6 @@
 namespace WebFiori\Database\Schema;
 
 use Error;
-use Exception;
 use ReflectionClass;
 use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\ConnectionInfo;

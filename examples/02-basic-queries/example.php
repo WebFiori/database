@@ -6,7 +6,6 @@ use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DataType;
-use WebFiori\Database\MultiResultSet;
 
 const SEP = "────────────────────────────────────────────────────────────────────\n";
 
@@ -51,6 +50,7 @@ try {
 
     $result = $database->table('test_users')->select()->execute();
     echo "   All users:\n";
+
     foreach ($result as $user) {
         echo "   - {$user['name']} ({$user['email']}) - Age: {$user['age']}\n";
     }
@@ -58,6 +58,7 @@ try {
 
     $result = $database->table('test_users')->select()->where('age', 30, '>')->execute();
     echo "   Users older than 30:\n";
+
     foreach ($result as $user) {
         echo "   - {$user['name']} - Age: {$user['age']}\n";
     }
@@ -71,6 +72,7 @@ try {
     echo "   ✓ Updated Fatima Al-Zahra's age to 26\n";
 
     $result = $database->table('test_users')->select()->where('name', 'Fatima Al-Zahra')->execute();
+
     foreach ($result as $user) {
         echo "   Fatima's new age: {$user['age']}\n";
     }
@@ -85,6 +87,7 @@ try {
 
     $result = $database->table('test_users')->select()->execute();
     echo "   Remaining users:\n";
+
     foreach ($result as $user) {
         echo "   - {$user['name']} ({$user['email']}) - Age: {$user['age']}\n";
     }
@@ -95,10 +98,9 @@ try {
     echo "6. Cleanup:\n";
     $database->table('test_users')->drop()->execute();
     echo "   ✓ Table dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

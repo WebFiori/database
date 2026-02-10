@@ -36,51 +36,6 @@ abstract class AbstractRepository {
     }
 
     /**
-     * Specify relationships to eager load.
-     * 
-     * @param string|array $relations Relationship name(s) to load.
-     * 
-     * @return static Clone with eager loading configured.
-     */
-    public function with(string|array $relations): static {
-        $clone = clone $this;
-        $clone->eagerLoad = is_array($relations) ? $relations : [$relations];
-        return $clone;
-    }
-
-    /**
-     * Specify belongsTo relationships to load via JOIN.
-     * 
-     * Only works with belongsTo relationships (N:1). Throws exception
-     * if used with hasMany to prevent cartesian product issues.
-     * 
-     * @param string|array $relations Relationship name(s) to load via JOIN.
-     * 
-     * @return static Clone with JOIN loading configured.
-     * 
-     * @throws RepositoryException If relation is hasMany.
-     */
-    public function withJoin(string|array $relations): static {
-        $relations = is_array($relations) ? $relations : [$relations];
-        $relationships = $this->discoverRelationships();
-
-        foreach ($relations as $relation) {
-            if (!isset($relationships[$relation])) {
-                throw new RepositoryException("Unknown relationship: {$relation}");
-            }
-            if ($relationships[$relation]['type'] === Relation::HAS_MANY) {
-                throw new RepositoryException(
-                    "Cannot use withJoin() for hasMany relation '{$relation}'. Use with() instead to avoid cartesian product."
-                );
-            }
-        }
-
-        $clone = clone $this;
-        $clone->joinLoad = $relations;
-        return $clone;
-    }
-
-    /**
      * Returns the total number of records in the table.
      * 
      * @return int Total record count.
@@ -113,6 +68,7 @@ abstract class AbstractRepository {
      */
     public function deleteById(mixed $id = null): void {
         $id = $id ?? $this->getEntityId();
+
         if ($id === null) {
             throw new RepositoryException('Cannot delete: no ID provided');
         }
@@ -137,6 +93,7 @@ abstract class AbstractRepository {
             ->execute();
 
         $entities = array_map(fn($row) => $this->toEntity($row), $result->fetchAll());
+
         return $this->loadRelations($entities);
     }
 
@@ -151,6 +108,7 @@ abstract class AbstractRepository {
      */
     public function findById(mixed $id = null): ?object {
         $id = $id ?? $this->getEntityId();
+
         if ($id === null) {
             throw new RepositoryException('Cannot find: no ID provided');
         }
@@ -170,37 +128,8 @@ abstract class AbstractRepository {
 
         $entities = [$this->toEntity($result->fetch())];
         $loaded = $this->loadRelations($entities);
+
         return $loaded[0];
-    }
-
-    /**
-     * Reloads $this or the given entity from the database.
-     * 
-     * @param T|null $entity The entity to reload, or null to reload $this.
-     * 
-     * @return T|null Fresh entity from database, or null if not found.
-     * 
-     * @throws RepositoryException If no entity provided and $this has no ID.
-     */
-    public function reload(?object $entity = null): ?object {
-        if ($entity === null) {
-            return $this->findById();
-        }
-        $id = $this->toArray($entity)[$this->getIdField()] ?? null;
-        return $this->findById($id);
-    }
-
-    /**
-     * Gets the ID value from $this if it has entity properties.
-     * 
-     * @return mixed The ID value or null.
-     */
-    private function getEntityId(): mixed {
-        $idField = $this->getIdField();
-        if (property_exists($this, $idField)) {
-            return $this->$idField;
-        }
-        return null;
     }
 
     /**
@@ -285,6 +214,24 @@ abstract class AbstractRepository {
     }
 
     /**
+     * Reloads $this or the given entity from the database.
+     * 
+     * @param T|null $entity The entity to reload, or null to reload $this.
+     * 
+     * @return T|null Fresh entity from database, or null if not found.
+     * 
+     * @throws RepositoryException If no entity provided and $this has no ID.
+     */
+    public function reload(?object $entity = null): ?object {
+        if ($entity === null) {
+            return $this->findById();
+        }
+        $id = $this->toArray($entity)[$this->getIdField()] ?? null;
+
+        return $this->findById($id);
+    }
+
+    /**
      * Saves an entity (insert if new, update if existing).
      * 
      * An entity is considered new if its ID field is null.
@@ -332,6 +279,7 @@ abstract class AbstractRepository {
 
         foreach ($entities as $entity) {
             $data = $this->toArray($entity);
+
             if (($data[$idField] ?? null) === null) {
                 unset($data[$idField]);
                 $newEntities[] = $data;
@@ -340,7 +288,8 @@ abstract class AbstractRepository {
             }
         }
 
-        $this->db->transaction(function (Database $db) use ($newEntities, $existingEntities, $idField) {
+        $this->db->transaction(function (Database $db) use ($newEntities, $existingEntities, $idField)
+        {
             if (!empty($newEntities)) {
                 $db->table($this->getTableName())->insert([
                     'cols' => array_keys($newEntities[0]),
@@ -360,64 +309,103 @@ abstract class AbstractRepository {
     }
 
     /**
-     * Creates a select query for the repository's table.
+     * Specify relationships to eager load.
      * 
-     * @return AbstractQuery Query builder instance.
+     * @param string|array $relations Relationship name(s) to load.
+     * 
+     * @return static Clone with eager loading configured.
      */
-    protected function createQuery(): AbstractQuery {
-        return $this->db->table($this->getTableName())->select();
+    public function with(string|array $relations): static {
+        $clone = clone $this;
+        $clone->eagerLoad = is_array($relations) ? $relations : [$relations];
+
+        return $clone;
     }
 
     /**
-     * Returns the underlying database instance.
+     * Specify belongsTo relationships to load via JOIN.
      * 
-     * @return Database The database connection.
+     * Only works with belongsTo relationships (N:1). Throws exception
+     * if used with hasMany to prevent cartesian product issues.
+     * 
+     * @param string|array $relations Relationship name(s) to load via JOIN.
+     * 
+     * @return static Clone with JOIN loading configured.
+     * 
+     * @throws RepositoryException If relation is hasMany.
      */
-    protected function getDatabase(): Database {
-        return $this->db;
+    public function withJoin(string|array $relations): static {
+        $relations = is_array($relations) ? $relations : [$relations];
+        $relationships = $this->discoverRelationships();
+
+        foreach ($relations as $relation) {
+            if (!isset($relationships[$relation])) {
+                throw new RepositoryException("Unknown relationship: {$relation}");
+            }
+
+            if ($relationships[$relation]['type'] === Relation::HAS_MANY) {
+                throw new RepositoryException(
+                    "Cannot use withJoin() for hasMany relation '{$relation}'. Use with() instead to avoid cartesian product."
+                );
+            }
+        }
+
+        $clone = clone $this;
+        $clone->joinLoad = $relations;
+
+        return $clone;
     }
 
     /**
-     * Returns the table definition class for relationship discovery.
-     * Override this to use a separate table class (clean architecture).
-     * 
-     * @return string|null Table class name or null to use $this.
+     * Build query with LEFT JOINs for belongsTo relations.
      */
-    protected function getTableClass(): ?string {
-        return null;
+    private function buildJoinQuery(array $relationships): AbstractQuery {
+        $this->db->clear();
+        $query = $this->db->table($this->getTableName());
+
+        foreach ($this->joinLoad as $relation) {
+            $config = $relationships[$relation];
+            $relatedTable = $this->db->getTable($config['table']);
+
+            // Select related columns with aliases to avoid duplicates
+            $cols = [];
+
+            if ($relatedTable !== null) {
+                foreach ($relatedTable->getColsKeys() as $colKey) {
+                    $cols[$colKey] = ['as' => $relation.'_'.$colKey];
+                }
+            }
+
+            $query = $query->leftJoin(
+                $this->db->table($config['table'])->select($cols)
+            )->on($config['foreignKey'], $config['ownerKey'] ?? 'id');
+        }
+
+        return $query->select();
     }
 
     /**
-     * Returns the name of the ID/primary key field.
-     * 
-     * @return string Column name of the primary key.
+     * Cast value to property type.
      */
-    abstract protected function getIdField(): string;
+    private function castValue(\ReflectionProperty $prop, mixed $value): mixed {
+        if ($value === null) {
+            return null;
+        }
 
-    /**
-     * Returns the database table name for this repository.
-     * 
-     * @return string Table name.
-     */
-    abstract protected function getTableName(): string;
+        $type = $prop->getType();
 
-    /**
-     * Converts an entity to an associative array for database operations.
-     * 
-     * @param T $entity The entity to convert.
-     * 
-     * @return array Associative array with column names as keys.
-     */
-    abstract protected function toArray(object $entity): array;
+        if ($type instanceof \ReflectionNamedType) {
+            return match ($type->getName()) {
+                'int' => (int) $value,
+                'float' => (float) $value,
+                'bool' => (bool) $value,
+                'string' => (string) $value,
+                default => $value
+            };
+        }
 
-    /**
-     * Converts a database row to an entity object.
-     * 
-     * @param array $row Associative array from database.
-     * 
-     * @return T The mapped entity.
-     */
-    abstract protected function toEntity(array $row): object;
+        return $value;
+    }
 
     /**
      * Creates a related entity instance from row data using reflection.
@@ -434,6 +422,7 @@ abstract class AbstractRepository {
 
         foreach ($row as $key => $value) {
             $propName = $this->toCamelCase($key);
+
             if ($ref->hasProperty($propName)) {
                 $prop = $ref->getProperty($propName);
                 $prop->setAccessible(true);
@@ -446,228 +435,6 @@ abstract class AbstractRepository {
         }
 
         return $entity;
-    }
-
-    /**
-     * Cast value to property type.
-     */
-    private function castValue(\ReflectionProperty $prop, mixed $value): mixed {
-        if ($value === null) {
-            return null;
-        }
-
-        $type = $prop->getType();
-        if ($type instanceof \ReflectionNamedType) {
-            return match ($type->getName()) {
-                'int' => (int) $value,
-                'float' => (float) $value,
-                'bool' => (bool) $value,
-                'string' => (string) $value,
-                default => $value
-            };
-        }
-
-        return $value;
-    }
-
-    /**
-     * Load eager-loaded relationships onto entities.
-     */
-    private function loadRelations(array $entities): array {
-        if (empty($this->eagerLoad) || empty($entities)) {
-            return $entities;
-        }
-
-        $relationships = $this->discoverRelationships();
-
-        foreach ($this->eagerLoad as $relation) {
-            if (!isset($relationships[$relation])) {
-                throw new RepositoryException("Unknown relationship: {$relation}");
-            }
-
-            $config = $relationships[$relation];
-
-            if ($config['type'] === Relation::HAS_MANY) {
-                $this->loadHasMany($entities, $config);
-            } elseif ($config['type'] === Relation::BELONGS_TO) {
-                $this->loadBelongsTo($entities, $config);
-            }
-        }
-
-        return $entities;
-    }
-
-    /**
-     * Execute findAll with JOIN for belongsTo relations (single query).
-     */
-    private function findAllWithJoin(): array {
-        $relationships = $this->discoverRelationships();
-        $query = $this->buildJoinQuery($relationships);
-        $rows = $query->execute()->fetchAll();
-
-        return $this->hydrateJoinedRows($rows, $this->joinLoad, $relationships);
-    }
-
-    /**
-     * Execute findById with JOIN for belongsTo relations (single query).
-     */
-    private function findByIdWithJoin(mixed $id): ?object {
-        $relationships = $this->discoverRelationships();
-        $query = $this->buildJoinQuery($relationships);
-        $query->where($this->getIdField(), $id);
-        $rows = $query->execute()->fetchAll();
-
-        if (empty($rows)) {
-            return null;
-        }
-
-        $entities = $this->hydrateJoinedRows($rows, $this->joinLoad, $relationships);
-        return $entities[0] ?? null;
-    }
-
-    /**
-     * Build query with LEFT JOINs for belongsTo relations.
-     */
-    private function buildJoinQuery(array $relationships): AbstractQuery {
-        $this->db->clear();
-        $query = $this->db->table($this->getTableName());
-
-        foreach ($this->joinLoad as $relation) {
-            $config = $relationships[$relation];
-            $relatedTable = $this->db->getTable($config['table']);
-
-            // Select related columns with aliases to avoid duplicates
-            $cols = [];
-            if ($relatedTable !== null) {
-                foreach ($relatedTable->getColsKeys() as $colKey) {
-                    $cols[$colKey] = ['as' => $relation . '_' . $colKey];
-                }
-            }
-
-            $query = $query->leftJoin(
-                $this->db->table($config['table'])->select($cols)
-            )->on($config['foreignKey'], $config['ownerKey'] ?? 'id');
-        }
-
-        return $query->select();
-    }
-
-    /**
-     * Hydrate joined rows into entities with related objects.
-     */
-    private function hydrateJoinedRows(array $rows, array $joinRelations, array $relationships): array {
-        $entities = [];
-
-        foreach ($rows as $row) {
-            $entity = $this->toEntity($row);
-
-            foreach ($joinRelations as $relation) {
-                $config = $relationships[$relation];
-                $prefix = $relation . '_';
-
-                // Extract prefixed columns for this relation
-                $relatedData = [];
-                foreach ($row as $key => $value) {
-                    if (str_starts_with($key, $prefix)) {
-                        $relatedData[substr($key, strlen($prefix))] = $value;
-                    }
-                }
-
-                // Query builder renames conflicting 'id' to 'right_id'
-                if (isset($row['right_id']) && !isset($relatedData['id'])) {
-                    $relatedData['id'] = $row['right_id'];
-                }
-
-                $ownerKey = $config['ownerKey'] ?? 'id';
-                $hasData = isset($relatedData[$ownerKey]) && $relatedData[$ownerKey] !== null;
-
-                $related = $hasData ? $this->createRelatedEntity($config, $relatedData) : null;
-                $this->setPropertyValue($entity, $config['property'], $related);
-            }
-
-            $entities[] = $entity;
-        }
-
-        return $entities;
-    }
-
-    /**
-     * Load hasMany relationship (1+1 queries - preload strategy).
-     */
-    private function loadHasMany(array &$entities, array $config): void {
-        $localKey = $config['localKey'] ?? $this->getIdField();
-        $ids = [];
-
-        foreach ($entities as $entity) {
-            $id = $this->getPropertyValue($entity, $localKey);
-            if ($id !== null) {
-                $ids[] = $id;
-            }
-        }
-
-        if (empty($ids)) {
-            return;
-        }
-
-        $fkColumn = $config['foreignKey'];
-        $related = $this->db->table($config['table'])
-            ->select()
-            ->whereIn($fkColumn, array_unique($ids))
-            ->execute()
-            ->fetchAll();
-
-        $grouped = [];
-        foreach ($related as $row) {
-            $fkValue = $row[$fkColumn] ?? $row[str_replace('-', '_', $fkColumn)] ?? null;
-            if ($fkValue !== null) {
-                $grouped[$fkValue][] = $this->createRelatedEntity($config, $row);
-            }
-        }
-
-        foreach ($entities as $entity) {
-            $id = $this->getPropertyValue($entity, $localKey);
-            $this->setPropertyValue($entity, $config['property'], $grouped[$id] ?? []);
-        }
-    }
-
-    /**
-     * Load belongsTo relationship (1+1 queries - smart strategy).
-     */
-    private function loadBelongsTo(array &$entities, array $config): void {
-        $foreignKey = $config['foreignKey'];
-        $ownerKey = $config['ownerKey'] ?? 'id';
-        $ids = [];
-
-        foreach ($entities as $entity) {
-            $id = $this->getPropertyValue($entity, $foreignKey);
-            if ($id !== null) {
-                $ids[] = $id;
-            }
-        }
-
-        if (empty($ids)) {
-            return;
-        }
-
-        $ownerColumn = $ownerKey;
-        $related = $this->db->table($config['table'])
-            ->select()
-            ->whereIn($ownerColumn, array_unique($ids))
-            ->execute()
-            ->fetchAll();
-
-        $indexed = [];
-        foreach ($related as $row) {
-            $keyValue = $row[$ownerColumn] ?? $row[str_replace('-', '_', $ownerColumn)] ?? null;
-            if ($keyValue !== null) {
-                $indexed[$keyValue] = $this->createRelatedEntity($config, $row);
-            }
-        }
-
-        foreach ($entities as $entity) {
-            $fkValue = $this->getPropertyValue($entity, $foreignKey);
-            $this->setPropertyValue($entity, $config['property'], $indexed[$fkValue] ?? null);
-        }
     }
 
     /**
@@ -705,6 +472,7 @@ abstract class AbstractRepository {
         foreach ($reflection->getProperties() as $prop) {
             foreach ($prop->getAttributes(ForeignKey::class) as $attr) {
                 $fk = $attr->newInstance();
+
                 if ($fk->property !== null) {
                     $table = $this->resolveTableName($fk->table);
                     $this->relationships[$fk->property] = [
@@ -723,32 +491,233 @@ abstract class AbstractRepository {
     }
 
     /**
-     * Resolve table name from class (if it has #[Table] attribute).
+     * Execute findAll with JOIN for belongsTo relations (single query).
      */
-    private function resolveTableName(string $classOrTable): string {
-        if (class_exists($classOrTable)) {
-            $ref = new ReflectionClass($classOrTable);
-            $attrs = $ref->getAttributes(Table::class);
-            if (!empty($attrs)) {
-                return $attrs[0]->newInstance()->name;
+    private function findAllWithJoin(): array {
+        $relationships = $this->discoverRelationships();
+        $query = $this->buildJoinQuery($relationships);
+        $rows = $query->execute()->fetchAll();
+
+        return $this->hydrateJoinedRows($rows, $this->joinLoad, $relationships);
+    }
+
+    /**
+     * Execute findById with JOIN for belongsTo relations (single query).
+     */
+    private function findByIdWithJoin(mixed $id): ?object {
+        $relationships = $this->discoverRelationships();
+        $query = $this->buildJoinQuery($relationships);
+        $query->where($this->getIdField(), $id);
+        $rows = $query->execute()->fetchAll();
+
+        if (empty($rows)) {
+            return null;
+        }
+
+        $entities = $this->hydrateJoinedRows($rows, $this->joinLoad, $relationships);
+
+        return $entities[0] ?? null;
+    }
+
+    /**
+     * Gets the ID value from $this if it has entity properties.
+     * 
+     * @return mixed The ID value or null.
+     */
+    private function getEntityId(): mixed {
+        $idField = $this->getIdField();
+
+        if (property_exists($this, $idField)) {
+            return $this->$idField;
+        }
+
+        return null;
+    }
+
+    private function getPropertyValue(object $entity, string $property): mixed {
+        $camel = $this->toCamelCase($property);
+
+        if (property_exists($entity, $camel)) {
+            return $entity->$camel;
+        }
+
+        if (property_exists($entity, $property)) {
+            return $entity->$property;
+        }
+
+        return null;
+    }
+
+    /**
+     * Hydrate joined rows into entities with related objects.
+     */
+    private function hydrateJoinedRows(array $rows, array $joinRelations, array $relationships): array {
+        $entities = [];
+
+        foreach ($rows as $row) {
+            $entity = $this->toEntity($row);
+
+            foreach ($joinRelations as $relation) {
+                $config = $relationships[$relation];
+                $prefix = $relation.'_';
+
+                // Extract prefixed columns for this relation
+                $relatedData = [];
+
+                foreach ($row as $key => $value) {
+                    if (str_starts_with($key, $prefix)) {
+                        $relatedData[substr($key, strlen($prefix))] = $value;
+                    }
+                }
+
+                // Query builder renames conflicting 'id' to 'right_id'
+                if (isset($row['right_id']) && !isset($relatedData['id'])) {
+                    $relatedData['id'] = $row['right_id'];
+                }
+
+                $ownerKey = $config['ownerKey'] ?? 'id';
+                $hasData = isset($relatedData[$ownerKey]) && $relatedData[$ownerKey] !== null;
+
+                $related = $hasData ? $this->createRelatedEntity($config, $relatedData) : null;
+                $this->setPropertyValue($entity, $config['property'], $related);
+            }
+
+            $entities[] = $entity;
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Load belongsTo relationship (1+1 queries - smart strategy).
+     */
+    private function loadBelongsTo(array &$entities, array $config): void {
+        $foreignKey = $config['foreignKey'];
+        $ownerKey = $config['ownerKey'] ?? 'id';
+        $ids = [];
+
+        foreach ($entities as $entity) {
+            $id = $this->getPropertyValue($entity, $foreignKey);
+
+            if ($id !== null) {
+                $ids[] = $id;
             }
         }
-        return $classOrTable;
+
+        if (empty($ids)) {
+            return;
+        }
+
+        $ownerColumn = $ownerKey;
+        $related = $this->db->table($config['table'])
+            ->select()
+            ->whereIn($ownerColumn, array_unique($ids))
+            ->execute()
+            ->fetchAll();
+
+        $indexed = [];
+
+        foreach ($related as $row) {
+            $keyValue = $row[$ownerColumn] ?? $row[str_replace('-', '_', $ownerColumn)] ?? null;
+
+            if ($keyValue !== null) {
+                $indexed[$keyValue] = $this->createRelatedEntity($config, $row);
+            }
+        }
+
+        foreach ($entities as $entity) {
+            $fkValue = $this->getPropertyValue($entity, $foreignKey);
+            $this->setPropertyValue($entity, $config['property'], $indexed[$fkValue] ?? null);
+        }
+    }
+
+    /**
+     * Load hasMany relationship (1+1 queries - preload strategy).
+     */
+    private function loadHasMany(array &$entities, array $config): void {
+        $localKey = $config['localKey'] ?? $this->getIdField();
+        $ids = [];
+
+        foreach ($entities as $entity) {
+            $id = $this->getPropertyValue($entity, $localKey);
+
+            if ($id !== null) {
+                $ids[] = $id;
+            }
+        }
+
+        if (empty($ids)) {
+            return;
+        }
+
+        $fkColumn = $config['foreignKey'];
+        $related = $this->db->table($config['table'])
+            ->select()
+            ->whereIn($fkColumn, array_unique($ids))
+            ->execute()
+            ->fetchAll();
+
+        $grouped = [];
+
+        foreach ($related as $row) {
+            $fkValue = $row[$fkColumn] ?? $row[str_replace('-', '_', $fkColumn)] ?? null;
+
+            if ($fkValue !== null) {
+                $grouped[$fkValue][] = $this->createRelatedEntity($config, $row);
+            }
+        }
+
+        foreach ($entities as $entity) {
+            $id = $this->getPropertyValue($entity, $localKey);
+            $this->setPropertyValue($entity, $config['property'], $grouped[$id] ?? []);
+        }
+    }
+
+    /**
+     * Load eager-loaded relationships onto entities.
+     */
+    private function loadRelations(array $entities): array {
+        if (empty($this->eagerLoad) || empty($entities)) {
+            return $entities;
+        }
+
+        $relationships = $this->discoverRelationships();
+
+        foreach ($this->eagerLoad as $relation) {
+            if (!isset($relationships[$relation])) {
+                throw new RepositoryException("Unknown relationship: {$relation}");
+            }
+
+            $config = $relationships[$relation];
+
+            if ($config['type'] === Relation::HAS_MANY) {
+                $this->loadHasMany($entities, $config);
+            } elseif ($config['type'] === Relation::BELONGS_TO) {
+                $this->loadBelongsTo($entities, $config);
+            }
+        }
+
+        return $entities;
     }
 
     private function propertyToKey(string $name): string {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $name));
     }
 
-    private function getPropertyValue(object $entity, string $property): mixed {
-        $camel = $this->toCamelCase($property);
-        if (property_exists($entity, $camel)) {
-            return $entity->$camel;
+    /**
+     * Resolve table name from class (if it has #[Table] attribute).
+     */
+    private function resolveTableName(string $classOrTable): string {
+        if (class_exists($classOrTable)) {
+            $ref = new ReflectionClass($classOrTable);
+            $attrs = $ref->getAttributes(Table::class);
+
+            if (!empty($attrs)) {
+                return $attrs[0]->newInstance()->name;
+            }
         }
-        if (property_exists($entity, $property)) {
-            return $entity->$property;
-        }
-        return null;
+
+        return $classOrTable;
     }
 
     private function setPropertyValue(object $entity, string $property, mixed $value): void {
@@ -758,4 +727,64 @@ abstract class AbstractRepository {
     private function toCamelCase(string $key): string {
         return lcfirst(str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $key))));
     }
+
+    /**
+     * Creates a select query for the repository's table.
+     * 
+     * @return AbstractQuery Query builder instance.
+     */
+    protected function createQuery(): AbstractQuery {
+        return $this->db->table($this->getTableName())->select();
+    }
+
+    /**
+     * Returns the underlying database instance.
+     * 
+     * @return Database The database connection.
+     */
+    protected function getDatabase(): Database {
+        return $this->db;
+    }
+
+    /**
+     * Returns the name of the ID/primary key field.
+     * 
+     * @return string Column name of the primary key.
+     */
+    abstract protected function getIdField(): string;
+
+    /**
+     * Returns the table definition class for relationship discovery.
+     * Override this to use a separate table class (clean architecture).
+     * 
+     * @return string|null Table class name or null to use $this.
+     */
+    protected function getTableClass(): ?string {
+        return null;
+    }
+
+    /**
+     * Returns the database table name for this repository.
+     * 
+     * @return string Table name.
+     */
+    abstract protected function getTableName(): string;
+
+    /**
+     * Converts an entity to an associative array for database operations.
+     * 
+     * @param T $entity The entity to convert.
+     * 
+     * @return array Associative array with column names as keys.
+     */
+    abstract protected function toArray(object $entity): array;
+
+    /**
+     * Converts a database row to an entity object.
+     * 
+     * @param array $row Associative array from database.
+     * 
+     * @return T The mapped entity.
+     */
+    abstract protected function toEntity(array $row): object;
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace Infrastructure\Schema;
 
 use WebFiori\Database\Attributes\Column;

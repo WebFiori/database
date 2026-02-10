@@ -13,6 +13,7 @@ namespace WebFiori\Database\MsSql;
 
 use WebFiori\Database\Column;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\DataType;
 use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\Util\DateTimeValidator;
 /**
@@ -61,26 +62,7 @@ class MSSQLColumn extends Column {
         $this->isAutoUpdate = false;
         $this->isIdintity = false;
         $this->setWithExtendedProps(false);
-        $this->setSupportedTypes([
-            'int',
-            'bigint',
-            'varchar',
-            'nvarchar',
-            'char',
-            'nchar',
-            'binary',
-            'varbinary',
-            'date',
-            'datetime2',
-            'datetime',
-            'time',
-            'money',
-            'bit',
-            'decimal',
-            'float',
-            'boolean',
-            'bool'
-        ]);
+        $this->setSupportedTypes(DataType::getSupportedDataTypes('mssql'));
         $this->setDatatype($datatype);
 
         if (!$this->setSize($size)) {

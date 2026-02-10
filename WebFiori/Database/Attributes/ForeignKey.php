@@ -32,6 +32,7 @@ class ForeignKey {
         if ($this->column !== null) {
             return [$this->column];
         }
+
         return $this->columns;
     }
 }

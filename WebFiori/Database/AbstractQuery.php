@@ -264,14 +264,6 @@ abstract class AbstractQuery {
 
         return $this;
     }
-
-    /**
-     * Builds the DROP TABLE query. Override in subclasses for DBMS-specific syntax.
-     */
-    protected function buildDropQuery(string $tableName, bool $ifExists): string {
-        $ifExistsStr = $ifExists ? 'if exists ' : '';
-        return 'drop table ' . $ifExistsStr . $tableName . ';';
-    }
     /**
      * Constructs a query which can be used to drop a column from associated 
      * table.
@@ -1501,6 +1493,15 @@ abstract class AbstractQuery {
         }
 
         return $columnsToSelect;
+    }
+
+    /**
+     * Builds the DROP TABLE query. Override in subclasses for DBMS-specific syntax.
+     */
+    protected function buildDropQuery(string $tableName, bool $ifExists): string {
+        $ifExistsStr = $ifExists ? 'if exists ' : '';
+
+        return 'drop table '.$ifExistsStr.$tableName.';';
     }
     protected function getColType($phpVar) {
         $type = gettype($phpVar);

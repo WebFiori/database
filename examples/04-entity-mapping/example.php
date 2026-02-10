@@ -63,6 +63,7 @@ try {
     ));
 
     echo "   Mapped users:\n";
+
     foreach ($mappedUsers as $user) {
         echo "   - {$user->getFirstName()} {$user->getLastName()} ({$user->getEmail()})\n";
     }
@@ -72,6 +73,7 @@ try {
     echo "4. Manual Entity Mapping:\n";
 
     $result = $database->table('users')->select()->execute();
+
     foreach ($result as $row) {
         $user = (object) [
             'id' => (int) $row['id'],
@@ -93,14 +95,17 @@ try {
         unlink(__DIR__.'/User.php');
         echo "   ✓ Generated User.php file removed\n";
     }
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
     try {
         $database->table('users')->drop(true)->execute();
-        if (file_exists(__DIR__.'/User.php')) unlink(__DIR__.'/User.php');
-    } catch (Exception $cleanupError) {}
+
+        if (file_exists(__DIR__.'/User.php')) {
+            unlink(__DIR__.'/User.php');
+        }
+    } catch (Exception $cleanupError) {
+    }
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

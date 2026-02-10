@@ -74,6 +74,7 @@ try {
 
     $result = $database->table('users')->select()->execute();
     echo "   Users:\n";
+
     foreach ($result as $row) {
         echo "   - {$row['username']} ({$row['email']})\n";
     }
@@ -84,10 +85,9 @@ try {
     $database->table('posts')->drop()->execute();
     $database->table('users')->drop()->execute();
     echo "   ✓ Tables dropped\n";
-
 } catch (Exception $e) {
     echo "✗ Error: ".$e->getMessage()."\n";
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";
