@@ -125,8 +125,8 @@ class MySQLColumnTest extends TestCase {
      * @test
      */
     public function testBoolean00() {
-        $col = new MySQLColumn('my_col', 'boolean');
-        $this->assertEquals('boolean',$col->getDatatype());
+        $col = new MySQLColumn('my_col', 'bool');
+        $this->assertEquals('bool',$col->getDatatype());
         $this->assertEquals('`my_col` bit(1) not null',$col.'');
     }
     /**
@@ -764,7 +764,7 @@ class MySQLColumnTest extends TestCase {
      * @test
      */
     public function testGetPHPType02() {
-        $colObj = new MySQLColumn('col', 'boolean');
+        $colObj = new MySQLColumn('col', 'bool');
         $this->assertEquals('bool', $colObj->getPHPType());
         $colObj->setIsNull(true);
         $this->assertEquals('bool', $colObj->getPHPType());

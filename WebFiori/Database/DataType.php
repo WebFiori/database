@@ -22,6 +22,48 @@ namespace WebFiori\Database;
  */
 class DataType {
     /**
+     * Mapping of database engines to their supported data types.
+     */
+    private static array $EngineTypes = [
+        'mysql' => [
+            self::BIT,
+            self::BLOB,
+            self::BLOB_LONG,
+            self::BLOB_MEDIUM,
+            self::BLOB_TINY,
+            self::BOOL,
+            self::CHAR,
+            self::DATETIME,
+            self::DECIMAL,
+            self::DOUBLE,
+            self::FLOAT,
+            self::INT,
+            self::TEXT,
+            self::TEXT_MEDIUM,
+            self::TIMESTAMP,
+            self::VARCHAR,
+        ],
+        'mssql' => [
+            self::BIGINT,
+            self::BINARY,
+            self::BIT,
+            self::BOOL,
+            self::CHAR,
+            self::DATE,
+            self::DATETIME,
+            self::DATETIME2,
+            self::DECIMAL,
+            self::FLOAT,
+            self::INT,
+            self::MONEY,
+            self::NCHAR,
+            self::NVARCHAR,
+            self::TIME,
+            self::VARBINARY,
+            self::VARCHAR,
+        ],
+    ];
+    /**
      * Big integer data type. Applicable to:
      * <ul>
      * <li>SQL Server</li>
@@ -218,5 +260,15 @@ class DataType {
             self::BOOL, self::BIT => 'bool',
             default => 'string'
         };
+    }
+
+    /**
+     * Returns an array of supported data types for a specific database engine.
+     * 
+     * @param string $engine The database engine name (e.g., 'mysql', 'mssql')
+     * @return array Array of supported data type constants, or empty array if engine is not supported
+     */
+    public static function getSupportedDataTypes(string $engine): array {
+        return self::$EngineTypes[strtolower($engine)] ?? [];
     }
 }

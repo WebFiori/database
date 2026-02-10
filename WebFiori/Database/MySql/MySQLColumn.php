@@ -13,6 +13,7 @@ namespace WebFiori\Database\MySql;
 
 use WebFiori\Database\Column;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\DataType;
 use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\Table;
 use WebFiori\Database\Util\DateTimeValidator;
@@ -64,25 +65,7 @@ class MySQLColumn extends Column {
      */
     public function __construct(string $name = 'col', string $datatype = 'varchar',int $size = 1) {
         parent::__construct($name);
-        $this->setSupportedTypes([
-            'int',
-            'char',
-            'varchar',
-            'timestamp',
-            'tinyblob',
-            'blob',
-            'mediumblob',
-            'longblob',
-            'datetime',
-            'text',
-            'mediumtext',
-            'decimal',
-            'double',
-            'float',
-            'boolean', 
-            'bool',
-            'bit'
-        ]);
+        $this->setSupportedTypes(DataType::getSupportedDataTypes('mysql'));
         $this->setDatatype($datatype);
 
         if (!$this->setSize($size)) {

@@ -237,7 +237,7 @@ class MSSQLColumnTest extends TestCase {
      * @test
      */
     public function testGetPHPType02() {
-        $colObj = new MSSQLColumn('col', 'boolean');
+        $colObj = new MSSQLColumn('col', 'bool');
         $this->assertEquals('bool', $colObj->getPHPType());
         $colObj->setIsNull(true);
         $this->assertEquals('bool', $colObj->getPHPType());
