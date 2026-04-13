@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/WebFiori/database/compare/v2.0.1...v2.0.2) (2026-04-13)
+
+
+### Miscellaneous Chores
+
+* Update composer.json ([ee4669e](https://github.com/WebFiori/database/commit/ee4669e1fa381906721fb46db826a6fd4c8a1204))
+
 ## [2.0.1](https://github.com/WebFiori/database/compare/v2.0.0...v2.0.1) (2026-02-10)
 
 
