@@ -13,8 +13,6 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1",
-        "ext-mysqli": "*",
-        "ext-sqlsrv": "*",
         "webfiori/jsonx": "*"
     },
     "require-dev": {
