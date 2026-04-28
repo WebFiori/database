@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3](https://github.com/WebFiori/database/compare/v2.0.2...v2.0.3) (2026-04-28)
+
+
+### Bug Fixes
+
+* Data Types Mapping ([a8ec169](https://github.com/WebFiori/database/commit/a8ec1692025e7a245ba6102fbf8bc841721abac3)), closes [#132](https://github.com/WebFiori/database/issues/132)
+
 ## [2.0.2](https://github.com/WebFiori/database/compare/v2.0.1...v2.0.2) (2026-04-13)
 
 
