@@ -796,4 +796,92 @@ class MySQLColumnTest extends TestCase {
         $colObj->setIsNull(true);
         $this->assertEquals('string|null', $colObj->getPHPType());
     }
+    /**
+     * @test
+     * Test that MSSQL-only types are auto-mapped when creating MySQL columns.
+     */
+    public function testAutoMapMSSQLBigintToMySQL() {
+        $col = ColumnFactory::create('mysql', 'big_id', ['type' => DataType::BIGINT]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('int', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLBinaryToMySQL() {
+        $col = ColumnFactory::create('mysql', 'data', ['type' => DataType::BINARY]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('blob', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLDateToMySQL() {
+        $col = ColumnFactory::create('mysql', 'd', ['type' => DataType::DATE]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('datetime', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLDatetime2ToMySQL() {
+        $col = ColumnFactory::create('mysql', 'dt', ['type' => DataType::DATETIME2]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('datetime', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLMoneyToMySQL() {
+        $col = ColumnFactory::create('mysql', 'amount', ['type' => DataType::MONEY]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('decimal', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLNcharToMySQL() {
+        $col = ColumnFactory::create('mysql', 'code', ['type' => DataType::NCHAR]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('text', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLNvarcharToMySQL() {
+        $col = ColumnFactory::create('mysql', 'content', ['type' => DataType::NVARCHAR]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('text', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLTimeToMySQL() {
+        $col = ColumnFactory::create('mysql', 't', ['type' => DataType::TIME]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('varchar', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMSSQLVarbinaryToMySQL() {
+        $col = ColumnFactory::create('mysql', 'bin', ['type' => DataType::VARBINARY]);
+        $this->assertInstanceOf(MySQLColumn::class, $col);
+        $this->assertEquals('blob', $col->getDatatype());
+    }
+    /**
+     * @test
+     * Test that native MySQL types are not affected by auto-mapping.
+     */
+    public function testNativeTypesUnaffected() {
+        $col = ColumnFactory::create('mysql', 'name', ['type' => DataType::VARCHAR, 'size' => 100]);
+        $this->assertEquals('varchar', $col->getDatatype());
+        $this->assertEquals(100, $col->getSize());
+
+        $col2 = ColumnFactory::create('mysql', 'body', ['type' => DataType::TEXT]);
+        $this->assertEquals('text', $col2->getDatatype());
+
+        $col3 = ColumnFactory::create('mysql', 'num', ['type' => DataType::INT]);
+        $this->assertEquals('int', $col3->getDatatype());
+    }
 }

@@ -2,6 +2,7 @@
 namespace WebFiori\Tests\Database\MsSql;
 
 use PHPUnit\Framework\TestCase;
+use WebFiori\Database\DataType;
 use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\MsSql\MSSQLColumn;
 use WebFiori\Database\MySql\MySQLColumn;
@@ -580,5 +581,97 @@ class MSSQLColumnTest extends TestCase {
         $col = new MSSQLColumn('iden', 'bigint');
         $col->setIsIdentity(true);
         $this->assertEquals('[iden] [bigint] identity(1,1) not null',$col.'');
+    }
+    /**
+     * @test
+     * Test that MySQL-only types are auto-mapped when creating MSSQL columns.
+     */
+    public function testAutoMapMySQLTextToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'content', ['type' => DataType::TEXT]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('nvarchar', $col->getDatatype());
+        $this->assertEquals(4000, $col->getSize());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLMediumTextToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'body', ['type' => DataType::TEXT_MEDIUM]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('nvarchar', $col->getDatatype());
+        $this->assertEquals(4000, $col->getSize());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLBlobToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'data', ['type' => DataType::BLOB]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('binary', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLLongBlobToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'data', ['type' => DataType::BLOB_LONG]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('binary', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLMediumBlobToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'data', ['type' => DataType::BLOB_MEDIUM]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('binary', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLTinyBlobToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'data', ['type' => DataType::BLOB_TINY]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('binary', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLDoubleToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'price', ['type' => DataType::DOUBLE]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('float', $col->getDatatype());
+    }
+    /**
+     * @test
+     */
+    public function testAutoMapMySQLTimestampToMSSQL() {
+        $col = ColumnFactory::create('mssql', 'ts', ['type' => DataType::TIMESTAMP]);
+        $this->assertInstanceOf(MSSQLColumn::class, $col);
+        $this->assertEquals('datetime2', $col->getDatatype());
+    }
+    /**
+     * @test
+     * Test that explicit size is preserved when type is auto-mapped.
+     */
+    public function testAutoMapPreservesExplicitSize() {
+        $col = ColumnFactory::create('mssql', 'summary', ['type' => DataType::TEXT, 'size' => 500]);
+        $this->assertEquals('nvarchar', $col->getDatatype());
+        $this->assertEquals(500, $col->getSize());
+    }
+    /**
+     * @test
+     * Test that native MSSQL types are not affected by auto-mapping.
+     */
+    public function testNativeTypesUnaffected() {
+        $col = ColumnFactory::create('mssql', 'name', ['type' => DataType::VARCHAR, 'size' => 100]);
+        $this->assertEquals('varchar', $col->getDatatype());
+        $this->assertEquals(100, $col->getSize());
+
+        $col2 = ColumnFactory::create('mssql', 'num', ['type' => DataType::INT]);
+        $this->assertEquals('int', $col2->getDatatype());
+
+        $col3 = ColumnFactory::create('mssql', 'uname', ['type' => DataType::NVARCHAR, 'size' => 200]);
+        $this->assertEquals('nvarchar', $col3->getDatatype());
+        $this->assertEquals(200, $col3->getSize());
     }
 }
