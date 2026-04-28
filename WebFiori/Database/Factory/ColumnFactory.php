@@ -15,6 +15,7 @@ use WebFiori\Database\ColOption;
 use WebFiori\Database\Column;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\DataType;
 use WebFiori\Database\MsSql\MSSQLColumn;
 use WebFiori\Database\MySql\MySQLColumn;
 use WebFiori\Database\Util\TypesMap;
@@ -72,9 +73,20 @@ class ColumnFactory {
             $datatype = 'mixed';
         }
 
-        $col->setDatatype($datatype);
-        $size = isset($options['size']) ? intval($options['size']) : 1;
-        $col->setSize($size);
+        $resolved = self::resolveDatatype($database, $datatype);
+        $col->setDatatype($resolved);
+
+        $explicitSize = isset($options['size']) ? intval($options['size']) : null;
+
+        if ($explicitSize !== null) {
+            $col->setSize($explicitSize);
+        } else if ($resolved !== $datatype) {
+            // Type was auto-mapped; use a large default for string/binary types
+            // to preserve the intent of the original unsized type.
+            $col->setSize(self::getDefaultMappedSize($resolved));
+        } else {
+            $col->setSize(1);
+        }
 
         self::primaryCheck($col, $options);
         self::columnAttributesCheck($col, $options);
@@ -123,6 +135,57 @@ class ColumnFactory {
         }
 
         return self::create($to, $column->getName(), $optionsArr);
+    }
+    /**
+     * Resolves a datatype for the target database engine.
+     * 
+     * If the type is natively supported by the target engine, it is returned
+     * as-is. Otherwise, the method searches all registered engine mappings in
+     * {@see TypesMap::MAP} to find an equivalent type for the target engine.
+     * 
+     * @param string $database Target database engine (e.g. 'mysql', 'mssql').
+     * @param string $datatype The requested datatype.
+     * 
+     * @return string The resolved datatype for the target engine.
+     */
+    private static function resolveDatatype(string $database, string $datatype): string {
+        $normalized = strtolower(trim($datatype));
+
+        if (in_array($normalized, DataType::getSupportedDataTypes($database))) {
+            return $normalized;
+        }
+
+        foreach (array_keys(TypesMap::MAP) as $sourceEngine) {
+            if ($sourceEngine === $database) {
+                continue;
+            }
+
+            $mapped = TypesMap::getType($sourceEngine, $database, $normalized);
+
+            if ($mapped !== '') {
+                return $mapped;
+            }
+        }
+
+        return $normalized;
+    }
+    /**
+     * Returns a sensible default size for a type that was auto-mapped from
+     * an unsized type (e.g. TEXT → nvarchar).
+     * 
+     * @param string $resolvedType The mapped type.
+     * 
+     * @return int Default size.
+     */
+    private static function getDefaultMappedSize(string $resolvedType): int {
+        return match ($resolvedType) {
+            'nvarchar' => 4000,
+            'varchar' => 8000,
+            'nchar', 'char' => 255,
+            'binary', 'varbinary' => 8000,
+            'text', 'mediumtext', 'blob', 'mediumblob', 'longblob', 'tinyblob' => 1,
+            default => 1
+        };
     }
     /**
      * 
