@@ -59,5 +59,12 @@ use WebFiori\Database\DataType;
     default: 1,
     comment: 'The batch number when this change was applied.'
 )]
+#[Column(
+    name: 'status',
+    type: DataType::VARCHAR,
+    size: 20,
+    default: 'applied',
+    comment: 'Status of the change: applied or skipped.'
+)]
 class SchemaMigrationsTable {
 }
