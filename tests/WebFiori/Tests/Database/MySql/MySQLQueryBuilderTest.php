@@ -2241,4 +2241,75 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertEquals(1, $result->getRowsCount());
         $this->assertEquals('Alice', $result->getRows()[0]['name']);
     }
+    /**
+     * @test
+     * Test that PHP booleans are cast to int for BOOL (bit(1)) columns
+     * in single-row insert via MySQLInsertBuilder::parseValues().
+     * @see https://github.com/WebFiori/database/issues/135
+     */
+    public function testInsertBoolColumnCastsToInt() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_privileges')->insert([
+            'id' => 1,
+            'can-edit-price' => true,
+            'can-change-username' => false,
+            'can-do-anything' => true
+        ]);
+
+        $params = $schema->getQueryGenerator()->getInsertBuilder()->getQueryParams();
+
+        // All boolean values must be integers (1 or 0), not raw PHP booleans
+        $this->assertSame(1, $params['values'][0][1], 'true should be cast to int 1');
+        $this->assertSame(0, $params['values'][0][2], 'false should be cast to int 0');
+        $this->assertSame(1, $params['values'][0][3], 'true should be cast to int 1');
+        $this->assertEquals('iiii', $params['bind']);
+    }
+    /**
+     * @test
+     * Test that PHP booleans are cast to int for BOOL (bit(1)) columns
+     * in update queries via addBinding().
+     * @see https://github.com/WebFiori/database/issues/135
+     */
+    public function testUpdateBoolColumnCastsToInt() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_privileges')->update([
+            'can-edit-price' => true,
+            'can-change-username' => false,
+        ])->where('id', 1);
+
+        $bindings = $schema->getQueryGenerator()->getBindings();
+
+        // Boolean values must be integers (1 or 0), not raw PHP booleans
+        $this->assertSame(1, $bindings['values'][0], 'true should be cast to int 1');
+        $this->assertSame(0, $bindings['values'][1], 'false should be cast to int 0');
+        $this->assertEquals('iii', $bindings['bind']);
+    }
+    /**
+     * @test
+     * Test that PHP booleans are cast to int for BOOL (bit(1)) columns
+     * in multi-row insert via MySQLInsertBuilder::parseValues().
+     * @see https://github.com/WebFiori/database/issues/135
+     */
+    public function testInsertBoolColumnMultiRowCastsToInt() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users_privileges')->insert([
+            'cols' => ['id', 'can-edit-price', 'can-change-username', 'can-do-anything'],
+            'values' => [
+                [1, true, false, true],
+                [2, false, true, false],
+            ]
+        ]);
+
+        $params = $schema->getQueryGenerator()->getInsertBuilder()->getQueryParams();
+
+        // Row 0
+        $this->assertSame(1, $params['values'][0][1], 'Row 0: true should be cast to int 1');
+        $this->assertSame(0, $params['values'][0][2], 'Row 0: false should be cast to int 0');
+        $this->assertSame(1, $params['values'][0][3], 'Row 0: true should be cast to int 1');
+
+        // Row 1
+        $this->assertSame(0, $params['values'][1][1], 'Row 1: false should be cast to int 0');
+        $this->assertSame(1, $params['values'][1][2], 'Row 1: true should be cast to int 1');
+        $this->assertSame(0, $params['values'][1][3], 'Row 1: false should be cast to int 0');
+    }
 }
