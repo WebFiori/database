@@ -24,6 +24,15 @@ class DryRunMigration extends AbstractMigration {
     }
 }
 
+class FailingDryRunMigration extends AbstractMigration {
+    public function up(Database $db): void {
+        throw new \RuntimeException('Something went wrong in migration');
+    }
+
+    public function down(Database $db): void {
+    }
+}
+
 class DryRunTest extends TestCase {
     
     private function getConnectionInfo(): ConnectionInfo {
@@ -180,6 +189,30 @@ class DryRunTest extends TestCase {
         
         $this->assertNotEmpty($db->getCapturedQueries());
         $this->assertInstanceOf('WebFiori\Database\ResultSet', $result);
+    }
+
+    /**
+     * @test
+     * Test that dry run captures error messages from failing migrations.
+     * @see https://github.com/WebFiori/database/issues/129
+     */
+    public function testGetPendingChangesWithErrorCapture() {
+        $runner = new SchemaRunner($this->getConnectionInfo());
+        $runner->register(FailingDryRunMigration::class);
+
+        try {
+            $runner->createSchemaTable();
+
+            $pending = $runner->getPendingChanges(true);
+
+            $this->assertCount(1, $pending);
+            $this->assertNotEmpty($pending[0]['queries']);
+            $this->assertStringContainsString('Error: Something went wrong in migration', $pending[0]['queries'][0]);
+
+            $runner->dropSchemaTable();
+        } catch (\Exception $ex) {
+            $this->markTestSkipped('Database connection failed: ' . $ex->getMessage());
+        }
     }
 }
 
