@@ -363,6 +363,7 @@ class SchemaRunner extends Database {
                     $info['queries'] = $this->getCapturedQueries();
                 } catch (\Throwable $ex) {
                     // Capture failed, queries may be partial
+                    $info['queries'] = array_merge($this->getCapturedQueries(), ['Error: '.$ex->getMessage()]);
                 }
                 $this->setDryRun(false);
             }
