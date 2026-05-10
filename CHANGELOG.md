@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.1.0](https://github.com/WebFiori/database/compare/v2.0.3...v2.1.0) (2026-05-10)
+
+
+### Features
+
+* **migrations:** surface errors in dry run pending changes ([2cc91b9](https://github.com/WebFiori/database/commit/2cc91b94d6d78e2259c8fd028f692237a70dcd17)), closes [#129](https://github.com/WebFiori/database/issues/129)
+* **schema:** add skip/baseline support to SchemaRunner ([98ff685](https://github.com/WebFiori/database/commit/98ff68529f8d8e8e38aee87e808b54dd3673a13b)), closes [#136](https://github.com/WebFiori/database/issues/136)
+
+
+### Bug Fixes
+
+* **mysql:** cast PHP booleans to int for bit(1) column bindings ([480e659](https://github.com/WebFiori/database/commit/480e659bacaeaa27e9e5a58b8103697cab5f7513)), closes [#135](https://github.com/WebFiori/database/issues/135)
+* **mysql:** cast PHP booleans to int for bit(1) column bindings ([d19c735](https://github.com/WebFiori/database/commit/d19c735c09a23fbf5b928d6573cf3de858f27152)), closes [#135](https://github.com/WebFiori/database/issues/135)
+
 ## [2.0.3](https://github.com/WebFiori/database/compare/v2.0.2...v2.0.3) (2026-04-28)
 
 
