@@ -256,9 +256,19 @@ class SchemaRunner extends Database {
      * This table stores information about which migrations and seeders
      * have been applied, including timestamps and execution status.
      * Required for tracking database change history.
+     * 
+     * If the table already exists but is missing the 'status' column
+     * (upgrade from older version), the column will be added automatically.
      */
     public function createSchemaTable() {
         $this->createTables();
+
+        // Add status column if missing (upgrade path for existing installations)
+        try {
+            $this->table('schema_changes')->select(['status'])->limit(1)->execute();
+        } catch (\Throwable $e) {
+            $this->table('schema_changes')->addCol('status')->execute();
+        }
     }
 
     /**
@@ -525,6 +535,127 @@ class SchemaRunner extends Database {
         }
 
         return $rolled;
+    }
+
+    /**
+     * Skip a single change without executing it (baseline).
+     * 
+     * Records the change as 'skipped' in the schema_changes table so it
+     * won't be executed by future apply() calls.
+     * 
+     * @param DatabaseChange|string $change The change instance or class name.
+     * @return bool True if skipped successfully, false if already applied/skipped or not found.
+     */
+    public function skip(DatabaseChange|string $change): bool {
+        $instance = is_string($change) ? $this->findChangeByName($change) : $change;
+
+        if ($instance === null) {
+            return false;
+        }
+
+        if ($this->isApplied($instance->getName())) {
+            return false;
+        }
+
+        $batch = $this->getRepository()->getNextBatchNumber();
+        $this->getRepository()->recordSkipped($instance, $batch);
+
+        return true;
+    }
+
+    /**
+     * Skip all pending changes without executing them (baseline all).
+     * 
+     * @return array Array of skipped DatabaseChange instances.
+     */
+    public function skipAll(): array {
+        $skipped = [];
+        $batch = $this->getRepository()->getNextBatchNumber();
+
+        foreach ($this->dbChanges as $change) {
+            if ($this->isApplied($change->getName())) {
+                continue;
+            }
+
+            if (!$this->shouldRunInEnvironment($change)) {
+                continue;
+            }
+
+            $this->getRepository()->recordSkipped($change, $batch);
+            $skipped[] = $change;
+        }
+
+        return $skipped;
+    }
+
+    /**
+     * Skip the next N pending changes without executing them.
+     * 
+     * Changes are skipped in dependency order (same order apply() would use).
+     * 
+     * @param int $count Number of changes to skip.
+     * @return array Array of skipped DatabaseChange instances.
+     */
+    public function skipNext(int $count = 1): array {
+        $skipped = [];
+        $batch = $this->getRepository()->getNextBatchNumber();
+
+        foreach ($this->dbChanges as $change) {
+            if (count($skipped) >= $count) {
+                break;
+            }
+
+            if ($this->isApplied($change->getName())) {
+                continue;
+            }
+
+            if (!$this->shouldRunInEnvironment($change)) {
+                continue;
+            }
+
+            $this->getRepository()->recordSkipped($change, $batch);
+            $skipped[] = $change;
+        }
+
+        return $skipped;
+    }
+
+    /**
+     * Skip all pending changes up to and including the named one.
+     * 
+     * @param string $changeName The class name of the change to skip up to.
+     * @return array Array of skipped DatabaseChange instances.
+     */
+    public function skipUpTo(string $changeName): array {
+        $skipped = [];
+        $batch = $this->getRepository()->getNextBatchNumber();
+
+        foreach ($this->dbChanges as $change) {
+            if ($this->isApplied($change->getName())) {
+                if ($change->getName() === $changeName) {
+                    break;
+                }
+
+                continue;
+            }
+
+            if (!$this->shouldRunInEnvironment($change)) {
+                if ($change->getName() === $changeName) {
+                    break;
+                }
+
+                continue;
+            }
+
+            $this->getRepository()->recordSkipped($change, $batch);
+            $skipped[] = $change;
+
+            if ($change->getName() === $changeName) {
+                break;
+            }
+        }
+
+        return $skipped;
     }
 
     private function areDependenciesSatisfied(DatabaseChange $change): bool {

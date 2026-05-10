@@ -197,7 +197,29 @@ class SchemaChangeRepository extends AbstractRepository {
                 'type' => $change->getType(),
                 'applied-on' => date('Y-m-d H:i:s'),
                 'db-name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
-                'batch' => $change->getBatch()
+                'batch' => $change->getBatch(),
+                'status' => 'applied'
+            ])->execute();
+
+        return $this->getLastInsertId();
+    }
+
+    /**
+     * Record a change as skipped (baselined).
+     * 
+     * @param DatabaseChange $change The change to record
+     * @param int $batch The batch number to assign
+     * @return int The ID of the inserted record
+     */
+    public function recordSkipped(DatabaseChange $change, int $batch): int {
+        $this->getDatabase()->table($this->getTableName())
+            ->insert([
+                'change_name' => $change->getName(),
+                'type' => $change->getType(),
+                'applied-on' => date('Y-m-d H:i:s'),
+                'db-name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
+                'batch' => $batch,
+                'status' => 'skipped'
             ])->execute();
 
         return $this->getLastInsertId();
