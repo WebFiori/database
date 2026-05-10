@@ -41,13 +41,14 @@ class MySQLQuery extends AbstractQuery {
     public function addBinding(Column $col, $value) {
         $colType = $col->getDatatype();
 
-        $this->bindings['values'][] = $value;
-
         if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
+            $this->bindings['values'][] = (int) $value;
             $this->bindings['bind'] .= 'i';
         } else if ($colType == 'decimal' || $colType == 'float') {
+            $this->bindings['values'][] = $value;
             $this->bindings['bind'] .= 'd';
         } else {
+            $this->bindings['values'][] = $value;
             $this->bindings['bind'] .= 's';
         }
     }
