@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.1](https://github.com/WebFiori/database/compare/v2.1.0...v2.1.1) (2026-05-11)
+
+
+### Features
+
+* **connection:** add connection pooling for database connection reuse ([32d8fb3](https://github.com/WebFiori/database/commit/32d8fb3a9cc67980be3f55ca85bbc003b4a18399)), closes [#143](https://github.com/WebFiori/database/issues/143)
+
+
+### Miscellaneous Chores
+
+* Updated Version ([c2c3108](https://github.com/WebFiori/database/commit/c2c31080bc7cd8b94218699c6399b14bc08f8dab))
+
 ## [2.1.0](https://github.com/WebFiori/database/compare/v2.0.3...v2.1.0) (2026-05-10)
 
 
