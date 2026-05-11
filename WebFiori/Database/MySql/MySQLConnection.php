@@ -82,7 +82,15 @@ class MySQLConnection extends Connection {
      * @return bool True if the connection is active.
      */
     public function isAlive(): bool {
-        return $this->link !== null && @$this->link->ping();
+        if ($this->link === null) {
+            return false;
+        }
+
+        try {
+            return @$this->link->query('SELECT 1') !== false;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public function beginTransaction(?string $name = null) {
