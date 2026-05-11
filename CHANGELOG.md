@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.3](https://github.com/WebFiori/database/compare/v2.1.2...v2.1.3) (2026-05-11)
+
+
+### Bug Fixes
+
+* **pool:** don't throw when max connections exceeded, create untracked connection instead ([9dd6143](https://github.com/WebFiori/database/commit/9dd6143e7825ef215faa040b0582eb466298b3ff))
+* **pool:** each acquire creates its own connection, reuse only after release ([a9414de](https://github.com/WebFiori/database/commit/a9414dec9ff7b4000faa720ab6e2ea0fd25cfa90))
+
+
+### Reverts
+
+* remove pool exhaustion patches ([b463201](https://github.com/WebFiori/database/commit/b4632017b1422d8bf455bf653be5ceb673ce0fac))
+
 ## [2.1.2](https://github.com/WebFiori/database/compare/v2.1.1...v2.1.2) (2026-05-11)
 
 
