@@ -262,7 +262,6 @@ class SchemaRunner extends Database {
      */
     public function createSchemaTable() {
         $this->createTables();
-        $this->execute();
         // Add status column if missing (upgrade path for existing installations)
         try {
             $this->table('schema_changes')->addCol('status')->execute();
