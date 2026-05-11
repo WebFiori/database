@@ -151,6 +151,18 @@ abstract class Connection {
     }
     public abstract function rollBack(?string $name = null);
     /**
+     * Close the database connection and release resources.
+     * 
+     * After calling this method, the connection should not be used for queries.
+     */
+    public abstract function close(): void;
+    /**
+     * Check if the connection is still alive and usable.
+     * 
+     * @return bool True if the connection is active and can execute queries.
+     */
+    public abstract function isAlive(): bool;
+    /**
      * Sets the last query and execute it.
      * 
      * This method should be implemented in a way that it accepts null or an 
