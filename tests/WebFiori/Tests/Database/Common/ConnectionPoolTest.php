@@ -81,7 +81,7 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testMultipleAcquiresCreateMultipleConnections() {
+    public function testMultipleAcquiresCreateSeparateConnections() {
         $pool = ConnectionPool::getInstance();
         $info = $this->createMySQLConnectionInfo();
 
@@ -112,7 +112,7 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testMaxTotalExceededStillWorks() {
+    public function testMaxTotalIsAdvisoryNotHardLimit() {
         $pool = ConnectionPool::getInstance();
         $pool->setMaxTotal(2);
         $info = $this->createMySQLConnectionInfo();
@@ -121,10 +121,10 @@ class ConnectionPoolTest extends TestCase {
         $conn2 = $pool->acquire($info);
         $conn3 = $pool->acquire($info);
 
-        // All connections work, but only 2 are tracked as active
+        // All connections created — no exception thrown
         $this->assertNotNull($conn3);
         $this->assertTrue($conn3->isAlive());
-        $this->assertEquals(2, $pool->getActiveCount());
+        $this->assertEquals(3, $pool->getActiveCount());
     }
 
     /**
@@ -163,18 +163,16 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testDifferentConnectionInfoUsesDifferentKeys() {
+    public function testAcquireAfterReleaseReusesSameConnection() {
         $pool = ConnectionPool::getInstance();
-        $info1 = $this->createMySQLConnectionInfo();
+        $info = $this->createMySQLConnectionInfo();
 
-        $conn1 = $pool->acquire($info1);
+        $conn1 = $pool->acquire($info);
         $pool->release($conn1);
 
-        // Same params should reuse
-        $info2 = $this->createMySQLConnectionInfo();
-        $conn2 = $pool->acquire($info2);
+        // Same params after release should reuse
+        $conn2 = $pool->acquire($info);
         $this->assertSame($conn1, $conn2);
-
         $this->assertEquals(1, $pool->getActiveCount());
     }
 

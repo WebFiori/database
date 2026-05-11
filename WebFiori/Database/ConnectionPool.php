@@ -68,7 +68,7 @@ class ConnectionPool {
      * 
      * @return Connection A ready-to-use database connection.
      * 
-     * @throws DatabaseException If the pool is exhausted or connection fails.
+     * @throws DatabaseException If connection creation fails.
      */
     public function acquire(ConnectionInfo $info): Connection {
         $key = $this->buildKey($info);
@@ -86,12 +86,7 @@ class ConnectionPool {
             $conn->close();
         }
 
-        // Check total limit — if exceeded, create connection without pooling
-        if ($this->getActiveCount() >= $this->maxTotal) {
-            return $this->createConnection($info);
-        }
-
-        // Create new connection
+        // Create new connection (no hard limit — pool is advisory)
         $conn = $this->createConnection($info);
         $this->active[$key][] = $conn;
         return $conn;
