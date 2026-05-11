@@ -21,6 +21,7 @@ This directory contains practical examples demonstrating how to use the WebFiori
 | 13 | [pagination](13-pagination/) | Offset and cursor-based pagination |
 | 14 | [active-record-model](14-active-record-model/) | Entity + Repository merged into single Model class |
 | 15 | [eager-loading](15-eager-loading/) | Avoid N+1 queries with relationship eager loading |
+| 16 | [connection-pooling](16-connection-pooling/) | Connection reuse and pool management |
 
 ## Prerequisites
 

@@ -49,7 +49,37 @@ class MSSQLConnection extends Connection {
      * 
      */
     public function __destruct() {
-        sqlsrv_close($this->link);
+        $this->close();
+    }
+
+    /**
+     * Close the MSSQL connection and release resources.
+     */
+    public function close(): void {
+        if ($this->link !== null) {
+            @sqlsrv_close($this->link);
+            $this->link = null;
+        }
+    }
+
+    /**
+     * Check if the MSSQL connection is still alive.
+     * 
+     * @return bool True if the connection is active.
+     */
+    public function isAlive(): bool {
+        if ($this->link === null) {
+            return false;
+        }
+
+        $result = @sqlsrv_query($this->link, 'SELECT 1');
+
+        if ($result !== false) {
+            sqlsrv_free_stmt($result);
+            return true;
+        }
+
+        return false;
     }
     /**
      * Starts SQL server transaction.
