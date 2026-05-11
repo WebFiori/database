@@ -5,7 +5,6 @@ namespace WebFiori\Tests\Database;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\ConnectionPool;
-use WebFiori\Database\DatabaseException;
 
 /**
  * Test cases for ConnectionPool.
@@ -113,17 +112,19 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testMaxTotalEnforced() {
+    public function testMaxTotalExceededStillWorks() {
         $pool = ConnectionPool::getInstance();
         $pool->setMaxTotal(2);
         $info = $this->createMySQLConnectionInfo();
 
-        $pool->acquire($info);
-        $pool->acquire($info);
+        $conn1 = $pool->acquire($info);
+        $conn2 = $pool->acquire($info);
+        $conn3 = $pool->acquire($info);
 
-        $this->expectException(DatabaseException::class);
-        $this->expectExceptionMessage('Connection pool exhausted');
-        $pool->acquire($info);
+        // All connections work, but only 2 are tracked as active
+        $this->assertNotNull($conn3);
+        $this->assertTrue($conn3->isAlive());
+        $this->assertEquals(2, $pool->getActiveCount());
     }
 
     /**

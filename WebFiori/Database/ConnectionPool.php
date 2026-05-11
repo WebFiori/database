@@ -86,11 +86,9 @@ class ConnectionPool {
             $conn->close();
         }
 
-        // Check total limit
+        // Check total limit — if exceeded, create connection without pooling
         if ($this->getActiveCount() >= $this->maxTotal) {
-            throw new DatabaseException(
-                "Connection pool exhausted (max: {$this->maxTotal})"
-            );
+            return $this->createConnection($info);
         }
 
         // Create new connection
