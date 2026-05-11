@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/WebFiori/database/compare/v2.1.1...v2.1.2) (2026-05-11)
+
+
+### Bug Fixes
+
+* Is Alive ([1753f3a](https://github.com/WebFiori/database/commit/1753f3a09a7f0a15d2f017ef90e6d960d0b5828d))
+
 ## [2.1.1](https://github.com/WebFiori/database/compare/v2.1.0...v2.1.1) (2026-05-11)
 
 
