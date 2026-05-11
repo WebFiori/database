@@ -5,6 +5,7 @@ namespace WebFiori\Tests\Database;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\ConnectionPool;
+use WebFiori\Database\DatabaseException;
 
 /**
  * Test cases for ConnectionPool.
@@ -81,7 +82,7 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testMultipleAcquiresCreateSeparateConnections() {
+    public function testMultipleAcquiresCreateMultipleConnections() {
         $pool = ConnectionPool::getInstance();
         $info = $this->createMySQLConnectionInfo();
 
@@ -112,19 +113,17 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testMaxTotalIsAdvisoryNotHardLimit() {
+    public function testMaxTotalEnforced() {
         $pool = ConnectionPool::getInstance();
         $pool->setMaxTotal(2);
         $info = $this->createMySQLConnectionInfo();
 
-        $conn1 = $pool->acquire($info);
-        $conn2 = $pool->acquire($info);
-        $conn3 = $pool->acquire($info);
+        $pool->acquire($info);
+        $pool->acquire($info);
 
-        // All connections created — no exception thrown
-        $this->assertNotNull($conn3);
-        $this->assertTrue($conn3->isAlive());
-        $this->assertEquals(3, $pool->getActiveCount());
+        $this->expectException(DatabaseException::class);
+        $this->expectExceptionMessage('Connection pool exhausted');
+        $pool->acquire($info);
     }
 
     /**
@@ -163,16 +162,18 @@ class ConnectionPoolTest extends TestCase {
     /**
      * @test
      */
-    public function testAcquireAfterReleaseReusesSameConnection() {
+    public function testDifferentConnectionInfoUsesDifferentKeys() {
         $pool = ConnectionPool::getInstance();
-        $info = $this->createMySQLConnectionInfo();
+        $info1 = $this->createMySQLConnectionInfo();
 
-        $conn1 = $pool->acquire($info);
+        $conn1 = $pool->acquire($info1);
         $pool->release($conn1);
 
-        // Same params after release should reuse
-        $conn2 = $pool->acquire($info);
+        // Same params should reuse
+        $info2 = $this->createMySQLConnectionInfo();
+        $conn2 = $pool->acquire($info2);
         $this->assertSame($conn1, $conn2);
+
         $this->assertEquals(1, $pool->getActiveCount());
     }
 
