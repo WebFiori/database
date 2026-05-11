@@ -13,10 +13,8 @@ namespace WebFiori\Database;
 
 use Exception;
 use WebFiori\Database\Factory\TableFactory;
-use WebFiori\Database\MsSql\MSSQLConnection;
 use WebFiori\Database\MsSql\MSSQLQuery;
 use WebFiori\Database\MsSql\MSSQLTable;
-use WebFiori\Database\MySql\MySQLConnection;
 use WebFiori\Database\MySql\MySQLQuery;
 use WebFiori\Database\MySql\MySQLTable;
 use WebFiori\Database\Performance\PerformanceOption;
@@ -118,6 +116,12 @@ class Database {
             'code' => 0,
             'message' => ''
         ];
+    }
+    /**
+     * Release the connection back to the pool when this object is destroyed.
+     */
+    public function __destruct() {
+        $this->close();
     }
     /**
      * Adds a database query to the set of queries at which they were executed.
@@ -417,15 +421,7 @@ class Database {
         $connInfo = $this->getConnectionInfo();
 
         if ($this->connection === null && $connInfo !== null) {
-            $driver = $connInfo->getDatabaseType();
-
-            if ($driver == 'mysql') {
-                $conn = new MySQLConnection($connInfo);
-                $this->setConnection($conn);
-            } else if ($driver == 'mssql') {
-                $conn = new MSSQLConnection($connInfo);
-                $this->setConnection($conn);
-            }
+            $this->connection = ConnectionPool::getInstance()->acquire($connInfo);
         }
 
         return $this->connection;
@@ -829,6 +825,19 @@ class Database {
      */
     public function setConnection(Connection $con) {
         $this->connection = $con;
+    }
+    /**
+     * Release the current connection back to the pool.
+     * 
+     * After calling this method, the connection is returned to the pool
+     * for reuse by other Database instances. The next call to getConnection()
+     * will acquire a new connection from the pool.
+     */
+    public function close(): void {
+        if ($this->connection !== null) {
+            ConnectionPool::getInstance()->release($this->connection);
+            $this->connection = null;
+        }
     }
     /**
      * Sets database connection information.

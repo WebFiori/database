@@ -63,7 +63,26 @@ class MySQLConnection extends Connection {
      * Close database connection.
      */
     public function __destruct() {
-        mysqli_close($this->link);
+        $this->close();
+    }
+
+    /**
+     * Close the MySQL connection and release resources.
+     */
+    public function close(): void {
+        if ($this->link !== null) {
+            @mysqli_close($this->link);
+            $this->link = null;
+        }
+    }
+
+    /**
+     * Check if the MySQL connection is still alive.
+     * 
+     * @return bool True if the connection is active.
+     */
+    public function isAlive(): bool {
+        return $this->link !== null && @$this->link->ping();
     }
 
     public function beginTransaction(?string $name = null) {
