@@ -43,13 +43,13 @@ use WebFiori\Database\DataType;
     comment: 'The type of the change (migration, seeder, etc.).'
 )]
 #[Column(
-    name: 'db-name',
+    name: 'db_name',
     type: DataType::VARCHAR,
     size: 255,
     comment: 'The name of the database at which the migration was applied to.'
 )]
 #[Column(
-    name: 'applied-on',
+    name: 'applied_on',
     type: DataType::DATETIME,
     comment: 'The date and time at which the change was applied.'
 )]

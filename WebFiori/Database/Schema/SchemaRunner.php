@@ -79,7 +79,7 @@ class SchemaRunner extends Database {
 
         // Handle MSSQL datetime2 type
         if ($this->getConnectionInfo()->getDatabaseType() === ConnectionInfo::SUPPORTED_DATABASES[1]) {
-            $table->getColByKey('applied-on')->setDatatype(DataType::DATETIME2);
+            $table->getColByKey('applied_on')->setDatatype(DataType::DATETIME2);
         }
 
         $this->addTable($table);
