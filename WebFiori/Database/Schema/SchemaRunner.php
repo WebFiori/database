@@ -156,6 +156,12 @@ class SchemaRunner extends Database {
                     continue;
                 }
 
+                if (!$this->shouldRunForConnection($change)) {
+                    $processed[$name] = true;
+                    $result->addSkipped($change, 'Connection mismatch');
+                    continue;
+                }
+
                 if (!$this->areDependenciesSatisfied($change)) {
                     continue; // Don't mark as processed - may be satisfied later
                 }
@@ -208,6 +214,10 @@ class SchemaRunner extends Database {
                 }
 
                 if (!$this->shouldRunInEnvironment($change)) {
+                    continue;
+                }
+
+                if (!$this->shouldRunForConnection($change)) {
                     continue;
                 }
 
@@ -360,6 +370,10 @@ class SchemaRunner extends Database {
             }
 
             if (!$this->shouldRunInEnvironment($change)) {
+                continue;
+            }
+
+            if (!$this->shouldRunForConnection($change)) {
                 continue;
             }
 
@@ -580,6 +594,10 @@ class SchemaRunner extends Database {
                 continue;
             }
 
+            if (!$this->shouldRunForConnection($change)) {
+                continue;
+            }
+
             $this->getRepository()->recordSkipped($change, $batch);
             $skipped[] = $change;
         }
@@ -612,6 +630,10 @@ class SchemaRunner extends Database {
                 continue;
             }
 
+            if (!$this->shouldRunForConnection($change)) {
+                continue;
+            }
+
             $this->getRepository()->recordSkipped($change, $batch);
             $skipped[] = $change;
         }
@@ -639,6 +661,14 @@ class SchemaRunner extends Database {
             }
 
             if (!$this->shouldRunInEnvironment($change)) {
+                if ($change->getName() === $changeName) {
+                    break;
+                }
+
+                continue;
+            }
+
+            if (!$this->shouldRunForConnection($change)) {
                 if ($change->getName() === $changeName) {
                     break;
                 }
@@ -738,6 +768,18 @@ class SchemaRunner extends Database {
         }
 
         return null;
+    }
+
+    private function shouldRunForConnection(DatabaseChange $change): bool {
+        $targets = $change->getTargetConnections();
+
+        if (empty($targets)) {
+            return true;
+        }
+
+        $connInfo = $this->getConnectionInfo();
+
+        return $connInfo !== null && in_array($connInfo->getName(), $targets);
     }
 
     private function shouldRunInEnvironment(DatabaseChange $change): bool {
