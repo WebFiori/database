@@ -12,6 +12,7 @@
 namespace WebFiori\Database;
 
 use Exception;
+use WebFiori\Database\Attributes\AttributeTableBuilder;
 use WebFiori\Database\Factory\TableFactory;
 use WebFiori\Database\MsSql\MSSQLQuery;
 use WebFiori\Database\MsSql\MSSQLTable;
@@ -174,6 +175,61 @@ class Database {
     }
 
     /**
+     * Registers a table from a class-string.
+     * 
+     * The class can either be a subclass of Table (e.g. MySQLTable/MSSQLTable)
+     * or a class annotated with #[Table] and #[Column] attributes.
+     * 
+     * If the class is a Table subclass with a different engine than the current
+     * connection, it will be converted automatically.
+     * 
+     * @param string $className Fully qualified class name.
+     * 
+     * @return Table The registered table instance.
+     * 
+     * @throws DatabaseException If the class cannot be instantiated or lacks
+     * required attributes.
+     */
+    public function addTableFromClass(string $className): Table {
+        $connInfo = $this->getConnectionInfo();
+        $dbType = $connInfo !== null ? $connInfo->getDatabaseType() : 'mysql';
+
+        if (is_subclass_of($className, Table::class)) {
+            try {
+                $table = new $className();
+            } catch (\Throwable $e) {
+                throw new DatabaseException('Failed to instantiate table class "'.$className.'": '.$e->getMessage());
+            }
+            $table = TableFactory::map($dbType, $table);
+        } else {
+            $table = AttributeTableBuilder::build($className, $dbType);
+        }
+
+        $this->addTable($table);
+
+        return $table;
+    }
+
+    /**
+     * Registers multiple tables from an array of class-strings.
+     * 
+     * @param string[] $classNames Array of fully qualified class names.
+     * 
+     * @return Table[] Array of registered table instances.
+     * 
+     * @throws DatabaseException If any class cannot be registered.
+     */
+    public function addTablesFromClasses(array $classNames): array {
+        $tables = [];
+
+        foreach ($classNames as $className) {
+            $tables[] = $this->addTableFromClass($className);
+        }
+
+        return $tables;
+    }
+
+    /**
      * Build a 'where' expression.
      *
      * This method can be used to append an 'and' condition to an already existing
@@ -226,6 +282,19 @@ class Database {
     public function clearPerformanceMetrics(): void {
         if ($this->performanceMonitor !== null) {
             $this->performanceMonitor->clearMetrics();
+        }
+    }
+    /**
+     * Release the current connection back to the pool.
+     * 
+     * After calling this method, the connection is returned to the pool
+     * for reuse by other Database instances. The next call to getConnection()
+     * will acquire a new connection from the pool.
+     */
+    public function close(): void {
+        if ($this->connection !== null) {
+            ConnectionPool::getInstance()->release($this->connection);
+            $this->connection = null;
         }
     }
     /**
@@ -825,19 +894,6 @@ class Database {
      */
     public function setConnection(Connection $con) {
         $this->connection = $con;
-    }
-    /**
-     * Release the current connection back to the pool.
-     * 
-     * After calling this method, the connection is returned to the pool
-     * for reuse by other Database instances. The next call to getConnection()
-     * will acquire a new connection from the pool.
-     */
-    public function close(): void {
-        if ($this->connection !== null) {
-            ConnectionPool::getInstance()->release($this->connection);
-            $this->connection = null;
-        }
     }
     /**
      * Sets database connection information.

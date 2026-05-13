@@ -17,7 +17,7 @@ try {
     $database = new Database($connection);
 
     echo SEP;
-    echo "1. Building Tables from Attributes:\n";
+    echo "1. Building Tables from Attributes (verbose approach):\n";
 
     $authorsTable = AttributeTableBuilder::build(Author::class, 'mysql');
     $articlesTable = AttributeTableBuilder::build(Article::class, 'mysql');
@@ -29,12 +29,27 @@ try {
     echo "     Columns: ".implode(', ', array_keys($articlesTable->getCols()))."\n\n";
 
     echo SEP;
-    echo "2. Generated SQL:\n";
+    echo "2. Shorthand: Register tables with addTableFromClass():\n";
+
+    // Instead of the 3-step process above, you can do it in one call:
+    $database2 = new Database($connection);
+    $authorsTable2 = $database2->addTableFromClass(Author::class);
+    $articlesTable2 = $database2->addTableFromClass(Article::class);
+    echo "   ✓ Authors table registered: ".$authorsTable2->getNormalName()."\n";
+    echo "   ✓ Articles table registered: ".$articlesTable2->getNormalName()."\n";
+
+    // Or register multiple at once:
+    $database3 = new Database($connection);
+    $tables = $database3->addTablesFromClasses([Author::class, Article::class]);
+    echo "   ✓ Bulk registered ".count($tables)." tables\n\n";
+
+    echo SEP;
+    echo "3. Generated SQL:\n";
     echo "   Authors table:\n   ".$authorsTable->toSQL()."\n\n";
     echo "   Articles table:\n   ".$articlesTable->toSQL()."\n\n";
 
     echo SEP;
-    echo "3. Creating Tables:\n";
+    echo "4. Creating Tables:\n";
 
     $database->addTable($authorsTable);
     $database->addTable($articlesTable);

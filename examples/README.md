@@ -108,6 +108,7 @@ You can modify the connection parameters in each example as needed.
 - Using PHP 8 attributes: `#[Table]`, `#[Column]`, `#[ForeignKey]`
 - Building tables with `AttributeTableBuilder::build()`
 - Defining entities with attribute-based schema
+- Registering tables with `addTableFromClass()` and `addTablesFromClasses()`
 
 ### 11-repository-pattern
 - Extending `AbstractRepository` for CRUD operations

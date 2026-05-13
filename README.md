@@ -146,6 +146,18 @@ $database->createBlueprint('users')->addColumns([
 $database->table('users')->createTable()->execute();
 ```
 
+You can also register tables from classes that use `#[Table]`/`#[Column]` attributes or extend `Table`:
+
+```php
+// Single class
+$database->addTableFromClass(Users::class);
+
+// Multiple classes at once
+$database->addTablesFromClasses([Users::class, Posts::class, Comments::class]);
+```
+
+This works with both attribute-based classes and `Table` subclasses (`MySQLTable`/`MSSQLTable`). If the class engine differs from the connection, it is converted automatically.
+
 ### Repository Pattern
 
 The `AbstractRepository` class provides a clean way to handle data access with separation between entities and database logic.

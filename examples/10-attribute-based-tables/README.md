@@ -8,6 +8,7 @@ This example demonstrates how to define database tables using PHP 8 attributes.
 - Using `#[Column]` attribute for column properties
 - Using `#[ForeignKey]` attribute for relationships
 - Building tables with `AttributeTableBuilder`
+- Registering tables with `addTableFromClass()` and `addTablesFromClasses()`
 
 ## Files
 
