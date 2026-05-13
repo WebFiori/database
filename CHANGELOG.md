@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.4](https://github.com/WebFiori/database/compare/v2.1.3...v2.1.4) (2026-05-13)
+
+
+### Features
+
+* **database:** add addTableFromClass() and addTablesFromClasses() methods ([3f25b82](https://github.com/WebFiori/database/commit/3f25b82a1269e90c3c3b284accbc05f7576f0be6)), closes [#138](https://github.com/WebFiori/database/issues/138)
+* **schema:** add connection-targeted migrations and seeders ([002aac3](https://github.com/WebFiori/database/commit/002aac383ad22f3968b7e11358a01908af6a0172)), closes [#149](https://github.com/WebFiori/database/issues/149)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#152](https://github.com/WebFiori/database/issues/152) from WebFiori/dev ([7df8fda](https://github.com/WebFiori/database/commit/7df8fda4c14b50e5b11c151929fca93787f47295))
+
+
+### Code Refactoring
+
+* Rename Col ([b14854a](https://github.com/WebFiori/database/commit/b14854ad477e1cf653103d29fa21b34c6db95796))
+
 ## [2.1.3](https://github.com/WebFiori/database/compare/v2.1.2...v2.1.3) (2026-05-11)
 
 
