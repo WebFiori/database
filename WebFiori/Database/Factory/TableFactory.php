@@ -11,6 +11,7 @@
  */
 namespace WebFiori\Database\Factory;
 
+use WebFiori\Database\Column;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\DatabaseException;
 use WebFiori\Database\MsSql\MSSQLTable;
