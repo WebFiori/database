@@ -91,7 +91,44 @@ try {
     echo "\n";
 
     echo SEP;
-    echo "7. Cleanup:\n";
+    echo "7. Connection-Targeted Migrations:\n";
+    echo "   In multi-database setups, migrations can target specific connections.\n\n";
+
+    // Simulate running against 'main-app' connection (not 'reporting-db')
+    $mainAppConn = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
+    $mainAppConn->setName('main-app');
+
+    $runner2 = new SchemaRunner($mainAppConn);
+    require_once __DIR__.'/CreateReportsTableMigration.php';
+    $runner2->register('CreateReportsTableMigration');
+    $runner2->createSchemaTable();
+
+    $result2 = $runner2->apply();
+
+    foreach ($result2->getSkipped() as $skipped) {
+        echo "   ⊘ Skipped: ".$skipped['change']->getName()." (".$skipped['reason'].")\n";
+    }
+
+    // Now simulate running against 'reporting-db' connection
+    $reportingConn = new ConnectionInfo('mysql', 'root', '123456', 'testing_db');
+    $reportingConn->setName('reporting-db');
+
+    $runner3 = new SchemaRunner($reportingConn);
+    $runner3->register('CreateReportsTableMigration');
+    $runner3->createSchemaTable();
+
+    $result3 = $runner3->apply();
+
+    foreach ($result3->getApplied() as $applied) {
+        echo "   ✓ Applied: ".$applied->getName()." (connection matches)\n";
+    }
+
+    $runner3->rollbackUpTo(null);
+    $runner3->dropSchemaTable();
+    echo "\n";
+
+    echo SEP;
+    echo "8. Cleanup:\n";
     $runner->dropSchemaTable();
     echo "   ✓ Schema tracking table dropped\n";
 } catch (Exception $e) {
