@@ -8,12 +8,14 @@ This example demonstrates how to create and run database migrations using WebFio
 - Implementing up() and down() methods for schema changes
 - Running migrations using SchemaRunner
 - Rolling back migrations
+- Connection-targeted migrations (restricting migrations to specific databases)
 
 ## Files
 
 - [`example.php`](example.php) - Main example code
 - [`CreateUsersTableMigration.php`](CreateUsersTableMigration.php) - Migration to create users table
 - [`AddEmailIndexMigration.php`](AddEmailIndexMigration.php) - Migration to add email index
+- [`CreateReportsTableMigration.php`](CreateReportsTableMigration.php) - Migration targeting a specific connection
 
 ## Running the Example
 

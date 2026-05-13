@@ -115,6 +115,18 @@ abstract class DatabaseChange {
     }
 
     /**
+     * Get the target connections where this change should be executed.
+     * 
+     * Override this method to restrict execution to specific named connections.
+     * Uses the logical connection name from ConnectionInfo::getName().
+     * 
+     * @return array Array of connection names. Empty array means all connections.
+     */
+    public function getTargetConnections(): array {
+        return [];
+    }
+
+    /**
      * Get the type of database change.
      * 
      * @return string Either 'migration' or 'seeder'.

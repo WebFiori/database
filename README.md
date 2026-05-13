@@ -340,6 +340,29 @@ $runner->createSchemaTable();
 $runner->apply();
 ```
 
+
+#### Connection-Targeted Migrations
+
+In multi-database architectures, you can restrict a migration to specific named connections. This is useful when different databases serve different purposes (e.g., one for user data, another for reporting):
+
+```php
+class CreateReportsTable extends AbstractMigration {
+    public function getTargetConnections(): array {
+        return ['reporting-db']; // Only runs against the 'reporting-db' connection
+    }
+
+    public function up(Database $db): void {
+        // ...
+    }
+
+    public function down(Database $db): void {
+        // ...
+    }
+}
+```
+
+Migrations with an empty `getTargetConnections()` (the default) run on all connections. The connection name comes from `ConnectionInfo::getName()`.
+
 ### Database Seeders
 
 Populate your database with sample data:
