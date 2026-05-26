@@ -16,6 +16,9 @@ use WebFiori\Database\Schema\AbstractMigration;
  * when running against any connection other than 'reporting-db'.
  */
 class CreateReportsTableMigration extends AbstractMigration {
+    public function down(Database $db): void {
+        $db->raw("DROP TABLE IF EXISTS daily_reports")->execute();
+    }
     public function getTargetConnections(): array {
         return ['reporting-db'];
     }
@@ -43,9 +46,5 @@ class CreateReportsTableMigration extends AbstractMigration {
 
         $db->table('daily_reports')->createTable();
         $db->execute();
-    }
-
-    public function down(Database $db): void {
-        $db->raw("DROP TABLE IF EXISTS daily_reports")->execute();
     }
 }

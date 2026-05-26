@@ -66,25 +66,6 @@ class MySQLConnection extends Connection {
         $this->close();
     }
 
-    /**
-     * Close the MySQL connection and release resources.
-     */
-    public function close(): void {
-        if ($this->link !== null) {
-            @mysqli_close($this->link);
-            $this->link = null;
-        }
-    }
-
-    /**
-     * Check if the MySQL connection is still alive.
-     * 
-     * @return bool True if the connection is active.
-     */
-    public function isAlive(): bool {
-        return $this->link !== null && @$this->link->ping();
-    }
-
     public function beginTransaction(?string $name = null) {
         //The null check is for php<8
         $message = 'Unable to start transaction.';
@@ -97,6 +78,16 @@ class MySQLConnection extends Connection {
             if (!$this->link->begin_transaction()) {
                 throw new DatabaseException($message);
             }
+        }
+    }
+
+    /**
+     * Close the MySQL connection and release resources.
+     */
+    public function close(): void {
+        if ($this->link !== null) {
+            @mysqli_close($this->link);
+            $this->link = null;
         }
     }
 
@@ -177,6 +168,15 @@ class MySQLConnection extends Connection {
      */
     public function getMysqliLink() {
         return $this->link;
+    }
+
+    /**
+     * Check if the MySQL connection is still alive.
+     * 
+     * @return bool True if the connection is active.
+     */
+    public function isAlive(): bool {
+        return $this->link !== null && @$this->link->ping();
     }
 
     public function rollBack(?string $name = null) {

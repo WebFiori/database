@@ -33,6 +33,7 @@ class MySQLInsertBuilder extends InsertBuilder {
             foreach ($valsArr as $col => $val) {
                 $colObj = $this->getTable()->getColByKey($col);
                 $colType = $colObj->getDatatype();
+
                 if ($colType == 'int' || $colType == 'bit' || in_array($colType, Column::BOOL_TYPES)) {
                     $queryParams['values'][$index][] = (int) $val;
                     $queryParams['bind'] .= 'i';

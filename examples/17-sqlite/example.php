@@ -41,7 +41,7 @@ try {
         ]
     ]);
 
-    echo "   SQL: " . $db->getTable('products')->toSQL() . "\n";
+    echo "   SQL: ".$db->getTable('products')->toSQL()."\n";
     $db->table('products')->createTable()->execute();
     echo "   ✓ Table created\n\n";
 
@@ -58,12 +58,13 @@ try {
     foreach ($products as $product) {
         $db->table('products')->insert($product)->execute();
     }
-    echo "   ✓ Inserted " . count($products) . " products\n\n";
+    echo "   ✓ Inserted ".count($products)." products\n\n";
 
     // 4. Select all
     echo SEP;
     echo "4. Select All Products:\n";
     $result = $db->table('products')->select()->execute();
+
     foreach ($result as $row) {
         $stock = $row['in_stock'] ? '✓' : '✗';
         echo "   [{$row['id']}] {$row['name']} - \${$row['price']} (In stock: $stock)\n";
@@ -78,6 +79,7 @@ try {
         ->where('in_stock', 1)
         ->andWhere('price', 50, '>')
         ->execute();
+
     foreach ($result as $row) {
         echo "   {$row['name']} - \${$row['price']}\n";
     }
@@ -98,7 +100,7 @@ try {
     echo "7. Update (Keyboard now in stock):\n";
     $db->table('products')->update(['in_stock' => 1])->where('name', 'Keyboard')->execute();
     $row = $db->table('products')->select()->where('name', 'Keyboard')->execute()->fetch();
-    echo "   Keyboard in_stock: " . ($row['in_stock'] ? 'Yes' : 'No') . "\n\n";
+    echo "   Keyboard in_stock: ".($row['in_stock'] ? 'Yes' : 'No')."\n\n";
 
     // 8. Delete
     echo SEP;
@@ -111,6 +113,7 @@ try {
     echo SEP;
     echo "9. Pagination (page 1, 2 per page):\n";
     $result = $db->table('products')->select()->limit(2)->offset(0)->execute();
+
     foreach ($result as $row) {
         echo "   {$row['name']}\n";
     }
@@ -119,7 +122,8 @@ try {
     // 10. Transactions
     echo SEP;
     echo "10. Transaction:\n";
-    $db->transaction(function (Database $db) {
+    $db->transaction(function (Database $db)
+    {
         $db->table('products')->insert(['name' => 'Webcam', 'price' => 59.99, 'in_stock' => 1])->execute();
         $db->table('products')->insert(['name' => 'Headset', 'price' => 89.99, 'in_stock' => 1])->execute();
     });
@@ -129,7 +133,7 @@ try {
     // 11. File-based database
     echo SEP;
     echo "11. File-based SQLite:\n";
-    $filePath = sys_get_temp_dir() . '/webfiori_example.db';
+    $filePath = sys_get_temp_dir().'/webfiori_example.db';
     $fileConn = new ConnectionInfo('sqlite', '', '', $filePath);
     $fileDb = new Database($fileConn);
     $fileDb->createBlueprint('notes')->addColumns([
@@ -142,10 +146,9 @@ try {
     echo "   ✓ Inserted a note\n";
     unlink($filePath);
     echo "   ✓ Cleaned up\n";
-
 } catch (Exception $e) {
-    echo "✗ Error: " . $e->getMessage() . "\n";
+    echo "✗ Error: ".$e->getMessage()."\n";
 }
 
-echo "\n" . SEP;
+echo "\n".SEP;
 echo "=== Example Complete ===\n";

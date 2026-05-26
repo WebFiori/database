@@ -152,6 +152,7 @@ class SQLiteConnection extends Connection {
 
         try {
             $this->link->query('SELECT 1');
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -227,6 +228,23 @@ class SQLiteConnection extends Connection {
     }
 
     /**
+     * Fetches all rows from a SQLite3Result into a ResultSet.
+     * 
+     * @param SQLite3Result $result The result object from a query execution.
+     * 
+     * @return ResultSet A result set containing all fetched rows as associative arrays.
+     */
+    private function fetchResult(SQLite3Result $result): ResultSet {
+        $rows = [];
+
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $rows[] = $row;
+        }
+
+        return new ResultSet($rows);
+    }
+
+    /**
      * Executes a query directly without prepared statement binding.
      * 
      * @param string $sql The SQL query string.
@@ -296,22 +314,5 @@ class SQLiteConnection extends Connection {
         $this->setErrMessage('NO ERROR');
 
         return true;
-    }
-
-    /**
-     * Fetches all rows from a SQLite3Result into a ResultSet.
-     * 
-     * @param SQLite3Result $result The result object from a query execution.
-     * 
-     * @return ResultSet A result set containing all fetched rows as associative arrays.
-     */
-    private function fetchResult(SQLite3Result $result): ResultSet {
-        $rows = [];
-
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $rows[] = $row;
-        }
-
-        return new ResultSet($rows);
     }
 }

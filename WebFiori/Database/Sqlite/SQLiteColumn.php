@@ -112,19 +112,6 @@ class SQLiteColumn extends Column {
     }
 
     /**
-     * Returns the column name with proper quoting for SQLite.
-     * 
-     * SQLite uses double quotes for identifier quoting. The parent's getName()
-     * returns "tableName.colName" when table prefix is enabled, which is then
-     * split and each part individually quoted.
-     * 
-     * @return string The quoted column name (e.g., "col" or "table"."col").
-     */
-    public function getName(): string {
-        return self::doubleQuote(parent::getName());
-    }
-
-    /**
      * Wraps each dot-separated part of a string in double quotes.
      * 
      * @param string $str A string such as "table.column" or just "column".
@@ -146,6 +133,19 @@ class SQLiteColumn extends Column {
         }
 
         return '';
+    }
+
+    /**
+     * Returns the column name with proper quoting for SQLite.
+     * 
+     * SQLite uses double quotes for identifier quoting. The parent's getName()
+     * returns "tableName.colName" when table prefix is enabled, which is then
+     * split and each part individually quoted.
+     * 
+     * @return string The quoted column name (e.g., "col" or "table"."col").
+     */
+    public function getName(): string {
+        return self::doubleQuote(parent::getName());
     }
 
     /**
@@ -183,21 +183,14 @@ class SQLiteColumn extends Column {
     }
 
     /**
-     * Sets whether this column should auto-increment.
+     * Returns whether this column has auto-update enabled.
      * 
-     * Setting this to true will also force the column type to 'integer'
-     * and mark it as primary, since SQLite only supports AUTOINCREMENT
-     * on INTEGER PRIMARY KEY columns.
+     * Always returns false for SQLite columns.
      * 
-     * @param bool $bool True to enable auto-increment, false to disable.
+     * @return bool Always false.
      */
-    public function setIsAutoInc(bool $bool) {
-        $this->autoInc = $bool;
-
-        if ($bool) {
-            $this->setDatatype('integer');
-            $this->setIsPrimary(true);
-        }
+    public function isAutoUpdate(): bool {
+        return false;
     }
 
     /**
@@ -211,17 +204,6 @@ class SQLiteColumn extends Column {
      */
     public function setAutoUpdate(bool $bool) {
         // No-op: SQLite does not support auto-update columns
-    }
-
-    /**
-     * Returns whether this column has auto-update enabled.
-     * 
-     * Always returns false for SQLite columns.
-     * 
-     * @return bool Always false.
-     */
-    public function isAutoUpdate(): bool {
-        return false;
     }
 
     /**
@@ -248,6 +230,24 @@ class SQLiteColumn extends Column {
         // Bypass parent validation — SQLite accepts any affinity
         $this->setSupportedTypes(['integer', 'real', 'text', 'blob']);
         parent::setDatatype($mapped);
+    }
+
+    /**
+     * Sets whether this column should auto-increment.
+     * 
+     * Setting this to true will also force the column type to 'integer'
+     * and mark it as primary, since SQLite only supports AUTOINCREMENT
+     * on INTEGER PRIMARY KEY columns.
+     * 
+     * @param bool $bool True to enable auto-increment, false to disable.
+     */
+    public function setIsAutoInc(bool $bool) {
+        $this->autoInc = $bool;
+
+        if ($bool) {
+            $this->setDatatype('integer');
+            $this->setIsPrimary(true);
+        }
     }
 
     /**

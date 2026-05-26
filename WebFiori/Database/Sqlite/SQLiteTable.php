@@ -11,8 +11,8 @@
  */
 namespace WebFiori\Database\Sqlite;
 
-use WebFiori\Database\Column;
 use WebFiori\Database\ColOption;
+use WebFiori\Database\Column;
 use WebFiori\Database\DataType;
 use WebFiori\Database\Table;
 
@@ -165,42 +165,6 @@ class SQLiteTable extends Table {
     }
 
     /**
-     * Builds the PRIMARY KEY constraint clause.
-     * 
-     * Returns an empty string if:
-     * - The table has no primary key columns
-     * - The table has a single INTEGER PRIMARY KEY AUTOINCREMENT column
-     *   (handled inline in the column definition)
-     * 
-     * @return string The PRIMARY KEY constraint or empty string.
-     */
-    private function createPKString(): string {
-        $pkCount = $this->getPrimaryKeyColsCount();
-
-        if ($pkCount == 0) {
-            return '';
-        }
-
-        // Single INTEGER PRIMARY KEY AUTOINCREMENT is handled inline
-        if ($pkCount == 1) {
-            $keys = $this->getPrimaryKeyColsKeys();
-            $col = $this->getColByKey($keys[0]);
-
-            if ($col instanceof SQLiteColumn && $col->isAutoInc()) {
-                return '';
-            }
-        }
-
-        $pkCols = [];
-
-        foreach ($this->getPrimaryKeyColsKeys() as $key) {
-            $pkCols[] = $this->getColByKey($key)->getName();
-        }
-
-        return '    primary key ('.implode(', ', $pkCols).')';
-    }
-
-    /**
      * Builds the FOREIGN KEY constraint clauses.
      * 
      * Each foreign key is rendered as:
@@ -241,5 +205,41 @@ class SQLiteTable extends Table {
         }
 
         return implode(",\n", $fkParts);
+    }
+
+    /**
+     * Builds the PRIMARY KEY constraint clause.
+     * 
+     * Returns an empty string if:
+     * - The table has no primary key columns
+     * - The table has a single INTEGER PRIMARY KEY AUTOINCREMENT column
+     *   (handled inline in the column definition)
+     * 
+     * @return string The PRIMARY KEY constraint or empty string.
+     */
+    private function createPKString(): string {
+        $pkCount = $this->getPrimaryKeyColsCount();
+
+        if ($pkCount == 0) {
+            return '';
+        }
+
+        // Single INTEGER PRIMARY KEY AUTOINCREMENT is handled inline
+        if ($pkCount == 1) {
+            $keys = $this->getPrimaryKeyColsKeys();
+            $col = $this->getColByKey($keys[0]);
+
+            if ($col instanceof SQLiteColumn && $col->isAutoInc()) {
+                return '';
+            }
+        }
+
+        $pkCols = [];
+
+        foreach ($this->getPrimaryKeyColsKeys() as $key) {
+            $pkCols[] = $this->getColByKey($key)->getName();
+        }
+
+        return '    primary key ('.implode(', ', $pkCols).')';
     }
 }
