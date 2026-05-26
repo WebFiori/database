@@ -61,6 +61,8 @@ class ColumnFactory {
 
         if ($database == 'mssql') {
             $col = new MSSQLColumn($name);
+        } else if ($database == 'sqlite') {
+            $col = new \WebFiori\Database\Sqlite\SQLiteColumn($name);
         } else {
             $col = new MySQLColumn($name);
         }

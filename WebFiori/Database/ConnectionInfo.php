@@ -42,7 +42,8 @@ class ConnectionInfo {
      */
     const SUPPORTED_DATABASES = [
         'mysql',
-        'mssql'
+        'mssql',
+        'sqlite'
     ];
     /**
      * A string that represents the name of the connection.
@@ -138,6 +139,8 @@ class ConnectionInfo {
                 $this->setPort(3306);
             } else if ($databaseType == 'mssql') {
                 $this->setPort(1433);
+            } else if ($databaseType == 'sqlite') {
+                $this->port = 0;
             }
         } else {
             $this->setPort($port);

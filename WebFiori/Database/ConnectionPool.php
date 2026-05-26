@@ -239,6 +239,7 @@ class ConnectionPool {
         return match ($driver) {
             'mysql' => new MySQLConnection($info),
             'mssql' => new MSSQLConnection($info),
+            'sqlite' => new \WebFiori\Database\Sqlite\SQLiteConnection($info),
             default => throw new DatabaseException("Unsupported driver: $driver"),
         };
     }

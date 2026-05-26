@@ -30,6 +30,8 @@ class TableFactory {
 
         if ($database == 'mssql') {
             $table = new MSSQLTable($name);
+        } else if ($database == 'sqlite') {
+            $table = new \WebFiori\Database\Sqlite\SQLiteTable($name);
         } else {
             $table = new MySQLTable($name);
         }
@@ -49,6 +51,8 @@ class TableFactory {
             $from = 'mysql';
         } else if ($table instanceof MSSQLTable) {
             $from = 'mssql';
+        } else if ($table instanceof \WebFiori\Database\Sqlite\SQLiteTable) {
+            $from = 'sqlite';
         }
 
         if ($from == $to) {
