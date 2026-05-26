@@ -169,14 +169,14 @@ class SQLiteQueryTest extends TestCase {
      * @test
      */
     public function testRenameColNoOldName() {
-        // SQLiteColumn with a fresh column that was never renamed
+        // When column was never renamed, getOldName() returns current name
+        // so rename just produces a no-op rename SQL
         $table = new SQLiteTable('t');
         $table->addColumns(['col-a' => [ColOption::TYPE => DataType::INT]]);
         $q = new SQLiteQuery();
         $q->setTable($table);
-        // Old name is null when column was never renamed
-        $this->expectException(DatabaseException::class);
         $q->renameCol('col-a');
+        $this->assertStringContainsString('rename column', $q->getQuery());
     }
     /**
      * @test

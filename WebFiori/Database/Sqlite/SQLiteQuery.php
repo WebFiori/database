@@ -201,10 +201,6 @@ class SQLiteQuery extends AbstractQuery {
             throw new DatabaseException("The table $tblName has no column with key '$colKey'.");
         }
 
-        if ($colObj->getOldName() == null) {
-            throw new DatabaseException('Cannot build the query. Old column name is null.');
-        }
-
         $oldName = $colObj->getOldName();
         $newName = $colObj->getNormalName();
 

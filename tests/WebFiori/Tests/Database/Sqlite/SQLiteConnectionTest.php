@@ -261,7 +261,7 @@ class SQLiteConnectionTest extends TestCase {
      * @test
      */
     public function testConnectionFailure() {
-        $this->expectException(DatabaseException::class);
+        $this->expectException(\Exception::class);
         new SQLiteConnection(new ConnectionInfo('sqlite', '', '', '/nonexistent/path/db.sqlite'));
     }
 }

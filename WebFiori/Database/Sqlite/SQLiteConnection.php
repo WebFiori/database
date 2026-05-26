@@ -111,19 +111,12 @@ class SQLiteConnection extends Connection {
     public function connect(): bool {
         $dbPath = $this->getConnectionInfo()->getDBName();
 
-        try {
-            $this->link = new SQLite3($dbPath);
-            $this->link->enableExceptions(true);
-            $this->link->exec('PRAGMA foreign_keys = ON');
-            $this->link->exec('PRAGMA journal_mode = WAL');
+        $this->link = new SQLite3($dbPath);
+        $this->link->enableExceptions(true);
+        $this->link->exec('PRAGMA foreign_keys = ON');
+        $this->link->exec('PRAGMA journal_mode = WAL');
 
-            return true;
-        } catch (\Exception $e) {
-            $this->setErrCode($e->getCode());
-            $this->setErrMessage($e->getMessage());
-
-            return false;
-        }
+        return true;
     }
 
     /**
@@ -159,7 +152,6 @@ class SQLiteConnection extends Connection {
 
         try {
             $this->link->query('SELECT 1');
-
             return true;
         } catch (\Exception $e) {
             return false;
@@ -242,14 +234,6 @@ class SQLiteConnection extends Connection {
 
         if ($type === 'select' || $type === 'show') {
             $result = $this->link->query($sql);
-
-            if ($result === false) {
-                $this->setErrCode($this->link->lastErrorCode());
-                $this->setErrMessage($this->link->lastErrorMsg());
-
-                return false;
-            }
-
             $this->setResultSet($this->fetchResult($result));
             $result->finalize();
         } else {
@@ -277,13 +261,6 @@ class SQLiteConnection extends Connection {
     private function runPrepared(string $sql, array $bindings, AbstractQuery $queryObj): bool {
         $this->stmt = $this->link->prepare($sql);
 
-        if ($this->stmt === false) {
-            $this->setErrCode($this->link->lastErrorCode());
-            $this->setErrMessage($this->link->lastErrorMsg());
-
-            return false;
-        }
-
         foreach ($bindings as $index => $value) {
             $paramIndex = $index + 1;
 
@@ -301,13 +278,6 @@ class SQLiteConnection extends Connection {
         }
 
         $result = $this->stmt->execute();
-
-        if ($result === false) {
-            $this->setErrCode($this->link->lastErrorCode());
-            $this->setErrMessage($this->link->lastErrorMsg());
-
-            return false;
-        }
 
         $type = $queryObj->getLastQueryType();
 
