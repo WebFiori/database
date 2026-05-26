@@ -2,9 +2,11 @@
 namespace WebFiori\Tests\Database\MsSql;
 
 use PHPUnit\Framework\TestCase;
+use WebFiori\Database\ColOption;
 use WebFiori\Database\DataType;
 use WebFiori\Database\Factory\ColumnFactory;
 use WebFiori\Database\MsSql\MSSQLColumn;
+use WebFiori\Database\MsSql\MSSQLTable;
 use WebFiori\Database\MySql\MySQLColumn;
 /**
  * Description of MSSQLColumnTest
@@ -673,5 +675,159 @@ class MSSQLColumnTest extends TestCase {
         $col3 = ColumnFactory::create('mssql', 'uname', ['type' => DataType::NVARCHAR, 'size' => 200]);
         $this->assertEquals('nvarchar', $col3->getDatatype());
         $this->assertEquals(200, $col3->getSize());
+    }
+    /**
+     * @test
+     */
+    public function testCleanValueArray() {
+        $col = new MSSQLColumn('test_col', 'varchar', 100);
+        $result = $col->cleanValue(['hello', 'world', 123]);
+        $this->assertIsArray($result);
+        $this->assertCount(3, $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateColCommentCommandAdd() {
+        $table = new MSSQLTable('test_tbl');
+        $table->setWithExtendedProps(true);
+        $table->addColumns([
+            'name' => [
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 100,
+                ColOption::COMMENT => 'User name column'
+            ]
+        ]);
+        $col = $table->getColByKey('name');
+        $col->setWithExtendedProps(true);
+        $result = $col->createColCommentCommand('add');
+        $this->assertStringContainsString('sp_addextendedproperty', $result);
+        $this->assertStringContainsString('User name column', $result);
+        $this->assertStringContainsString('if not exists', $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateColCommentCommandUpdate() {
+        $table = new MSSQLTable('test_tbl');
+        $table->setWithExtendedProps(true);
+        $table->addColumns([
+            'name' => [
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 100,
+                ColOption::COMMENT => 'Updated comment'
+            ]
+        ]);
+        $col = $table->getColByKey('name');
+        $col->setWithExtendedProps(true);
+        $result = $col->createColCommentCommand('update');
+        $this->assertStringContainsString('sp_updateextendedproperty', $result);
+        $this->assertStringContainsString('if exists', $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateColCommentCommandDrop() {
+        $table = new MSSQLTable('test_tbl');
+        $table->setWithExtendedProps(true);
+        $table->addColumns([
+            'name' => [
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 100,
+                ColOption::COMMENT => 'To be dropped'
+            ]
+        ]);
+        $col = $table->getColByKey('name');
+        $col->setWithExtendedProps(true);
+        $result = $col->createColCommentCommand('drop');
+        $this->assertStringContainsString('sp_dropextendedproperty', $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateColCommentCommandNoComment() {
+        $col = new MSSQLColumn('test_col', 'varchar', 100);
+        $result = $col->createColCommentCommand('add');
+        $this->assertEquals('', $result);
+    }
+    /**
+     * @test
+     */
+    public function testGetTypeArr() {
+        $col = new MSSQLColumn('int_col', 'int');
+        $arr = $col->getTypeArr();
+        $this->assertIsArray($arr);
+        $this->assertEquals(SQLSRV_PHPTYPE_INT, $arr[0]);
+        $this->assertEquals(SQLSRV_SQLTYPE_INT, $arr[1]);
+
+        $col2 = new MSSQLColumn('str_col', 'varchar', 100);
+        $arr2 = $col2->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_VARCHAR, $arr2[1]);
+
+        $col3 = new MSSQLColumn('nv_col', 'nvarchar', 100);
+        $arr3 = $col3->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_NVARCHAR, $arr3[1]);
+
+        $col4 = new MSSQLColumn('dt_col', 'datetime2');
+        $arr4 = $col4->getTypeArr();
+        $this->assertEquals(SQLSRV_PHPTYPE_DATETIME, $arr4[0]);
+
+        $col5 = new MSSQLColumn('bit_col', 'bit');
+        $arr5 = $col5->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_BIT, $arr5[1]);
+
+        $col6 = new MSSQLColumn('money_col', 'money');
+        $arr6 = $col6->getTypeArr();
+        $this->assertEquals(SQLSRV_PHPTYPE_FLOAT, $arr6[0]);
+
+        $col7 = new MSSQLColumn('dec_col', 'decimal');
+        $arr7 = $col7->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_DECIMAL, $arr7[1]);
+
+        $col8 = new MSSQLColumn('big_col', 'bigint');
+        $arr8 = $col8->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_BIGINT, $arr8[1]);
+
+        $col9 = new MSSQLColumn('bin_col', 'binary');
+        $arr9 = $col9->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_BINARY, $arr9[1]);
+
+        $col10 = new MSSQLColumn('bool_col', 'bool');
+        $arr10 = $col10->getTypeArr();
+        $this->assertEquals(SQLSRV_SQLTYPE_BIT, $arr10[1]);
+    }
+    /**
+     * @test
+     */
+    public function testGetPHPTypeVariants() {
+        $col = new MSSQLColumn('c', 'bigint');
+        $this->assertEquals('int', $col->getPHPType());
+
+        $col2 = new MSSQLColumn('c', 'money');
+        $this->assertEquals('float', $col2->getPHPType());
+
+        $col3 = new MSSQLColumn('c', 'nchar', 10);
+        $this->assertEquals('string', $col3->getPHPType());
+
+        $col4 = new MSSQLColumn('c', 'binary', 10);
+        $this->assertEquals('string', $col4->getPHPType());
+
+        $col5 = new MSSQLColumn('c', 'bit');
+        $this->assertEquals('int', $col5->getPHPType());
+
+        $col6 = new MSSQLColumn('c', 'decimal');
+        $this->assertEquals('float', $col6->getPHPType());
+
+        $col7 = new MSSQLColumn('c', 'float');
+        $this->assertEquals('float', $col7->getPHPType());
+
+        $col8 = new MSSQLColumn('c', 'varbinary', 50);
+        $this->assertEquals('string', $col8->getPHPType());
+
+        $col9 = new MSSQLColumn('c', 'date');
+        $this->assertEquals('string', $col9->getPHPType());
+
+        $col10 = new MSSQLColumn('c', 'bool');
+        $this->assertEquals('bool', $col10->getPHPType());
     }
 }
