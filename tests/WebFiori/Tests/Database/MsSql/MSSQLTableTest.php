@@ -604,4 +604,210 @@ class MSSQLTableTest extends TestCase {
         $this->assertNotNull($fk);
         $this->assertEquals('[test_users]', $fk->getSourceName());
     }
+    /**
+     * @test
+     * Covers property-level attributes: unique, FK, nullable, default, comment, table comment.
+     */
+    public function testAttributeBasedTablePropertyLevel() {
+        $table = \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \WebFiori\Tests\Database\MsSql\MSSQLAttributeTestPropertyLevel::class,
+            'mssql'
+        );
+
+        $this->assertEquals('[prop_articles]', $table->getName());
+        $this->assertEquals('Articles table for testing', $table->getComment());
+
+        // Property names are converted to kebab-case keys
+        $this->assertTrue($table->hasColumnWithKey('id'));
+        $this->assertTrue($table->hasColumnWithKey('title'));
+        $this->assertTrue($table->hasColumnWithKey('author-id'));
+        $this->assertTrue($table->hasColumnWithKey('content'));
+        $this->assertTrue($table->hasColumnWithKey('status'));
+
+        $idCol = $table->getColByKey('id');
+        $this->assertTrue($idCol->isPrimary());
+        $this->assertTrue($idCol->isIdentity());
+
+        $titleCol = $table->getColByKey('title');
+        $this->assertTrue($titleCol->isUnique());
+        $this->assertEquals(200, $titleCol->getSize());
+
+        $contentCol = $table->getColByKey('content');
+        $this->assertTrue($contentCol->isNull());
+        $this->assertEquals('Article body', $contentCol->getComment());
+
+        $statusCol = $table->getColByKey('status');
+        $this->assertEquals('draft', $statusCol->getDefault());
+
+        // FK
+        $fk = $table->getForeignKey('fk_article_author');
+        $this->assertNotNull($fk);
+        $this->assertEquals('[test_users]', $fk->getSourceName());
+        $this->assertEquals('cascade', $fk->getOnUpdate());
+        $this->assertEquals('set null', $fk->getOnDelete());
+
+        // SQL should contain unique constraint
+        $sql = $table->toSQL();
+        $this->assertStringContainsString('unique (title)', $sql);
+    }
+    /**
+     * @test
+     * Covers FK with class reference for table name resolution.
+     */
+    public function testAttributeBasedTableClassRefFK() {
+        $table = \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \WebFiori\Tests\Database\MsSql\MSSQLAttributeTestClassRefFK::class,
+            'mssql'
+        );
+
+        $this->assertEquals('[comments]', $table->getName());
+
+        $fk = $table->getForeignKey('fk_comment_table');
+        $this->assertNotNull($fk);
+        // The FK should resolve the class to its table name 'test_table'
+        $this->assertEquals('[test_table]', $fk->getSourceName());
+        $this->assertEquals('cascade', $fk->getOnUpdate());
+        $this->assertEquals('cascade', $fk->getOnDelete());
+    }
+    /**
+     * @test
+     * Covers the exception when class has no #[Table] attribute.
+     */
+    public function testAttributeBasedTableNoTableAttribute() {
+        $this->expectException(\WebFiori\Database\Attributes\InvalidAttributeException::class);
+        \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \stdClass::class,
+            'mssql'
+        );
+    }
+    /**
+     * @test
+     * Covers FK with 'columns' array parameter (multi-column mapping).
+     */
+    public function testAttributeBasedTableMultiColFK() {
+        $table = \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \WebFiori\Tests\Database\MsSql\MSSQLAttributeTestMultiColFK::class,
+            'mssql'
+        );
+
+        $fk = $table->getForeignKey('fk_item_order');
+        $this->assertNotNull($fk);
+        $this->assertEquals('[orders]', $fk->getSourceName());
+    }
+    /**
+     * @test
+     * Covers ForeignKey attribute exception when both column and columns are set.
+     */
+    public function testForeignKeyAttributeBothColumnAndColumnsThrows() {
+        $this->expectException(\WebFiori\Database\Attributes\InvalidAttributeException::class);
+        new \WebFiori\Database\Attributes\ForeignKey(
+            table: 'users',
+            column: 'id',
+            columns: ['local_id' => 'id']
+        );
+    }
+    /**
+     * @test
+     * Covers ForeignKey::getColumnsMap() with columns array.
+     */
+    public function testForeignKeyGetColumnsMapMulti() {
+        $fk = new \WebFiori\Database\Attributes\ForeignKey(
+            table: 'users',
+            columns: ['tenant_id' => 'tid', 'user_id' => 'uid']
+        );
+        $this->assertEquals(['tenant_id' => 'tid', 'user_id' => 'uid'], $fk->getColumnsMap());
+    }
+    /**
+     * @test
+     * Verifies generated SQL includes all expected parts for property-level attributes.
+     */
+    public function testAttributeBasedTablePropertyLevelSQL() {
+        $table = \WebFiori\Database\Attributes\AttributeTableBuilder::build(
+            \WebFiori\Tests\Database\MsSql\MSSQLAttributeTestPropertyLevel::class,
+            'mssql'
+        );
+
+        $sql = $table->toSQL();
+
+        $this->assertStringContainsString('create table [prop_articles]', $sql);
+        $this->assertStringContainsString('identity(1,1)', $sql);
+        $this->assertStringContainsString('primary key clustered', $sql);
+        $this->assertStringContainsString('unique (title)', $sql);
+        $this->assertStringContainsString('foreign key', strtolower($sql));
+        $this->assertStringContainsString('[test_users]', $sql);
+    }
+    /**
+     * @test
+     */
+    public function testCreateTableCommentCommandAdd() {
+        $table = new MSSQLTable('my_table');
+        $table->setComment('Test table comment');
+        $table->setWithExtendedProps(true);
+        $result = $table->createTableCommentCommand('add');
+        $this->assertStringContainsString('sp_addextendedproperty', $result);
+        $this->assertStringContainsString('Test table comment', $result);
+        $this->assertStringContainsString('if not exists', $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateTableCommentCommandUpdate() {
+        $table = new MSSQLTable('my_table');
+        $table->setComment('Updated comment');
+        $table->setWithExtendedProps(true);
+        $result = $table->createTableCommentCommand('update');
+        $this->assertStringContainsString('sp_updateextendedproperty', $result);
+        $this->assertStringContainsString('if exists', $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateTableCommentCommandDrop() {
+        $table = new MSSQLTable('my_table');
+        $table->setComment('To drop');
+        $table->setWithExtendedProps(true);
+        $result = $table->createTableCommentCommand('drop');
+        $this->assertStringContainsString('sp_dropextendedproperty', $result);
+    }
+    /**
+     * @test
+     */
+    public function testCreateTableCommentCommandNoComment() {
+        $table = new MSSQLTable('my_table');
+        $table->setWithExtendedProps(true);
+        $result = $table->createTableCommentCommand('add');
+        $this->assertEquals('', $result);
+    }
+    /**
+     * @test
+     */
+    public function testSetUniqueConstraintName() {
+        $table = new MSSQLTable('my_table');
+        $table->setUniqueConstraintName('UQ_custom');
+        // Note: getUniqueConstraintName always returns 'AK_' + table name
+        $this->assertEquals('AK_my_table', $table->getUniqueConstraintName());
+    }
+    /**
+     * @test
+     */
+    public function testToSQLWithExtendedProps() {
+        $table = new MSSQLTable('ext_table');
+        $table->setComment('Extended props table');
+        $table->setWithExtendedProps(true);
+        $table->addColumns([
+            'id' => [
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true,
+                ColOption::IDENTITY => true
+            ],
+            'name' => [
+                ColOption::TYPE => DataType::VARCHAR,
+                ColOption::SIZE => 100,
+                ColOption::COMMENT => 'The name'
+            ]
+        ]);
+        $sql = $table->toSQL();
+        $this->assertStringContainsString('create table [ext_table]', $sql);
+        $this->assertStringContainsString('sp_addextendedproperty', $sql);
+    }
 }

@@ -31,6 +31,19 @@
     <testsuite name="Schema Tests">
       <directory>./WebFiori/Tests/Database/Schema</directory>
     </testsuite>
+    <testsuite name="Repository Tests">
+      <directory>./WebFiori/Tests/Database/Repository</directory>
+    </testsuite>
+    <testsuite name="Attributes Tests">
+      <directory>./WebFiori/Tests/Database/Attributes</directory>
+    </testsuite>
+    <testsuite name="Performance Tests">
+      <directory>./WebFiori/Tests/Database/Performance</directory>
+      <file>./QueryPerformanceMonitorTest.php</file>
+      <file>./DatabasePerformanceTest.php</file>
+      <file>./DatabasePerformancePersistenceTest.php</file>
+      <file>./PerformanceOptionTest.php</file>
+    </testsuite>
     <testsuite name="MultiResultSet Tests">
       <file>./MultiResultSetTest.php</file>
     </testsuite>

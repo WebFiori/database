@@ -1369,4 +1369,46 @@ class MSSQLQueryBuilderTest extends TestCase{
             $this->markTestSkipped('MSSQL test failed: ' . $e->getMessage());
         }
     }
+    /**
+     * @test
+     */
+    public function testSelectWithLimitAndOffset() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->select()->limit(10)->offset(20);
+        $this->assertEquals('select * from [users] offset 20 rows fetch next 10 rows only', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testSelectWithLimitNoOffset() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->getQueryGenerator();
+        $q->table('users')->select()->limit(5);
+        $this->assertEquals('select * from [users] offset 0 rows fetch next 5 rows only', $q->getQuery());
+    }
+    /**
+     * @test
+     */
+    public function testModifyCol00() {
+        // modifyCol calls _alterColStm which is not implemented in MSSQLQuery
+        // This test verifies the exception for non-existent column
+        $this->expectException(DatabaseException::class);
+        $schema = new MSSQLTestSchema();
+        $schema->table('users')->modifyCol('not-exist');
+    }
+    /**
+     * @test
+     */
+    public function testUpdateWithNewCol() {
+        $schema = new MSSQLTestSchema();
+        $q = $schema->table('users');
+        $q->update([
+            'first-name' => 'Ibrahim',
+            'new-dynamic-col' => 'some value'
+        ]);
+        $query = $schema->getLastQuery();
+        $this->assertStringContainsString('update [users] set', $query);
+        $this->assertStringContainsString('[first_name] = ?', $query);
+    }
 }

@@ -116,11 +116,14 @@ class EagerLoadingTest extends TestCase {
     private static ?PostRepository $postRepo = null;
 
     public static function setUpBeforeClass(): void {
-        $conn = new ConnectionInfo('mysql', 'root', '123456', 'testing_db', '127.0.0.1');
+        $conn = new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD') ?: '123456', 'testing_db', '127.0.0.1', (int)(getenv('MYSQL_PORT') ?: 3306));
         self::$db = new Database($conn);
 
+        self::$db->raw('SET FOREIGN_KEY_CHECKS = 0')->execute();
+        self::$db->raw('DROP TABLE IF EXISTS comments')->execute();
         self::$db->raw('DROP TABLE IF EXISTS posts')->execute();
         self::$db->raw('DROP TABLE IF EXISTS authors')->execute();
+        self::$db->raw('SET FOREIGN_KEY_CHECKS = 1')->execute();
 
         // Use attribute-based tables for consistency
         self::$db->addTable(AttributeTableBuilder::build(AuthorsTable::class, 'mysql'));
