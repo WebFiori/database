@@ -79,7 +79,7 @@ class SchemaRunner extends Database {
 
         // Handle MSSQL datetime2 type
         if ($this->getConnectionInfo()->getDatabaseType() === ConnectionInfo::SUPPORTED_DATABASES[1]) {
-            $table->getColByKey('applied-on')->setDatatype(DataType::DATETIME2);
+            $table->getColByKey('applied_on')->setDatatype(DataType::DATETIME2);
         }
 
         $this->addTable($table);
@@ -272,12 +272,11 @@ class SchemaRunner extends Database {
      */
     public function createSchemaTable() {
         $this->createTables();
-
         // Add status column if missing (upgrade path for existing installations)
         try {
-            $this->table('schema_changes')->select(['status'])->limit(1)->execute();
-        } catch (\Throwable $e) {
             $this->table('schema_changes')->addCol('status')->execute();
+        } catch (\Throwable $e) {
+            //Probably already exist.
         }
     }
 

@@ -195,8 +195,8 @@ class SchemaChangeRepository extends AbstractRepository {
             ->insert([
                 'change_name' => $change->getName(),
                 'type' => $change->getType(),
-                'applied-on' => date('Y-m-d H:i:s'),
-                'db-name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
+                'applied_on' => date('Y-m-d H:i:s'),
+                'db_name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
                 'batch' => $change->getBatch(),
                 'status' => 'applied'
             ])->execute();
@@ -216,8 +216,8 @@ class SchemaChangeRepository extends AbstractRepository {
             ->insert([
                 'change_name' => $change->getName(),
                 'type' => $change->getType(),
-                'applied-on' => date('Y-m-d H:i:s'),
-                'db-name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
+                'applied_on' => date('Y-m-d H:i:s'),
+                'db_name' => $this->getDatabase()->getConnectionInfo()->getDBName(),
                 'batch' => $batch,
                 'status' => 'skipped'
             ])->execute();

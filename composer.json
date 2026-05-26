@@ -2,7 +2,7 @@
     "name": "webfiori/database",
     "description": "Database abstraction layer of WebFiori framework.",
     "type": "library",
-    "version": "1.2.0",
+    "version": "2.1.4",
     "keywords": [
         "Database",
         "PHP",
@@ -13,8 +13,6 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1",
-        "ext-mysqli": "*",
-        "ext-sqlsrv": "*",
         "webfiori/jsonx": "*"
     },
     "require-dev": {
