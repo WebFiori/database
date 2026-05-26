@@ -209,10 +209,15 @@ class SQLiteConnection extends Connection {
             }
 
             if (!empty($bindings)) {
-                return $this->runPrepared($sql, $bindings, $queryObj);
+                $result = $this->runPrepared($sql, $bindings, $queryObj);
+            } else {
+                $result = $this->runDirect($sql, $queryObj);
             }
 
-            return $this->runDirect($sql, $queryObj);
+            // Reset bindings after execution to prevent accumulation
+            $queryObj->resetBinding();
+
+            return $result;
         } catch (\Exception $e) {
             $this->setErrCode($e->getCode());
             $this->setErrMessage($e->getMessage());

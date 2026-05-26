@@ -50,6 +50,7 @@ Database abstraction layer of WebFiori framework.
 ## Supported Databases
 - MySQL
 - MSSQL
+- SQLite
 
 ## Features
 * Building your database structure within PHP
@@ -431,3 +432,4 @@ See the [examples](examples/) directory for complete working examples:
 - [12-clean-architecture](examples/12-clean-architecture/) - Domain separation
 - [13-pagination](examples/13-pagination/) - Pagination techniques
 - [14-active-record-model](examples/14-active-record-model/) - Active Record pattern
+- [17-sqlite](examples/17-sqlite/) - SQLite database usage

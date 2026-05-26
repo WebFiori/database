@@ -170,13 +170,12 @@ class SQLiteQueryTest extends TestCase {
      */
     public function testRenameColNoOldName() {
         // When column was never renamed, getOldName() returns current name
-        // so rename just produces a no-op rename SQL
-        $table = new SQLiteTable('t');
-        $table->addColumns(['col-a' => [ColOption::TYPE => DataType::INT]]);
-        $q = new SQLiteQuery();
-        $q->setTable($table);
-        $q->renameCol('col-a');
-        $this->assertStringContainsString('rename column', $q->getQuery());
+        $conn = new ConnectionInfo('sqlite', '', '', ':memory:');
+        $db = new Database($conn);
+        $db->createBlueprint('t')->addColumns(['col-a' => [ColOption::TYPE => DataType::INT]]);
+        $db->getTable('t')->getColByKey('col-a')->setName('col_b');
+        $db->getQueryGenerator()->table('t')->renameCol('col-a');
+        $this->assertStringContainsString('rename column', $db->getLastQuery());
     }
     /**
      * @test

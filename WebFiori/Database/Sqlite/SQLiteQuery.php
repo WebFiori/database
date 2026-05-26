@@ -247,6 +247,7 @@ class SQLiteQuery extends AbstractQuery {
      * @return SQLiteQuery The same instance for method chaining.
      */
     public function update(array $newColsVals): AbstractQuery {
+        $this->resetBinding();
         $updateArr = [];
         $tblName = $this->getTable()->getName();
 
@@ -258,6 +259,7 @@ class SQLiteQuery extends AbstractQuery {
                 $colObj = $this->getTable()->getColByKey($colKey);
             }
 
+            $colObj->setWithTablePrefix(false);
             $colName = $colObj->getName();
 
             if ($newVal === null) {
