@@ -200,6 +200,30 @@ class SQLiteColumn extends Column {
     }
 
     /**
+     * Sets the auto-update flag for this column.
+     * 
+     * SQLite does not support auto-update timestamps natively.
+     * This method is a no-op included for interface compatibility with
+     * the ColumnFactory.
+     * 
+     * @param bool $bool The value (ignored for SQLite).
+     */
+    public function setAutoUpdate(bool $bool) {
+        // No-op: SQLite does not support auto-update columns
+    }
+
+    /**
+     * Returns whether this column has auto-update enabled.
+     * 
+     * Always returns false for SQLite columns.
+     * 
+     * @return bool Always false.
+     */
+    public function isAutoUpdate(): bool {
+        return false;
+    }
+
+    /**
      * Sets the datatype of the column.
      * 
      * The provided type is mapped to SQLite's type affinity system:

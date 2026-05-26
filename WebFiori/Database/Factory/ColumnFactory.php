@@ -240,6 +240,14 @@ class ColumnFactory {
                 $col->setIsIdentity(true);
             }
         }
+
+        if ($col instanceof \WebFiori\Database\Sqlite\SQLiteColumn) {
+            $isIdentity = isset($options['identity']) ? $options['identity'] : false;
+
+            if ($isIdentity === true) {
+                $col->setIsAutoInc(true);
+            }
+        }
     }
 
     /**
@@ -258,6 +266,10 @@ class ColumnFactory {
         if ($isPrimary && isset($options['auto-inc']) && $col instanceof MySQLColumn) {
             $col->setIsAutoInc($options['auto-inc']);
             $col->setIsNull(true);
+        }
+
+        if ($isPrimary && isset($options['auto-inc']) && $col instanceof \WebFiori\Database\Sqlite\SQLiteColumn) {
+            $col->setIsAutoInc($options['auto-inc']);
         }
     }
 }
