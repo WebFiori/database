@@ -86,7 +86,14 @@ class SQLiteTable extends Table {
                 }
 
                 if (isset($options[ColOption::DEFAULT])) {
-                    $col->setDefault($options[ColOption::DEFAULT]);
+                    $default = $options[ColOption::DEFAULT];
+
+                    // Convert boolean defaults to integer for SQLite
+                    if (is_bool($default)) {
+                        $default = $default ? 1 : 0;
+                    }
+
+                    $col->setDefault($default);
                 }
 
                 if (isset($options[ColOption::COMMENT])) {
@@ -234,23 +241,5 @@ class SQLiteTable extends Table {
         }
 
         return implode(",\n", $fkParts);
-    }
-
-    /**
-     * Maps a requested datatype to SQLite's type affinity.
-     * 
-     * @param string $type The requested type (e.g., 'int', 'varchar', 'datetime').
-     * 
-     * @return string The SQLite affinity type (integer, real, text, or blob).
-     */
-    private function mapType(string $type): string {
-        $type = strtolower($type);
-
-        return match (true) {
-            in_array($type, ['int', 'bigint', 'bit', 'bool', 'boolean']) => 'integer',
-            in_array($type, ['float', 'double', 'decimal', 'money']) => 'real',
-            in_array($type, ['blob', 'binary', 'varbinary', 'mediumblob', 'longblob', 'tinyblob']) => 'blob',
-            default => 'text',
-        };
     }
 }

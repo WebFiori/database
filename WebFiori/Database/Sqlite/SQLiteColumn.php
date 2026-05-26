@@ -49,6 +49,7 @@ class SQLiteColumn extends Column {
      */
     public function __construct(string $name = 'col', string $datatype = 'text', int $size = 1) {
         parent::__construct($name);
+        $this->setDatatype($datatype);
         $this->setSize($size);
     }
 

@@ -37,6 +37,9 @@
     <testsuite name="Attributes Tests">
       <directory>./WebFiori/Tests/Database/Attributes</directory>
     </testsuite>
+    <testsuite name="SQLite Tests">
+      <directory>./WebFiori/Tests/Database/Sqlite</directory>
+    </testsuite>
     <testsuite name="Performance Tests">
       <directory>./WebFiori/Tests/Database/Performance</directory>
       <file>./QueryPerformanceMonitorTest.php</file>
