@@ -12,7 +12,7 @@ class DatabasePerformancePersistenceTest extends TestCase {
     private static ?Database $db = null;
 
     public static function setUpBeforeClass(): void {
-        $conn = new ConnectionInfo('mysql', 'root', '123456', 'testing_db', '127.0.0.1');
+        $conn = new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD') ?: '123456', 'testing_db', '127.0.0.1');
         self::$db = new Database($conn);
         self::$db->raw('DROP TABLE IF EXISTS query_performance_metrics')->execute();
     }
