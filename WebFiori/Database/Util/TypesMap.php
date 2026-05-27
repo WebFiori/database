@@ -44,6 +44,25 @@ class TypesMap {
                 'boolean' => 'boolean', 
                 'bool' => 'bool',
                 'bit' => 'bit'
+            ],
+            'sqlite' => [
+                'int' => 'integer',
+                'char' => 'text',
+                'varchar' => 'text',
+                'timestamp' => 'text',
+                'tinyblob' => 'blob',
+                'blob' => 'blob',
+                'mediumblob' => 'blob',
+                'longblob' => 'blob',
+                'datetime' => 'text',
+                'text' => 'text',
+                'mediumtext' => 'text',
+                'decimal' => 'real',
+                'double' => 'real',
+                'float' => 'real',
+                'boolean' => 'integer',
+                'bool' => 'integer',
+                'bit' => 'integer'
             ]
         ],
         'mssql' => [
@@ -66,6 +85,40 @@ class TypesMap {
                 'float' => 'float',
                 'boolean' => 'boolean',
                 'bool' => 'bool'
+            ],
+            'sqlite' => [
+                'int' => 'integer',
+                'bigint' => 'integer',
+                'varchar' => 'text',
+                'nvarchar' => 'text',
+                'char' => 'text',
+                'nchar' => 'text',
+                'binary' => 'blob',
+                'varbinary' => 'blob',
+                'date' => 'text',
+                'datetime2' => 'text',
+                'datetime' => 'text',
+                'time' => 'text',
+                'money' => 'real',
+                'bit' => 'integer',
+                'decimal' => 'real',
+                'float' => 'real',
+                'boolean' => 'integer',
+                'bool' => 'integer'
+            ]
+        ],
+        'sqlite' => [
+            'mysql' => [
+                'integer' => 'int',
+                'real' => 'decimal',
+                'text' => 'text',
+                'blob' => 'blob'
+            ],
+            'mssql' => [
+                'integer' => 'int',
+                'real' => 'decimal',
+                'text' => 'nvarchar',
+                'blob' => 'varbinary'
             ]
         ]
     ];

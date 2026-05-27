@@ -80,6 +80,12 @@ abstract class Connection {
         $this->executedQueries[] = $query;
     }
     public abstract function beginTransaction(?string $name = null);
+    /**
+     * Close the database connection and release resources.
+     * 
+     * After calling this method, the connection should not be used for queries.
+     */
+    public abstract function close(): void;
     public abstract function commit(?string $name = null);
     /**
      * Connect to RDBMS.
@@ -149,19 +155,13 @@ abstract class Connection {
     public function getLastResultSet() {
         return $this->resultSet;
     }
-    public abstract function rollBack(?string $name = null);
-    /**
-     * Close the database connection and release resources.
-     * 
-     * After calling this method, the connection should not be used for queries.
-     */
-    public abstract function close(): void;
     /**
      * Check if the connection is still alive and usable.
      * 
      * @return bool True if the connection is active and can execute queries.
      */
     public abstract function isAlive(): bool;
+    public abstract function rollBack(?string $name = null);
     /**
      * Sets the last query and execute it.
      * 

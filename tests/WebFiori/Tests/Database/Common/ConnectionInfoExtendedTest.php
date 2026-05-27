@@ -88,6 +88,7 @@ class ConnectionInfoExtendedTest extends TestCase {
         $supported = ConnectionInfo::SUPPORTED_DATABASES;
         $this->assertContains('mysql', $supported);
         $this->assertContains('mssql', $supported);
-        $this->assertCount(2, $supported);
+        $this->assertContains('sqlite', $supported);
+        $this->assertCount(3, $supported);
     }
 }

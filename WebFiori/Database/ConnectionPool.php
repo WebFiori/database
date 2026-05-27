@@ -11,8 +11,8 @@
  */
 namespace WebFiori\Database;
 
-use WebFiori\Database\MySql\MySQLConnection;
 use WebFiori\Database\MsSql\MSSQLConnection;
+use WebFiori\Database\MySql\MySQLConnection;
 
 /**
  * A connection pool that manages database connection lifecycle.
@@ -32,30 +32,17 @@ use WebFiori\Database\MsSql\MSSQLConnection;
  * @author Ibrahim
  */
 class ConnectionPool {
-    private static ?ConnectionPool $instance = null;
+    /** @var array<string, Connection[]> */
+    private array $active = [];
 
     /** @var array<string, Connection[]> */
     private array $idle = [];
-
-    /** @var array<string, Connection[]> */
-    private array $active = [];
+    private static ?ConnectionPool $instance = null;
 
     private int $maxPerKey = 10;
     private int $maxTotal = 100;
 
     private function __construct() {
-    }
-
-    /**
-     * Returns the singleton pool instance.
-     * 
-     * @return ConnectionPool
-     */
-    public static function getInstance(): self {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
     }
 
     /**
@@ -79,6 +66,7 @@ class ConnectionPool {
 
             if ($conn->isAlive()) {
                 $this->active[$key][] = $conn;
+
                 return $conn;
             }
 
@@ -96,35 +84,8 @@ class ConnectionPool {
         // Create new connection
         $conn = $this->createConnection($info);
         $this->active[$key][] = $conn;
+
         return $conn;
-    }
-
-    /**
-     * Release a connection back to the pool for reuse.
-     * 
-     * @param Connection $conn The connection to release.
-     */
-    public function release(Connection $conn): void {
-        $key = $this->buildKey($conn->getConnectionInfo());
-
-        // Remove from active
-        if (isset($this->active[$key])) {
-            $index = array_search($conn, $this->active[$key], true);
-
-            if ($index !== false) {
-                unset($this->active[$key][$index]);
-                $this->active[$key] = array_values($this->active[$key]);
-            }
-        }
-
-        // Return to idle if under per-key limit
-        $idleCount = count($this->idle[$key] ?? []);
-
-        if ($idleCount < $this->maxPerKey && $conn->isAlive()) {
-            $this->idle[$key][] = $conn;
-        } else {
-            $conn->close();
-        }
     }
 
     /**
@@ -145,46 +106,6 @@ class ConnectionPool {
 
         $this->idle = [];
         $this->active = [];
-    }
-
-    /**
-     * Set the maximum number of connections per unique key (host+port+db+user).
-     * 
-     * @param int $max Maximum idle connections per key.
-     */
-    public function setMaxPerKey(int $max): void {
-        if ($max > 0) {
-            $this->maxPerKey = $max;
-        }
-    }
-
-    /**
-     * Set the maximum total number of active connections across all keys.
-     * 
-     * @param int $max Maximum total active connections.
-     */
-    public function setMaxTotal(int $max): void {
-        if ($max > 0) {
-            $this->maxTotal = $max;
-        }
-    }
-
-    /**
-     * Returns the maximum number of idle connections per key.
-     * 
-     * @return int
-     */
-    public function getMaxPerKey(): int {
-        return $this->maxPerKey;
-    }
-
-    /**
-     * Returns the maximum total active connections allowed.
-     * 
-     * @return int
-     */
-    public function getMaxTotal(): int {
-        return $this->maxTotal;
     }
 
     /**
@@ -218,6 +139,65 @@ class ConnectionPool {
     }
 
     /**
+     * Returns the singleton pool instance.
+     * 
+     * @return ConnectionPool
+     */
+    public static function getInstance(): self {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Returns the maximum number of idle connections per key.
+     * 
+     * @return int
+     */
+    public function getMaxPerKey(): int {
+        return $this->maxPerKey;
+    }
+
+    /**
+     * Returns the maximum total active connections allowed.
+     * 
+     * @return int
+     */
+    public function getMaxTotal(): int {
+        return $this->maxTotal;
+    }
+
+    /**
+     * Release a connection back to the pool for reuse.
+     * 
+     * @param Connection $conn The connection to release.
+     */
+    public function release(Connection $conn): void {
+        $key = $this->buildKey($conn->getConnectionInfo());
+
+        // Remove from active
+        if (isset($this->active[$key])) {
+            $index = array_search($conn, $this->active[$key], true);
+
+            if ($index !== false) {
+                unset($this->active[$key][$index]);
+                $this->active[$key] = array_values($this->active[$key]);
+            }
+        }
+
+        // Return to idle if under per-key limit
+        $idleCount = count($this->idle[$key] ?? []);
+
+        if ($idleCount < $this->maxPerKey && $conn->isAlive()) {
+            $this->idle[$key][] = $conn;
+        } else {
+            $conn->close();
+        }
+    }
+
+    /**
      * Reset the pool singleton. Closes all connections and destroys the instance.
      * Primarily useful for testing.
      */
@@ -228,9 +208,31 @@ class ConnectionPool {
         self::$instance = null;
     }
 
+    /**
+     * Set the maximum number of connections per unique key (host+port+db+user).
+     * 
+     * @param int $max Maximum idle connections per key.
+     */
+    public function setMaxPerKey(int $max): void {
+        if ($max > 0) {
+            $this->maxPerKey = $max;
+        }
+    }
+
+    /**
+     * Set the maximum total number of active connections across all keys.
+     * 
+     * @param int $max Maximum total active connections.
+     */
+    public function setMaxTotal(int $max): void {
+        if ($max > 0) {
+            $this->maxTotal = $max;
+        }
+    }
+
     private function buildKey(ConnectionInfo $info): string {
-        return $info->getHost() . ':' . $info->getPort() . '/'
-             . $info->getDBName() . '@' . $info->getUsername();
+        return $info->getHost().':'.$info->getPort().'/'
+             .$info->getDBName().'@'.$info->getUsername();
     }
 
     private function createConnection(ConnectionInfo $info): Connection {
@@ -239,6 +241,7 @@ class ConnectionPool {
         return match ($driver) {
             'mysql' => new MySQLConnection($info),
             'mssql' => new MSSQLConnection($info),
+            'sqlite' => new Sqlite\SQLiteConnection($info),
             default => throw new DatabaseException("Unsupported driver: $driver"),
         };
     }

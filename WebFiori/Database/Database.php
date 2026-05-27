@@ -314,6 +314,8 @@ class Database {
 
         if ($dbType == 'mssql') {
             $blueprint = new MSSQLTable($name);
+        } else if ($dbType == 'sqlite') {
+            $blueprint = new Sqlite\SQLiteTable($name);
         } else {
             $blueprint = new MySQLTable($name);
         }
@@ -632,6 +634,8 @@ class Database {
 
             if ($dbType == 'mssql') {
                 $this->queryGenerator = new MSSQLQuery();
+            } else if ($dbType == 'sqlite') {
+                $this->queryGenerator = new Sqlite\SQLiteQuery();
             } else {
                 $this->queryGenerator = new MySQLQuery();
             }
@@ -913,6 +917,9 @@ class Database {
             $this->queryGenerator->setSchema($this);
         } else if ($driver == 'mssql') {
             $this->queryGenerator = new MSSQLQuery();
+            $this->queryGenerator->setSchema($this);
+        } else if ($driver == 'sqlite') {
+            $this->queryGenerator = new Sqlite\SQLiteQuery();
             $this->queryGenerator->setSchema($this);
         } else {
             throw new DatabaseException('Driver not supported: "'.$driver.'".');

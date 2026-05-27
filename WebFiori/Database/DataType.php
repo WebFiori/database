@@ -245,6 +245,12 @@ class DataType {
             self::VARBINARY,
             self::VARCHAR,
         ],
+        'sqlite' => [
+            'integer',
+            'real',
+            'text',
+            'blob',
+        ],
     ];
 
     /**

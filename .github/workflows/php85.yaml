@@ -46,7 +46,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.5
-          extensions: mysqli, mbstring, sqlsrv
+          extensions: mysqli, mbstring, sqlsrv, sqlite3
           tools: phpunit:11.5.46, composer
           
       - name: Install ODBC Driver for SQL Server
