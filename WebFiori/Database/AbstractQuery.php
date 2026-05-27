@@ -82,6 +82,10 @@ abstract class AbstractQuery {
      */
     private $query;
     /**
+     * @var array Parameter bindings for prepared statements.
+     */
+    private $bindings;
+    /**
      *
      * @var Database 
      * 
@@ -104,8 +108,11 @@ abstract class AbstractQuery {
         $this->query = '';
         $this->params = [];
         $this->tempBinding = [];
+        $this->bindings = [];
     }
-    public abstract function addBinding(Column $col, $value);
+    public function addBinding(Column $col, $value) {
+        $this->bindings[] = $value;
+    }
     /**
      * Constructs a query that can be used to add a column to a database table.
      * 
@@ -348,7 +355,9 @@ abstract class AbstractQuery {
             throw new DatabaseException($ex->getMessage(), $ex->getCode(), $errQuery, $ex);
         }
     }
-    public abstract function getBindings() : array ;
+    public function getBindings(): array {
+        return $this->bindings;
+    }
     /**
      * 
      * @return InsertBuilder|null
@@ -726,7 +735,9 @@ abstract class AbstractQuery {
         $this->limit = -1;
         $this->offset = -1;
     }
-    public abstract function resetBinding();
+    public function resetBinding() {
+        $this->bindings = [];
+    }
     /**
      * Perform a right join query.
      * 
@@ -880,7 +891,15 @@ abstract class AbstractQuery {
 
         return $this;
     }
-    public abstract function setBindings(array $binding, string $merge = 'none');
+    public function setBindings(array $binding, string $merge = 'none') {
+        if ($merge == 'first') {
+            $this->bindings = array_merge($binding, $this->bindings);
+        } elseif ($merge == 'end') {
+            $this->bindings = array_merge($this->bindings, $binding);
+        } else {
+            $this->bindings = $binding;
+        }
+    }
     public function setInsertBuilder(InsertBuilder $builder) {
         $this->insertHelper = $builder;
         $this->setQuery($builder->getQuery());

@@ -29,27 +29,10 @@ use WebFiori\Database\DatabaseException;
  */
 class SQLiteQuery extends AbstractQuery {
     /**
-     * Array of bound parameter values for prepared statements.
-     * 
-     * @var array
-     */
-    private array $bindings = [];
-
-    /**
      * Creates a new SQLite query builder instance.
      */
     public function __construct() {
         parent::__construct();
-    }
-
-    /**
-     * Adds a value to the bindings array for prepared statement execution.
-     * 
-     * @param Column $col The column that the value belongs to.
-     * @param mixed $value The value to bind.
-     */
-    public function addBinding(Column $col, $value) {
-        $this->bindings[] = $value;
     }
 
     /**
@@ -120,15 +103,6 @@ class SQLiteQuery extends AbstractQuery {
      */
     public function dropPrimaryKey(?string $pkName = null) {
         throw new DatabaseException('SQLite does not support ALTER TABLE DROP PRIMARY KEY.');
-    }
-
-    /**
-     * Returns the array of bound parameter values.
-     * 
-     * @return array The values that will be bound to the prepared statement placeholders.
-     */
-    public function getBindings(): array {
-        return $this->bindings;
     }
 
     /**
@@ -207,32 +181,6 @@ class SQLiteQuery extends AbstractQuery {
         $this->setQuery("alter table $tblName rename column \"$oldName\" to \"$newName\"");
 
         return $this;
-    }
-
-    /**
-     * Resets all parameter bindings.
-     */
-    public function resetBinding() {
-        $this->bindings = [];
-    }
-
-    /**
-     * Sets the parameter bindings array.
-     * 
-     * @param array $binding The new bindings array.
-     * @param string $merge How to merge with existing bindings:
-     * - 'none': Replace existing bindings (default)
-     * - 'first': Prepend new bindings before existing
-     * - 'end': Append new bindings after existing
-     */
-    public function setBindings(array $binding, string $merge = 'none') {
-        if ($merge == 'first') {
-            $this->bindings = array_merge($binding, $this->bindings);
-        } else if ($merge == 'end') {
-            $this->bindings = array_merge($this->bindings, $binding);
-        } else {
-            $this->bindings = $binding;
-        }
     }
 
     /**
