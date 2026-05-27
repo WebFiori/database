@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.2.0](https://github.com/WebFiori/database/compare/v2.1.4...v2.2.0) (2026-05-27)
+
+
+### Features
+
+* **sqlite:** add SQLite database engine support (Phase 1) ([68f2eba](https://github.com/WebFiori/database/commit/68f2eba57eec05cd9b733dfff877828997eafd4a)), closes [#141](https://github.com/WebFiori/database/issues/141)
+* **sqlite:** add type mappings in TypesMap (Phase 5) ([7b6e714](https://github.com/WebFiori/database/commit/7b6e71415407434a4c6defaf2558a1ab37d47f07)), closes [#141](https://github.com/WebFiori/database/issues/141)
+* **sqlite:** complete Phase 2 - factory integration and identity mapping ([12919be](https://github.com/WebFiori/database/commit/12919bee1768ca22748838652ec0a5e4a78acf8c))
+
+
+### Bug Fixes
+
+* **test:** remove DB dependency from DatabasePerformancePersistenceTest ([9a5185d](https://github.com/WebFiori/database/commit/9a5185dbae5598a0b39f28169113ff7472e28d04))
+* **test:** reset connection pool in SQLite tests to prevent pool exhaustion ([2dc2014](https://github.com/WebFiori/database/commit/2dc20145a42672b29a152db3e12f4af8ac877e1b))
+* **test:** use env var for MySQL password in DatabasePerformancePersistenceTest ([279496e](https://github.com/WebFiori/database/commit/279496e6df3c895f5d098687e93a3b9d3c9db8ae))
+
+
+### Miscellaneous Chores
+
+* update copyright year to 2026 in SQLite files ([9c6e186](https://github.com/WebFiori/database/commit/9c6e18605e73836684dbd65ec54b1d282a2dce90))
+
 ## [2.1.4](https://github.com/WebFiori/database/compare/v2.1.3...v2.1.4) (2026-05-13)
 
 
