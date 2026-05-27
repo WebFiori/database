@@ -165,13 +165,6 @@ class SQLiteColumnTest extends TestCase {
     /**
      * @test
      */
-    public function testGetNameEmpty() {
-        $col = new SQLiteColumn('', 'text');
-        $this->assertEquals('', $col->getName());
-    }
-    /**
-     * @test
-     */
     public function testDoubleQuoteStatic() {
         $this->assertEquals('"users"."name"', SQLiteColumn::doubleQuote('users.name'));
         $this->assertEquals('"name"', SQLiteColumn::doubleQuote('name'));

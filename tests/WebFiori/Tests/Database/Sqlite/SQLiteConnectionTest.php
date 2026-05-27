@@ -25,6 +25,13 @@ class SQLiteConnectionTest extends TestCase {
         ]);
         $this->db->table('users')->createTable()->execute();
     }
+
+    protected function tearDown(): void {
+        if ($this->db !== null) {
+            $this->db->close();
+        }
+        \WebFiori\Database\ConnectionPool::reset();
+    }
     /**
      * @test
      */
