@@ -1,40 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit colors="true" bootstrap="boot.php" displayDetailsOnTestsThatTriggerWarnings="true" displayDetailsOnSkippedTests="true">
-    <php>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" bootstrap="boot.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" cacheDirectory=".phpunit.cache" displayDetailsOnTestsThatTriggerWarnings="true" displayDetailsOnSkippedTests="true">
+  <coverage includeUncoveredFiles="true">
+    <report>
+      <clover outputFile="clover.xml"/>
+    </report>
+  </coverage>
+  <php>
     </php>
-    <filter>
-        <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">../WebFiori/Database/MySql</directory>
-            <directory suffix=".php">../WebFiori/Database/MySql</directory>
-            <directory suffix=".php">../WebFiori/Database</directory>
-            <directory suffix=".php">../WebFiori/Database/Schema</directory>
-        </whitelist>
-    </filter>
-    <logging>
-        <log type="coverage-clover" target="clover.xml"/>
-    </logging>
-    <testsuites>
-        <testsuite name="Common Tests">
-            <directory>./WebFiori/Tests/Database/Common</directory>
-        </testsuite>
-        <testsuite name="MySQL Tests">
-            <directory>./WebFiori/Tests/Database/MySql</directory>
-        </testsuite>
-        <testsuite name="MySQL Multi-Result Tests">
-            <file>./WebFiori/Tests/Database/MySql/MySQLMultiResultTest.php</file>
-        </testsuite>
-        <testsuite name="MSSQL Tests">
-            <directory>./WebFiori/Tests/Database/MsSql</directory>
-            <exclude>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</exclude>
-        </testsuite>
-        <testsuite name="MSSQL Multi-Result Tests">
-            <file>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</file>
-        </testsuite>
-        <testsuite name="Schema Tests">
-            <directory>./WebFiori/Tests/Database/Schema</directory>
-        </testsuite>
-        <testsuite name="MultiResultSet Tests">
-            <file>./MultiResultSetTest.php</file>
-        </testsuite>
-    </testsuites>
+  <logging/>
+  <testsuites>
+    <testsuite name="Common Tests">
+      <directory>./WebFiori/Tests/Database/Common</directory>
+    </testsuite>
+    <testsuite name="MySQL Tests">
+      <directory>./WebFiori/Tests/Database/MySql</directory>
+    </testsuite>
+    <testsuite name="MySQL Multi-Result Tests">
+      <file>./WebFiori/Tests/Database/MySql/MySQLMultiResultTest.php</file>
+    </testsuite>
+    <testsuite name="MSSQL Tests">
+      <directory>./WebFiori/Tests/Database/MsSql</directory>
+      <exclude>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</exclude>
+    </testsuite>
+    <testsuite name="MSSQL Multi-Result Tests">
+      <file>./WebFiori/Tests/Database/MsSql/MSSQLMultiResultTest.php</file>
+    </testsuite>
+    <testsuite name="Multi-Result Integration Tests">
+      <file>./WebFiori/Tests/Database/MultiResultIntegrationTest.php</file>
+    </testsuite>
+    <testsuite name="Schema Tests">
+      <directory>./WebFiori/Tests/Database/Schema</directory>
+    </testsuite>
+    <testsuite name="Repository Tests">
+      <directory>./WebFiori/Tests/Database/Repository</directory>
+    </testsuite>
+    <testsuite name="Attributes Tests">
+      <directory>./WebFiori/Tests/Database/Attributes</directory>
+    </testsuite>
+    <testsuite name="SQLite Tests">
+      <directory>./WebFiori/Tests/Database/Sqlite</directory>
+    </testsuite>
+    <testsuite name="Performance Tests">
+      <directory>./WebFiori/Tests/Database/Performance</directory>
+      <file>./QueryPerformanceMonitorTest.php</file>
+      <file>./DatabasePerformanceTest.php</file>
+      <file>./DatabasePerformancePersistenceTest.php</file>
+      <file>./PerformanceOptionTest.php</file>
+    </testsuite>
+    <testsuite name="MultiResultSet Tests">
+      <file>./MultiResultSetTest.php</file>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">../WebFiori/Database/MySql</directory>
+      <directory suffix=".php">../WebFiori/Database/MySql</directory>
+      <directory suffix=".php">../WebFiori/Database</directory>
+      <directory suffix=".php">../WebFiori/Database/Schema</directory>
+    </include>
+  </source>
 </phpunit>

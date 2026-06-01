@@ -90,7 +90,7 @@ jobs:
         run: composer install --prefer-source --no-interaction
       
       - name: Execute Tests
-        run: phpunit --configuration=tests/phpunit10.xml --coverage-clover=clover.xml --stop-on-failure
+        run: phpunit --configuration=tests/phpunit.xml --coverage-clover=clover.xml --stop-on-failure
 
       - name: Rename coverage report
         run: |
@@ -105,7 +105,7 @@ jobs:
   code-coverage:
     name: Coverage
     needs: test
-    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@v1.2
+    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@v1.2.5
     with:
       php-version: '8.3'
       coverage-file: 'php-8.3-coverage.xml'
