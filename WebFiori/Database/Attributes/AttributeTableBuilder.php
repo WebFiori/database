@@ -42,7 +42,7 @@ class AttributeTableBuilder {
                 }
 
                 $columnConfig = $columnAttrs[0]->newInstance();
-                $columnKey = self::propertyToKey($property->getName());
+                $columnKey = $columnConfig->name ?? self::propertyToKey($property->getName());
                 $columns[$columnKey] = self::columnConfigToArray($columnConfig);
 
                 foreach ($property->getAttributes(ForeignKey::class) as $fkAttr) {

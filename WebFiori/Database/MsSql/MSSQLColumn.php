@@ -496,6 +496,12 @@ class MSSQLColumn extends Column {
             return parent::setSize($size);
         }
 
+        $maxTypes = ['varchar', 'nvarchar', 'varbinary'];
+
+        if ($size == -1 && in_array($this->getDatatype(), $maxTypes)) {
+            return parent::setSize($size);
+        }
+
         return false;
     }
     /**
@@ -615,7 +621,8 @@ class MSSQLColumn extends Column {
         if ($colDataType == 'varchar' || $colDataType == 'nvarchar'
                 || $colDataType == 'char' || $colDataType == 'nchar'
                 || $colDataType == 'binary' || $colDataType == 'varbinary') {
-            $retVal .= $colDataTypeSq.'('.$this->getSize().') ';
+            $size = $this->getSize() == -1 ? 'max' : $this->getSize();
+            $retVal .= $colDataTypeSq.'('.$size.') ';
         } else if (in_array($colDataType, Column::BOOL_TYPES)) {
             $retVal .= '[bit] ';
         } else if ($colDataType == 'decimal') {

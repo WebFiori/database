@@ -602,7 +602,7 @@ abstract class Column {
      * 
      */
     public function setSize(int $size) : bool {
-        if ($size >= 0) {
+        if ($size >= 0 || $size == -1) {
             $this->size = $size;
 
             return true;
