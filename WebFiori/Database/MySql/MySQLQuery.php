@@ -401,6 +401,7 @@ class MySQLQuery extends AbstractQuery {
      * 
      */
     public function update(array $newColsVals) {
+        $this->resetBinding();
         $updateArr = [];
         $colsWithVals = [];
         $tblName = $this->getTable()->getName();
