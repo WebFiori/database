@@ -31,6 +31,10 @@ abstract class AbstractQuery {
      */
     private $associatedTbl;
     /**
+     * @var array Parameter bindings for prepared statements.
+     */
+    private $bindings;
+    /**
      * 
      * @var InsertHelper
      */
@@ -81,10 +85,6 @@ abstract class AbstractQuery {
      * 
      */
     private $query;
-    /**
-     * @var array Parameter bindings for prepared statements.
-     */
-    private $bindings;
     /**
      *
      * @var Database 

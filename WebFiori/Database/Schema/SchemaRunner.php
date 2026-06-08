@@ -174,6 +174,7 @@ class SchemaRunner extends Database {
                     $processed[$name] = true;
                     $appliedInPass = true;
                 } catch (\Throwable $ex) {
+                    $this->resetBinding();
                     $result->addFailed($change, $ex);
                     $processed[$name] = true;
 
@@ -230,6 +231,8 @@ class SchemaRunner extends Database {
                     $change->setBatch($batch);
                     $this->getRepository()->recordChange($change);
                 } catch (\Throwable $ex) {
+                    $this->resetBinding();
+
                     foreach ($this->onErrCallbacks as $callback) {
                         call_user_func_array($callback, [$ex, $change, $this]);
                     }
@@ -238,6 +241,8 @@ class SchemaRunner extends Database {
                 return $change;
             }
         } catch (\Throwable $ex) {
+            $this->resetBinding();
+
             foreach ($this->onErrCallbacks as $callback) {
                 call_user_func_array($callback, [$ex, $change, $this]);
             }
@@ -386,7 +391,7 @@ class SchemaRunner extends Database {
                     $info['queries'] = $this->getCapturedQueries();
                 } catch (\Throwable $ex) {
                     // Capture failed, queries may be partial
-                    $info['queries'] = array_merge($this->getCapturedQueries(), ['Error: '.$ex->getMessage()]);
+                    $info['queries'] = array_merge($this->getCapturedQueries(), ['Error: '.$ex->getCode().' - '.$ex->getMessage()." at ".$ex->getFile().":".$ex->getLine()."\nStack Trace:".$ex->getTraceAsString()]);
                 }
                 $this->setDryRun(false);
             }

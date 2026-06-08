@@ -53,6 +53,7 @@ class SchemaChangeRepository extends AbstractRepository {
      * @return int Number of applied changes
      */
     public function count(array $conditions = []): int {
+        $this->getDatabase()->resetBinding();
         $query = $this->getDatabase()->table($this->getTableName())->select();
 
         foreach ($conditions as $col => $val) {

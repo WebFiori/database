@@ -370,7 +370,7 @@ class MySQLColumn extends Column {
         try {
             parent::setDatatype($type);
         } catch (DatabaseException $ex) {
-            throw new DatabaseException($ex->getMessage());
+            throw new DatabaseException($ex->getMessage(), $ex->getCode());
         }
 
         $s_type = $this->getDatatype();
