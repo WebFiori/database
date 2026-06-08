@@ -198,7 +198,7 @@ class Database {
             try {
                 $table = new $className();
             } catch (\Throwable $e) {
-                throw new DatabaseException('Failed to instantiate table class "'.$className.'": '.$e->getMessage());
+                throw new DatabaseException('Failed to instantiate table class "'.$className.'": '.$e->getCode().' - '.$e->getMessage()." at ".$e->getFile().':'.$e->getLine()."\nStack Trace: ".$e->getTraceAsString());
             }
             $table = TableFactory::map($dbType, $table);
         } else {
@@ -752,7 +752,10 @@ class Database {
         } catch (DatabaseException $ex) {
             $this->lastErr = [
                 'code' => $ex->getCode(),
-                'message' => $ex->getMessage()
+                'message' => $ex->getMessage(),
+                'file' => $ex->getFile(),
+                'line' => $ex->getLine(),
+                'trace' => $ex->getTraceAsString()
             ];
 
             return false;

@@ -391,7 +391,7 @@ class SchemaRunner extends Database {
                     $info['queries'] = $this->getCapturedQueries();
                 } catch (\Throwable $ex) {
                     // Capture failed, queries may be partial
-                    $info['queries'] = array_merge($this->getCapturedQueries(), ['Error: '.$ex->getMessage()]);
+                    $info['queries'] = array_merge($this->getCapturedQueries(), ['Error: '.$ex->getCode().' - '.$ex->getMessage()." at ".$ex->getFile().":".$ex->getLine()."\nStack Trace:".$ex->getTraceAsString()]);
                 }
                 $this->setDryRun(false);
             }
