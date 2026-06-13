@@ -231,7 +231,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             ], [
                 'task_id' => 2,
                 'user_id' => 104,
-                'created_on' => $tasks[0]['created_on'],
+                'created_on' => $tasks[1]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This another task.',
@@ -257,7 +257,7 @@ class MSSQLQueryBuilderTest extends TestCase{
             ], [
                 'task_id' => 2,
                 'user_id' => 104,
-                'created_on' => $tasks[0]['created_on'],
+                'created_on' => $tasks[1]['created_on'],
                 'last_updated' => null,
                 'is_finished' => 0,
                 'details' => 'This another task.',
