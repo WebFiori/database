@@ -151,6 +151,15 @@ class MySQLConnection extends Connection {
 
         return $test;
     }
+
+    /**
+     * Returns the ID of the last inserted row.
+     * 
+     * @return int The last insert ID, or 0 if not available.
+     */
+    public function getLastInsertId(): int {
+        return $this->link !== null ? (int) mysqli_insert_id($this->link) : 0;
+    }
     /**
      * Returns the instance at which the connection uses to execute 
      * database queries.

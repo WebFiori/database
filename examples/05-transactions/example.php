@@ -81,7 +81,7 @@ try {
             'description' => 'Money transfer'
         ])->execute();
 
-        echo "   ✓ Transaction completed\n";
+        echo "   ✓ Transaction completed (ID: ".$db->getLastInsertId().")\n";
     });
 
     $result = $database->table('accounts')->select()->execute();

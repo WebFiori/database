@@ -246,11 +246,7 @@ class SchemaChangeRepository extends AbstractRepository {
      * @return int The last insert ID, or 0 if not available
      */
     private function getLastInsertId(): int {
-        return (int)$this->getDatabase()
-        ->getQueryGenerator()
-        ->selectMax($this->getIdField(), 'max')
-        ->execute()
-        ->getRows()[0]['max'];
+        return $this->getDatabase()->getLastInsertId();
     }
 
     /**
