@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.2.3](https://github.com/WebFiori/database/compare/v2.2.2...v2.2.3) (2026-06-13)
+
+
+### Features
+
+* **connection:** add abstract getLastInsertId() method ([bb8fd44](https://github.com/WebFiori/database/commit/bb8fd446ccff2245ac17b76951588200ced90df7)), closes [#167](https://github.com/WebFiori/database/issues/167)
+
+
+### Bug Fixes
+
+* **ci:** include all commit types in release-please changelog ([3c93ad1](https://github.com/WebFiori/database/commit/3c93ad1f76440cb826f608046997fafb3341523d))
+* **ci:** use vendor/bin/phpunit instead of global phpunit ([d1c0220](https://github.com/WebFiori/database/commit/d1c0220089563ac3806fef077c4a280a504c4d21))
+* **test:** fix flaky MSSQL transaction test timestamp comparison ([a156977](https://github.com/WebFiori/database/commit/a156977b6927907264bbf4eda74e8d0986d89f94))
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#168](https://github.com/WebFiori/database/issues/168) from WebFiori/dev ([dc9843a](https://github.com/WebFiori/database/commit/dc9843a1214e8807a039b549486998a66df5b826))
+
 ## [2.2.1](https://github.com/WebFiori/database/compare/v2.2.0...v2.2.1) (2026-06-01)
 
 
