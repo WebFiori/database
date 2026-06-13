@@ -231,6 +231,18 @@ class SQLiteConnectionTest extends TestCase {
     /**
      * @test
      */
+    public function testGetLastInsertIdFromDatabase() {
+        $this->db->table('users')->insert(['name' => 'A', 'email' => 'a@db.com', 'age' => 20])->execute();
+        $id1 = $this->db->getLastInsertId();
+        $this->assertGreaterThan(0, $id1);
+
+        $this->db->table('users')->insert(['name' => 'B', 'email' => 'b@db.com', 'age' => 30])->execute();
+        $id2 = $this->db->getLastInsertId();
+        $this->assertGreaterThan($id1, $id2);
+    }
+    /**
+     * @test
+     */
     public function testGetLastInsertIdNoConnection() {
         $conn = new ConnectionInfo('sqlite', '', '', ':memory:');
         $connection = new SQLiteConnection($conn);

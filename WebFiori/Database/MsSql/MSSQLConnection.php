@@ -152,6 +152,26 @@ class MSSQLConnection extends Connection {
 
         return false;
     }
+
+    /**
+     * Returns the ID of the last inserted row using SCOPE_IDENTITY().
+     * 
+     * @return int The last insert ID, or 0 if not available.
+     */
+    public function getLastInsertId(): int {
+        if ($this->link === null) {
+            return 0;
+        }
+        $result = sqlsrv_query($this->link, 'SELECT SCOPE_IDENTITY() AS id');
+
+        if ($result !== false && $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            sqlsrv_free_stmt($result);
+
+            return (int) $row['id'];
+        }
+
+        return 0;
+    }
     /**
      * Returns SQL state in case of warnings or errors.
      * 

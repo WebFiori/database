@@ -536,6 +536,15 @@ class Database {
 
         return $this->lastErr;
     }
+
+    /**
+     * Returns the ID of the last inserted row or sequence value.
+     * 
+     * @return int The last insert ID, or 0 if not available.
+     */
+    public function getLastInsertId(): int {
+        return $this->getConnection()->getLastInsertId();
+    }
     /**
      * Returns the last generated SQL query.
      * 

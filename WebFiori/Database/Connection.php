@@ -136,6 +136,21 @@ abstract class Connection {
         return $this->lastErrMsg;
     }
     /**
+     * Check if the connection is still alive and usable.
+     * 
+     * @return bool True if the connection is active and can execute queries.
+     */
+    /**
+     * Returns the ID of the last inserted row or sequence value.
+     * 
+     * This method should return the last auto-generated identity value
+     * after an INSERT operation. If no insert has been performed or the
+     * connection is closed, the method should return 0.
+     * 
+     * @return int The last insert ID, or 0 if not available.
+     */
+    public abstract function getLastInsertId(): int;
+    /**
      * Returns last executed query object.
      * 
      * @return AbstractQuery|null Last executed query object. If no query was executed, 
@@ -155,11 +170,6 @@ abstract class Connection {
     public function getLastResultSet() {
         return $this->resultSet;
     }
-    /**
-     * Check if the connection is still alive and usable.
-     * 
-     * @return bool True if the connection is active and can execute queries.
-     */
     public abstract function isAlive(): bool;
     public abstract function rollBack(?string $name = null);
     /**
