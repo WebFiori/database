@@ -2312,4 +2312,48 @@ class MySQLQueryBuilderTest extends TestCase {
         $this->assertSame(1, $params['values'][1][2], 'Row 1: true should be cast to int 1');
         $this->assertSame(0, $params['values'][1][3], 'Row 1: false should be cast to int 0');
     }
+    /**
+     * @test
+     * Issue #172: Inserting values into BIT(1) columns should not fail.
+     */
+    public function testInsertBitColumnIntegration() {
+        $connInfo = new ConnectionInfo('mysql', 'root', getenv('MYSQL_ROOT_PASSWORD'), 'testing_db', '127.0.0.1');
+        $db = new Database($connInfo);
+        $db->createBlueprint('bit_test')->addColumns([
+            'id' => [
+                \WebFiori\Database\ColOption::TYPE => \WebFiori\Database\DataType::INT,
+                \WebFiori\Database\ColOption::PRIMARY => true,
+            ],
+            'flag' => [
+                \WebFiori\Database\ColOption::TYPE => \WebFiori\Database\DataType::BOOL,
+                \WebFiori\Database\ColOption::DEFAULT => false,
+            ],
+        ]);
+        $db->table('bit_test')->createTable()->execute();
+
+        try {
+            // Case 1: Explicit boolean value
+            $db->table('bit_test')->insert([
+                'id' => 1,
+                'flag' => true,
+            ])->execute();
+
+            // Case 2: Explicit false value
+            $db->table('bit_test')->insert([
+                'id' => 2,
+                'flag' => false,
+            ])->execute();
+
+            // Case 3: Omit flag, rely on default value
+            $db->table('bit_test')->insert([
+                'id' => 3,
+            ])->execute();
+
+            $result = $db->table('bit_test')->select()->execute();
+            $this->assertCount(3, $result);
+        } finally {
+            $db->raw("DROP TABLE `bit_test`")->execute();
+        }
+    }
 }
+
