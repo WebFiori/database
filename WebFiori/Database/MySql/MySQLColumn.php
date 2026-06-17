@@ -695,8 +695,10 @@ class MySQLColumn extends Column {
             } else {
                 $retVal .= $colDataType.'('.$this->getSize().') ';
             }
-        } else if ($colDataType == 'varchar' || $colDataType == 'text') {
+        } else if ($colDataType == 'varchar') {
             $retVal .= $colDataType.'('.$this->getSize().') ';
+        } else if ($colDataType == 'text') {
+            $retVal .= 'text ';
         } else if (in_array($colDataType, Column::BOOL_TYPES)) {
             $retVal .= 'bit(1) ';
         } else if ($colDataType == 'decimal' || $colDataType == 'float' || $colDataType == 'double') {

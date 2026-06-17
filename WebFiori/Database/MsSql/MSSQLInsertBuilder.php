@@ -26,7 +26,12 @@ class MSSQLInsertBuilder extends InsertBuilder {
         foreach ($values as $valsArr) {
             foreach ($valsArr as $col => $val) {
                 $colObj = $this->getTable()->getColByKey($col);
-                $arr[] = $val;
+
+                if ($colObj !== null && in_array($colObj->getDatatype(), ['binary', 'varbinary'])) {
+                    $arr[] = [$val, SQLSRV_PARAM_IN, SQLSRV_PHPTYPE_STREAM(SQLSRV_ENC_BINARY), SQLSRV_SQLTYPE_VARBINARY('max')];
+                } else {
+                    $arr[] = $val;
+                }
             }
             $index++;
         }
