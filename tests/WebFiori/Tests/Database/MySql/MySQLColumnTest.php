@@ -871,6 +871,16 @@ class MySQLColumnTest extends TestCase {
     }
     /**
      * @test
+     * Issue #171: DataType::TEXT should map to MySQL TEXT, not TINYTEXT.
+     */
+    public function testTextTypeMapsToText() {
+        $col = new MySQLColumn('content', 'text');
+        $ddl = $col . '';
+        $this->assertStringContainsString('text ', $ddl);
+        $this->assertStringNotContainsString('text(', $ddl, 'TEXT column should not have a size parameter (text(n) becomes TINYTEXT in MySQL)');
+    }
+    /**
+     * @test
      * Test that native MySQL types are not affected by auto-mapping.
      */
     public function testNativeTypesUnaffected() {
