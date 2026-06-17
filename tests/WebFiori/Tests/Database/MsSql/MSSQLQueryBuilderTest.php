@@ -4,9 +4,11 @@ namespace WebFiori\Tests\Database\MsSql;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
 use WebFiori\Database\DatabaseException;
+use WebFiori\Database\DataType;
 use WebFiori\Database\Query\Expression;
 use WebFiori\Database\MsSql\MSSQLConnection;
 use WebFiori\Tests\Database\MsSql\MSSQLTestSchema;
@@ -1410,5 +1412,39 @@ class MSSQLQueryBuilderTest extends TestCase{
         $query = $schema->getLastQuery();
         $this->assertStringContainsString('update [users] set', $query);
         $this->assertStringContainsString('[first_name] = ?', $query);
+    }
+    /**
+     * @test
+     * Issue #170: Inserting PHP string into varbinary(max) column should not fail.
+     */
+    public function testInsertVarbinaryData() {
+        $connInfo = new ConnectionInfo('mssql', 'sa', getenv('SA_SQL_SERVER_PASSWORD'), 'testing_db', SQL_SERVER_HOST, 1433, [
+            'TrustServerCertificate' => 'true'
+        ]);
+        $db = new Database($connInfo);
+        $db->createBlueprint('bin_test')->addColumns([
+            'id' => [
+                ColOption::TYPE => DataType::INT,
+                ColOption::PRIMARY => true,
+            ],
+            'data' => [
+                ColOption::TYPE => DataType::VARBINARY,
+                ColOption::SIZE => -1,
+            ],
+        ]);
+        $db->table('bin_test')->createTable()->execute();
+
+        try {
+            $binaryData = random_bytes(16);
+            $db->table('bin_test')->insert([
+                'id' => 1,
+                'data' => $binaryData,
+            ])->execute();
+
+            $result = $db->table('bin_test')->select()->where('id', 1)->execute();
+            $this->assertCount(1, $result);
+        } finally {
+            $db->raw("DROP TABLE [bin_test]")->execute();
+        }
     }
 }
