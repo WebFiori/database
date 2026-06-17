@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.2.3](https://github.com/WebFiori/database/compare/v2.2.2...v2.2.3) (2026-06-17)
+
+
+### Features
+
+* **connection:** add abstract getLastInsertId() method ([bb8fd44](https://github.com/WebFiori/database/commit/bb8fd446ccff2245ac17b76951588200ced90df7)), closes [#167](https://github.com/WebFiori/database/issues/167)
+
+
+### Bug Fixes
+
+* bug fixes for TEXT mapping, MSSQL varbinary, and select aliases ([6a54822](https://github.com/WebFiori/database/commit/6a54822d74908588df376e466d832309216e3325))
+* **ci:** include all commit types in release-please changelog ([3c93ad1](https://github.com/WebFiori/database/commit/3c93ad1f76440cb826f608046997fafb3341523d))
+* **ci:** use vendor/bin/phpunit instead of global phpunit ([d1c0220](https://github.com/WebFiori/database/commit/d1c0220089563ac3806fef077c4a280a504c4d21))
+* **mssql:** bind varbinary columns with correct binary type on insert ([ebd4929](https://github.com/WebFiori/database/commit/ebd49292a192e4a3b2b6c0dbdc2f67186be0f5db)), closes [#170](https://github.com/WebFiori/database/issues/170)
+* **mysql:** DataType::TEXT maps to TEXT instead of TINYTEXT ([f46d066](https://github.com/WebFiori/database/commit/f46d066932eff7bdf86d68797e7a1438173c46d7)), closes [#171](https://github.com/WebFiori/database/issues/171)
+* **query:** select() with string column aliases throws TypeError ([8e0b14c](https://github.com/WebFiori/database/commit/8e0b14c3ea08b4ff84043ab7953aa898d5eb3e10)), closes [#173](https://github.com/WebFiori/database/issues/173)
+* resolve MySQL TEXT mapping, MSSQL varbinary insert, and select alias TypeError ([055b00b](https://github.com/WebFiori/database/commit/055b00b08d6b8ae2df7c97ca633375a54e099bbe))
+* **test:** fix flaky MSSQL transaction test timestamp comparison ([a156977](https://github.com/WebFiori/database/commit/a156977b6927907264bbf4eda74e8d0986d89f94))
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#168](https://github.com/WebFiori/database/issues/168) from WebFiori/dev ([dc9843a](https://github.com/WebFiori/database/commit/dc9843a1214e8807a039b549486998a66df5b826))
+
 ## [2.2.1](https://github.com/WebFiori/database/compare/v2.2.0...v2.2.1) (2026-06-01)
 
 
