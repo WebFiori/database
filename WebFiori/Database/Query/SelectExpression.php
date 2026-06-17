@@ -652,6 +652,8 @@ class SelectExpression extends Expression {
             } else {
                 if (gettype($index) == 'integer') {
                     $this->addColumn($colArrOrExpr);
+                } else if (is_string($colArrOrExpr)) {
+                    $this->addColumn($index, ['alias' => $colArrOrExpr]);
                 } else {
                     $this->addColumn($index, $colArrOrExpr);
                 }

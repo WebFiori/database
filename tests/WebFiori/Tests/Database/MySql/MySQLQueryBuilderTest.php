@@ -2355,5 +2355,19 @@ class MySQLQueryBuilderTest extends TestCase {
             $db->raw("DROP TABLE `bit_test`")->execute();
         }
     }
+    /**
+     * @test
+     * Issue #173: select() with column aliases as string values should work.
+     */
+    public function testSelectWithStringAlias() {
+        $schema = new MySQLTestSchema();
+        $schema->table('users')->select([
+            'first-name' => 'full_name',
+            'age',
+        ]);
+        $query = $schema->getLastQuery();
+        $this->assertStringContainsString('`full_name`', $query);
+        $this->assertStringContainsString('`age`', $query);
+    }
 }
 
