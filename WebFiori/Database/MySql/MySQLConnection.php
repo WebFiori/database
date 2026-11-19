@@ -38,6 +38,13 @@ use WebFiori\Database\ResultSet;
 class MySQLConnection extends Connection {
     private $isCollationSet;
     /**
+     * The id of the last builder insert when it is not an auto-increment value.
+     * Null means that the value reported by MySQL should be used.
+     * 
+     * @var string|int|null
+     */
+    private $lastInsertKey = null;
+    /**
      *
      * @var mysqli|null
      * 
@@ -155,10 +162,22 @@ class MySQLConnection extends Connection {
     /**
      * Returns the ID of the last inserted row.
      * 
-     * @return int The last insert ID, or 0 if not available.
+     * For a query-builder insert into a table whose key is not
+     * auto-increment (for example a UUID), the method returns the key of the
+     * inserted row as string. Otherwise it returns the auto-increment value.
+     * 
+     * @return string|int The last insert ID, or 0 if not available.
      */
-    public function getLastInsertId(): int {
-        return $this->link !== null ? (int) mysqli_insert_id($this->link) : 0;
+    public function getLastInsertId(): string|int {
+        if ($this->link === null) {
+            return 0;
+        }
+
+        if ($this->lastInsertKey !== null) {
+            return $this->lastInsertKey;
+        }
+
+        return (int) mysqli_insert_id($this->link);
     }
     /**
      * Returns the instance at which the connection uses to execute 
@@ -295,6 +314,7 @@ class MySQLConnection extends Connection {
         return $retVal;
     }
     private function runInsertQuery() {
+        $this->lastInsertKey = null;
         $insertBuilder = $this->getLastQuery()->getInsertBuilder();
 
         if ($insertBuilder === null) {
@@ -320,8 +340,14 @@ class MySQLConnection extends Connection {
         }
 
         $retVal = false;
+        $ok = $this->chechInsertOrUpdateResult($r);
 
-        return $this->chechInsertOrUpdateResult($r);
+        if ($ok && !$insertBuilder->isKeyGenerated()) {
+            // The key is not auto-increment: report the key of the inserted row.
+            $this->lastInsertKey = $insertBuilder->getKeyValue() ?? 0;
+        }
+
+        return $ok;
     }
     private function runOtherQuery() {
         $sql = $this->getLastQuery()->getQuery();
