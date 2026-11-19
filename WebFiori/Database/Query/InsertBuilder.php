@@ -249,8 +249,16 @@ abstract class InsertBuilder {
      * @param array $colsArr
      */
     private function checkColsWithNoVals(array $columnsWithVals, array &$colsArr) {
+        // Columns can be given by key (unit-count) or by name (unit_count).
+        // Normalize both to keys before looking for columns with no value.
+        $givenKeys = [];
+
+        foreach ($columnsWithVals as $given) {
+            $givenKeys[] = str_replace('_', '-', trim((string) $given));
+        }
+
         foreach ($this->getTable()->getColsKeys() as $key) {
-            if (!in_array($key, $columnsWithVals)) {
+            if (!in_array($key, $givenKeys)) {
                 $colObj = $this->getTable()->getColByKey($key);
                 $defaultVal = $colObj->getDefault();
 
