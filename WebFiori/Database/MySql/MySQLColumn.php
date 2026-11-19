@@ -97,7 +97,7 @@ class MySQLColumn extends Column {
 
         $retVal .= $this->defaultPart();
 
-        if ($colDataType == 'varchar' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {
+        if ($colDataType == 'varchar' || $colDataType == 'char' || $colDataType == 'text' || $colDataType == 'mediumtext' || $colDataType == 'mixed') {
             $retVal .= 'collate '.$this->getCollation().' ';
         }
         $retVal .= $this->commentPart();
@@ -233,7 +233,7 @@ class MySQLColumn extends Column {
         if ($defaultVal !== null) {
             $dt = $this->getDatatype();
 
-            if ($dt == 'varchar' || $dt == 'text' || $dt == 'mediumtext' || 
+            if ($dt == 'varchar' || $dt == 'char' || $dt == 'text' || $dt == 'mediumtext' || 
                     //$dt == 'timestamp' || $dt == 'datetime' || 
                     $dt == 'tinyblob' || $dt == 'blob' || $dt == 'mediumblob' || 
                     $dt == 'longblob' || $dt == 'decimal' || $dt == 'float' || $dt == 'double'
@@ -313,7 +313,7 @@ class MySQLColumn extends Column {
             return 'float'.$isNullStr;
         } else  if (in_array($colType, Column::BOOL_TYPES)) {
             return 'bool'.$isNullStr;
-        } else if ($colType == 'varchar' || $colType == 'datetime'
+        } else if ($colType == 'varchar' || $colType == 'char' || $colType == 'datetime'
                 || $colType == 'timestamp' || $colType == 'blob'
                 || $colType == 'mediumblob') {
             return 'string'.$isNullStr;
@@ -524,10 +524,11 @@ class MySQLColumn extends Column {
         return false;
     }
     /**
-     * Sets the size of data (for numercal types and 'varchar' only). 
+     * Sets the size of data (for numercal types, 'char' and 'varchar' only). 
      * 
      * If the data type of the column is 'int', the maximum size is 11. If a 
      * number greater than 11 is given, the value will be set to 11. The 
+     * maximum size for 'char' is 255. The
      * maximum size for the 'varchar' is 21845. If a value greater that that is given, 
      * the datatype of the column will be changed to 'mediumtext'.
      * For decimal, double and float data types, the value will represent 
@@ -553,6 +554,9 @@ class MySQLColumn extends Column {
 
         if (in_array($type, Column::BOOL_TYPES)) {
             $retVal = parent::setSize(1);
+        } else if ($type == 'char') {
+            // MySQL allows CHAR(0..255).
+            $retVal = $size <= 255 && parent::setSize($size);
         } else if ($type == 'varchar' || $type == 'text') {
             $retVal = $this->textTypeSize($size);
         } else if ($type == 'int') {
@@ -581,7 +585,7 @@ class MySQLColumn extends Column {
             }
         } else if ($colDatatype == 'decimal' || $colDatatype == 'float' || $colDatatype == 'double') {
             $cleanedVal = "'".floatval($val)."'";
-        } else if ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
+        } else if ($colDatatype == 'varchar' || $colDatatype == 'char' || $colDatatype == 'text' || $colDatatype == 'mediumtext') {
             $ownerTable = $this->getOwner();
 
             if ($ownerTable !== null) {
@@ -627,7 +631,7 @@ class MySQLColumn extends Column {
         }
         $retVal = call_user_func($this->getCustomCleaner(), $val, $cleanedVal);
 
-        if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'text' || $colDatatype == 'mediumtext')) {
+        if ($retVal !== null && ($colDatatype == 'varchar' || $colDatatype == 'char' || $colDatatype == 'text' || $colDatatype == 'mediumtext')) {
             return "'".$retVal."'";
         }
 
@@ -695,7 +699,7 @@ class MySQLColumn extends Column {
             } else {
                 $retVal .= $colDataType.'('.$this->getSize().') ';
             }
-        } else if ($colDataType == 'varchar') {
+        } else if ($colDataType == 'varchar' || $colDataType == 'char') {
             $retVal .= $colDataType.'('.$this->getSize().') ';
         } else if ($colDataType == 'text') {
             $retVal .= 'text ';
