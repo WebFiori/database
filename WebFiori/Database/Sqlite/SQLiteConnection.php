@@ -35,6 +35,13 @@ use WebFiori\Database\ResultSet;
  */
 class SQLiteConnection extends Connection {
     /**
+     * The id of the last builder insert when it is not an auto-increment value.
+     * Null means that the rowid reported by SQLite should be used.
+     * 
+     * @var string|int|null
+     */
+    private $lastInsertKey = null;
+    /**
      * The SQLite3 connection instance.
      * 
      * @var SQLite3|null
@@ -47,13 +54,6 @@ class SQLiteConnection extends Connection {
      * @var SQLite3Stmt|null
      */
     private ?SQLite3Stmt $stmt = null;
-    /**
-     * The id of the last builder insert when it is not an auto-increment value.
-     * Null means that the rowid reported by SQLite should be used.
-     * 
-     * @var string|int|null
-     */
-    private $lastInsertKey = null;
 
     /**
      * Creates a new SQLite connection instance.
@@ -265,6 +265,23 @@ class SQLiteConnection extends Connection {
     }
 
     /**
+     * Fetches all rows from a SQLite3Result into a ResultSet.
+     * 
+     * @param SQLite3Result $result The result object from a query execution.
+     * 
+     * @return ResultSet A result set containing all fetched rows as associative arrays.
+     */
+    private function fetchResult(SQLite3Result $result): ResultSet {
+        $rows = [];
+
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $rows[] = $row;
+        }
+
+        return new ResultSet($rows);
+    }
+
+    /**
      * Checks if a raw INSERT targets a table whose rowid is not its key.
      * 
      * The rowid is a real id only when the table has a single INTEGER PRIMARY
@@ -307,23 +324,6 @@ class SQLiteConnection extends Connection {
         $info->finalize();
 
         return !(count($pkCols) === 1 && strtoupper($pkCols[0]['type']) === 'INTEGER');
-    }
-
-    /**
-     * Fetches all rows from a SQLite3Result into a ResultSet.
-     * 
-     * @param SQLite3Result $result The result object from a query execution.
-     * 
-     * @return ResultSet A result set containing all fetched rows as associative arrays.
-     */
-    private function fetchResult(SQLite3Result $result): ResultSet {
-        $rows = [];
-
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $rows[] = $row;
-        }
-
-        return new ResultSet($rows);
     }
 
     /**

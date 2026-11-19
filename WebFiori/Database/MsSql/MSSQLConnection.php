@@ -274,14 +274,6 @@ class MSSQLConnection extends Connection {
 
         return true;
     }
-    private function runDBCC() {
-        $sql = $this->getLastQuery()->getQuery();
-        $queryBulder = $this->getLastQuery();
-
-        sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
-
-        return true;
-    }
     /**
      * Finds the generated id in the results of an insert batch.
      * 
@@ -303,6 +295,14 @@ class MSSQLConnection extends Connection {
         } while ($next);
 
         return $id;
+    }
+    private function runDBCC() {
+        $sql = $this->getLastQuery()->getQuery();
+        $queryBulder = $this->getLastQuery();
+
+        sqlsrv_query($this->link, $sql, $queryBulder->getBindings());
+
+        return true;
     }
     private function runInsertQuery() {
         $this->lastInsertId = 0;

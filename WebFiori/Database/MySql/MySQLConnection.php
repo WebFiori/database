@@ -36,6 +36,7 @@ use WebFiori\Database\ResultSet;
  * 
  */
 class MySQLConnection extends Connection {
+    private $isCollationSet;
     /**
      * The id of the last builder insert when it is not an auto-increment value.
      * Null means that the value reported by MySQL should be used.
@@ -43,7 +44,6 @@ class MySQLConnection extends Connection {
      * @var string|int|null
      */
     private $lastInsertKey = null;
-    private $isCollationSet;
     /**
      *
      * @var mysqli|null
