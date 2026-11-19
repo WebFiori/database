@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.2.4](https://github.com/WebFiori/database/compare/v2.2.3...v2.2.4) (2026-11-19)
+
+
+### Bug Fixes
+
+* **connection:** getLastInsertId() returns the real id and supports UUID keys ([df32615](https://github.com/WebFiori/database/commit/df32615abf9e4bde51c543c1ed6cbbd3847f0f14)), closes [#179](https://github.com/WebFiori/database/issues/179)
+* getLastInsertId() for SQL Server and UUID keys, raw insert params, defaulted columns, MySQL CHAR size ([b43ac6a](https://github.com/WebFiori/database/commit/b43ac6a6c208b0f29ea03b3b638743e5299de3d3))
+* **insert:** do not add a defaulted column twice when given by name ([3027437](https://github.com/WebFiori/database/commit/3027437830cc873bb776f292b62779d8eaee5c22)), closes [#180](https://github.com/WebFiori/database/issues/180)
+* **mysql:** DataType::CHAR ignores its size ([44534d5](https://github.com/WebFiori/database/commit/44534d5e286b70aec8694bbc05b1fb2f5027ed51)), closes [#181](https://github.com/WebFiori/database/issues/181)
+* **query:** do not reuse the previous insert builder for raw statements ([4a98a16](https://github.com/WebFiori/database/commit/4a98a169efb276e0f6ec1924cfd9cacb0fa3926d)), closes [#178](https://github.com/WebFiori/database/issues/178)
+
 ## [2.2.3](https://github.com/WebFiori/database/compare/v2.2.2...v2.2.3) (2026-06-17)
 
 
