@@ -47,6 +47,13 @@ class SQLiteConnection extends Connection {
      * @var SQLite3Stmt|null
      */
     private ?SQLite3Stmt $stmt = null;
+    /**
+     * The id of the last builder insert when it is not an auto-increment value.
+     * Null means that the rowid reported by SQLite should be used.
+     * 
+     * @var string|int|null
+     */
+    private $lastInsertKey = null;
 
     /**
      * Creates a new SQLite connection instance.
@@ -122,11 +129,27 @@ class SQLiteConnection extends Connection {
     /**
      * Returns the last auto-generated row ID from an INSERT operation.
      * 
-     * @return int The row ID of the most recent successful INSERT, or 0 if
+     * For a query-builder insert into a table whose key is not an
+     * auto-increment integer (for example a UUID), the method returns the key
+     * of the inserted row as string, or 0 if the table has no usable key. For
+     * a raw INSERT, the SQLite rowid is returned only if the target table has
+     * an INTEGER PRIMARY KEY (the rowid is then the key). For other tables the
+     * method returns 0. If the table cannot be determined from the statement
+     * (for example a schema-qualified name), the rowid is returned.
+     * 
+     * @return string|int The ID of the most recent successful INSERT, or 0 if
      * no connection is established.
      */
-    public function getLastInsertId(): int {
-        return $this->link !== null ? $this->link->lastInsertRowID() : 0;
+    public function getLastInsertId(): string|int {
+        if ($this->link === null) {
+            return 0;
+        }
+
+        if ($this->lastInsertKey !== null) {
+            return $this->lastInsertKey;
+        }
+
+        return $this->link->lastInsertRowID();
     }
 
     /**
@@ -203,6 +226,10 @@ class SQLiteConnection extends Connection {
             // For insert queries, get bindings from the insert builder
             $insertBuilder = $queryObj->getInsertBuilder();
 
+            if ($queryObj->getLastQueryType() === 'insert') {
+                $this->lastInsertKey = null;
+            }
+
             if ($insertBuilder !== null && $queryObj->getLastQueryType() === 'insert') {
                 $bindings = $insertBuilder->getQueryParams();
             } else {
@@ -215,6 +242,16 @@ class SQLiteConnection extends Connection {
                 $result = $this->runDirect($sql, $queryObj);
             }
 
+            if ($result && $insertBuilder !== null && $queryObj->getLastQueryType() === 'insert' && !$insertBuilder->isKeyGenerated()) {
+                // The key is not auto-increment: report the key of the inserted row.
+                $this->lastInsertKey = $insertBuilder->getKeyValue() ?? 0;
+            }
+
+            if ($result && $insertBuilder === null && $queryObj->getLastQueryType() === 'insert' && $this->rawInsertHasNoRowidKey($sql)) {
+                // SQLite reports the rowid even when the table has no integer key.
+                $this->lastInsertKey = 0;
+            }
+
             // Reset bindings after execution to prevent accumulation
             $queryObj->resetBinding();
 
@@ -225,6 +262,51 @@ class SQLiteConnection extends Connection {
 
             throw new DatabaseException($e->getMessage(), $e->getCode());
         }
+    }
+
+    /**
+     * Checks if a raw INSERT targets a table whose rowid is not its key.
+     * 
+     * The rowid is a real id only when the table has a single INTEGER PRIMARY
+     * KEY column (SQLite makes it an alias of the rowid). Tables with a UUID
+     * or text key, composite keys, no key, or WITHOUT ROWID tables are not.
+     * 
+     * @param string $sql The INSERT statement.
+     * 
+     * @return bool True if the table was found and its rowid is not its key.
+     * False if it has an integer key or the table could not be determined from
+     * the statement (for example schema-qualified names), in which case the
+     * rowid is reported.
+     */
+    private function rawInsertHasNoRowidKey(string $sql): bool {
+        $pattern = '/^\s*insert\s+(?:or\s+\w+\s+)?into\s+(?:"([^"]+)"|`([^`]+)`|\[([^\]]+)\]|([\w$]+))(?!\s*\.)/i';
+
+        if (!preg_match($pattern, $sql, $m)) {
+            return false;
+        }
+        $table = '';
+
+        for ($i = 1; $i <= 4; $i++) {
+            if (isset($m[$i]) && $m[$i] !== '') {
+                $table = $m[$i];
+                break;
+            }
+        }
+        $info = $this->link->query('PRAGMA table_info("'.str_replace('"', '""', $table).'")');
+
+        if ($info === false) {
+            return false;
+        }
+        $pkCols = [];
+
+        while ($row = $info->fetchArray(SQLITE3_ASSOC)) {
+            if ((int) $row['pk'] > 0) {
+                $pkCols[] = $row;
+            }
+        }
+        $info->finalize();
+
+        return !(count($pkCols) === 1 && strtoupper($pkCols[0]['type']) === 'INTEGER');
     }
 
     /**

@@ -3,8 +3,10 @@
 namespace WebFiori\Tests\Database\MsSql;
 
 use PHPUnit\Framework\TestCase;
+use WebFiori\Database\ColOption;
 use WebFiori\Database\ConnectionInfo;
 use WebFiori\Database\Database;
+use WebFiori\Database\DataType;
 use WebFiori\Database\MsSql\MSSQLConnection;
 
 class MSSQLLastInsertIdTest extends TestCase {
@@ -34,6 +36,40 @@ class MSSQLLastInsertIdTest extends TestCase {
         $db->raw("DROP TABLE last_id_test")->execute();
         $db->close();
         \WebFiori\Database\ConnectionPool::reset();
+    }
+
+    /**
+     * Reproduces issue #179 using the query builder, then raw().
+     * 
+     * @test
+     */
+    public function testGetLastInsertIdAfterQueryBuilderInsert() {
+        if (PHP_MAJOR_VERSION == 5) {
+            $this->markTestSkipped('PHP 5 has no MSSQL driver.');
+        }
+        $connInfo = new ConnectionInfo('mssql', 'sa', getenv('SA_SQL_SERVER_PASSWORD'), 'testing_db', SQL_SERVER_HOST, 1433, [
+            'TrustServerCertificate' => 'true'
+        ]);
+        $db = new Database($connInfo);
+
+        $db->raw("IF OBJECT_ID('last_id_qb_test', 'U') IS NOT NULL DROP TABLE last_id_qb_test")->execute();
+        $db->raw("CREATE TABLE last_id_qb_test (id INT IDENTITY(1,1) PRIMARY KEY, name VARCHAR(50) NOT NULL)")->execute();
+        $db->addTable($db->createBlueprint('last_id_qb_test')->addColumns([
+            'id' => [ColOption::TYPE => DataType::INT, ColOption::PRIMARY => true, ColOption::IDENTITY => true],
+            'name' => [ColOption::TYPE => DataType::VARCHAR, ColOption::SIZE => 50],
+        ]));
+
+        try {
+            $db->table('last_id_qb_test')->insert(['name' => 'first'])->execute();
+            $this->assertEquals(1, $db->getLastInsertId());
+
+            $db->raw('INSERT INTO last_id_qb_test (name) VALUES (?)', ['second'])->execute();
+            $this->assertEquals(2, $db->getLastInsertId());
+        } finally {
+            $db->raw("DROP TABLE last_id_qb_test")->execute();
+            $db->close();
+            \WebFiori\Database\ConnectionPool::reset();
+        }
     }
 
     /**
