@@ -379,6 +379,9 @@ class MSSQLConnection extends Connection {
 
         // Collect all result sets
         $allResults = [];
+        // Whether each result set has columns. A result with no columns is the
+        // row count message of a statement, not data.
+        $hasColumns = [(int) sqlsrv_num_fields($r) > 0];
 
         // First result set
         if (sqlsrv_has_rows($r)) {
@@ -394,6 +397,7 @@ class MSSQLConnection extends Connection {
 
         // Additional result sets
         while (sqlsrv_next_result($r)) {
+            $hasColumns[] = (int) sqlsrv_num_fields($r) > 0;
             $data = [];
 
             while ($row = sqlsrv_fetch_array($r, SQLSRV_FETCH_ASSOC)) {
@@ -404,15 +408,25 @@ class MSSQLConnection extends Connection {
 
         if ($captureIdentity) {
             $idResult = array_pop($allResults);
+            array_pop($hasColumns);
             $id = $idResult[0]['wf_last_id'] ?? null;
             $this->lastInsertId = $id === null ? 0 : (int) $id;
+
+            // A statement with parameters runs through sp_executesql, which
+            // reports the row count of an INSERT ... OUTPUT as an empty result
+            // between its output rows and the appended SELECT. The caller did
+            // not write that statement, so it must not change the result shape.
+            while (count($allResults) > 1 && !end($hasColumns)) {
+                array_pop($allResults);
+                array_pop($hasColumns);
+            }
         }
 
         // Set result
         if (count($allResults) > 1) {
             $this->setResultSet(new MultiResultSet($allResults));
         } else {
-            $this->setResultSet(new ResultSet($allResults[0]));
+            $this->setResultSet(new ResultSet($allResults[0] ?? []));
         }
 
         return true;
