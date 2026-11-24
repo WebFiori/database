@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.5](https://github.com/WebFiori/database/compare/v2.2.4...v2.2.5) (2026-11-24)
+
+
+### Bug Fixes
+
+* **mssql:** raw() INSERT ... OUTPUT returns a ResultSet again ([01f8f70](https://github.com/WebFiori/database/commit/01f8f7051ac64333ab2b7f28d4bc28e2b78d872a))
+* **mssql:** raw() INSERT ... OUTPUT returns a ResultSet again ([a6cb912](https://github.com/WebFiori/database/commit/a6cb91207f4e093a1be0fce8aab55f380e498322)), closes [#185](https://github.com/WebFiori/database/issues/185)
+
 ## [2.2.4](https://github.com/WebFiori/database/compare/v2.2.3...v2.2.4) (2026-11-19)
 
 
